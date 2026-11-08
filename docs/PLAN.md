@@ -608,34 +608,28 @@ Each phase ends with something checkable.
 `prototype/afms/` holds the AFMS film scripts as they were on 2026-11-08: the reference
 for the golden-frame tests and for each phase's "done when". They stay unchanged; the
 package is written fresh in `src/flowreel/` (Phase 0 tidying is done there, not in the
-prototype). The film's own copy remains in the research repository until FlowReel
-reproduces it.
+prototype). The film's own copy stays in the research repository as the record of the
+submitted film.
 
 ## 23. Decisions
 
 | Topic | Decision (2026-11-08) |
 |---|---|
 | Name | FlowReel (command and package `flowreel`) |
-| Home | `/media/arunperiyal/Works/projects/FlowReel`, public on GitHub later |
+| Home | `/media/arunperiyal/Works/projects/FlowReel`; public on GitHub as `arunperiyal/FlowReel` |
+| Licence | MIT for FlowReel's code; the bundled Lato fonts stay under the OFL |
 | Users | Mostly Arun; public, so documentation enough for others to start |
 | Relation to flexflow | Independent; no wrapper; FlowReel reads flexflow's files itself |
+| PLT reader | FlowReel keeps its own copy, tested against a small PLT written by the solver |
 | Data formats, first release | flexflow PLT, OTHD and OISD, CSV series; plus `vtk` and `geometry` |
 | Config and text format | YAML everywhere (Section 15) |
-| Command layer | shellkit, one-shot and interactive (Section 13) |
+| Command layer | shellkit, one-shot and interactive (Section 13); public on GitHub, installed from there |
 | Camera editor | Desktop window |
 | Fonts | Lato bundled with its OFL licence |
-| When | Starting now |
+| Environment | The existing `flexflow_env` conda environment (Python 3.12) on the laptop, workstation and airavata |
+| AFMS prototype | Stays in the research repository as the record of the submitted film; this repository has a copy in `prototype/afms/` |
+| When | Starting now, with Phase 1 next |
 
 ## 24. Questions
 
-1. **Licence** for FlowReel's own code: MIT (short, permissive), BSD-3-Clause, or GPL-3.0
-   (changes must stay open)?
-2. **shellkit on GitHub:** is `arunperiyal/shellkit` public? A public FlowReel needs it
-   installable by others, from GitHub or PyPI.
-3. **The AFMS prototype in the research repository:** delete it once FlowReel reproduces
-   the film, or keep it there as the record of what was submitted?
-4. **The PLT reader:** keep a copy in FlowReel, or make the reader a small package that
-   both flexflow and FlowReel install?
-5. **GitHub:** create `arunperiyal/FlowReel` and push now, or after Phase 1?
-6. **Python version:** the render environments use 3.12; is 3.11 or later enough as the
-   minimum?
+None open. New ones are added here as the work raises them.

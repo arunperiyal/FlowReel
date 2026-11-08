@@ -21,6 +21,22 @@ AFMS 2026 video competition, is in [prototype/afms/](prototype/afms/); the packa
   freezes, frame-rate changes, fades and music, with caches keyed by content.
 - Run headless on clusters, in parallel, with Slurm scripts written for it.
 
+## Install
+
+FlowReel runs in the `flexflow_env` conda environment (Python 3.12) used for rendering:
+
+```bash
+conda activate flexflow_env
+pip install -e /media/arunperiyal/Works/projects/FlowReel
+```
+
+ffmpeg must be on the path (`conda install -c conda-forge ffmpeg` where the system has
+none).
+
+## Licence
+
+MIT, see [LICENSE](LICENSE).
+
 ## Fonts
 
 FlowReel bundles the Lato typeface by Łukasz Dziedzic, under the SIL Open Font Licence

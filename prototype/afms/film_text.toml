@@ -1,0 +1,376 @@
+# Every piece of text in the film. Edit this file, then run:  python make_film.py film
+# That takes about a minute; frames are not redrawn. Delete a [[caption]] block to drop it.
+#
+# Caption fields
+#   shot    which shot it sits on: domain, bare_reveal, carve, helical_reveal, compare,
+#           top, slices, section, wall, liftmap, end
+#   lines   one string per line
+#   start   seconds from the start of the shot (freezes included, see below)
+#   end     seconds from the start of the shot; leave it out to stay to the end
+#   place   "bottom", "top" or "centre", or [x, y] in pixels for the top-left corner
+#           of the text, or ["centre", y] to centre it across the frame with its top
+#           at y. The frame is 1920 x 1080, with [0, 0] at the top left
+#   size    letter height in pixels (default 50)
+#   align   "left" or "centre" (default "centre")
+#   colour  a colour such as "#f5a142" (default near-white)
+#   box     true puts a dark panel behind the text (default false: a soft shadow)
+#           Text between $ signs is set as mathematics (LaTeX, as in matplotlib):
+#           "rms $C_L$", "$m^* = 10$", "$12D \\times 30D$"
+#   arrows  [[x1, y1, x2, y2], ...] in pixels, each pointing from x1, y1 to x2, y2;
+#           drawn in the caption's colour and faded with it. arrow_width sets the width
+#
+# Shot lengths: opening as set below, domain 12 s (7 s still, then the move in),
+# bare_reveal 15.1 s, carve 12 s, helical_reveal 15.1 s, compare 15.1 s plus its
+# freezes, top, slices, section and wall 6.1 s each, liftmap 6 s, end 13 s.
+
+[opening]
+title = ["Effect of Helical Groove on Suppression of", "Vortex-Induced Vibration in Flexible Cylinders"]
+created_by = ["Arun Periyal"]
+coauthors = ["Ritwik Ghoshal, Vaibhav Joshi,", "Abhijeet Sajjan and Arun Jyoti Sarkar"]
+seconds = 7
+
+# Music under the whole film. Delete this section for a silent film.
+#   file      relative to this folder
+#   volume    1.0 as recorded; 0.5 is half
+#   start     seconds into the track to begin from
+#   fade_in, fade_out   seconds; the fade out ends with the film
+# Pixabay track: the Pixabay Content License allows use without credit. Keep a copy of
+# the licence page for this track with the entry, since the copyright passes to AFMS.
+[audio]
+file = "assets/nastelbom-background-music-602454.mp3"
+volume = 0.8
+start = 0
+fade_in = 1.5
+fade_out = 4
+
+# Names and colours of the two cases: used for the comparison labels and the plot legend.
+[cases]
+bare = { name = "Smooth", colour = "#e6e9ec" }
+helical = { name = "Helical grooves", colour = "#f5a142" }
+
+# Axis labels of the live plots in the comparison. Matplotlib mathtext between $ signs.
+[plots]
+time = "$tU/D$"
+displacement = "Mid-span $y/D$"
+lift = "$C_L$"
+drag = "$C_D$"
+span = "Span $x/D$"
+sectional_lift = "Sectional $C_L$"
+
+# The set-up, over the still wide view of the domain (it holds for the first 7 s).
+# Places are for that view; the labels must end before the camera moves, at 7 s.
+[[caption]]
+shot = "domain"
+lines = ["Inlet", "uniform flow, $U = 1$"]
+start = 1.0
+end = 6.9
+place = [250, 575]
+size = 32
+align = "left"
+colour = "#6fb6d6"
+
+[[caption]]
+shot = "domain"
+lines = ["Outlet", "$p = 0$"]
+start = 1.6
+end = 6.9
+place = [1400, 420]
+size = 32
+align = "left"
+arrows = [[1395, 445, 1300, 462]]
+
+[[caption]]
+shot = "domain"
+lines = ["Slip walls: top, bottom and both span ends"]
+start = 2.2
+end = 6.9
+place = [640, 120]
+size = 32
+align = "left"
+arrows = [[935, 168, 958, 252]]
+
+[[caption]]
+shot = "domain"
+lines = ["Clamped at both ends", "moves cross-flow (y) only"]
+start = 2.8
+end = 6.9
+place = [760, 655]
+size = 30
+align = "left"
+colour = "#f5a142"
+arrows = [[850, 650, 915, 618]]
+
+[[caption]]
+shot = "domain"
+lines = ["$Re = 1000$", "Mass ratio $m^* = 10$", "Reduced velocity $U_r = 5.4$", "Domain $12D \\times 30D \\times 40D$"]
+start = 3.4
+end = 6.9
+place = [1420, 640]
+size = 32
+align = "left"
+box = true
+
+[[caption]]
+shot = "bare_reveal"
+lines = ["A smooth, flexible cylinder in a steady current,", "vibrating in its first bending mode"]
+start = 0.8
+end = 5.5
+arrows = [[600, 858, 475, 745]]
+
+[[caption]]
+shot = "bare_reveal"
+lines = ["Each cycle sheds one vortex from each side (the 2S mode),", "pushing the cylinder up and down"]
+start = 9.0
+end = 14.2
+arrows = [[720, 858, 650, 690]]
+
+# Grooves are cut into the smooth cylinder.
+[[caption]]
+shot = "carve"
+lines = ["What if we change only the surface?"]
+start = 0.6
+end = 3.4
+place = "top"
+
+[[caption]]
+shot = "carve"
+lines = ["Four helical grooves, cut along the span"]
+start = 4.0
+end = 7.4
+arrows = [[1150, 925, 1282, 605]]
+
+[[caption]]
+shot = "carve"
+lines = ["Each groove 0.08D deep and 0.2D wide,", "one full turn over the 12D span"]
+start = 8.4
+end = 10.6
+place = [1080, 50]
+size = 36
+align = "left"
+colour = "#f5a142"
+box = true
+arrows = [[1250, 150, 965, 470]]
+
+[[caption]]
+shot = "helical_reveal"
+lines = ["Same flow, same cylinder, now with helical grooves"]
+start = 1.0
+end = 5.5
+arrows = [[640, 930, 475, 745]]
+
+# Case labels on the two wake panels, for the whole comparison.
+[[caption]]
+shot = "compare"
+lines = ["Smooth"]
+start = 0
+place = [40, 28]
+size = 40
+align = "left"
+colour = "#e6e9ec"
+
+[[caption]]
+shot = "compare"
+lines = ["Helical grooves"]
+start = 0
+place = [40, 568]
+size = 40
+align = "left"
+colour = "#f5a142"
+
+# The wake seen from above, span across and flow down: smooth left, helical right.
+[[caption]]
+shot = "top"
+lines = ["Smooth", "vortices bow and tangle as it swings"]
+start = 0
+place = [180, 965]
+size = 32
+align = "left"
+colour = "#e6e9ec"
+
+[[caption]]
+shot = "top"
+lines = ["Helical grooves", "straighter rows, pin-like streamwise vortices"]
+start = 0
+place = [1140, 965]
+size = 32
+align = "left"
+colour = "#f5a142"
+
+[[caption]]
+shot = "top"
+lines = ["Seen from above"]
+start = 0.8
+end = 5.4
+place = [800, 470]
+size = 34
+
+# Slices along the span, smooth above, helical below.
+[[caption]]
+shot = "slices"
+lines = ["Smooth"]
+start = 0
+place = [40, 28]
+size = 40
+align = "left"
+colour = "#e6e9ec"
+
+[[caption]]
+shot = "slices"
+lines = ["Helical grooves"]
+start = 0
+place = [40, 568]
+size = 40
+align = "left"
+colour = "#f5a142"
+
+[[caption]]
+shot = "slices"
+lines = ["Spanwise vorticity at a quarter, half and three-quarters of the span"]
+start = 0.8
+end = 5.4
+place = "top"
+size = 36
+box = true
+
+# Mid-span section of the helical cylinder; the box on the left is the close view on the right.
+[[caption]]
+shot = "section"
+lines = ["Flow recirculates inside each groove;", "the boundary layer leaves the groove edge"]
+start = 0.8
+end = 5.4
+place = [1110, 905]
+size = 34
+align = "left"
+arrows = [[1240, 900, 1298, 762], [1560, 900, 1378, 650]]
+
+# Where the flow leaves the wall (white line): smooth above, helical below.
+[[caption]]
+shot = "wall"
+lines = ["Smooth"]
+start = 0
+place = [40, 28]
+size = 40
+align = "left"
+colour = "#e6e9ec"
+
+[[caption]]
+shot = "wall"
+lines = ["Helical grooves"]
+start = 0
+place = [40, 568]
+size = 40
+align = "left"
+colour = "#f5a142"
+
+[[caption]]
+shot = "wall"
+lines = ["White line: where the flow leaves the surface.", "The grooves break it up along the span."]
+start = 0.8
+end = 5.4
+place = "centre"
+size = 40
+arrows = [[960, 470, 1100, 250], [960, 612, 1100, 800]]
+
+# Sectional lift along the span against time; case names are drawn in the plot.
+[[caption]]
+shot = "liftmap"
+lines = ["Smooth: lift rises and falls", "in step along the span"]
+start = 0.8
+place = [1460, 200]
+size = 34
+align = "left"
+colour = "#e6e9ec"
+arrows = [[1455, 230, 1000, 280]]
+
+[[caption]]
+shot = "liftmap"
+lines = ["Grooved: weak, and", "broken up along the span"]
+start = 1.6
+place = [1460, 700]
+size = 34
+align = "left"
+colour = "#f5a142"
+arrows = [[1455, 730, 1000, 770]]
+
+# The same two on the closing hold of the lift map, fading out with the picture.
+[[caption]]
+shot = "end"
+lines = ["Smooth: lift rises and falls", "in step along the span"]
+start = 0
+end = 2.5
+place = [1460, 200]
+size = 34
+align = "left"
+colour = "#e6e9ec"
+arrows = [[1455, 230, 1000, 280]]
+
+[[caption]]
+shot = "end"
+lines = ["Grooved: weak, and", "broken up along the span"]
+start = 0
+end = 2.5
+place = [1460, 700]
+size = 34
+align = "left"
+colour = "#f5a142"
+arrows = [[1455, 730, 1000, 770]]
+
+[[caption]]
+shot = "end"
+lines = ["Helical grooves: a passive way", "to calm vortex-induced vibration"]
+start = 2.8
+end = 6.4
+place = "centre"
+
+[[caption]]
+shot = "end"
+lines = ["Thanks for watching"]
+start = 6.8
+end = 12.6
+place = ["centre", 330]
+size = 56
+
+# Acknowledgement, in small print below the thanks.
+[[caption]]
+shot = "end"
+lines = ["The authors gratefully acknowledge the financial support provided by the Ministry of Earth Sciences",
+         "(MoES), Government of India, under the project No. MOES/PAMC/DOM/167/2023 (E-14621).",
+         "This work used the Supercomputing Facility of Indian Institute of Technology (IIT) Kharagpur,",
+         "established under the National Supercomputing Mission (NSM), Government of India,",
+         "and is supported by the Centre for Development of Advanced Computing (CDAC), Pune."]
+start = 7.2
+end = 12.6
+place = ["centre", 480]
+size = 26
+colour = "#b4bec8"
+
+# Freezes stop the picture part way through a flow shot and show text while it is still.
+#   shot   the flow shot to stop
+#   at     seconds of flow before it stops, counted without earlier freezes
+#   hold   seconds it stays still; the shot grows by this much
+#   lines, place, size, align, colour, box, arrows   as for captions; shown during the hold
+# Captions on the same shot count time with the freezes included: a caption after a
+# 5 s freeze at 4 s that should appear 2 s later in the flow starts at 4 + 5 + 2 = 11.
+# Drag is left out until the helical drag from OISD is checked (it differs by about 8 %
+# from an independent integral of the surface traction).
+[[freeze]]
+shot = "compare"
+at = 5.0
+hold = 6.0
+lines = ["Cross-flow motion at mid-span: 43% smaller", "rms $y/D$: 0.69 → 0.39"]
+place = [80, 420]
+size = 42
+align = "left"
+box = true
+arrows = [[1010, 445, 1390, 230]]
+
+[[freeze]]
+shot = "compare"
+at = 11.0
+hold = 6.0
+lines = ["Lift fluctuation: about 9 times smaller", "rms $C_L$: 0.55 → 0.06"]
+place = [80, 420]
+size = 42
+align = "left"
+box = true
+arrows = [[1010, 445, 1390, 535]]

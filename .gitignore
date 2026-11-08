@@ -1,0 +1,10 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+# Output of film projects
+frames/
+clips/
+cache/
+*.mp4

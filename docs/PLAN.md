@@ -581,7 +581,7 @@ Each phase ends with something checkable.
 ### 19.1 Phase 1 tasks
 
 Stacked branches, in order (each PR targets the one before; the first targets `main`).
-Branches 2 to 5 depend only on branch 1, so they can be built in parallel by agents
+Branches 2 to 5 depend only on branch 1 (branch 6 was added after them), so they can be built in parallel by agents
 (see `.claude/rules/git-workflow.md`) and then stacked in this order. One commit
 per task; tick the box in that commit.
 
@@ -625,7 +625,15 @@ per task; tick the box in that commit.
 - [x] Clamping and the time track (frames to steps, nearer step)
 - [x] Exact unit tests; docs
 
-**Branch 6: `phase1/reveal-golden`** (depends on branches 2, 4 and 5)
+**Branch 6: `phase1/general-bodies`** (any body, not only the cylinder; added 2026-11-13)
+- [x] Interface: `bodies()` names and `body(step, name=None)`; `vtk` and `geometry` follow
+- [ ] `flexflow`: the volume zone and every surface zone found in the file, no `cyl` default
+- [ ] PLT writer; synthetic files with tetrahedra, a triangle wall and two body zones
+- [ ] Total force and moment on any body
+- [ ] Wall fields on a closed body with no axis: Stokes flow past a sphere
+- [ ] Docs
+
+**Branch 7: `phase1/reveal-golden`** (depends on branches 2, 4, 5 and 6)
 - [ ] Generate small vtk data from the prototype's reveal case for the test
 - [ ] Golden reveal frame from airavata's `frames/`, downscaled, kept small
 - [ ] Minimal reveal render path using sources, fields and tracks

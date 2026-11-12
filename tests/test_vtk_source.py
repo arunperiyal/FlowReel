@@ -201,3 +201,26 @@ def test_no_body_and_no_series_raise_clearly(series):
         src.body(10)
     with pytest.raises(KeyError, match="no time series"):
         src.series("lift")
+
+
+def test_several_bodies_from_files(series):
+    pv.Cube(center=(1, 1, 1)).save(series / "box.vtp")
+    src = VtkSource(series / "wake_*.vtu", body={"ball": series / "body.vtp", "box": series / "box.vtp"})
+    assert src.bodies() == ["ball", "box"]
+    ball, box = src.body(10, "ball"), src.body(10, "box")
+    assert src.body(10).n_cells == ball.n_cells + box.n_cells
+    with pytest.raises(KeyError, match="ball, box"):
+        src.body(10, "nope")
+
+
+def test_several_bodies_from_blocks(tmp_path):
+    pv.MultiBlock({"fluid": grid(1), "a": pv.Sphere(), "b": pv.Cube()}).save(tmp_path / "mb_1.vtm")
+    src = VtkSource(tmp_path / "mb_*.vtm", body_block=["a", "b"])
+    assert src.bodies() == ["a", "b"]
+    assert src.body(1, "b").n_cells == 6
+    assert src.flow(1, ["U"], None).n_cells == grid(1).n_cells     # the flow is the block left
+
+
+def test_one_body_is_named_and_no_body_is_empty(series):
+    assert VtkSource(series / "wake_*.vtu", body=series / "body.vtp").bodies() == ["body"]
+    assert VtkSource(series / "wake_*.vtu").bodies() == []

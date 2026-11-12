@@ -150,3 +150,12 @@ def test_entry_points_name_the_adapters():
     for target in (targets["vtk"], targets["geometry"]):
         module, attribute = target.split(":")
         assert callable(getattr(import_module(module), attribute))
+
+
+def test_body_is_named_after_the_registered_body():
+    from flowreel.sources.geometry import GeometrySource
+    src = GeometrySource("grooved_cylinder", params={"samples": (21, 41)})
+    assert src.bodies() == ["grooved_cylinder"]
+    assert src.body(0, "grooved_cylinder").n_points == src.body(0).n_points
+    with pytest.raises(KeyError):
+        src.body(0, "sphere")

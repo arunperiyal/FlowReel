@@ -44,8 +44,15 @@ class Source(Protocol):
         """
         ...
 
-    def body(self, step: int) -> pv.PolyData:
-        """The wall surface at ``step``, deformed to that step."""
+    def bodies(self) -> list[str]:
+        """Names of the wall surfaces the source holds (empty if it has none)."""
+        ...
+
+    def body(self, step: int, name: str | None = None) -> pv.PolyData:
+        """The wall surface called ``name`` at ``step``, deformed to that step.
+
+        Without ``name``: every body in one surface (the body itself when there is one).
+        """
         ...
 
     def bounds(self) -> Box:

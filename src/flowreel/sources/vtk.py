@@ -13,7 +13,7 @@ import pandas as pd
 import pyvista as pv
 
 from flowreel.box import Box
-from flowreel.sources._util import outer_surface
+from flowreel.sources._util import merge_surfaces, outer_surface, pick_bodies
 from flowreel.sources.base import PRESSURE, VELOCITY, VELOCITY_COMPONENTS
 
 _WILDCARDS = re.compile(r"[*?\[]")
@@ -105,10 +105,11 @@ class VtkSource:
             if present, else a three-component ``velocity`` (or ``U``) array is split;
             pressure is ``p`` or ``pressure``.
         body: the wall surface, as one file (used at every step), a pattern or a ``.pvd``
-            (matched to the flow by step number). Volume cells are reduced to their
-            outer surface.
+            (matched to the flow by step number); or a mapping ``{name: file or pattern}``
+            for several bodies. Volume cells are reduced to their outer surface.
         body_block: name or index of the block holding the body, in the ``body`` files
-            if given, else in the flow files (which are then multiblock).
+            if given, else in the flow files (which are then multiblock). A list of
+            block names gives several bodies from the flow files.
         flow_block: name or index of the block holding the flow when the flow files are
             multiblock. Default: the only block that is not ``body_block``.
         dt: time of one step, so ``time = step * dt`` (pattern only; default 1).
@@ -122,7 +123,8 @@ class VtkSource:
     """
 
     def __init__(self, path: str | Path, *, names: Mapping[str, str] | None = None,
-                 body: str | Path | None = None, body_block: str | int | None = None,
+                 body: str | Path | Mapping[str, str | Path] | None = None,
+                 body_block: str | int | Sequence[str | int] | None = None,
                  flow_block: str | int | None = None,
                  dt: float | None = None,
                  times: Sequence[float] | Mapping[int, float] | None = None,
@@ -131,8 +133,23 @@ class VtkSource:
         self.path = str(path)
         self._files, pvd_times = _step_files(path, "flow")
         self._names = dict(names or {})
-        self._body_files = None if body is None else _step_files(body, "body")[0]
-        self._body_block = body_block
+        # name -> (files or None for "in the flow files", block key or None)
+        self._bodies: dict[str, tuple[dict[int, Path] | None, str | int | None]] = {}
+        blocks = (list(body_block) if isinstance(body_block, (list, tuple))
+                  else [body_block])
+        if isinstance(body, Mapping):
+            if body_block is not None:
+                raise ValueError("body_block cannot be combined with a mapping of bodies")
+            for key, where in body.items():
+                self._bodies[str(key)] = (_step_files(where, "body")[0], None)
+        elif body is not None:
+            if len(blocks) != 1:
+                raise ValueError("with a body file, body_block names one block")
+            self._bodies["body"] = (_step_files(body, "body")[0], blocks[0])
+        elif body_block is not None:
+            for key in blocks:
+                self._bodies[str(key)] = (None, key)
+        self._flow_skip = [key for files, key in self._bodies.values() if files is None]
         self._flow_block_key = flow_block
         unknown = set(self._names) - {*VELOCITY_COMPONENTS, VELOCITY, PRESSURE}
         if unknown:
@@ -201,11 +218,9 @@ class VtkSource:
         if self._flow_block_key is not None:
             return _block(data, self._flow_block_key, self.path)
         names = list(data.keys())
-        skip = None
-        if self._body_files is None and self._body_block is not None:
-            skip = (self._body_block if isinstance(self._body_block, int)
-                    else names.index(self._body_block) if self._body_block in names else None)
-        rest = [i for i in range(data.n_blocks) if i != skip]
+        skip = {key if isinstance(key, int) else names.index(key)
+                for key in self._flow_skip if isinstance(key, int) or key in names}
+        rest = [i for i in range(data.n_blocks) if i not in skip]
         if len(rest) != 1:
             raise ValueError(f"{self.name}: {self.path} holds the blocks {names}; "
                              "say which is the flow with flow_block")
@@ -366,14 +381,26 @@ class VtkSource:
 
     # ---- body and series ------------------------------------------------------------
 
-    def body(self, step: int) -> pv.PolyData:
-        """The wall surface at ``step``, from the ``body`` files or the ``body_block``.
+    def bodies(self) -> list[str]:
+        """Names of the bodies: the keys of a ``body`` mapping, the block names of
+        ``body_block``, or ``body`` for a single body file."""
+        return list(self._bodies)
 
-        Raises ``LookupError`` when the source was given neither.
+    def body(self, step: int, name: str | None = None) -> pv.PolyData:
+        """The wall surface ``name`` at ``step`` (all bodies in one surface without it).
+
+        Raises ``LookupError`` when the source was given no body.
         """
         self._check(step)
-        if self._body_files is not None:
-            files = self._body_files
+        if not self._bodies:
+            raise LookupError(f"{self.name}: no body; give the source a body file or "
+                              "pattern, or a body_block")
+        return merge_surfaces(self._one_body(step, key)
+                              for key in pick_bodies(name, self.bodies(), self.name))
+
+    def _one_body(self, step: int, name: str) -> pv.PolyData:
+        files, block = self._bodies[name]
+        if files is not None:
             if len(files) == 1:
                 file = next(iter(files.values()))
             elif step in files:
@@ -382,18 +409,15 @@ class VtkSource:
                 raise KeyError(f"{self.name}: no body file for step {step}")
             data = pv.read(str(file))
             if isinstance(data, pv.MultiBlock):
-                data = (_block(data, self._body_block, str(file))
-                        if self._body_block is not None else data.combine())
-        elif self._body_block is not None:
+                data = (_block(data, block, str(file))
+                        if block is not None else data.combine())
+        else:
             file = self._files[step]
             data = pv.read(str(file))
             if not isinstance(data, pv.MultiBlock):
                 raise ValueError(f"{self.name}: body_block needs multiblock files, "
                                  f"but {file} is a {type(data).__name__}")
-            data = _block(data, self._body_block, str(file))
-        else:
-            raise LookupError(f"{self.name}: no body; give the source a body file or "
-                              "pattern, or a body_block")
+            data = _block(data, block, str(file))
         return data if isinstance(data, pv.PolyData) else outer_surface(data)
 
     def series(self, name: str) -> pd.DataFrame:

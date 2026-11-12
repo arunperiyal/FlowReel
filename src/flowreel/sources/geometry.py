@@ -90,9 +90,15 @@ class GeometrySource:
         raise LookupError(f"{self.name}: a geometry source has no flow data, only the body "
                           f"{self.body_name!r}; use body(step), or a layer that needs no flow")
 
-    def body(self, step: int) -> pv.PolyData:
+    def bodies(self) -> list[str]:
+        """The one body's name."""
+        return [self.body_name]
+
+    def body(self, step: int, name: str | None = None) -> pv.PolyData:
         """The surface built from the source's parameters (the same at every step)."""
         self._check(step)
+        if name not in (None, self.body_name):
+            raise KeyError(f"{self.name}: no body {name!r}; bodies: {self.body_name}")
         return self._default().copy()
 
     def bounds(self) -> Box:

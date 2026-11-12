@@ -623,7 +623,7 @@ per task; tick the box in that commit.
 - [x] Easings: linear, smooth, in, out, in_out, hold
 - [x] Value types: number, vector, colour (linear RGB), boolean, choice
 - [x] Clamping and the time track (frames to steps, nearer step)
-- [ ] Exact unit tests; docs
+- [x] Exact unit tests; docs
 
 **Branch 6: `phase1/reveal-golden`** (depends on branches 2, 4 and 5)
 - [ ] Generate small vtk data from the prototype's reveal case for the test

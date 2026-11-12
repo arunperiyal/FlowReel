@@ -603,9 +603,9 @@ per task; tick the box in that commit.
 **Branch 3: `phase1/sources-flexflow`** (adapter for the solver)
 - [x] Copy `prototype/afms/fxplt.py` into `sources/flexflow/plt.py`, with a docstring and tests
 - [x] Cut a two-step PLT from real output (`ssh wsl` / `ssh airavata`) into `tests/data/`
-- [ ] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
+- [x] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
 - [ ] OTHD probe reader and OISD force reader in `series`
-- [ ] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
+- [x] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
 - [ ] Tests and docs
 
 **Branch 4: `phase1/fields-derived`** (algorithms)

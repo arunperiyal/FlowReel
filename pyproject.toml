@@ -25,6 +25,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7"]
 
+[project.entry-points."flowreel.sources"]
+flexflow = "flowreel.sources.flexflow:FlexflowSource"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

@@ -13,6 +13,7 @@ track's name and the offending key, so the message can be shown to the user as i
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from numbers import Real
@@ -74,6 +75,11 @@ def ease(name: str, t: float) -> float:
     return EASINGS[name](min(max(t, 0.0), 1.0))
 
 
+KINDS = ("number", "vector", "colour", "boolean", "choice")
+STEPPED = ("boolean", "choice")
+"""Kinds that cannot be interpolated: they switch at each key."""
+
+_HEX = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\Z")
 _SPEC_KEYS = ("from", "to", "frames", "keys", "ease")
 _TWO_KEY_FORM = ("from", "to", "frames")
 
@@ -99,15 +105,22 @@ class Track:
         return all(v == self.values[0] for v in self.values)
 
 
-def parse(spec, name: str = "track", default_ease: str = DEFAULT_EASE) -> Track:
+def parse(spec, kind: str | None = None, name: str = "track",
+          default_ease: str = DEFAULT_EASE) -> Track:
     """Build a :class:`Track` from a parsed YAML value.
 
     ``spec`` is a fixed value, ``{from, to, frames: [start, end]}`` or
     ``{keys: [[frame, value], ...]}``, the last two with an optional ``ease``.
+    ``kind`` is one of ``KINDS``. Leave it ``None`` to infer the kind from the values:
+    booleans, numbers, lists of numbers (vector), hex strings (colour), other strings
+    (choice). Pass ``"colour"`` where the option is a colour, so that RGB lists are read
+    as colours and not as vectors.
     ``name`` is the YAML key the spec came from and starts every error message.
     ``default_ease`` is used when the spec has no ``ease``.
     Raises ``ValueError`` for a malformed spec.
     """
+    if kind is not None and kind not in KINDS:
+        raise ValueError(f"{name}: unknown kind {kind!r} (allowed: {', '.join(KINDS)})")
     if isinstance(spec, Track):
         return spec
     if not isinstance(spec, Mapping):
@@ -140,8 +153,14 @@ def parse(spec, name: str = "track", default_ease: str = DEFAULT_EASE) -> Track:
     if ease_name is not None and ease_name not in EASE_NAMES:
         raise ValueError(f"{name}: unknown ease {ease_name!r} "
                          f"(allowed: {', '.join(EASE_NAMES)})")
-    values = _read_values(raw, name)
-    return Track(frames=frames, values=values, ease=ease_name or default_ease, name=name)
+    kind, values = _read_values(raw, kind, name)
+    if kind in STEPPED:
+        if ease_name not in (None, "hold"):
+            raise ValueError(f"{name}: ease {ease_name!r} cannot be used with {kind} "
+                             "values; they step from key to key (ease: hold)")
+        ease_name = "hold"
+    return Track(frames=frames, values=values, ease=ease_name or default_ease,
+                 kind=kind, name=name)
 
 
 def _read_keys(keys, name: str):
@@ -170,9 +189,128 @@ def _read_frames(frames, key: str, name: str) -> tuple[float, ...]:
     return tuple(frames)
 
 
-def _read_values(raw, name: str) -> tuple:
-    """Check the values of the keys and convert them to floats."""
-    for v in raw:
-        if isinstance(v, bool) or not isinstance(v, Real) or not math.isfinite(v):
-            raise ValueError(f"{name}: cannot use {v!r} as a track value")
-    return tuple(float(v) for v in raw)
+def _read_values(raw, kind: str | None, name: str) -> tuple[str, tuple]:
+    """Find the kind of the values (unless given) and convert them to it."""
+    if kind is None:
+        kinds = [_kind_of(v, name) for v in raw]
+        for other in kinds[1:]:
+            if other != kinds[0]:
+                raise ValueError(f"{name}: mixed value types ({kinds[0]} and {other}); "
+                                 "every key needs the same type")
+        kind = kinds[0]
+    values = tuple(_CONVERT[kind](v, name) for v in raw)
+    if kind == "vector":
+        for v in values[1:]:
+            if len(v) != len(values[0]):
+                raise ValueError(f"{name}: mixed value types (vectors of {len(values[0])} "
+                                 f"and {len(v)} components)")
+    return kind, values
+
+
+def _is_number(value) -> bool:
+    return (not isinstance(value, bool) and isinstance(value, Real)
+            and math.isfinite(value))
+
+
+def _kind_of(value, name: str) -> str:
+    """Infer the kind of one raw value."""
+    if isinstance(value, bool):
+        return "boolean"
+    if _is_number(value):
+        return "number"
+    if isinstance(value, str):
+        return "colour" if _HEX.match(value) else "choice"
+    if isinstance(value, (list, tuple)) and value and all(_is_number(c) for c in value):
+        return "vector"
+    raise ValueError(f"{name}: cannot use {value!r} as a track value")
+
+
+def _number(value, name: str) -> float:
+    if not _is_number(value):
+        raise ValueError(f"{name}: expected a number, got {value!r}")
+    return float(value)
+
+
+def _vector(value, name: str) -> tuple[float, ...]:
+    if not isinstance(value, (list, tuple)) or not value \
+            or not all(_is_number(c) for c in value):
+        raise ValueError(f"{name}: expected a list of numbers, got {value!r}")
+    return tuple(float(c) for c in value)
+
+
+def _colour(value, name: str) -> tuple[float, float, float]:
+    try:
+        return parse_colour(value)
+    except ValueError as err:
+        raise ValueError(f"{name}: {err}") from None
+
+
+def _boolean(value, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"{name}: expected true or false, got {value!r}")
+    return value
+
+
+def _choice(value, name: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{name}: expected a name (text), got {value!r}")
+    return value
+
+
+_CONVERT = {"number": _number, "vector": _vector, "colour": _colour,
+            "boolean": _boolean, "choice": _choice}
+
+
+def parse_colour(value) -> tuple[float, float, float]:
+    """Read a colour as an sRGB tuple of three floats in 0..1.
+
+    Accepts a hex string (``"#rgb"`` or ``"#rrggbb"``) or three numbers in 0..1
+    (not 0..255). Raises ``ValueError`` for anything else.
+    """
+    if isinstance(value, str):
+        if not _HEX.match(value):
+            raise ValueError(f"expected a colour as '#rgb' or '#rrggbb', got {value!r}")
+        digits = value[1:]
+        if len(digits) == 3:
+            digits = "".join(d * 2 for d in digits)
+        return tuple(int(digits[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    if isinstance(value, (list, tuple)) and len(value) == 3 \
+            and all(_is_number(c) and 0 <= c <= 1 for c in value):
+        return tuple(float(c) for c in value)
+    raise ValueError("expected a colour as a hex string or three numbers in 0..1, "
+                     f"got {value!r}")
+
+
+def srgb_to_linear(c: float) -> float:
+    """Decode one sRGB channel (0..1) to linear light (IEC 61966-2-1)."""
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def linear_to_srgb(c: float) -> float:
+    """Encode one linear-light channel (0..1) as sRGB (IEC 61966-2-1)."""
+    return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+
+def blend(kind: str, a, b, t: float):
+    """Return the value a fraction ``t`` (0..1, already eased) of the way from ``a`` to ``b``.
+
+    Numbers and vectors are interpolated; colours (sRGB tuples) are decoded, interpolated
+    in linear RGB and encoded again, which avoids the dark band a blend of sRGB values
+    gives. Booleans and choices cannot be interpolated: ``a`` holds until ``t`` reaches 1.
+    ``t = 0`` and ``t = 1`` return ``a`` and ``b`` exactly.
+    """
+    if t <= 0:
+        return a
+    if t >= 1:
+        return b
+    if kind in STEPPED:
+        return a
+    if kind == "number":
+        return a + (b - a) * t
+    if kind == "vector":
+        return tuple(x + (y - x) * t for x, y in zip(a, b))
+    if kind == "colour":
+        mixed = (x + (y - x) * t for x, y in zip(map(srgb_to_linear, a),
+                                                 map(srgb_to_linear, b)))
+        return tuple(linear_to_srgb(c) for c in mixed)
+    raise ValueError(f"unknown kind {kind!r} (allowed: {', '.join(KINDS)})")

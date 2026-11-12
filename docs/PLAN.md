@@ -621,7 +621,7 @@ per task; tick the box in that commit.
 **Branch 5: `phase1/tracks-easing`** (animation values)
 - [x] Track parsing: fixed, `from/to/frames`, `keys`
 - [x] Easings: linear, smooth, in, out, in_out, hold
-- [ ] Value types: number, vector, colour (linear RGB), boolean, choice
+- [x] Value types: number, vector, colour (linear RGB), boolean, choice
 - [ ] Clamping and the time track (frames to steps, nearer step)
 - [ ] Exact unit tests; docs
 

@@ -267,3 +267,32 @@ def sectional_force(grid, traction, frame, *, axis, sections=32, span=None) -> S
                              for k in range(3)])
     position = lo + width * (np.arange(sections) + 0.5)
     return SectionalForce(axis=index, position=position, width=float(width), force=force)
+
+
+@dataclass(frozen=True)
+class WallForce:
+    """Total load the fluid exerts on a wall of any shape.
+
+    ``force``: ``(3,)``, in the source's force unit (pressure unit times length squared).
+    ``moment``: ``(3,)`` moment of that load about the point ``about`` (force unit times
+    length), ``sum(r x dF)`` with ``r`` from ``about`` to each wall cell's centre.
+    """
+
+    force: np.ndarray
+    moment: np.ndarray
+    about: np.ndarray
+
+
+@register("wall_force", ("wall_traction", "wall_frame"))
+def wall_force(grid, traction, frame, *, about=(0.0, 0.0, 0.0)) -> WallForce:
+    """Traction integrated over the whole wall (a :class:`WallForce`): force and moment.
+
+    Works for a body of any shape; no axis is needed (use ``sectional_force`` for the
+    distribution along a slender body). ``about``: the point the moment is taken about,
+    default the origin. Give ``wall`` one body (``source.body(step, name)``) to get the
+    load on that body alone. The load is the one **on the body**.
+    """
+    about = np.asarray(about, dtype=float).reshape(3)
+    load = traction * frame.area[:, None]
+    moment = np.cross(frame.centre - about, load).sum(axis=0)
+    return WallForce(force=load.sum(axis=0), moment=moment, about=about)

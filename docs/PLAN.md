@@ -629,8 +629,8 @@ per task; tick the box in that commit.
 - [x] Interface: `bodies()` names and `body(step, name=None)`; `vtk` and `geometry` follow
 - [x] `flexflow`: the volume zone and every surface zone found in the file, no `cyl` default
 - [x] PLT writer; synthetic files with tetrahedra, a triangle wall and two body zones
-- [ ] Total force and moment on any body
-- [ ] Wall fields on a closed body with no axis: Stokes flow past a sphere
+- [x] Total force and moment on any body
+- [x] Wall fields on a closed body with no axis: Stokes flow past a sphere
 - [ ] Docs
 
 **Branch 7: `phase1/reveal-golden`** (depends on branches 2, 4, 5 and 6)

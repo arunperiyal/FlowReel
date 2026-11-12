@@ -609,7 +609,7 @@ per task; tick the box in that commit.
 - [ ] Tests and docs
 
 **Branch 4: `phase1/fields-derived`** (algorithms)
-- [ ] Field registry with declared needs; the gradient computed once per frame
+- [x] Field registry with declared needs; the gradient computed once per frame
 - [ ] `velocity_gradient`, `vorticity` and components
 - [ ] `Q` and `lambda2`
 - [ ] `speed`, `velocity_relative`, `pressure_coefficient`

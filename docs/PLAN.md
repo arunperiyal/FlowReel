@@ -614,7 +614,7 @@ per task; tick the box in that commit.
 - [x] `Q` and `lambda2`
 - [x] `speed`, `velocity_relative`, `pressure_coefficient`
 - [x] `wall_shear`, `skin_friction`
-- [ ] `sectional_force`
+- [x] `sectional_force`
 - [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
 - [ ] Docs: definition, meaning and sign convention of each field
 

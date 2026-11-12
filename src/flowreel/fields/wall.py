@@ -41,7 +41,8 @@ class WallFrame:
     ``centre``: ``(n_cells, 3)`` cell centres. ``nodes``: ``(n_wall_points,)`` index of
     the flow node nearest to each wall node. ``gap``: largest distance between a wall
     node and its flow node (length unit). ``connectivity``, ``offsets``: the wall's cells
-    as point ids and the start of each cell in them.
+    as point ids and the start of each cell in them. ``lo``, ``hi``: ``(3,)`` corners of
+    the box around the wall's nodes.
     """
 
     normal: np.ndarray
@@ -51,6 +52,8 @@ class WallFrame:
     gap: float
     connectivity: np.ndarray
     offsets: np.ndarray
+    lo: np.ndarray
+    hi: np.ndarray
 
     def cell_mean(self, point_values) -> np.ndarray:
         """Mean over each wall cell's corners of values given per **wall** point."""
@@ -139,7 +142,9 @@ def wall_frame(grid, *, wall, wall_normals="auto", wall_tolerance=None) -> WallF
         vote = np.bincount(region, weights=side)
         normal = normal * np.where(vote[region] < 0, -1.0, 1.0)[:, None]
     return WallFrame(normal=normal, area=area, centre=centre, nodes=nodes, gap=gap,
-                     connectivity=connectivity, offsets=offsets)
+                     connectivity=connectivity, offsets=offsets,
+                     lo=np.min(surface.points, axis=0).astype(float),
+                     hi=np.max(surface.points, axis=0).astype(float))
 
 
 @register("wall_normal", "wall_frame")
@@ -184,3 +189,81 @@ def skin_friction(grid, shear, *, rho, u_inf) -> np.ndarray:
     ``q = rho * u_inf**2 / 2``. Same direction and sign convention as ``wall_shear``.
     """
     return shear / dynamic_pressure(rho, u_inf)
+
+
+@dataclass(frozen=True)
+class SectionalForce:
+    """Force on strips of the wall along an axis.
+
+    ``axis``: 0, 1 or 2. ``position``: ``(sections,)`` centre of each strip along the
+    axis. ``width``: strip length along the axis. ``force``: ``(sections, 3)`` force the
+    fluid exerts on each strip, in the source's force unit (pressure unit times length
+    squared).
+    """
+
+    axis: int
+    position: np.ndarray
+    width: float
+    force: np.ndarray
+
+    @property
+    def per_length(self) -> np.ndarray:
+        """Force per unit length along the axis, ``(sections, 3)``."""
+        return self.force / self.width
+
+    @property
+    def total(self) -> np.ndarray:
+        """Force on the whole wall inside the span, ``(3,)``."""
+        return self.force.sum(axis=0)
+
+
+def _axis_index(axis) -> int:
+    """0, 1 or 2 from an index or one of ``"x"``, ``"y"``, ``"z"``."""
+    if isinstance(axis, str) and axis.lower() in ("x", "y", "z"):
+        return "xyz".index(axis.lower())
+    if axis in (0, 1, 2):
+        return int(axis)
+    raise ValueError(f"axis must be 'x', 'y', 'z' or 0, 1, 2, not {axis!r}")
+
+
+@register("wall_traction", ("wall_pressure", "wall_shear", "wall_frame"))
+def wall_traction(grid, pressure, shear, frame, *, p_inf=0.0) -> np.ndarray:
+    """Force per unit area the fluid exerts on each wall cell, ``(n_cells, 3)``.
+
+    ``t = -(p - p_inf) n + wall_shear`` with ``n`` into the fluid: pressure pushes the
+    wall against its normal, shear drags it along the flow. The normal viscous stress is
+    left out; it vanishes on a no-slip wall in incompressible flow. ``p_inf`` (default 0)
+    does not change the force on a closed surface.
+    """
+    return -(pressure - float(p_inf))[:, None] * frame.normal + shear
+
+
+@register("sectional_force", ("wall_traction", "wall_frame"))
+def sectional_force(grid, traction, frame, *, axis, sections=32, span=None) -> SectionalForce:
+    """Traction integrated over strips of the wall along ``axis`` (a :class:`SectionalForce`).
+
+    ``axis``: ``"x"``, ``"y"``, ``"z"`` or 0, 1, 2, the direction the strips are stacked
+    along (the span of the body). ``sections``: number of equal strips. ``span``:
+    ``(lo, hi)`` along the axis; default the wall's own extent. A wall cell belongs to
+    the strip holding its centre; cells outside the span are left out. The force is the
+    one **on the body**; divide ``per_length`` by ``q * D`` for sectional coefficients.
+    """
+    index = _axis_index(axis)
+    sections = int(sections)
+    if sections < 1:
+        raise ValueError("sections must be at least 1")
+    along = frame.centre[:, index]
+    if span is None:
+        lo, hi = float(frame.lo[index]), float(frame.hi[index])
+    else:
+        lo, hi = (float(v) for v in span)
+    if not hi > lo:
+        raise ValueError(f"span must have hi > lo, got ({lo}, {hi})")
+    width = (hi - lo) / sections
+    inside = (along >= lo) & (along <= hi)
+    strip = np.clip(((along[inside] - lo) / width).astype(int), 0, sections - 1)
+    load = (traction * frame.area[:, None])[inside]
+    force = np.column_stack([np.bincount(strip, weights=load[:, k], minlength=sections)
+                             for k in range(3)])
+    position = lo + width * (np.arange(sections) + 0.5)
+    return SectionalForce(axis=index, position=position, width=float(width), force=force)

@@ -27,6 +27,8 @@ dev = ["pytest>=7"]
 
 [project.entry-points."flowreel.sources"]
 flexflow = "flowreel.sources.flexflow:FlexflowSource"
+vtk = "flowreel.sources.vtk:VtkSource"
+geometry = "flowreel.sources.geometry:GeometrySource"
 
 [tool.setuptools.packages.find]
 where = ["src"]

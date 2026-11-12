@@ -593,12 +593,12 @@ per task; tick the box in that commit.
 - [x] Docs: sources page (interface, naming of `U V W p`, units)
 
 **Branch 2: `phase1/sources-vtk-geometry`** (adapters, no solver files)
-- [ ] `vtk` adapter: `.pvd` and filename pattern, steps and time
-- [ ] `vtk` crop while reading, `memory_per_step`
-- [ ] `vtk` body from a second file or a named block
-- [ ] `geometry` adapter and the body registry
-- [ ] Body `grooved_cylinder` (parameters as tracks-ready values)
-- [ ] Tests and docs for both adapters
+- [x] `vtk` adapter: `.pvd` and filename pattern, steps and time
+- [x] `vtk` crop while reading, `memory_per_step`
+- [x] `vtk` body from a second file or a named block
+- [x] `geometry` adapter and the body registry
+- [x] Body `grooved_cylinder` (parameters as tracks-ready values)
+- [x] Tests and docs for both adapters
 
 **Branch 3: `phase1/sources-flexflow`** (adapter for the solver)
 - [x] Copy `prototype/afms/fxplt.py` into `sources/flexflow/plt.py`, with a docstring and tests

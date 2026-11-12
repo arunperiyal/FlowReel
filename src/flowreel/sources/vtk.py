@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 import numpy as np
+import pandas as pd
 import pyvista as pv
 
 from flowreel.box import Box
@@ -81,6 +82,18 @@ def _crop(mesh: pv.UnstructuredGrid, box: Box) -> pv.UnstructuredGrid:
                                pass_point_ids=False)
 
 
+def _block(data: pv.MultiBlock, key: str | int, where: str):
+    """Block ``key`` (a name or an index) of ``data``; nested blocks are merged."""
+    names = list(data.keys())
+    try:
+        block = data[key]
+    except (KeyError, IndexError):
+        block = None
+    if block is None:
+        raise KeyError(f"{where}: no block {key!r}; blocks are {names}")
+    return block.combine() if isinstance(block, pv.MultiBlock) else block
+
+
 class VtkSource:
     """A series of VTK files as a :class:`~flowreel.sources.Source`.
 
@@ -90,6 +103,13 @@ class VtkSource:
             the array's name in the files. Without it, ``U``/``V``/``W`` arrays are used
             if present, else a three-component ``velocity`` (or ``U``) array is split;
             pressure is ``p`` or ``pressure``.
+        body: the wall surface, as one file (used at every step), a pattern or a ``.pvd``
+            (matched to the flow by step number). Volume cells are reduced to their
+            outer surface.
+        body_block: name or index of the block holding the body, in the ``body`` files
+            if given, else in the flow files (which are then multiblock).
+        flow_block: name or index of the block holding the flow when the flow files are
+            multiblock. Default: the only block that is not ``body_block``.
         dt: time of one step, so ``time = step * dt`` (pattern only; default 1).
         times: the times, either one per step in ascending step order or a mapping
             ``{step: time}``. Overrides ``dt`` and the ``.pvd`` values.
@@ -101,6 +121,8 @@ class VtkSource:
     """
 
     def __init__(self, path: str | Path, *, names: Mapping[str, str] | None = None,
+                 body: str | Path | None = None, body_block: str | int | None = None,
+                 flow_block: str | int | None = None,
                  dt: float | None = None,
                  times: Sequence[float] | Mapping[int, float] | None = None,
                  name: str = "vtk"):
@@ -108,6 +130,9 @@ class VtkSource:
         self.path = str(path)
         self._files, pvd_times = _step_files(path, "flow")
         self._names = dict(names or {})
+        self._body_files = None if body is None else _step_files(body, "body")[0]
+        self._body_block = body_block
+        self._flow_block_key = flow_block
         unknown = set(self._names) - {*VELOCITY_COMPONENTS, VELOCITY, PRESSURE}
         if unknown:
             raise ValueError(f"names: unknown standard name(s) {sorted(unknown)}; "
@@ -170,9 +195,20 @@ class VtkSource:
 
     def _flow_block(self, data):
         """The flow part of what a file holds."""
-        if isinstance(data, pv.MultiBlock):
-            raise ValueError(f"{self.name}: {self.path} holds a multiblock dataset")
-        return data
+        if not isinstance(data, pv.MultiBlock):
+            return data
+        if self._flow_block_key is not None:
+            return _block(data, self._flow_block_key, self.path)
+        names = list(data.keys())
+        skip = None
+        if self._body_files is None and self._body_block is not None:
+            skip = (self._body_block if isinstance(self._body_block, int)
+                    else names.index(self._body_block) if self._body_block in names else None)
+        rest = [i for i in range(data.n_blocks) if i != skip]
+        if len(rest) != 1:
+            raise ValueError(f"{self.name}: {self.path} holds the blocks {names}; "
+                             "say which is the flow with flow_block")
+        return _block(data, rest[0], self.path)
 
     def _array_sizes(self) -> dict[str, int]:
         """Number of components of every array in the files, read once from the first step."""
@@ -326,3 +362,39 @@ class VtkSource:
             values = mesh.n_points * per_point + mesh.cells.size + 2 * mesh.n_cells
             self._memory[crop] = 8 * values / 1e9
         return self._memory[crop]
+
+    # ---- body and series ------------------------------------------------------------
+
+    def body(self, step: int) -> pv.PolyData:
+        """The wall surface at ``step``, from the ``body`` files or the ``body_block``.
+
+        Raises ``LookupError`` when the source was given neither.
+        """
+        self._check(step)
+        if self._body_files is not None:
+            files = self._body_files
+            if len(files) == 1:
+                file = next(iter(files.values()))
+            elif step in files:
+                file = files[step]
+            else:
+                raise KeyError(f"{self.name}: no body file for step {step}")
+            data = pv.read(str(file))
+            if isinstance(data, pv.MultiBlock):
+                data = (_block(data, self._body_block, str(file))
+                        if self._body_block is not None else data.combine())
+        elif self._body_block is not None:
+            file = self._files[step]
+            data = pv.read(str(file))
+            if not isinstance(data, pv.MultiBlock):
+                raise ValueError(f"{self.name}: body_block needs multiblock files, "
+                                 f"but {file} is a {type(data).__name__}")
+            data = _block(data, self._body_block, str(file))
+        else:
+            raise LookupError(f"{self.name}: no body; give the source a body file or "
+                              "pattern, or a body_block")
+        return data if isinstance(data, pv.PolyData) else data.extract_surface()
+
+    def series(self, name: str) -> pd.DataFrame:
+        """VTK files carry no time series: always raises ``KeyError``."""
+        raise KeyError(f"{self.name}: the vtk adapter has no time series (asked for {name!r})")

@@ -11,45 +11,12 @@ zone's arrays), with the title, strand and solution time of the original.
 This is how tests/data/flexflow_case/ was made; it is not part of the package.
 """
 import argparse
-import struct
 from pathlib import Path
 
 import numpy as np
 
 from flowreel.sources.flexflow.plt import PltFile
-
-
-def _s(text):
-    return struct.pack("<%di" % (len(text) + 1), *[ord(c) for c in text], 0)
-
-
-def write(path, src, vol, surf, cols, vconn, sconn):
-    """Write a two-zone file: volume zone ``vol`` and body zone ``surf`` (dicts of the
-    source's zone records), ``cols`` one float32 array per variable."""
-    nvar, npts = len(src.vars), len(cols[0])
-    with open(path, "wb") as f:
-        f.write(b"#!TDV112" + struct.pack("<ii", 1, src.filetype) + _s(src.title))
-        f.write(struct.pack("<i", nvar) + b"".join(_s(v) for v in src.vars))
-        for zone, conn in ((vol, vconn), (surf, sconn)):
-            f.write(struct.pack("<f", 299.0) + _s(zone["name"]))
-            f.write(struct.pack("<iidii", -1, zone["strand"], zone["time"], -1, zone["ztype"]))
-            f.write(struct.pack("<iii", 0, 0, 0))        # var location, face neighbours
-            f.write(struct.pack("<ii", npts, len(conn)))
-            f.write(struct.pack("<iiii", 0, 0, 0, 0))    # cell dims, no auxiliary data
-        f.write(struct.pack("<f", 357.0))
-        # volume zone: stores everything
-        f.write(struct.pack("<f", 299.0) + struct.pack("<%di" % nvar, *[1] * nvar))
-        f.write(struct.pack("<iii", 0, 0, -1))           # no passive, no shared, own conn
-        for c in cols:
-            f.write(struct.pack("<dd", float(c.min()), float(c.max())))
-        for c in cols:
-            f.write(c.astype("<f4").tobytes())
-        f.write(vconn.astype("<i4").tobytes())
-        # body zone: every variable shared from zone 0, its own connectivity
-        f.write(struct.pack("<f", 299.0) + struct.pack("<%di" % nvar, *[1] * nvar))
-        f.write(struct.pack("<ii", 0, 1) + struct.pack("<%di" % nvar, *[0] * nvar))
-        f.write(struct.pack("<i", -1))
-        f.write(sconn.astype("<i4").tobytes())
+from flowreel.sources.flexflow.plt_write import write_plt
 
 
 def main():
@@ -79,8 +46,12 @@ def main():
             remap = np.full(len(cols[0]), -1, np.int64)
             remap[used] = np.arange(len(used))
             out = args.out / path.name
-            write(out, src, src.zones[vi], src.zones[si], [c[used] for c in cols],
-                  remap[vconn[keep_v]], remap[sconn[keep_s]])
+            vol, surf = src.zones[vi], src.zones[si]
+            write_plt(out, src.vars, [c[used] for c in cols],
+                      [(vol["name"], vol["ztype"], remap[vconn[keep_v]]),
+                       (surf["name"], surf["ztype"], remap[sconn[keep_s]])],
+                      title=src.title, filetype=src.filetype,
+                      time=vol["time"], strand=[vol["strand"], surf["strand"]])
             print(f"{out}: {len(used)} nodes, {keep_v.sum()} cells, {keep_s.sum()} body quads, "
                   f"{out.stat().st_size / 1024:.0f} kB")
 

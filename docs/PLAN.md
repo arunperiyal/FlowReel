@@ -628,7 +628,7 @@ per task; tick the box in that commit.
 **Branch 6: `phase1/general-bodies`** (any body, not only the cylinder; added 2026-11-13)
 - [x] Interface: `bodies()` names and `body(step, name=None)`; `vtk` and `geometry` follow
 - [x] `flexflow`: the volume zone and every surface zone found in the file, no `cyl` default
-- [ ] PLT writer; synthetic files with tetrahedra, a triangle wall and two body zones
+- [x] PLT writer; synthetic files with tetrahedra, a triangle wall and two body zones
 - [ ] Total force and moment on any body
 - [ ] Wall fields on a closed body with no axis: Stokes flow past a sphere
 - [ ] Docs

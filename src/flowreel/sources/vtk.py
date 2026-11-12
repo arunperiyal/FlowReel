@@ -70,6 +70,17 @@ def _step_files(path: str | Path, what: str) -> tuple[dict[int, Path], dict[int,
     return {0: Path(text)}, None
 
 
+def _crop(mesh: pv.UnstructuredGrid, box: Box) -> pv.UnstructuredGrid:
+    """The cells of ``mesh`` with every node inside ``box``, with their point data."""
+    inside = box.contains(mesh.points)
+    if inside.all():
+        return mesh
+    if not inside.any():
+        return pv.UnstructuredGrid()
+    return mesh.extract_points(inside, adjacent_cells=False, pass_cell_ids=False,
+                               pass_point_ids=False)
+
+
 class VtkSource:
     """A series of VTK files as a :class:`~flowreel.sources.Source`.
 
@@ -103,6 +114,8 @@ class VtkSource:
                              f"use U, V, W, velocity or p")
         self._times = self._resolve_times(pvd_times, dt, times)
         self._arrays: dict[str, int] | None = None
+        self._bounds: Box | None = None
+        self._memory: dict[Box | None, float] = {}
 
     # ---- steps and time -------------------------------------------------------------
 
@@ -255,18 +268,24 @@ class VtkSource:
     # ---- flow -----------------------------------------------------------------------
 
     def flow(self, step: int, fields: list[str], crop: Box | None) -> pv.UnstructuredGrid:
-        """The volume at ``step`` with exactly ``fields`` as point data.
+        """The volume at ``step`` with exactly ``fields`` as point data, cropped to ``crop``.
 
-        Only the arrays the fields need are read from the file.
+        Only the arrays the fields need are read from the file, and the crop is applied
+        before the fields are built, so the whole domain is held only for a moment. The
+        crop keeps the cells with every node inside the box (edges included).
+        A crop that keeps nothing returns an empty grid without arrays (pyvista does not
+        hold arrays of length zero).
         """
         self._check(step)
-        if crop is not None:
-            raise NotImplementedError("crop")
         plans = {f: self._plan(f) for f in fields}
         arrays = sorted({a for plan in plans.values() for a in plan[1:] if isinstance(a, str)})
         mesh = self._read(step, arrays)
         if any(a not in mesh.point_data for a in arrays):
             mesh = mesh.cell_data_to_point_data(pass_cell_data=False)
+        if crop is not None:
+            mesh = _crop(mesh, crop)
+            if mesh.n_points == 0:
+                return mesh
         values = {}
         for f, plan in plans.items():
             if plan[0] == "array":
@@ -279,3 +298,31 @@ class VtkSource:
         for f in fields:
             mesh.point_data[f] = values[f]
         return mesh
+
+    # ---- size -----------------------------------------------------------------------
+
+    def bounds(self) -> Box:
+        """Bounds of the whole domain, taken from the first step."""
+        if self._bounds is None:
+            self._bounds = Box.from_bounds(self._read(self.steps()[0], []).bounds)
+        return self._bounds
+
+    def memory_per_step(self, crop: Box | None) -> float:
+        """Estimated memory in GB of one step read with ``crop``.
+
+        Counts the points and cells of the first step that the crop keeps (reading the
+        mesh without its arrays), then allows for the coordinates, the connectivity and
+        every array of the files as 8-byte values: an upper bound for a request that
+        asks for fewer fields. The whole step is in memory for a moment while it is
+        cropped; that peak is ``memory_per_step(None)``.
+        """
+        if crop not in self._memory:
+            mesh = self._read(self.steps()[0], [])
+            if self._bounds is None:
+                self._bounds = Box.from_bounds(mesh.bounds)
+            if crop is not None:
+                mesh = _crop(mesh, crop)
+            per_point = 3 + sum(self._array_sizes().values())
+            values = mesh.n_points * per_point + mesh.cells.size + 2 * mesh.n_cells
+            self._memory[crop] = 8 * values / 1e9
+        return self._memory[crop]

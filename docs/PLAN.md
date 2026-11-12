@@ -593,30 +593,30 @@ per task; tick the box in that commit.
 - [x] Docs: sources page (interface, naming of `U V W p`, units)
 
 **Branch 2: `phase1/sources-vtk-geometry`** (adapters, no solver files)
-- [ ] `vtk` adapter: `.pvd` and filename pattern, steps and time
-- [ ] `vtk` crop while reading, `memory_per_step`
-- [ ] `vtk` body from a second file or a named block
-- [ ] `geometry` adapter and the body registry
-- [ ] Body `grooved_cylinder` (parameters as tracks-ready values)
-- [ ] Tests and docs for both adapters
+- [x] `vtk` adapter: `.pvd` and filename pattern, steps and time
+- [x] `vtk` crop while reading, `memory_per_step`
+- [x] `vtk` body from a second file or a named block
+- [x] `geometry` adapter and the body registry
+- [x] Body `grooved_cylinder` (parameters as tracks-ready values)
+- [x] Tests and docs for both adapters
 
 **Branch 3: `phase1/sources-flexflow`** (adapter for the solver)
-- [ ] Copy `prototype/afms/fxplt.py` into `sources/flexflow/plt.py`, with a docstring and tests
-- [ ] Cut a two-step PLT from real output (`ssh wsl` / `ssh airavata`) into `tests/data/`
-- [ ] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
-- [ ] OTHD probe reader and OISD force reader in `series`
-- [ ] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
-- [ ] Tests and docs
+- [x] Copy `prototype/afms/fxplt.py` into `sources/flexflow/plt.py`, with a docstring and tests
+- [x] Cut a two-step PLT from real output (`ssh wsl` / `ssh airavata`) into `tests/data/`
+- [x] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
+- [x] OTHD probe reader and OISD force reader in `series`
+- [x] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
+- [x] Tests and docs
 
 **Branch 4: `phase1/fields-derived`** (algorithms)
-- [ ] Field registry with declared needs; the gradient computed once per frame
-- [ ] `velocity_gradient`, `vorticity` and components
-- [ ] `Q` and `lambda2`
-- [ ] `speed`, `velocity_relative`, `pressure_coefficient`
-- [ ] `wall_shear`, `skin_friction`
-- [ ] `sectional_force`
-- [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
-- [ ] Docs: definition, meaning and sign convention of each field
+- [x] Field registry with declared needs; the gradient computed once per frame
+- [x] `velocity_gradient`, `vorticity` and components
+- [x] `Q` and `lambda2`
+- [x] `speed`, `velocity_relative`, `pressure_coefficient`
+- [x] `wall_shear`, `skin_friction`
+- [x] `sectional_force`
+- [x] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
+- [x] Docs: definition, meaning and sign convention of each field
 
 **Branch 5: `phase1/tracks-easing`** (animation values)
 - [x] Track parsing: fixed, `from/to/frames`, `keys`

@@ -31,3 +31,6 @@ data/
 local/
 !tests/data/
 !tests/data/**
+
+# Agent worktrees
+.claude/worktrees/

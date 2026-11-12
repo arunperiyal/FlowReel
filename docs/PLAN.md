@@ -597,7 +597,7 @@ per task; tick the box in that commit.
 - [x] `vtk` crop while reading, `memory_per_step`
 - [x] `vtk` body from a second file or a named block
 - [x] `geometry` adapter and the body registry
-- [ ] Body `grooved_cylinder` (parameters as tracks-ready values)
+- [x] Body `grooved_cylinder` (parameters as tracks-ready values)
 - [ ] Tests and docs for both adapters
 
 **Branch 3: `phase1/sources-flexflow`** (adapter for the solver)

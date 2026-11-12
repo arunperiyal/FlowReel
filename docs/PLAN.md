@@ -610,7 +610,7 @@ per task; tick the box in that commit.
 
 **Branch 4: `phase1/fields-derived`** (algorithms)
 - [x] Field registry with declared needs; the gradient computed once per frame
-- [ ] `velocity_gradient`, `vorticity` and components
+- [x] `velocity_gradient`, `vorticity` and components
 - [ ] `Q` and `lambda2`
 - [ ] `speed`, `velocity_relative`, `pressure_coefficient`
 - [ ] `wall_shear`, `skin_friction`

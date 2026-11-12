@@ -14,10 +14,10 @@ from __future__ import annotations
 
 import math
 import re
+from bisect import bisect_left, bisect_right
 from collections.abc import Mapping
 from dataclasses import dataclass
 from numbers import Real
-
 
 
 def _linear(t: float) -> float:
@@ -103,6 +103,25 @@ class Track:
     def fixed(self) -> bool:
         """True when the track has one value for every frame."""
         return all(v == self.values[0] for v in self.values)
+
+    def at(self, frame: float):
+        """Return the value at ``frame`` (whole or fractional).
+
+        Before the first key the track holds the first value, after the last key the
+        last. On a key it returns that key's value exactly. Numbers come back as floats,
+        vectors and colours (sRGB, 0..1) as tuples of floats.
+        """
+        frames = self.frames
+        if frame <= frames[0]:
+            return self.values[0]
+        if frame >= frames[-1]:
+            return self.values[-1]
+        i = bisect_right(frames, frame) - 1
+        t = (frame - frames[i]) / (frames[i + 1] - frames[i])
+        return blend(self.kind, self.values[i], self.values[i + 1],
+                     EASINGS[self.ease](t))
+
+    __call__ = at
 
 
 def parse(spec, kind: str | None = None, name: str = "track",
@@ -314,3 +333,48 @@ def blend(kind: str, a, b, t: float):
                                                  map(srgb_to_linear, b)))
         return tuple(linear_to_srgb(c) for c in mixed)
     raise ValueError(f"unknown kind {kind!r} (allowed: {', '.join(KINDS)})")
+
+
+class TimeTrack:
+    """The ``time`` track of a shot: maps frames to simulation steps.
+
+    ``time: {keys: [[0, 5000], [120, 5300]]}`` runs from step 5000 at frame 0 to step
+    5300 at frame 120; a fixed ``time: 5000`` freezes the flow. Unlike other tracks the
+    default ease is ``linear``, so that flow time advances at a constant rate unless the
+    spec asks otherwise. Outside the keys the step is clamped like any track.
+    """
+
+    def __init__(self, spec, name: str = "time"):
+        self.track = parse(spec, kind="number", name=name, default_ease="linear")
+
+    def at(self, frame: float) -> float:
+        """Return the step asked for at ``frame``, possibly between saved steps."""
+        return self.track.at(frame)
+
+    def step(self, frame: float, steps):
+        """Return the saved step nearest to the one asked for at ``frame``.
+
+        ``steps`` are the saved step numbers (``Source.steps()``). See
+        :func:`nearest_step` for the tie rule.
+        """
+        return nearest_step(self.at(frame), steps)
+
+
+def nearest_step(value: float, steps):
+    """Return the entry of ``steps`` nearest to ``value``; fields are never interpolated.
+
+    ``steps`` are the saved step numbers in any order. A value exactly halfway between
+    two saved steps takes the earlier one, so a frame never shows the flow later than
+    the time asked for. Values outside the saved range take the first or last step.
+    Raises ``ValueError`` when ``steps`` is empty.
+    """
+    ordered = sorted(steps)
+    if not ordered:
+        raise ValueError("no saved steps to choose from")
+    i = bisect_left(ordered, value)
+    if i == 0:
+        return ordered[0]
+    if i == len(ordered):
+        return ordered[-1]
+    lo, hi = ordered[i - 1], ordered[i]
+    return lo if value - lo <= hi - value else hi

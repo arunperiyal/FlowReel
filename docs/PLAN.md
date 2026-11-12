@@ -622,7 +622,7 @@ per task; tick the box in that commit.
 - [x] Track parsing: fixed, `from/to/frames`, `keys`
 - [x] Easings: linear, smooth, in, out, in_out, hold
 - [x] Value types: number, vector, colour (linear RGB), boolean, choice
-- [ ] Clamping and the time track (frames to steps, nearer step)
+- [x] Clamping and the time track (frames to steps, nearer step)
 - [ ] Exact unit tests; docs
 
 **Branch 6: `phase1/reveal-golden`** (depends on branches 2, 4 and 5)

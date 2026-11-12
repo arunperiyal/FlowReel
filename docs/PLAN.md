@@ -613,7 +613,7 @@ per task; tick the box in that commit.
 - [x] `velocity_gradient`, `vorticity` and components
 - [x] `Q` and `lambda2`
 - [x] `speed`, `velocity_relative`, `pressure_coefficient`
-- [ ] `wall_shear`, `skin_friction`
+- [x] `wall_shear`, `skin_friction`
 - [ ] `sectional_force`
 - [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
 - [ ] Docs: definition, meaning and sign convention of each field

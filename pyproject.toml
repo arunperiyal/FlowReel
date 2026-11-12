@@ -12,6 +12,7 @@ license = "MIT"
 license-files = ["LICENSE", "src/flowreel/fonts/OFL.txt"]
 dependencies = [
     "numpy",
+    "pandas>=2",
     "scipy",
     "pyvista>=0.44",
     "vtk>=9.3",

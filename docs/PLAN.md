@@ -615,7 +615,7 @@ per task; tick the box in that commit.
 - [x] `speed`, `velocity_relative`, `pressure_coefficient`
 - [x] `wall_shear`, `skin_friction`
 - [x] `sectional_force`
-- [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
+- [x] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
 - [ ] Docs: definition, meaning and sign convention of each field
 
 **Branch 5: `phase1/tracks-easing`** (animation values)

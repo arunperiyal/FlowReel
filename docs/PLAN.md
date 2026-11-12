@@ -619,7 +619,7 @@ per task; tick the box in that commit.
 - [ ] Docs: definition, meaning and sign convention of each field
 
 **Branch 5: `phase1/tracks-easing`** (animation values)
-- [ ] Track parsing: fixed, `from/to/frames`, `keys`
+- [x] Track parsing: fixed, `from/to/frames`, `keys`
 - [ ] Easings: linear, smooth, in, out, in_out, hold
 - [ ] Value types: number, vector, colour (linear RGB), boolean, choice
 - [ ] Clamping and the time track (frames to steps, nearer step)

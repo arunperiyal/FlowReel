@@ -13,6 +13,7 @@ import pandas as pd
 import pyvista as pv
 
 from flowreel.box import Box
+from flowreel.sources._util import outer_surface
 from flowreel.sources.base import PRESSURE, VELOCITY, VELOCITY_COMPONENTS
 
 _WILDCARDS = re.compile(r"[*?\[]")
@@ -393,7 +394,7 @@ class VtkSource:
         else:
             raise LookupError(f"{self.name}: no body; give the source a body file or "
                               "pattern, or a body_block")
-        return data if isinstance(data, pv.PolyData) else data.extract_surface()
+        return data if isinstance(data, pv.PolyData) else outer_surface(data)
 
     def series(self, name: str) -> pd.DataFrame:
         """VTK files carry no time series: always raises ``KeyError``."""

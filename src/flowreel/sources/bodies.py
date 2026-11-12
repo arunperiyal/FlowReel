@@ -11,6 +11,8 @@ from typing import Callable
 import numpy as np
 import pyvista as pv
 
+from flowreel.sources._util import outer_surface
+
 BodyFunction = Callable[..., pv.PolyData]
 
 _bodies: dict[str, BodyFunction] = {}
@@ -126,11 +128,7 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
     # Grid points run along the first axis fastest, so the arrays are flattened that way.
     grid["groove"] = groove.ravel(order="F")
     grid["fresh"] = fresh.ravel(order="F")
-    surface = grid.extract_surface(algorithm="dataset_surface")
-    for key in ("vtkOriginalPointIds", "vtkOriginalCellIds"):
-        for data in (surface.point_data, surface.cell_data):
-            if key in data:
-                del data[key]
+    surface = outer_surface(grid)
     if not caps:
         return surface
     parts = [surface]

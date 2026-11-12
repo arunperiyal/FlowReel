@@ -10,3 +10,24 @@ cache/
 *.mp4
 # Personal session hand-over notes
 SESSION.md
+
+# Local environments and tool state
+.venv/
+.claude/settings.local.json
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+.DS_Store
+
+# Real solver output copied for local testing (never committed). Small cut-down test
+# files live in tests/data/ and are allowed.
+*.plt
+*.vtu
+*.vtp
+*.pvd
+*.othd
+*.oisd
+data/
+local/
+!tests/data/
+!tests/data/**

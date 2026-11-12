@@ -49,3 +49,42 @@ mycode = "mypackage.adapter:MySource"
 ```
 
 `sources.available()` lists all adapters; an unknown name raises `KeyError` with that list.
+
+## The `flexflow` adapter
+
+Reads a FlexFlow case folder with FlowReel's own reader for the solver's Tecplot binary
+files (`flowreel.sources.flexflow.plt`); FlexFlow itself is not needed.
+
+```python
+from flowreel.sources.flexflow import FlexflowSource
+src = FlexflowSource("cases/cylinder_12")
+src.steps()                       # [5000, 5005, ...]
+flow = src.flow(5000, ["U", "V", "W", "p"], crop=None)
+wall = src.body(5000)
+lift = src.series("force")
+```
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `path` | path | required | the case folder; PLT files are `binary/<name>.<step>.plt`, or in the folder itself |
+| `volume` | text | `FIELD` | name of the volume zone |
+| `body` | text | `cyl` | name of the wall zone |
+| `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
+| `name` | text | `flexflow` | label of the source |
+
+- **Time** is the solution time stored in each file.
+- **Position:** the files hold the deformed mesh, so the flow and the body are at the
+  step's position; `dispX`, `dispY`, `dispZ` give the displacement.
+- **Fields:** `U`, `V`, `W`, `p` (the file's `Pressure`) and the other stored variables
+  (`dispX`, `dispY`, `dispZ`, `eddy`, `orderPar`). The stored `xVor`, `yVor`, `zVor` and
+  `QCriterion` are **not provided**: they are nodal sums that depend on the mesh. Ask
+  `flowreel.fields` for vorticity and Q instead.
+- **Crop** keeps the cells with every node inside the box. The file is read before the
+  crop, so the crop saves memory afterwards but not while reading.
+- **Series:** `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
+  `dy`, `dz`; `probe` is the row in the file, from 0) and `force` from
+  `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a
+  coefficient). Where restarts repeat a time, the later file wins.
+
+The test data in `tests/data/flexflow_case/` is a small piece of real output (half of the
+boundary layer over one spanwise cell, two steps), cut with `tools/cut_plt.py`.

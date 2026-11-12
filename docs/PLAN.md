@@ -606,7 +606,7 @@ per task; tick the box in that commit.
 - [x] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
 - [x] OTHD probe reader and OISD force reader in `series`
 - [x] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
-- [ ] Tests and docs
+- [x] Tests and docs
 
 **Branch 4: `phase1/fields-derived`** (algorithms)
 - [ ] Field registry with declared needs; the gradient computed once per frame

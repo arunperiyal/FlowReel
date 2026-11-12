@@ -9,7 +9,8 @@ import pandas as pd
 import pyvista as pv
 
 from flowreel.box import Box
-from flowreel.sources.flexflow.plt import NPE, PltFile
+from flowreel.sources._util import merge_surfaces, outer_surface, pick_bodies
+from flowreel.sources.flexflow.plt import NPE, SURFACE_ZTYPES, VOLUME_ZTYPES, PltFile
 from flowreel.sources.flexflow.series import SERIES
 
 #: FlexFlow's variable names for the standard ones.
@@ -27,8 +28,10 @@ class FlexflowSource:
     Arguments:
         path: the case folder. PLT files are looked for in ``path/binary`` and then in
             ``path`` itself, named ``<anything>.<step>.plt``.
-        volume: name of the volume zone (default ``FIELD``).
-        body: name of the wall zone (default ``cyl``).
+        volume: name of the volume zone. Default: the first zone of volume elements
+            (tetrahedra or bricks).
+        body: name of the wall zone, or a list of names. Default: every zone of surface
+            elements (triangles or quadrilaterals) in the file.
         nen: nodes per element of the volume zone, to override a wrong zone type
             (see the reader); ``None`` trusts the file.
         name: label of the source.
@@ -37,11 +40,12 @@ class FlexflowSource:
     the step's position. Time is the solution time stored in each file.
     """
 
-    def __init__(self, path, volume: str = "FIELD", body: str = "cyl",
+    def __init__(self, path, volume: str | None = None,
+                 body: str | list[str] | None = None,
                  nen: int | None = None, name: str = "flexflow"):
         self.name = name
         self.path = Path(path)
-        self.volume, self.body_zone, self.nen = volume, body, nen
+        self.nen = nen
         folder = self.path / "binary" if (self.path / "binary").is_dir() else self.path
         self._files = {}
         for f in folder.glob("*.plt"):
@@ -50,6 +54,19 @@ class FlexflowSource:
                 self._files[int(m.group(1))] = f
         if not self._files:
             raise FileNotFoundError(f"no <name>.<step>.plt files in {folder}")
+        with self._open(self.steps()[0]) as plt:
+            names = [z["name"] for z in plt.zones]
+            if volume is None:
+                volume = plt.zones[plt.first_volume_zone()]["name"]
+            if body is None:
+                body = [z["name"] for z in plt.zones if z["ztype"] in SURFACE_ZTYPES]
+            self.volume = volume
+            self._bodies = [body] if isinstance(body, str) else list(body)
+            for zone in (self.volume, *self._bodies):
+                plt.zone_index(zone)          # KeyError naming the zones if absent
+            if plt.zones[plt.zone_index(self.volume)]["ztype"] not in VOLUME_ZTYPES:
+                raise ValueError(f"zone {self.volume!r} of {self.path} is not a volume zone; "
+                                 f"zones: {names}")
 
     def _open(self, step: int) -> PltFile:
         try:
@@ -96,17 +113,26 @@ class FlexflowSource:
             conn = conn[crop.contains(points)[conn].all(axis=1)]
         return _grid(points, conn, data, ztype)
 
-    def body(self, step: int) -> pv.PolyData:
-        """The wall zone as a surface at the step's position, carrying every provided
-        field as point data."""
+    def bodies(self) -> list[str]:
+        """Names of the wall zones."""
+        return list(self._bodies)
+
+    def body(self, step: int, name: str | None = None) -> pv.PolyData:
+        """The wall zone ``name`` (all of them in one surface without it) at the step's
+        position, carrying every provided field as point data."""
+        zones = pick_bodies(name, self._bodies, self.name)
+        fields = self.fields()
+        surfaces = []
         with self._open(step) as plt:
-            zi = plt.zone_index(self.body_zone)
-            conn = plt.load_connectivity(zi)
-            points = np.column_stack([plt.read_variable(zi, v) for v in plt.vars[:3]])
-            data = {f: plt.read_variable(zi, NAMES.get(f, f)) for f in self.fields()}
-            ztype = plt.zones[zi]["ztype"]
-        return _grid(points, conn, data, ztype).extract_surface(
-            algorithm="dataset_surface", pass_pointid=False, pass_cellid=False)
+            for zone in zones:
+                zi = plt.zone_index(zone)
+                conn = plt.load_connectivity(zi)
+                if conn is None:
+                    raise ValueError(f"zone {zone!r} of {plt.path} has no connectivity of its own")
+                points = np.column_stack([plt.read_variable(zi, v) for v in plt.vars[:3]])
+                data = {f: plt.read_variable(zi, NAMES.get(f, f)) for f in fields}
+                surfaces.append(outer_surface(_grid(points, conn, data, plt.zones[zi]["ztype"])))
+        return merge_surfaces(surfaces)
 
     def bounds(self) -> Box:
         """Bounds of the volume zone at the first step, from the file header."""

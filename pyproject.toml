@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,9 @@ name = "flowreel"
 version = "0.0.1"
 description = "Films of flow simulations from configuration files"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE", "src/flowreel/fonts/OFL.txt"]
 dependencies = [
     "numpy",
     "scipy",
@@ -16,7 +18,7 @@ dependencies = [
     "matplotlib>=3.8",
     "Pillow>=10",
     "PyYAML>=6",
-    "shellkit",
+    "shellkit @ git+https://github.com/arunperiyal/shellkit.git",
 ]
 
 [project.optional-dependencies]

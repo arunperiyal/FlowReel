@@ -8,3 +8,5 @@ frames/
 clips/
 cache/
 *.mp4
+# Personal session hand-over notes
+SESSION.md

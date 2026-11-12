@@ -2,7 +2,7 @@
 
 ``compute(grid, names, **params)`` is the entry point; see docs/fields.md.
 """
-from flowreel.fields import kinematics  # noqa: F401  (registers its fields)
+from flowreel.fields import basic, kinematics  # noqa: F401  (register their fields)
 from flowreel.fields.registry import (Field, available, compute, describe, register, resolve,
                                       unregister)
 

@@ -17,8 +17,62 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from numbers import Real
 
-EASE_NAMES = ("linear", "smooth", "in", "out", "in_out", "hold")
+
+
+def _linear(t: float) -> float:
+    return t
+
+
+def _smooth(t: float) -> float:
+    # Smoothstep, written as in the prototype's ramp() so the values match bit for bit.
+    return t * t * (3 - 2 * t)
+
+
+def _in(t: float) -> float:
+    return t * t * t
+
+
+def _out(t: float) -> float:
+    u = 1 - t
+    return 1 - u * u * u
+
+
+def _in_out(t: float) -> float:
+    if t < 0.5:
+        return 4 * t * t * t
+    u = 2 - 2 * t
+    return 1 - u * u * u / 2
+
+
+def _hold(t: float) -> float:
+    return 1.0 if t >= 1 else 0.0
+
+
+EASINGS = {
+    "linear": _linear,    # constant rate
+    "smooth": _smooth,    # smoothstep 3t^2 - 2t^3: zero slope at both ends
+    "in": _in,            # cubic t^3: starts slowly
+    "out": _out,          # cubic 1 - (1 - t)^3: ends slowly
+    "in_out": _in_out,    # cubic, slow at both ends, steeper than smooth in the middle
+    "hold": _hold,        # steps: keeps the earlier value until the next key
+}
+EASE_NAMES = tuple(EASINGS)
+
+# Section 7.3 calls the two-key form "eased" without naming an ease, and the prototype
+# eased every move with smoothstep, so a track with no ``ease`` uses ``smooth``.
 DEFAULT_EASE = "smooth"
+
+
+def ease(name: str, t: float) -> float:
+    """Return the eased fraction for ``t``, the fraction of the way between two keys.
+
+    ``name`` is one of ``EASE_NAMES``. ``t`` is clamped to 0..1, and every easing returns
+    0 at ``t = 0`` and 1 at ``t = 1``. Raises ``ValueError`` for an unknown name.
+    """
+    if name not in EASINGS:
+        raise ValueError(f"unknown ease {name!r} (allowed: {', '.join(EASE_NAMES)})")
+    return EASINGS[name](min(max(t, 0.0), 1.0))
+
 
 _SPEC_KEYS = ("from", "to", "frames", "keys", "ease")
 _TWO_KEY_FORM = ("from", "to", "frames")

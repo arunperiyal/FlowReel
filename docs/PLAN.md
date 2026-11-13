@@ -609,14 +609,14 @@ per task; tick the box in that commit.
 - [x] Tests and docs
 
 **Branch 4: `phase1/fields-derived`** (algorithms)
-- [ ] Field registry with declared needs; the gradient computed once per frame
-- [ ] `velocity_gradient`, `vorticity` and components
-- [ ] `Q` and `lambda2`
-- [ ] `speed`, `velocity_relative`, `pressure_coefficient`
-- [ ] `wall_shear`, `skin_friction`
-- [ ] `sectional_force`
-- [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
-- [ ] Docs: definition, meaning and sign convention of each field
+- [x] Field registry with declared needs; the gradient computed once per frame
+- [x] `velocity_gradient`, `vorticity` and components
+- [x] `Q` and `lambda2`
+- [x] `speed`, `velocity_relative`, `pressure_coefficient`
+- [x] `wall_shear`, `skin_friction`
+- [x] `sectional_force`
+- [x] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
+- [x] Docs: definition, meaning and sign convention of each field
 
 **Branch 5: `phase1/tracks-easing`** (animation values)
 - [ ] Track parsing: fixed, `from/to/frames`, `keys`

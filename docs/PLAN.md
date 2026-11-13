@@ -570,13 +570,69 @@ Each phase ends with something checkable.
 | Phase | Builds | Done when |
 |---|---|---|
 | 0 | Tidy the prototype: cameras.yml, one frame description, settings out of code, one derive module, padded frame names | AFMS frames identical by image difference |
-| 1 | Package skeleton, sources (vtk, geometry), fields, tracks | field tests pass; a reveal frame from vtk data matches |
+| 1 | Package skeleton, sources (interface, flexflow, vtk, geometry), fields, tracks | field tests pass; a reveal frame from vtk data matches |
 | 2 | Scene: layers, views, rendering, caching; `shot render` | reveal, domain and carving shots match the golden frames |
 | 3 | Compose: layouts, panels at the output rate | comparison and lift-map frames match |
 | 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths` | the AFMS film rebuilt from files, same length, captions in place |
-| 5 | flexflow adapter; Slurm | `flowreel shot render --submit` renders the AFMS reveal on airavata |
+| 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
+
+### 19.1 Phase 1 tasks
+
+Stacked branches, in order (each PR targets the one before; the first targets `main`).
+Branches 2 to 5 depend only on branch 1, so they can be built in parallel by agents
+(see `.claude/rules/git-workflow.md`) and then stacked in this order. One commit
+per task; tick the box in that commit.
+
+**Branch 1: `phase1/sources-interface`** (data model)
+- [ ] `Box` type (bounds, contains, crop helpers)
+- [ ] `Source` protocol as in Section 5.1
+- [ ] Adapter registry and the `flowreel.sources` entry-point group
+- [ ] Test fixtures: a small generated structured/unstructured flow with a body surface
+- [ ] Docs: sources page (interface, naming of `U V W p`, units)
+
+**Branch 2: `phase1/sources-vtk-geometry`** (adapters, no solver files)
+- [ ] `vtk` adapter: `.pvd` and filename pattern, steps and time
+- [ ] `vtk` crop while reading, `memory_per_step`
+- [ ] `vtk` body from a second file or a named block
+- [ ] `geometry` adapter and the body registry
+- [ ] Body `grooved_cylinder` (parameters as tracks-ready values)
+- [ ] Tests and docs for both adapters
+
+**Branch 3: `phase1/sources-flexflow`** (adapter for the solver)
+- [ ] Copy `prototype/afms/fxplt.py` into `sources/flexflow/plt.py`, with a docstring and tests
+- [ ] Cut a two-step PLT from real output (`ssh wsl` / `ssh airavata`) into `tests/data/`
+- [ ] Adapter: steps, time, fields, `flow` with crop, `body` (zone `cyl`), `bounds`
+- [ ] OTHD probe reader and OISD force reader in `series`
+- [ ] Map names to `U V W p`; keep stored derived fields out of the provided set (Section 6)
+- [ ] Tests and docs
+
+**Branch 4: `phase1/fields-derived`** (algorithms)
+- [ ] Field registry with declared needs; the gradient computed once per frame
+- [ ] `velocity_gradient`, `vorticity` and components
+- [ ] `Q` and `lambda2`
+- [ ] `speed`, `velocity_relative`, `pressure_coefficient`
+- [ ] `wall_shear`, `skin_friction`
+- [ ] `sectional_force`
+- [ ] Analytic tests: solid-body rotation, plane shear (sign checked), Burgers vortex
+- [ ] Docs: definition, meaning and sign convention of each field
+
+**Branch 5: `phase1/tracks-easing`** (animation values)
+- [ ] Track parsing: fixed, `from/to/frames`, `keys`
+- [ ] Easings: linear, smooth, in, out, in_out, hold
+- [ ] Value types: number, vector, colour (linear RGB), boolean, choice
+- [ ] Clamping and the time track (frames to steps, nearer step)
+- [ ] Exact unit tests; docs
+
+**Branch 6: `phase1/reveal-golden`** (depends on branches 2, 4 and 5)
+- [ ] Generate small vtk data from the prototype's reveal case for the test
+- [ ] Golden reveal frame from airavata's `frames/`, downscaled, kept small
+- [ ] Minimal reveal render path using sources, fields and tracks
+- [ ] Image-difference test with tolerance (Section 21)
+
+**Phase 1 is done when** all field tests pass and the reveal frame rendered from vtk
+data matches the prototype's.
 
 ## 20. From the prototype
 

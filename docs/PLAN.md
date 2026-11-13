@@ -128,7 +128,7 @@ class Source(Protocol):
 
 | Adapter | Location | Reads | Lives in |
 |---|---|---|---|
-| `flexflow` | a case folder | `binary/<problem>.<step>.plt` (the volume zone and every surface zone), OTHD probes and OISD forces by group, the pendulum's history, `domain.yml` and the `.def` for the bodies and their supports | FlowReel (its own PLT reader, from `prototype/afms/fxplt.py`) |
+| `flexflow` | a case folder | `binary/<problem>.<step>.plt` (the volume zone and every surface zone); OTHD probes and OISD forces of a one-body case | FlowReel (its own PLT reader, from `prototype/afms/fxplt.py`) |
 | `vtk` | `.pvd`, or a pattern like `out/wake_*.vtu` | pyvista; body from a second file or a named block | flowreel |
 | `geometry` | a body name and parameters | nothing; builds the surface in code | flowreel |
 | `openfoam` | a case folder | pyvista's OpenFOAM reader | later |
@@ -163,31 +163,18 @@ which is `render_carve.py` today. Later: `straight_grooved_cylinder`, `smooth_cy
 ### 5.4 Bodies
 
 A PLT file says where a body's surface is and nothing else: not which way its span runs,
-not how thick it is, not how its ends are held. A source may know more, and says so
-through one more method of the interface:
+not how thick it is, not how its ends are held. FlowReel does not look for that in the
+solver's other files. It is written once, in the project's `flowreel.yml`, and every
+shot, panel and data command uses it by the body's name.
 
-```python
-def body_info(self, name: str) -> Body: ...   # axis, origin, length, diameter, kind, supports
-```
-
-**Where flexflow keeps it.** A case folder holds `binary/` with the PLT files, and
-beside it two files that describe the bodies. The adapter reads both itself, with its
-own small readers (Section 14):
-
-| File | Gives | Example |
-|---|---|---|
-| `domain.yml` (written by FlexFlow Analyzer, `case domain --init`) | each body's `name`, `type` (`beam`, `rigid`, `fixed`), `plttag` (its zone in the PLT), `geometry` (`origin`, `length`, `axis`, `radius`), `outputs` (the `outputTimeHistory` block along it); the field's free-stream `velocity` | `plttag: cyl`, `axis: +x`, `length: 12` |
-| `<problem>.def` (the solver's input) | each `beamSolid`'s ends `pnt1` and `pnt2`, its `bcType` and `activeDof`: the boundary conditions | `bcType = fixFix` |
-
-A `beamSolid` is joined to its body as the Analyzer joins them: through its
-`surfaceOutputs`, the `outputSurface` of that name, and the `.srf` file that carries the
-body's tag. `bcType` then gives the support at each end: `fixFix` is clamped at `pnt1`
-and at `pnt2`; a pin-roll riser is pinned at one end and on a roller at the other, with
-top tension. A radius left `null` in `domain.yml` is measured from the surface.
-
-**`flowreel.yml` adds and overrides.** For a flexflow case nothing need be written. The
-`bodies:` block is for what the case cannot say (a colour, a support the reader does not
-know, a virtual body) and for sources with no such files (`vtk`):
+**Why one plain file.** A flexflow case does describe its bodies (`domain.yml`, written
+and read by FlexFlow Analyzer) and their boundary conditions (`bcType` in the `.def`),
+and an earlier draft of this plan read both. That tied FlowReel to two more formats
+owned by other programs, for a dozen lines a person can write. So: the Analyzer reads
+the case; FlowReel reads `flowreel.yml`; and if the two should meet, the Analyzer can
+write a `bodies:` block from its `domain.yml` (a command there, not a reader here).
+`flowreel project init` writes the block with one entry per surface zone found in the
+source, the axis and diameter measured from the surface, and the supports left to fill.
 
 ```yaml
 bodies:
@@ -198,6 +185,9 @@ bodies:
     ends:
       - {at: 0.0, support: pinned}
       - {at: 500.0, support: roller, free_along: x, tension: true}
+    series:
+      displacement: {file: data/riser_disp.csv, by: node, stations: data/riser_nodes.csv}
+      force: {file: data/riser_force.csv}
   downstream:
     zone: cyl2
     axis: x
@@ -210,20 +200,15 @@ bodies:
   tandem are two entries, each with its own colour, supports, forces and series.
 - **No declaration is needed to draw a body.** A source's surface zones are bodies under
   their zone names, as in Phase 1. The declaration adds what the files cannot say.
-- **Series belong to a body:** `source.series("displacement", body="riser")`. In
-  flexflow's files each body is a group: an `othId` in the OTHD files (its probes) and an
-  `osgId` in the OISD files (its surface force). The adapter finds a body's `othId` from
-  the block named in `domain.yml`'s `outputs` and its `osgId` from its `outputSurface`,
-  through the case's `othd.<block>.map` and `oisd.<surface>.map` files or, without
-  them, the order of the blocks in the `.def`. The numbered files (`riser1.othd`,
-  `riser2.othd`, ...) are restarts of one history and are joined; they are not bodies.
+- **Series belong to a body,** as CSV files named under it (below):
+  `source.series("displacement", body="riser")`.
 - **Stations.** Where a body has an `axis`, its centre at a station is the centroid of
   its surface in a thin strip there, so `follow`, `supports` and `centreline` work on a
   bent and moving body.
 
 **Supports.** The solver's boundary conditions on the structure are not in the PLT file.
-They come from `body_info` (for flexflow, the `.def`) or from `flowreel.yml`, and are
-drawn by the `supports` layer (Section 7.2) at the body's position in each frame.
+They are written under the body's `ends` in `flowreel.yml`, and drawn by the `supports`
+layer (Section 7.2) at the body's position in each frame.
 
 | `support` | Fixes | Drawn as |
 |---|---|---|
@@ -240,6 +225,23 @@ Symbols are sized in diameters, so they look the same on a body 12 or 500 diamet
 long, and `min_pixels` keeps them readable in a view of the whole span. Supports are a
 registry like bodies and layers: a new kind is a function, not a change to FlowReel.
 
+**Series are CSV files.** Time histories reach FlowReel as CSV, whatever wrote them:
+for flexflow, FlexFlow Analyzer's exports (`data table --output`), which already
+handles restarts, the `othId` and `osgId` groups of several bodies and the pendulum's
+lines. FlowReel then needs no knowledge of those files.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `file` | the CSV, relative to the project | required |
+| `time` | name of the time column | `time` |
+| `columns` | names to use for columns, `{dy: aleDisp_y}` | the file's own |
+| `by` | a column that numbers the points along the body (`node`), for a history at many points in long form | none: one row per time |
+| `stations` | where those points are along the span: a list, or a CSV of `node, station` | needed by `centreline` and `map` |
+
+The OTHD and OISD readers of Phase 1 stay as they are, for a quick look at a case with
+one body; they are not extended, and they refuse a file with more than one group
+instead of mixing two bodies' rows.
+
 ### 5.5 Virtual bodies
 
 Some structures are solved as equations coupled to the flow and never meshed: a pendulum
@@ -255,14 +257,13 @@ bodies:
     params: {length: 2.0, bob: 0.3}
     attach: {body: riser, station: 250.0}    # its origin follows the riser there
     drive:
-      angle: {series: pendulum, column: disp}
+      angle: {series: pendulum, column: pendDisp}
 ```
 
-**In flexflow's files** the pendulum is three numbers per step in the OTHD files, on
-lines of their own: `pendDisp`, `pendVel`, `pendAccel`. The adapter gives them as the
-series `pendulum` with columns `time`, `disp`, `vel`, `accel`. They carry no group id,
-so a case has one pendulum. What the files do not say (its length, where it hangs, the
-plane it swings in, whether `pendDisp` is an angle) is declared in `params` and `attach`.
+The series is a CSV named under the body (`series: {pendulum: {file: data/pend.csv}}`);
+for flexflow it is the Analyzer's export of `pendDisp`, `pendVel` and `pendAccel`. What
+the numbers mean (an angle or a length, the pivot, the plane of swing) is the user's
+to state in `params` and `attach`; FlowReel does not guess it from the file.
 
 - **`attach`** puts the shape's origin on a real body's centre at a station, or at a
   fixed point; **`drive`** takes parameters from a series at each frame's time
@@ -370,7 +371,7 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   (cubic), or `hold` (steps).
 - **Clamping:** before the first key a track holds the first value, after the last the
   last.
-- **Series as a track:** `angle: {series: pendulum, column: disp}` takes the
+- **Series as a track:** `angle: {series: pendulum, column: pendDisp}` takes the
   value from a body's time series at the frame's time, interpolated between samples, with
   optional `scale` and `offset` and nothing more (no expressions, Section 21). This is
   what moves a virtual body, and it can drive any property: an arrow's length from a
@@ -670,10 +671,10 @@ FlowReel does not import flexflow and flexflow does not import FlowReel.
   PLT reader (the prototype's `fxplt.py`, itself a copy of flexflow's). If the solver's
   format changes, both readers change; a shared small package for the reader is an
   option later (Section 24).
-- **Bodies:** the adapter reads the case's `domain.yml`, a file FlexFlow Analyzer writes,
-  and the `beamSolid`, `outputSurface` and `outputTimeHistory` blocks of the `.def`.
-  These are file formats, read by FlowReel's own code; a `domain.yml` with a newer
-  `version` than the reader knows is an error that says so.
+- **The line between the two programs:** of a flexflow case FlowReel reads the PLT files
+  and nothing else it must understand. Bodies and supports are written in `flowreel.yml`
+  (Section 5.4); time histories arrive as CSV exported by FlexFlow Analyzer. The
+  Analyzer keeps `domain.yml`, the `.def`, and the OTHD and OISD formats to itself.
 - **Cameras:** a cam.yml written by `flexflow field render --pick-camera` is a valid
   FlowReel view, because FlowReel reads the same keys (`position`, `focal`, `up`,
   `view_angle`, `parallel`, `parallel_scale`). FlowReel's camera import also reads
@@ -760,7 +761,7 @@ Each phase ends with something checkable.
 | 0 | Tidy the prototype: cameras.yml, one frame description, settings out of code, one derive module, padded frame names | AFMS frames identical by image difference |
 | 1 | Package skeleton, sources (interface, flexflow, vtk, geometry), fields, tracks | field tests pass; a reveal frame from vtk data matches |
 | 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
-| 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum, its bodies and supports read from the case's own files |
+| 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
 | 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`; a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
@@ -910,20 +911,17 @@ name. Branches 2, 3, 4 and 6 need only branch 1, so they can be built in paralle
 branch 5 needs branch 4.
 
 **Branch 1: `phase2b/bodies-declared`** (data model)
-- [ ] `Body` record (zone, kind, axis, origin, length, diameter, ends) and `Source.body_info(name)`
-- [ ] `flowreel.yml` schema with `bodies:`, merged over what the source says
+- [ ] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
 - [ ] Layers, `follow` and wall fields take a body by name; one body may go unnamed
 - [ ] Centre of a body at a station, its centreline and its diameter, from the surface
-- [ ] `series(name, body=...)` in the interface; `vtk` and `geometry` follow
+- [ ] `project init` writes `bodies:` from the source's surface zones, supports left to fill
 - [ ] Docs: bodies page
 
-**Branch 2: `phase2b/flexflow-case`** (what a flexflow case says; needs branch 1)
-- [ ] `domain.yml` reader: bodies (name, type, plttag, geometry, outputs) and the field's velocity
-- [ ] `.def` reader for `beamSolid`, `outputSurface` and `outputTimeHistory` blocks, with `define` values
-- [ ] Supports from `bcType`, `pnt1` and `pnt2`, joined to a body through its surface output
-- [ ] OTHD and OISD by group: a body's `othId` and `osgId`; restart files joined
-- [ ] The pendulum's series from `pendDisp`, `pendVel`, `pendAccel`
-- [ ] Tests on a small generated case with two bodies and a pendulum; docs
+**Branch 2: `phase2b/series-csv`** (time histories; needs branch 1)
+- [ ] CSV series: `file`, `time`, `columns`; `series(name, body=...)`
+- [ ] Histories at many points: `by` and `stations`
+- [ ] OTHD and OISD readers refuse a file with more than one group
+- [ ] Tests on generated CSV files; docs, with the Analyzer commands that export them
 
 **Branch 3: `phase2b/layers-supports`** (needs branch 1)
 - [ ] Support registry; `clamped` and `pinned`
@@ -954,9 +952,9 @@ branch 5 needs branch 4.
 - [ ] Docs: long bodies page
 
 **Branch 7: `phase2b/bodies-check`** (needs all the others)
-- [ ] Generated case, written at test time: a pin-roll cylinder 500 diameters long under tension, a second body, `domain.yml`, a `.def`, probes by group, and a pendulum's history
+- [ ] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum
 - [ ] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
-- [ ] Tests: the frames render, the supports come from the `.def`, the window reads a small part of the file, the pendulum follows its series
+- [ ] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series
 - [ ] `examples/` project on generated data
 
 **Phase 2B is done when** those three shots render from the generated case and the
@@ -1020,10 +1018,26 @@ New ones are added here as the work raises them.
 
 | # | Question | Needed by |
 |---|---|---|
-| 1 | The pendulum's `pendDisp` is one number per step. Is it an angle (radians?) or a length, about which point and in which plane does it swing, and where are its length and pivot written (the `.def`?) | Phase 2B, branch 5 |
-| 2 | Which values does `bcType` take besides `fixFix` (the spelling for pin-roll), which end is the roller, and which key holds the top tension? A `.def` of a pin-roll case would settle it. | Phase 2B, branch 2 |
-| 3 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
+| 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
+| 2 | Should flow fields also come only from VTU files that FlexFlow Analyzer extracts (`field extract`), dropping the PLT reader? Recommended: no. Keep both paths, see below. | before Phase 2B, branch 6 |
+| 3 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form: a change in the Analyzer, or a loop over nodes. | Phase 2B, branch 2 |
 
-Answered 2026-11-13: each cylinder is its own surface zone in the PLT, with its own
-`othId` and `osgId`; the risers to come are pin-roll with top tension; boundary
-conditions are read from the case (Section 5.4), with `domain.yml` naming the bodies.
+**On question 2.** The `vtk` adapter already renders from VTU (the reveal test does), so
+extracting with the Analyzer and rendering from the result works today and stays the
+general path for any solver. Against making it the only path for flexflow:
+
+- **A second copy of the data.** The reference case is 155 MB a step; a shot of 120
+  steps is 19 GB of PLT and about as much again in VTU, written before the first frame.
+- **Long cases.** A PLT stores each variable as one block, so a window can be read
+  without loading the file (Section 17). A VTU is read whole. With VTU only, every
+  window, and every position of a travelling window, is an extract made beforehand.
+- **A step between a changed crop and its picture,** run in another program.
+- **The reader exists,** is tested against solver output, and loads a step in 1.5 s.
+
+What is dropped instead is everything else FlowReel would have had to know about a
+flexflow case: no `domain.yml`, no `.def`, no OTHD or OISD groups.
+
+Answered 2026-11-13: each cylinder is its own surface zone in the PLT; the risers to
+come are pin-roll with top tension; bodies and boundary conditions are written in
+`flowreel.yml`; time histories come as CSV from FlexFlow Analyzer. This narrows
+Section 23's "Data formats, first release": OTHD and OISD stay for one-body cases only.

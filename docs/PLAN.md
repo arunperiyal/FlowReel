@@ -657,6 +657,75 @@ per task; tick the box in that commit.
 data matches the prototype's. **Done 2026-11-13:** the field tests pass and the reveal
 frame matches (`docs/reveal.md`).
 
+### 19.2 Phase 2 tasks
+
+Stacked branches, in order (each PR targets the one before; the first targets `main`).
+Branches 2, 3 and 4 depend only on branch 1, so they can be built in parallel by agents
+and then stacked in this order. Branches 5, 6 and 7 are done in order by the main
+session. One commit per task; tick the box in that commit.
+
+**Branch 1: `phase2/scene-shot-file`** (data model)
+- [ ] Validation helper: errors name the file and key path; unknown keys suggest the nearest (Section 15)
+- [ ] Shot schema as in Section 7.1: name, source, time, camera, size, crop, background, antialias, layers
+- [ ] Time of a shot: `steps` with `every`, `frozen` with a frame count, `keys`
+- [ ] Frame plan: for each frame, its step and the value of every track
+- [ ] Layer interface and registry: a layer takes the frame's data and values and adds actors to a plot
+- [ ] Docs: shot file reference (type, default and example per key)
+
+**Branch 2: `phase2/scene-views`** (cameras and lights; needs branch 1)
+- [ ] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)
+- [ ] Camera track between named views: linear and spline path, eased
+- [ ] `fit`: along a view's direction, far enough to show a box
+- [ ] `follow`: focal point on a body's centre at a station
+- [ ] Lights: default kit, `raking`, or a list
+- [ ] Projection of model points to the screen, with exact tests
+- [ ] Docs: cameras page
+
+**Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)
+- [ ] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
+- [ ] `iso`: clip by a plane, `grow` along an axis, `grey`
+- [ ] `slice`: normal, position, field, range, fade_weak, mask near the wall
+- [ ] `body`: colour, opacity, field and range on the surface, zero contour
+- [ ] Reveal look written as a shot file on these layers; `reveal.py` goes, its golden test stays
+- [ ] Docs: these layers, with an example on generated data
+
+**Branch 4: `phase2/layers-markers`** (layers without flow data; needs branch 1)
+- [ ] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
+- [ ] `glyphs`: arrows on a face of the domain or at points
+- [ ] `markers3d`: `arrow3d`, `block`, `sphere`
+- [ ] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
+- [ ] Docs: these layers, with an example on generated data
+
+**Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)
+- [ ] Backend choice: OSMesa when installed, else EGL; `backend` forces one
+- [ ] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
+- [ ] Frame keys (Section 11): frames are skipped unless their key changed; `force`
+- [ ] Frozen shots contour once and cache the surfaces
+- [ ] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
+- [ ] Memory of one frame measured, and the safe number of jobs
+- [ ] Tests on generated data; docs: rendering and caching
+
+**Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
+- [ ] `flowreel` entry point on shellkit: one-shot and interactive
+- [ ] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
+- [ ] `shot preview` (`--every`, `--scale`) and `shot memory`
+- [ ] `shot template`: a commented shot file with the defaults
+- [ ] Help text; docs: commands page
+
+**Branch 7: `phase2/golden-shots`** (the check; needs all the others)
+- [ ] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
+- [ ] Golden carving frame drawn by the prototype's `render_carve.py`
+- [ ] Shot files for the domain and carving shots; `examples/` shot on generated data
+- [ ] Image-difference tests of the three shots through `shot render`
+
+Left out of Phase 2: the `pathlines` layer (no shot of the reference film uses it, and it
+needs every step saved), `dimension3d` and `label3d` (they draw text, so they come with
+Phase 4's text and Phase 6's anchored annotations), ambient occlusion, and `--slurm` and
+`--submit` (Phase 5).
+
+**Phase 2 is done when** the reveal, domain and carving shots, each rendered from a shot
+file by `flowreel shot render`, match the golden frames.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |

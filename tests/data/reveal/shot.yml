@@ -1,0 +1,15 @@
+# The reveal shot of the golden-frame test (tools/make_reveal_data.py draws golden.png
+# from it with the prototype; tests/test_reveal_golden.py draws it with FlowReel).
+source: {adapter: vtk, path: flow_*.vti, body: body.vtp}
+step: 5000
+frame: 16                      # the frame drawn: two thirds of the sweep
+size: [640, 360]
+camera: [[-2.5, 5.5, -2.5], [6, 0.6, 2.2], [0, 1, 0]]
+view_angle: 30
+wake: {field: lambda2, level: -1.0, wall_gap: 0.4}
+colour: {field: vorticity_x, range: [-2.5, 2.5]}
+muted: "#6f8796"
+# The cutting plane travels along x; frames are where each change starts and ends.
+sweep: {from: 4.1, to: 6.0, frames: [0, 24]}
+slice_strength: {from: 0.0, to: 1.0, frames: [0, 2.4]}
+grey: {from: 0.0, to: 1.0, frames: [9.6, 24]}

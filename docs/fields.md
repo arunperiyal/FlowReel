@@ -100,6 +100,7 @@ One row per **cell** of the wall surface, which is passed as the parameter `wall
 | `skin_friction` | (c, 3) | `wall_shear / q` | `wall_shear` | `rho`, `u_inf` |
 | `wall_traction` | (c, 3) | `-(p - p_inf) n + wall_shear` | `wall_pressure`, `wall_shear`, `wall_frame` | `p_inf = 0` |
 | `sectional_force` | `SectionalForce` | traction times area, summed over strips | `wall_traction`, `wall_frame` | `axis`, `sections = 32`, `span` |
+| `wall_force` | `WallForce` | traction times area, summed over the wall; its moment | `wall_traction`, `wall_frame` | `about = (0, 0, 0)` |
 
 ### Normal direction and sign convention
 
@@ -164,6 +165,33 @@ centre; cells outside the span are left out. The result has:
 
 Sectional coefficients are `per_length / (q D)`, for example `CL = per_length[:, 1] / (q D)`
 when lift is along y. `p_inf` does not change the force on a closed section.
+
+### Total force and moment
+
+`wall_force` sums `wall_traction * wall_area` over the whole wall. It needs no axis, so it
+is the one to use for a body that is not slender: a sphere, a wing, a bluff body.
+
+| Attribute | Meaning |
+|---|---|
+| `force` | (3,) force **on the body**, in the source's force unit |
+| `moment` | (3,) moment of that load about `about`: the sum of `r x dF`, `r` from `about` to each wall cell's centre (right-hand rule) |
+| `about` | (3,) the reference point, default the origin |
+
+Pass one body as `wall` to get the load on that body alone:
+
+```python
+load = fields.compute(grid, "wall_force", wall=src.body(step, "flap"), mu=mu,
+                      about=hinge)["wall_force"]
+```
+
+Coefficients are the caller's: divide `force` by `q` times a reference area and `moment`
+by `q` times area times length. `p_inf` changes neither on a closed body.
+
+**Checked on** Stokes flow past a sphere, where the traction is `3 mu U / (2a)` along the
+stream everywhere and the drag is `6 pi mu a U`. On a shell of wedges with 33 306 nodes
+the wall shear is within 2.1% of the traction and the drag within 1.5%; with 48 layers on
+a finer sphere, 0.3% and 0.2%. The error is the one-sided gradient at the wall
+(first order in the height of the first cell).
 
 ## Adding a field
 

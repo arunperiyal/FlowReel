@@ -631,7 +631,7 @@ per task; tick the box in that commit.
 - [x] PLT writer; synthetic files with tetrahedra, a triangle wall and two body zones
 - [x] Total force and moment on any body
 - [x] Wall fields on a closed body with no axis: Stokes flow past a sphere
-- [ ] Docs
+- [x] Docs
 
 **Branch 7: `phase1/reveal-golden`** (depends on branches 2, 4, 5 and 6)
 - [ ] Generate small vtk data from the prototype's reveal case for the test

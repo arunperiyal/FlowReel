@@ -586,11 +586,11 @@ Branches 2 to 5 depend only on branch 1, so they can be built in parallel by age
 per task; tick the box in that commit.
 
 **Branch 1: `phase1/sources-interface`** (data model)
-- [ ] `Box` type (bounds, contains, crop helpers)
-- [ ] `Source` protocol as in Section 5.1
-- [ ] Adapter registry and the `flowreel.sources` entry-point group
-- [ ] Test fixtures: a small generated structured/unstructured flow with a body surface
-- [ ] Docs: sources page (interface, naming of `U V W p`, units)
+- [x] `Box` type (bounds, contains, crop helpers)
+- [x] `Source` protocol as in Section 5.1
+- [x] Adapter registry and the `flowreel.sources` entry-point group
+- [x] Test fixtures: a small generated structured/unstructured flow with a body surface
+- [x] Docs: sources page (interface, naming of `U V W p`, units)
 
 **Branch 2: `phase1/sources-vtk-geometry`** (adapters, no solver files)
 - [ ] `vtk` adapter: `.pvd` and filename pattern, steps and time

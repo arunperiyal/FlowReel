@@ -37,6 +37,9 @@ flexflow, and flexflow has none on it.
    it.
 5. Correct by default: derived fields from velocity, measured lengths, caches that cannot
    go stale silently.
+6. Not tied to the film's one short cylinder (Sections 5.4 to 5.6): any number of bodies,
+   each with its own supports; slender bodies hundreds of diameters long; and bodies that
+   the solver models by equations only, with no surface in its files.
 
 **Non-goals**
 
@@ -55,7 +58,10 @@ flexflow, and flexflow has none on it.
 | **step** | The solver's own counter (5000, 5005, ...). Sources map steps to **time** in the solver's units |
 | **shot** | One continuous piece of picture: a time line, a camera and layers, rendered to a frame folder |
 | **layer** | One thing drawn in a shot: an iso surface, a slice, the body, an outline, markers, a parametric body |
-| **track** | Any property that changes along a shot: a value, or keys with easing |
+| **body** | A named structure in a source: a wall surface from the files, or a **virtual body** that exists only as equations and time series. Declared in `flowreel.yml` with its axis, size and supports |
+| **support** | How an end or a point of a body is held (clamped, pinned, ...), drawn as a symbol |
+| **station** | A position along a body's axis, in the source's length unit |
+| **track** | Any property that changes along a shot: a value, keys with easing, or a time series |
 | **view** | A camera: position, focal point, up, and a view angle or a parallel half-height |
 | **panel** | A 2D picture drawn with matplotlib: a section, cuts side by side, a map, time series |
 | **layout** | Several frame folders and panels tiled into one frame |
@@ -104,7 +110,8 @@ class Source(Protocol):
     def time(self, step: int) -> float: ...
     def fields(self) -> list[str]: ...                        # names it can provide
     def flow(self, step: int, fields: list[str], crop: Box | None) -> pv.UnstructuredGrid: ...
-    def body(self, step: int) -> pv.PolyData: ...             # wall surface, deformed
+    def bodies(self) -> list[str]: ...                        # names of the wall surfaces
+    def body(self, step: int, name: str | None = None) -> pv.PolyData: ...  # one, or all merged
     def bounds(self) -> Box: ...                              # whole domain
     def series(self, name: str) -> pd.DataFrame: ...          # time column plus values
     def memory_per_step(self, crop: Box | None) -> float: ... # GB, for -j
@@ -121,7 +128,7 @@ class Source(Protocol):
 
 | Adapter | Location | Reads | Lives in |
 |---|---|---|---|
-| `flexflow` | a case folder | `binary/riser.<step>.plt`, zones `FIELD` and `cyl`, OTHD probes and OISD forces | FlowReel (its own PLT reader, from `prototype/afms/fxplt.py`) |
+| `flexflow` | a case folder | `binary/<problem>.<step>.plt` (the volume zone and every surface zone); OTHD probes and OISD forces of a one-body case | FlowReel (its own PLT reader, from `prototype/afms/fxplt.py`) |
 | `vtk` | `.pvd`, or a pattern like `out/wake_*.vtu` | pyvista; body from a second file or a named block | flowreel |
 | `geometry` | a body name and parameters | nothing; builds the surface in code | flowreel |
 | `openfoam` | a case folder | pyvista's OpenFOAM reader | later |
@@ -152,6 +159,147 @@ surface, with parameters as tracks. First body: `grooved_cylinder` (span, radius
 count, depth, width, turns, phase, `cut_front` for carving, glow behind the cutters),
 which is `render_carve.py` today. Later: `straight_grooved_cylinder`, `smooth_cylinder`,
 `box`.
+
+### 5.4 Bodies
+
+A PLT file says where a body's surface is and nothing else: not which way its span runs,
+not how thick it is, not how its ends are held. FlowReel does not look for that in the
+solver's other files. It is written once, in the project's `flowreel.yml`, and every
+shot, panel and data command uses it by the body's name.
+
+**Why one plain file.** A flexflow case does describe its bodies (`domain.yml`, written
+and read by FlexFlow Analyzer) and their boundary conditions (`bcType` in the `.def`),
+and an earlier draft of this plan read both. That tied FlowReel to two more formats
+owned by other programs, for a dozen lines a person can write. So: the Analyzer reads
+the case; FlowReel reads `flowreel.yml`; and if the two should meet, the Analyzer can
+write a `bodies:` block from its `domain.yml` (a command there, not a reader here).
+`flowreel project init` writes the block with one entry per surface zone found in the
+source, the axis and diameter measured from the surface, and the supports left to fill.
+
+```yaml
+bodies:
+  riser:
+    zone: cyl                      # surface zone in the source; default: the body's name
+    axis: x                        # span direction; leave out for a body that is not slender
+    diameter: 1.0                  # reference length: symbols and stations scale with it
+    ends:
+      - {at: 0.0, support: pinned}
+      - {at: 500.0, support: roller, free_along: x, tension: true}
+    series:
+      displacement: {file: data/riser_disp.csv, by: node, stations: data/riser_nodes.csv}
+      force: {file: data/riser_force.csv}
+  downstream:
+    zone: cyl2
+    axis: x
+    diameter: 1.0
+    ends: [{at: 0.0, support: clamped}, {at: 12.0, support: clamped}]
+```
+
+- **Any number of bodies.** A layer, a view's `follow`, a wall field and a panel each
+  take `body: NAME`; with one body declared the name may be left out. Two cylinders in
+  tandem are two entries, each with its own colour, supports, forces and series.
+- **No declaration is needed to draw a body.** A source's surface zones are bodies under
+  their zone names, as in Phase 1. The declaration adds what the files cannot say.
+- **Series belong to a body,** as CSV files named under it (below):
+  `source.series("displacement", body="riser")`.
+- **Stations.** Where a body has an `axis`, its centre at a station is the centroid of
+  its surface in a thin strip there, so `follow`, `supports` and `centreline` work on a
+  bent and moving body.
+
+**Supports.** The solver's boundary conditions on the structure are not in the PLT file.
+They are written under the body's `ends` in `flowreel.yml`, and drawn by the `supports`
+layer (Section 7.2) at the body's position in each frame.
+
+| `support` | Fixes | Drawn as |
+|---|---|---|
+| `clamped` | position and slope | a block the body runs into (the prototype's clamps) |
+| `pinned` | position; the body may turn | a cone with its tip on the axis, on a small base |
+| `roller` | position across `free_along`; slides along it | the pinned cone on rollers |
+| `spring` | nothing; restrained by `stiffness` | a coil from the body to a ground block |
+| `free` | nothing | nothing, or a thin ring with `mark: true` |
+| `prescribed` | moved by the solver along `direction` | a double arrow |
+
+`tension: true` adds an arrow along the axis, for a riser held by top tension. A support
+may also sit along the span (`at:` any station), for a body held at several points.
+Symbols are sized in diameters, so they look the same on a body 12 or 500 diameters
+long, and `min_pixels` keeps them readable in a view of the whole span. Supports are a
+registry like bodies and layers: a new kind is a function, not a change to FlowReel.
+
+**Series are CSV files.** Time histories reach FlowReel as CSV, whatever wrote them:
+for flexflow, FlexFlow Analyzer's exports (`data table --output`), which already
+handles restarts, the `othId` and `osgId` groups of several bodies and the pendulum's
+lines. FlowReel then needs no knowledge of those files.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `file` | the CSV, relative to the project | required |
+| `time` | name of the time column | `time` |
+| `columns` | names to use for columns, `{dy: aleDisp_y}` | the file's own |
+| `by` | a column that numbers the points along the body (`node`), for a history at many points in long form | none: one row per time |
+| `stations` | where those points are along the span: a list, or a CSV of `node, station` | needed by `centreline` and `map` |
+
+The OTHD and OISD readers of Phase 1 stay as they are, for a quick look at a case with
+one body; they are not extended, and they refuse a file with more than one group
+instead of mixing two bodies' rows.
+
+### 5.5 Virtual bodies
+
+Some structures are solved as equations coupled to the flow and never meshed: a pendulum
+hung from a cylinder, a tuned mass, a spring to ground. The PLT file has no surface for
+them; their motion is in the solver's time series (OTHD). A virtual body is drawn from a
+**shape**, a body function from Section 5.3, whose parameters are **driven** by series.
+
+```yaml
+bodies:
+  pendulum:
+    virtual: true
+    shape: pendulum                          # rod and bob
+    params: {length: 2.0, bob: 0.3}
+    attach: {body: riser, station: 250.0}    # its origin follows the riser there
+    drive:
+      angle: {series: pendulum, column: pendDisp}
+```
+
+The series is a CSV named under the body (`series: {pendulum: {file: data/pend.csv}}`);
+for flexflow it is the Analyzer's export of `pendDisp`, `pendVel` and `pendAccel`. What
+the numbers mean (an angle or a length, the pivot, the plane of swing) is the user's
+to state in `params` and `attach`; FlowReel does not guess it from the file.
+
+- **`attach`** puts the shape's origin on a real body's centre at a station, or at a
+  fixed point; **`drive`** takes parameters from a series at each frame's time
+  (a series track, Section 7.3). Nothing else is computed: FlowReel draws the solver's
+  result and does not integrate the pendulum's equation.
+- **Drawn to look modelled, not meshed:** a `ghost` style by default (translucent, with
+  an edge line), so the film does not suggest the pendulum disturbed the flow as a solid
+  would. A caption can say so.
+- **First shapes:** `pendulum`, `spring`, `mass`. A shape is a registered function, so a
+  new mechanism is a small plugin.
+- A virtual body has series but no wall fields: asking for its wall shear is an error.
+
+### 5.6 Long bodies
+
+The reference film's cylinder is 12 diameters long and fits in one frame with its wake.
+A riser 500 diameters long does not: in a view of the whole span the body is two pixels
+thick, its motion (about one diameter) is invisible, and one saved step is too large to
+load whole. The plan for such cases:
+
+| Need | Answer | Where |
+|---|---|---|
+| See the flow somewhere along the span | a **window**: `crop: {around: {body: riser, station: 250}, half: [10, 6, 15]}` follows the body; the camera's `follow` uses the same station | 7.1, 7.4 |
+| Travel along the span | `station` is a track, so the window and camera move from one end to the other | 7.3, 7.4 |
+| See the shape of the whole span | the `centreline` layer: the body's axis as a tube, with `amplify` to draw its displacement many times larger, the rest line and the envelope | 7.2 |
+| Fit the whole span in a frame | `stretch: {x: 0.05}` on a shot draws the model with one direction compressed, and says so in the frame | 7.4 |
+| Several stations at once | a `stations` layout tiles one shot at several stations; a `locator` panel shows the span as a bar with the windows marked | 9 |
+| Span against time | the `map` panel with displacement or sectional force from the probes | 9.2 |
+| Files too large to load | windowed reading: only the window's nodes and the asked fields leave the disk | 17 |
+
+- **`amplify` is for the body alone.** A displacement drawn 50 times larger no longer
+  matches the flow around it, so `amplify` is allowed on `centreline` and on a `body`
+  layer only in shots with no flow layers; otherwise it is an error.
+- **The centreline can come from the probes** (OTHD) and not the PLT files, so a shot of
+  the whole span's motion over thousands of steps reads no flow data at all.
+- **Lengths in the files stay in the source's unit.** A station is a number, not a
+  formula; `diameter` gives labels and symbols their scale.
 
 ## 6. Derived fields
 
@@ -200,7 +348,9 @@ Every property below may be a track.
 |---|---|
 | `iso` | field, level, colour_by, range, colormap, opacity, wall_gap, near_wall, clip (plane or another layer), grow (axis, fraction), grey (blend to a flat colour), smooth shading, specular |
 | `slice` | normal, position, field, range, colormap, fade_weak (values that become transparent), mask near the wall, opacity, triangulate |
-| `body` | colour, opacity, field and range on the surface, zero contour (colour, width), raking light |
+| `body` | body (a name, a list, or all), colour, opacity, field and range on the surface, zero contour (colour, width), raking light, `amplify` (Section 5.6), style `solid` or `ghost` |
+| `supports` | body, which ends, size in diameters, `min_pixels`, colour, opacity (Section 5.4) |
+| `centreline` | body, from `surface` or `probes`, radius, colour by a value per station, `amplify`, rest line, envelope over a range of steps (Section 5.6) |
 | `outline` | bounds (`domain`, `crop` or numbers), colour, width, opacity |
 | `glyphs` | where (a face of the domain with a grid, or points), direction, size, colour, opacity |
 | `markers3d` | `arrow3d`, `block`, `sphere`, `dimension3d`, `label3d`, each at model positions |
@@ -221,6 +371,11 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   (cubic), or `hold` (steps).
 - **Clamping:** before the first key a track holds the first value, after the last the
   last.
+- **Series as a track:** `angle: {series: pendulum, column: pendDisp}` takes the
+  value from a body's time series at the frame's time, interpolated between samples, with
+  optional `scale` and `offset` and nothing more (no expressions, Section 21). This is
+  what moves a virtual body, and it can drive any property: an arrow's length from a
+  force, a marker's height from a probe.
 - **Time as a track:** `time: {keys: [[0, 5000], [120, 5300]]}` maps frames to steps;
   between saved steps it takes the nearer step (no interpolation of fields).
 
@@ -230,8 +385,13 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   height in model units), as flexflow's camera frames already store.
 - **Fit:** `{fit: domain, direction_of: main, margin: 1.1}` places the camera along a
   view's direction far enough to show a box: used for the wide domain view.
-- **Follow:** `{follow: body, station: 6.0}` keeps the focal point on the body's centre at
-  a station, for close views of a moving body.
+- **Follow:** `{follow: riser, station: 6.0}` keeps the focal point on a named body's
+  centre at a station, for close views of a moving body. `station` may be a track, so the
+  camera travels along a long span; `motion: false` follows the station but not the
+  body's vibration, so the vibration stays visible.
+- **Stretch:** `stretch: {x: 0.05}` on a shot scales the drawn model along an axis, after
+  contouring, to fit a long body in the frame. The frame carries a note of the scale,
+  because a stretched wake is not the wake's true shape.
 - **Lights:** default kit, or `raking` (a strong side light and a weak head light), or a
   list of lights. Optional ambient occlusion where the backend has it.
 
@@ -245,6 +405,11 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   crop); only the camera and cheap properties change per frame.
 - **Output:** `frames/<shot>/frame_00000.png`, padded; existing frames are skipped
   unless their key changed (Section 11).
+- **Draft size:** `shot render --scale 0.5` (or `--size W H`) draws the same shot with
+  fewer pixels, for a quick look or a small copy to share. The size is the only thing
+  that changes: camera, view angle and line widths in model units stay, and widths given
+  in pixels are scaled with it. Draft frames go to `frames/<shot>@<W>x<H>/`, so they
+  never mix with the full-size frames or make them look stale.
 
 ## 8. Cameras
 
@@ -305,7 +470,9 @@ tiles:
 plots: {at: [1280, 0], size: [640, 1080], file: plots/compare.yml}
 ```
 
-Any number of tiles; `grid: [rows, cols]` places them automatically. Tiles that lack a
+Any number of tiles; `grid: [rows, cols]` places them automatically. `stations:
+{shot: shots/window.yml, at: [50, 250, 450]}` tiles one shot rendered at several stations
+of a long body (Section 5.6), each tile labelled with its station. Tiles that lack a
 frame at some index are an error unless `missing: hold` is set.
 
 ### 9.2 Panels
@@ -318,7 +485,9 @@ Matplotlib figures drawn per frame, sharing one style block (fonts, colours, mat
 | `cuts` | the same cut at several stations side by side, labelled | span slices |
 | `strip` | the body from one side, coloured by a surface field, zero contour | separation line |
 | `map` | a field against two axes (span and time), filling in to the current frame | lift map |
-| `series` | time series to the current time, a dot at the current value | comparison plots |
+| `series` | time series to the current time, a dot at the current value; one or several bodies | comparison plots |
+| `locator` | a long body's span as a bar: its shape now (amplified), its supports, the windows on show | new |
+| `phase` | one series against another (a pendulum's angle against the cylinder's displacement), a dot at the current time | new |
 
 ### 9.3 Panels at the output rate
 
@@ -410,6 +579,15 @@ competition's layout is a different file.
 
 Outputs besides the film: `film.srt` from the captions, `contact.png` from `film check`.
 
+**Preview copy.** `film build --preview 480` writes a small, strongly compressed copy
+(`film_480p.mp4`) next to the film, for sending to someone; the number is the height in
+pixels and the width follows the film's aspect ratio. It is made from the same clips as
+the full film, scaled and encoded once at the join, so no frame is drawn again and the
+text, laid out in the film's own pixels, shrinks with the picture and stays in place.
+`--crf N` sets the quality (default 28 for a preview). The prototype had no such option:
+its size was fixed in the scripts, and a small copy meant running ffmpeg by hand on the
+finished film.
+
 ## 11. Caching
 
 Every cached thing has a key from everything that changes it.
@@ -472,12 +650,12 @@ flowreel jobs     write | submit
 
 | Command | Options | Does |
 |---|---|---|
-| `shot render SHOT.yml` | `-j N`, `--frames A:B`, `--backend`, `--force`, `--slurm FILE`, `--submit` | renders a shot's frames |
+| `shot render SHOT.yml` | `-j N`, `--frames A:B`, `--scale S`, `--size W H`, `--backend`, `--force`, `--slurm FILE`, `--submit` | renders a shot's frames, at a draft size when asked |
 | `shot preview SHOT.yml` | `--every 10`, `--scale 0.25` | small frames to check timing |
 | `shot memory SHOT.yml` | | estimated GB per frame and a safe `-j` for this machine |
 | `compose layout LAYOUT.yml` | `-o DIR` | tiles frame folders |
 | `compose panel PANEL.yml` | `-j N`, `-o DIR` | draws a 2D panel per frame |
-| `film build` | `--only SHOT`, `--mute`, `--force` | builds the film |
+| `film build` | `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N` | builds the film, or a small copy of it to share |
 | `film check` | `--at caption\|freeze\|every:S` | contact sheet of stills with text in place |
 | `film lengths` | | planned and measured length per shot |
 | `film srt` | | caption file for players |
@@ -493,6 +671,10 @@ FlowReel does not import flexflow and flexflow does not import FlowReel.
   PLT reader (the prototype's `fxplt.py`, itself a copy of flexflow's). If the solver's
   format changes, both readers change; a shared small package for the reader is an
   option later (Section 24).
+- **The line between the two programs:** of a flexflow case FlowReel reads the PLT files
+  and nothing else it must understand. Bodies and supports are written in `flowreel.yml`
+  (Section 5.4); time histories arrive as CSV exported by FlexFlow Analyzer. The
+  Analyzer keeps `domain.yml`, the `.def`, and the OTHD and OISD formats to itself.
 - **Cameras:** a cam.yml written by `flexflow field render --pick-camera` is a valid
   FlowReel view, because FlowReel reads the same keys (`position`, `focal`, `up`,
   `view_angle`, `parallel`, `parallel_scale`). FlowReel's camera import also reads
@@ -546,6 +728,13 @@ the shot list.
 - The prototype rendered the whole film in about 30 minutes on airavata's 128 cores and
   about 75 minutes on the workstation's 48 threads; flowreel should match that.
 - Panels are drawn in parallel chunks; text and assembly take about a minute.
+- **Long cases.** A PLT file stores each variable as one block, so a window is read
+  without loading the zone: the coordinates are read once to choose the window's nodes
+  and cells, the choice is cached (the connectivity does not change between steps; a
+  margin covers the body's motion), and each frame then reads only those nodes of the
+  asked variables through a memory map. Memory and time per frame follow the window,
+  not the domain. `shot memory` reports both, and refuses a shot that asks for the whole
+  domain of a case that cannot fit.
 
 ## 18. Packaging
 
@@ -571,9 +760,10 @@ Each phase ends with something checkable.
 |---|---|---|
 | 0 | Tidy the prototype: cameras.yml, one frame description, settings out of code, one derive module, padded frame names | AFMS frames identical by image difference |
 | 1 | Package skeleton, sources (interface, flexflow, vtk, geometry), fields, tracks | field tests pass; a reveal frame from vtk data matches |
-| 2 | Scene: layers, views, rendering, caching; `shot render` | reveal, domain and carving shots match the golden frames |
-| 3 | Compose: layouts, panels at the output rate | comparison and lift-map frames match |
-| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths` | the AFMS film rebuilt from files, same length, captions in place |
+| 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
+| 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
+| 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
+| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`; a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
@@ -643,6 +833,133 @@ per task; tick the box in that commit.
 data matches the prototype's. **Done 2026-11-13:** the field tests pass and the reveal
 frame matches (`docs/reveal.md`).
 
+### 19.2 Phase 2 tasks
+
+Stacked branches, in order (each PR targets the one before; the first targets `main`).
+Branches 2, 3 and 4 depend only on branch 1, so they can be built in parallel by agents
+and then stacked in this order. Branches 5, 6 and 7 are done in order by the main
+session. One commit per task; tick the box in that commit.
+
+**Branch 1: `phase2/scene-shot-file`** (data model)
+- [ ] Validation helper: errors name the file and key path; unknown keys suggest the nearest (Section 15)
+- [ ] Shot schema as in Section 7.1: name, source, time, camera, size, crop, background, antialias, layers
+- [ ] Time of a shot: `steps` with `every`, `frozen` with a frame count, `keys`
+- [ ] Frame plan: for each frame, its step and the value of every track
+- [ ] Layer interface and registry: a layer takes the frame's data and values and adds actors to a plot
+- [ ] Docs: shot file reference (type, default and example per key)
+
+**Branch 2: `phase2/scene-views`** (cameras and lights; needs branch 1)
+- [ ] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)
+- [ ] Camera track between named views: linear and spline path, eased
+- [ ] `fit`: along a view's direction, far enough to show a box
+- [ ] `follow`: focal point on a body's centre at a station
+- [ ] Lights: default kit, `raking`, or a list
+- [ ] Projection of model points to the screen, with exact tests
+- [ ] Docs: cameras page
+
+**Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)
+- [ ] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
+- [ ] `iso`: clip by a plane, `grow` along an axis, `grey`
+- [ ] `slice`: normal, position, field, range, fade_weak, mask near the wall
+- [ ] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour
+- [ ] Reveal look written as a shot file on these layers; `reveal.py` goes, its golden test stays
+- [ ] Docs: these layers, with an example on generated data
+
+**Branch 4: `phase2/layers-markers`** (layers without flow data; needs branch 1)
+- [ ] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
+- [ ] `glyphs`: arrows on a face of the domain or at points
+- [ ] `markers3d`: `arrow3d`, `block`, `sphere`
+- [ ] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
+- [ ] Docs: these layers, with an example on generated data
+
+**Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)
+- [ ] Backend choice: OSMesa when installed, else EGL; `backend` forces one
+- [ ] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
+- [ ] Frame keys (Section 11): frames are skipped unless their key changed; `force`
+- [ ] Frozen shots contour once and cache the surfaces
+- [ ] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
+- [ ] Memory of one frame measured, and the safe number of jobs
+- [ ] Tests on generated data; docs: rendering and caching
+
+**Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
+- [ ] `flowreel` entry point on shellkit: one-shot and interactive
+- [ ] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
+- [ ] `shot preview` (`--every`, `--scale`) and `shot memory`
+- [ ] `shot template`: a commented shot file with the defaults
+- [ ] Help text; docs: commands page
+
+**Branch 7: `phase2/golden-shots`** (the check; needs all the others)
+- [ ] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
+- [ ] Golden carving frame drawn by the prototype's `render_carve.py`
+- [ ] Shot files for the domain and carving shots; `examples/` shot on generated data
+- [ ] Image-difference tests of the three shots through `shot render`
+
+Left out of Phase 2: the `pathlines` layer (no shot of the reference film uses it, and it
+needs every step saved), `dimension3d` and `label3d` (they draw text, so they come with
+Phase 4's text and Phase 6's anchored annotations), ambient occlusion, and `--slurm` and
+`--submit` (Phase 5).
+
+**Phase 2 is done when** the reveal, domain and carving shots, each rendered from a shot
+file by `flowreel shot render`, match the golden frames.
+
+### 19.3 Phase 2B tasks
+
+Added 2026-11-13 for the studies after the film: long cylinders, pinned ends, cylinders
+in tandem and bodies modelled by equations. It follows Phase 2 because it builds on
+layers, views and rendering, and before Phase 3 because the panels there take bodies by
+name. Branches 2, 3, 4 and 6 need only branch 1, so they can be built in parallel;
+branch 5 needs branch 4.
+
+**Branch 1: `phase2b/bodies-declared`** (data model)
+- [ ] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
+- [ ] Layers, `follow` and wall fields take a body by name; one body may go unnamed
+- [ ] Centre of a body at a station, its centreline and its diameter, from the surface
+- [ ] `project init` writes `bodies:` from the source's surface zones, supports left to fill
+- [ ] Docs: bodies page
+
+**Branch 2: `phase2b/series-csv`** (time histories; needs branch 1)
+- [ ] CSV series: `file`, `time`, `columns`; `series(name, body=...)`
+- [ ] Histories at many points: `by` and `stations`
+- [ ] OTHD and OISD readers refuse a file with more than one group
+- [ ] Tests on generated CSV files; docs, with the Analyzer commands that export them
+
+**Branch 3: `phase2b/layers-supports`** (needs branch 1)
+- [ ] Support registry; `clamped` and `pinned`
+- [ ] `roller`, `spring`, `free`, `prescribed`; `tension`
+- [ ] `supports` layer: at the body's position per frame, sized in diameters, `min_pixels`
+- [ ] The domain shot's clamps drawn by `supports`; its golden frame still matches
+- [ ] Docs, with a picture of each symbol
+
+**Branch 4: `phase2b/tracks-series`** (needs branch 1)
+- [ ] Series track: value at the frame's time, `column`, `scale`, `offset`
+- [ ] `centreline` layer from the surface: tube, colour by a value per station
+- [ ] `centreline` from probes; `amplify`, rest line, envelope
+- [ ] `amplify` on a `body` layer, refused in shots with flow layers
+- [ ] Tests with exact values; docs
+
+**Branch 5: `phase2b/bodies-virtual`** (needs branch 4)
+- [ ] Virtual body in `bodies:`: `shape`, `params`, `attach`, `drive`
+- [ ] Shapes `pendulum`, `spring`, `mass`
+- [ ] `ghost` style; wall fields on a virtual body are an error
+- [ ] Docs, with an example on generated data
+
+**Branch 6: `phase2b/long-span`** (needs branch 1)
+- [ ] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
+- [ ] Cached window index, with a margin for the body's motion
+- [ ] `crop: {around: ...}` and `follow` with `station` as a track, `motion: false`
+- [ ] `stretch` on a shot, with its note in the frame
+- [ ] `memory_per_step` and `shot memory` from the window; refusal of a shot that cannot fit
+- [ ] Docs: long bodies page
+
+**Branch 7: `phase2b/bodies-check`** (needs all the others)
+- [ ] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum
+- [ ] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
+- [ ] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series
+- [ ] `examples/` project on generated data
+
+**Phase 2B is done when** those three shots render from the generated case and the
+window shot's memory does not grow with the span.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |
@@ -697,4 +1014,31 @@ submitted film.
 
 ## 24. Questions
 
-None open. New ones are added here as the work raises them.
+New ones are added here as the work raises them.
+
+| # | Question | Needed by |
+|---|---|---|
+| 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
+| 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
+
+**Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
+and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the
+user picks per project with `flexflow:CASE` or `vtk:FILE.pvd`. VTU is the general path
+for any solver and for a small window made once. PLT stays because:
+
+- **No second copy of the data.** The reference case is 155 MB a step; a shot of 120
+  steps is 19 GB of PLT and about as much again in VTU, written before the first frame.
+- **Long cases.** A PLT stores each variable as one block, so a window can be read
+  without loading the file (Section 17). A VTU is read whole, so every window, and every
+  position of a travelling window, would be an extract made beforehand.
+- **The reader exists,** is tested against solver output, and loads a step in 1.5 s.
+
+Everything else FlowReel would have had to know about a flexflow case is dropped: no
+`domain.yml`, no `.def`, no OTHD or OISD groups. What FlexFlow Analyzer is asked to add
+for this (a `flowreel.yml` writer, all nodes in one CSV) is listed in that repository's
+`docs/FLOWREEL.md`.
+
+Answered 2026-11-13: each cylinder is its own surface zone in the PLT; the risers to
+come are pin-roll with top tension; bodies and boundary conditions are written in
+`flowreel.yml`; time histories come as CSV from FlexFlow Analyzer. This narrows
+Section 23's "Data formats, first release": OTHD and OISD stay for one-body cases only.

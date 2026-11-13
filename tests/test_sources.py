@@ -35,3 +35,8 @@ def test_register_and_create(toy_source):
 def test_unknown_adapter_lists_available():
     with pytest.raises(KeyError, match="available"):
         sources.create("nope")
+
+
+def test_body_names(toy_source):
+    assert toy_source.bodies() == ["sphere"]
+    assert toy_source.body(0, "sphere").n_points == toy_source.body(0).n_points

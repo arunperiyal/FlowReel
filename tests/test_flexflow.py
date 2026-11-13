@@ -131,3 +131,14 @@ def test_series_restart_later_file_wins(tmp_path):
     _write_series(tmp_path, "new.oisd", "oisd_files", "time 1.0\ntotTrac 3 1\n2 2 2\n")
     os.utime(tmp_path / "oisd_files" / "old.oisd", (1, 1))
     assert FlexflowSource(tmp_path).series("force").fx.tolist() == [2.0]
+
+
+def test_zones_are_found_in_the_file(src):
+    assert src.volume == "FIELD" and src.bodies() == ["cyl"]
+    assert src.body(5000, "cyl").n_cells == src.body(5000).n_cells == 64
+    with pytest.raises(KeyError, match="cyl"):
+        src.body(5000, "wing")
+    with pytest.raises(KeyError, match="FIELD"):
+        FlexflowSource(CASE, body="wing")
+    with pytest.raises(ValueError, match="not a volume zone"):
+        FlexflowSource(CASE, volume="cyl")

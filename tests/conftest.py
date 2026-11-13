@@ -39,7 +39,10 @@ class ToySource:
             g = g.extract_cells(np.flatnonzero(keep))
         return g
 
-    def body(self, step):
+    def bodies(self):
+        return ["sphere"]
+
+    def body(self, step, name=None):
         return pv.Sphere(radius=0.2, center=(0, 0, 0.5))
 
     def bounds(self):

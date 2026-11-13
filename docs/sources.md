@@ -12,7 +12,8 @@ adding an adapter, nothing more.
 | `time(step)` | physical time of the step |
 | `fields()` | names of the point fields available |
 | `flow(step, fields, crop)` | `pyvista.UnstructuredGrid` with those fields, cropped to a `Box` or `None` |
-| `body(step)` | wall surface (`PolyData`), deformed to that step |
+| `bodies()` | names of the wall surfaces the source holds (empty if none) |
+| `body(step, name=None)` | the wall surface `name` (`PolyData`), deformed to that step; without a name, every body in one surface |
 | `bounds()` | `Box` of the whole domain |
 | `series(name)` | `pandas.DataFrame` with a `time` column plus values |
 | `memory_per_step(crop)` | estimated GB for one step, used to choose the number of jobs |
@@ -25,6 +26,22 @@ adding an adapter, nothing more.
   `length: D`, `velocity: U` for labels.
 - Derived fields (vorticity, Q, lambda2, wall shear, ...) are **not** provided by sources;
   they are computed from velocity and pressure.
+
+## Bodies
+
+A source can hold any number of wall surfaces of any shape: a cylinder, a wing and its
+flap, a sphere. Each has a name, so a layer or a force can address one body while a
+whole-scene layer takes them all:
+
+```python
+src.bodies()               # ["wing", "flap"]
+src.body(5000, "flap")     # one body
+src.body(5000)             # both, as one surface
+```
+
+An unknown name raises `KeyError` listing the names; a source without a body raises
+`LookupError`. Nothing in FlowReel assumes the body is a cylinder or has a span: only
+`sectional_force` asks for an axis, and `wall_force` needs none (see `docs/fields.md`).
 
 ## Cropping
 
@@ -82,8 +99,8 @@ per step, such as a `.pvtu`.
 |---|---|---|---|
 | `path` | string | required | `.pvd` file, pattern or single file. Example: `out/wake_*.vtu` |
 | `names` | mapping | `{}` | Standard name to the array's name in the files. Keys: `U`, `V`, `W`, `velocity`, `p`. Example: `{velocity: vel, p: P}` or `{U: ux, V: uy, W: uz}` |
-| `body` | string | none | Wall surface: one file (used at every step), or a pattern or `.pvd` matched to the flow by step number. Example: `out/cylinder_*.vtp` |
-| `body_block` | string or integer | none | Block holding the body, by name or index: in the `body` files if `body` is given, otherwise in the flow files, which are then multiblock (`.vtm`). Example: `wall` |
+| `body` | string or mapping | none | Wall surface: one file (used at every step), or a pattern or `.pvd` matched to the flow by step number; the body is then called `body`. A mapping gives several named bodies. Examples: `out/cylinder_*.vtp`, `{wing: out/wing.vtp, flap: out/flap_*.vtp}` |
+| `body_block` | string, integer or list | none | Block holding the body, by name or index: in the `body` files if `body` is given, otherwise in the flow files, which are then multiblock (`.vtm`). A list gives several bodies from the flow files, named after their blocks. Examples: `wall`, `[wing, flap]` |
 | `flow_block` | string or integer | the only block that is not `body_block` | Block holding the flow in multiblock flow files. Example: `fluid` |
 | `dt` | number | `1` | Time of one step: `time = step * dt`. With a `.pvd` it replaces the file's times. Example: `0.01` |
 | `times` | list or mapping | none | Explicit times: one per step in ascending step order, or `{step: time}`. Overrides `dt` and the `.pvd`. Example: `[0.0, 0.5, 1.5]` |
@@ -224,8 +241,8 @@ lift = src.series("force")
 | Option | Type | Default | Meaning |
 |---|---|---|---|
 | `path` | path | required | the case folder; PLT files are `binary/<name>.<step>.plt`, or in the folder itself |
-| `volume` | text | `FIELD` | name of the volume zone |
-| `body` | text | `cyl` | name of the wall zone |
+| `volume` | text | found in the file | name of the volume zone; default the first zone of tetrahedra or bricks |
+| `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
 | `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
 | `name` | text | `flexflow` | label of the source |
 
@@ -243,5 +260,30 @@ lift = src.series("force")
   `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a
   coefficient). Where restarts repeat a time, the later file wins.
 
+- **Zones are found, not assumed.** The adapter reads the zone list of the first file, so
+  a case needs no options whatever its zones are called: `src.volume` and `src.bodies()`
+  say what it found. A name that is not in the file raises `KeyError` listing the zones.
+
 The test data in `tests/data/flexflow_case/` is a small piece of real output (half of the
 boundary layer over one spanwise cell, two steps), cut with `tools/cut_plt.py`.
+
+**What is tested on real output and what is not.** The real files available are one
+case: bricks with one quadrilateral wall. Tetrahedra, triangle walls, several wall zones
+and a file without a wall are tested on files generated with
+`flowreel.sources.flexflow.plt_write.write_plt`, which writes the layout the reader
+expects. That proves the adapter handles those layouts as FlowReel understands them; a
+quirk of the solver's writer on such meshes would only show on real output.
+
+### Writing a PLT file
+
+```python
+from flowreel.sources.flexflow.plt_write import write_plt
+write_plt("flow.1.plt", ["X", "Y", "Z", "U", "V", "W", "Pressure"], columns,
+          [("fluid", 4, tets), ("wing", 2, triangles)], time=0.5)
+```
+
+`columns` is one array per variable over the nodes; each zone is `(name, type,
+connectivity)` with Tecplot's type code (2 triangle, 3 quadrilateral, 4 tetrahedron,
+5 brick) and 0-based connectivity into the nodes. The first zone stores the variables and
+the others share them, as FlexFlow writes a wall next to the volume. It exists to cut
+test files (`tools/cut_plt.py`) and to generate them; it is not an export format.

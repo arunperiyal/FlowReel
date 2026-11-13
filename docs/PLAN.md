@@ -1019,23 +1019,24 @@ New ones are added here as the work raises them.
 | # | Question | Needed by |
 |---|---|---|
 | 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
-| 2 | Should flow fields also come only from VTU files that FlexFlow Analyzer extracts (`field extract`), dropping the PLT reader? Recommended: no. Keep both paths, see below. | before Phase 2B, branch 6 |
-| 3 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form: a change in the Analyzer, or a loop over nodes. | Phase 2B, branch 2 |
+| 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
 
-**On question 2.** The `vtk` adapter already renders from VTU (the reveal test does), so
-extracting with the Analyzer and rendering from the result works today and stays the
-general path for any solver. Against making it the only path for flexflow:
+**Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
+and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the
+user picks per project with `flexflow:CASE` or `vtk:FILE.pvd`. VTU is the general path
+for any solver and for a small window made once. PLT stays because:
 
-- **A second copy of the data.** The reference case is 155 MB a step; a shot of 120
+- **No second copy of the data.** The reference case is 155 MB a step; a shot of 120
   steps is 19 GB of PLT and about as much again in VTU, written before the first frame.
 - **Long cases.** A PLT stores each variable as one block, so a window can be read
-  without loading the file (Section 17). A VTU is read whole. With VTU only, every
-  window, and every position of a travelling window, is an extract made beforehand.
-- **A step between a changed crop and its picture,** run in another program.
+  without loading the file (Section 17). A VTU is read whole, so every window, and every
+  position of a travelling window, would be an extract made beforehand.
 - **The reader exists,** is tested against solver output, and loads a step in 1.5 s.
 
-What is dropped instead is everything else FlowReel would have had to know about a
-flexflow case: no `domain.yml`, no `.def`, no OTHD or OISD groups.
+Everything else FlowReel would have had to know about a flexflow case is dropped: no
+`domain.yml`, no `.def`, no OTHD or OISD groups. What FlexFlow Analyzer is asked to add
+for this (a `flowreel.yml` writer, all nodes in one CSV) is listed in that repository's
+`docs/FLOWREEL.md`.
 
 Answered 2026-11-13: each cylinder is its own surface zone in the PLT; the risers to
 come are pin-roll with top tension; bodies and boundary conditions are written in

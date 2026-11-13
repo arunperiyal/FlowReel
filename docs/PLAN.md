@@ -634,7 +634,7 @@ per task; tick the box in that commit.
 - [x] Docs
 
 **Branch 7: `phase1/reveal-golden`** (depends on branches 2, 4, 5 and 6)
-- [ ] Generate small vtk data from the prototype's reveal case for the test
+- [x] Generate small vtk data from the prototype's reveal case for the test
 - [ ] Golden reveal frame from airavata's `frames/`, downscaled, kept small
 - [ ] Minimal reveal render path using sources, fields and tracks
 - [ ] Image-difference test with tolerance (Section 21)

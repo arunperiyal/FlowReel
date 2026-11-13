@@ -619,11 +619,11 @@ per task; tick the box in that commit.
 - [x] Docs: definition, meaning and sign convention of each field
 
 **Branch 5: `phase1/tracks-easing`** (animation values)
-- [ ] Track parsing: fixed, `from/to/frames`, `keys`
-- [ ] Easings: linear, smooth, in, out, in_out, hold
-- [ ] Value types: number, vector, colour (linear RGB), boolean, choice
-- [ ] Clamping and the time track (frames to steps, nearer step)
-- [ ] Exact unit tests; docs
+- [x] Track parsing: fixed, `from/to/frames`, `keys`
+- [x] Easings: linear, smooth, in, out, in_out, hold
+- [x] Value types: number, vector, colour (linear RGB), boolean, choice
+- [x] Clamping and the time track (frames to steps, nearer step)
+- [x] Exact unit tests; docs
 
 **Branch 6: `phase1/reveal-golden`** (depends on branches 2, 4 and 5)
 - [ ] Generate small vtk data from the prototype's reveal case for the test

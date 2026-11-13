@@ -245,6 +245,11 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   crop); only the camera and cheap properties change per frame.
 - **Output:** `frames/<shot>/frame_00000.png`, padded; existing frames are skipped
   unless their key changed (Section 11).
+- **Draft size:** `shot render --scale 0.5` (or `--size W H`) draws the same shot with
+  fewer pixels, for a quick look or a small copy to share. The size is the only thing
+  that changes: camera, view angle and line widths in model units stay, and widths given
+  in pixels are scaled with it. Draft frames go to `frames/<shot>@<W>x<H>/`, so they
+  never mix with the full-size frames or make them look stale.
 
 ## 8. Cameras
 
@@ -410,6 +415,15 @@ competition's layout is a different file.
 
 Outputs besides the film: `film.srt` from the captions, `contact.png` from `film check`.
 
+**Preview copy.** `film build --preview 480` writes a small, strongly compressed copy
+(`film_480p.mp4`) next to the film, for sending to someone; the number is the height in
+pixels and the width follows the film's aspect ratio. It is made from the same clips as
+the full film, scaled and encoded once at the join, so no frame is drawn again and the
+text, laid out in the film's own pixels, shrinks with the picture and stays in place.
+`--crf N` sets the quality (default 28 for a preview). The prototype had no such option:
+its size was fixed in the scripts, and a small copy meant running ffmpeg by hand on the
+finished film.
+
 ## 11. Caching
 
 Every cached thing has a key from everything that changes it.
@@ -472,12 +486,12 @@ flowreel jobs     write | submit
 
 | Command | Options | Does |
 |---|---|---|
-| `shot render SHOT.yml` | `-j N`, `--frames A:B`, `--backend`, `--force`, `--slurm FILE`, `--submit` | renders a shot's frames |
+| `shot render SHOT.yml` | `-j N`, `--frames A:B`, `--scale S`, `--size W H`, `--backend`, `--force`, `--slurm FILE`, `--submit` | renders a shot's frames, at a draft size when asked |
 | `shot preview SHOT.yml` | `--every 10`, `--scale 0.25` | small frames to check timing |
 | `shot memory SHOT.yml` | | estimated GB per frame and a safe `-j` for this machine |
 | `compose layout LAYOUT.yml` | `-o DIR` | tiles frame folders |
 | `compose panel PANEL.yml` | `-j N`, `-o DIR` | draws a 2D panel per frame |
-| `film build` | `--only SHOT`, `--mute`, `--force` | builds the film |
+| `film build` | `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N` | builds the film, or a small copy of it to share |
 | `film check` | `--at caption\|freeze\|every:S` | contact sheet of stills with text in place |
 | `film lengths` | | planned and measured length per shot |
 | `film srt` | | caption file for players |
@@ -571,9 +585,9 @@ Each phase ends with something checkable.
 |---|---|---|
 | 0 | Tidy the prototype: cameras.yml, one frame description, settings out of code, one derive module, padded frame names | AFMS frames identical by image difference |
 | 1 | Package skeleton, sources (interface, flexflow, vtk, geometry), fields, tracks | field tests pass; a reveal frame from vtk data matches |
-| 2 | Scene: layers, views, rendering, caching; `shot render` | reveal, domain and carving shots match the golden frames |
+| 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
 | 3 | Compose: layouts, panels at the output rate | comparison and lift-map frames match |
-| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths` | the AFMS film rebuilt from files, same length, captions in place |
+| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`; a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |

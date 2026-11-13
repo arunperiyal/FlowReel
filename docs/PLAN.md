@@ -637,10 +637,11 @@ per task; tick the box in that commit.
 - [x] Generate small vtk data from the prototype's reveal case for the test
 - [x] Golden reveal frame from airavata's `frames/`, downscaled, kept small
 - [x] Minimal reveal render path using sources, fields and tracks
-- [ ] Image-difference test with tolerance (Section 21)
+- [x] Image-difference test with tolerance (Section 21)
 
 **Phase 1 is done when** all field tests pass and the reveal frame rendered from vtk
-data matches the prototype's.
+data matches the prototype's. **Done 2026-11-13:** the field tests pass and the reveal
+frame matches (`docs/reveal.md`).
 
 ## 20. From the prototype
 

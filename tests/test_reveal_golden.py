@@ -12,9 +12,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from flowreel import sources
 from flowreel.scene import render_frame
-from flowreel.scene.shot import load
 
 DATA = Path(__file__).parent / "data" / "reveal"
 SHOT = DATA / "reveal.yml"
@@ -30,10 +28,8 @@ def difference(a, b):
 
 
 def draw(frame=16):
-    shot = load(SHOT)
-    source = sources.create("vtk", path=str(DATA / "flow_*.vti"), body=str(DATA / "body.vtp"))
     try:
-        return render_frame(shot, frame, source)
+        return render_frame(SHOT, frame)          # the shot file names its source
     except (RuntimeError, OSError) as error:        # no OpenGL on this machine
         pytest.skip(f"off-screen rendering is not available: {error}")
 

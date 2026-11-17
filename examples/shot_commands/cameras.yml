@@ -1,0 +1,2 @@
+views:
+  - {name: main, position: [-1, -9, 5], focal: [6, 0, 0.3], up: [0, 0, 1], view_angle: 30}

@@ -120,3 +120,21 @@ def test_camera_errors_name_the_key(spec, message):
     with pytest.raises(ConfigError, match=message) as err:
         camera(spec)
     assert "toy.yml: camera" in str(err.value)
+
+
+def test_a_source_mapping_passes_options_and_resolves_paths(tmp_path, monkeypatch):
+    from flowreel import sources
+    from flowreel.scene.rendering import open_source
+    seen = {}
+    monkeypatch.setattr(sources, "create", lambda adapter, **kw: seen.update(adapter=adapter, **kw))
+    shot = toy_shot(source={"adapter": "vtk", "path": "f_*.vti", "body": {"a": "a.vtp"}, "dt": 0.1})
+    shot.file = str(tmp_path / "s.yml")
+    assert shot.source == ("vtk", "f_*.vti") and shot.source_options["dt"] == 0.1
+    open_source(shot)
+    assert seen == {"adapter": "vtk", "path": str(tmp_path / "f_*.vti"),
+                    "body": {"a": str(tmp_path / "a.vtp")}, "dt": 0.1}
+    geo = toy_shot(source={"adapter": "geometry", "body": "grooved_cylinder"})
+    open_source(geo)
+    assert seen["body"] == "grooved_cylinder"                 # a name, not a file
+    with pytest.raises(ConfigError, match="missing key 'adapter'"):
+        toy_shot(source={"path": "x"})

@@ -882,11 +882,11 @@ session. One commit per task; tick the box in that commit.
 - [x] Tests on generated data; docs: rendering and caching
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
-- [ ] `flowreel` entry point on shellkit: one-shot and interactive
-- [ ] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
-- [ ] `shot preview` (`--every`, `--scale`) and `shot memory`
-- [ ] `shot template`: a commented shot file with the defaults
-- [ ] Help text; docs: commands page
+- [x] `flowreel` entry point on shellkit: one-shot and interactive
+- [x] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
+- [x] `shot preview` (`--every`, `--scale`) and `shot memory`
+- [x] `shot template`: a commented shot file with the defaults
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)
 - [ ] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`

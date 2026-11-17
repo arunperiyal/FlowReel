@@ -35,20 +35,39 @@ CACHE_FOLDER = ".cache/surfaces"
 
 
 def open_source(shot: Shot):
-    """The source named by ``shot.source`` (``adapter:location``).
+    """The source named by the shot's ``source``.
 
-    A relative location is taken from the shot file's folder. ``geometry:NAME`` names a
-    body; other adapters get the location as ``path``. Sources that need more options
-    (a vtk source's body file) are built in code and passed to the render functions.
+    ``adapter:location``: ``geometry:NAME`` names a body; other adapters get the
+    location as ``path``. The mapping form passes its keys to the adapter as options.
+    A relative ``path``, and a relative ``body`` file (or mapping of them) for any
+    adapter but ``geometry``, is taken from the shot file's folder.
     """
     from flowreel import sources
     adapter, location = shot.source
-    if adapter == "geometry":
-        return sources.create(adapter, body=location)
-    path = Path(location)
-    if not path.is_absolute() and shot.file:
-        path = Path(shot.file).parent / path
-    return sources.create(adapter, path=str(path))
+    if not shot.source_options:
+        options = {"body": location} if adapter == "geometry" else {"path": location}
+    else:
+        options = dict(shot.source_options)
+    if "path" in options:
+        options["path"] = _beside(shot, options["path"])
+    if adapter != "geometry" and "body" in options:
+        body = options["body"]
+        options["body"] = {k: _beside(shot, v) for k, v in body.items()} \
+            if isinstance(body, dict) else _beside(shot, body)
+    return sources.create(adapter, **options)
+
+
+def _beside(shot: Shot, value):
+    """``value`` (a path) taken from the shot file's folder when relative."""
+    if not isinstance(value, str) or not shot.file:
+        return value
+    path = Path(value).expanduser()
+    return str(path if path.is_absolute() else Path(shot.file).parent / path)
+
+
+def source_id(shot: Shot) -> list:
+    """The shot's source as it goes into keys: adapter, location and options."""
+    return [*shot.source, shot.source_options]
 
 
 def _as_shot(shot) -> Shot:
@@ -81,7 +100,7 @@ class Scene:
         source = source if source is not None else open_source(shot)
         fp = plan(shot, source)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
-        surfaces = SurfaceCache(cache, shot.source) if cache is not None and fp.frozen else None
+        surfaces = SurfaceCache(cache, source_id(shot)) if cache is not None and fp.frozen else None
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces)
 
     @property

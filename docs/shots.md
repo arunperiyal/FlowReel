@@ -25,7 +25,7 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | Key | Type | Default | Example |
 |---|---|---|---|
 | `name` | string | required | `name: bare_reveal` |
-| `source` | `adapter:location` | required | `source: vtk:run/flow.pvd` |
+| `source` | `adapter:location`, or a mapping of the adapter's options with `adapter` | required | `source: vtk:run/flow.pvd` |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` |
 | `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` |
@@ -34,6 +34,13 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |
 | `lights` | `default`, `raking` or a list (see [cameras](cameras.md#lights)) | none: VTK's own light kit | `lights: raking` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
+
+`source` in its short form gives the adapter one location (a path, or a body name for
+`geometry`). When the adapter needs more, write the mapping form: `adapter` plus the
+adapter's options ([sources](sources.md)), for example
+`source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}`. A relative `path`, and a
+relative `body` file for any adapter but `geometry`, is taken from the shot file's
+folder, so a shot and its data can move together.
 
 `crop` is passed to the source, which applies it while reading where the format allows, so
 a small box also means less memory. `camera` takes a view, a camera track or a fit, and

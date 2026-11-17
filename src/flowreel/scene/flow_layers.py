@@ -43,8 +43,9 @@ class Iso(Layer):
     name = "iso"
     needs_flow = True
     options = (
-        Option("field", track=False, required=True, doc="field whose level is drawn"),
-        Option("level", "number", required=True, doc="value of the surface"),
+        Option("field", track=False, required=True, doc="field whose level is drawn",
+               example="lambda2"),
+        Option("level", "number", required=True, doc="value of the surface", example=-1.0),
         Option("colour_by", track=False, doc="field that colours the surface"),
         Option("range", track=False, default=(-1.0, 1.0), doc="[low, high] of the colour map"),
         Option("colormap", track=False, default="fire_ice"),
@@ -149,9 +150,11 @@ class Slice(Layer):
     name = "slice"
     needs_flow = True
     options = (
-        Option("normal", track=False, required=True, doc="x, y or z"),
-        Option("position", "number", required=True),
-        Option("field", track=False, required=True),
+        Option("normal", track=False, required=True, doc="x, y or z", example="x"),
+        Option("position", "number", required=True, doc="where the plane cuts, length unit",
+               example=0.0),
+        Option("field", track=False, required=True, doc="field that colours the plane",
+               example="vorticity_x"),
         Option("range", track=False, default=(-1.0, 1.0)),
         Option("colormap", track=False, default="fire_ice"),
         Option("opacity", "number", default=1.0),

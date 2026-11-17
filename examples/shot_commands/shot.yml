@@ -1,0 +1,16 @@
+# A shot that needs no data: the grooved cylinder of the geometry source, an outline of
+# the domain, and a marker that grows. Rendered by run.sh with the flowreel command.
+name: cylinder
+source: geometry:grooved_cylinder
+time: {frozen: 0, frames: 24}
+camera: {fit: domain, direction_of: main, margin: 0.9}   # the whole domain, seen as main sees it
+size: [640, 360]
+lights: raking
+layers:
+  - {type: outline, bounds: domain, colour: "#8899aa", width: 2}
+  - {type: geometry, body: grooved_cylinder, colour: "#c8ccd0"}
+  - type: markers3d
+    shape: sphere
+    at: [6, 0, 1.2]
+    radius: {from: 0.1, to: 0.5, frames: [0, 23]}
+    colour: "#e0a030"

@@ -103,7 +103,9 @@ class Glyphs(Layer):
     name = "glyphs"
     allow_text = ("direction",)
     options = (
-        Option("where", track=False, required=True),
+        Option("where", track=False, required=True,
+               doc="{face: x-, grid: [n, m], in: domain} or {points: [[x, y, z], ...]}",
+               example={"face": "x-", "grid": [4, 4]}),
         Option("direction", "vector", default=(1.0, 0.0, 0.0), doc="vector track, or 'velocity'"),
         Option("size", "number", default=1.0),
         Option("colour", "colour", default="#ffffff"),
@@ -180,8 +182,10 @@ class Markers3d(Layer):
 
     name = "markers3d"
     options = (
-        Option("shape", "choice", required=True, choices=("arrow3d", "block", "sphere")),
-        Option("at", "vector", required=True),
+        Option("shape", "choice", required=True, choices=("arrow3d", "block", "sphere"),
+               example="sphere"),
+        Option("at", "vector", required=True, doc="position, length unit",
+               example=[0.0, 0.0, 0.0]),
         Option("colour", "colour", default="#ffffff"),
         Option("opacity", "number", default=1.0),
         Option("direction", "vector", default=(1.0, 0.0, 0.0)),
@@ -227,7 +231,8 @@ class GeometryLayer(Layer):
 
     name = "geometry"
     options = (
-        Option("body", track=False, required=True),
+        Option("body", track=False, required=True, doc="a body of the geometry source",
+               example="grooved_cylinder"),
         Option("params", track=False, default=None),
         Option("colour", "colour", default="#c8ccd0"),
         Option("opacity", "number", default=1.0),

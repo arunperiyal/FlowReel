@@ -81,7 +81,7 @@ def test_the_window_is_chosen_once(case, monkeypatch):
     src = FlexflowSource(case)
     src.flow(1, ["U"], BOX)
     monkeypatch.setattr(win, "choose", lambda *a, **k: pytest.fail("chosen again"))
-    src.flow(2, ["U"], BOX)
+    src.flow(2, ["U"], BOX)                                         # the same box: kept
 
 
 # -- margin and the cached index ---------------------------------------------------------
@@ -104,15 +104,26 @@ def test_the_index_is_kept_on_disk_for_other_processes(case, tmp_path, monkeypat
     folder = tmp_path / "windows"
     FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
     assert len(list(folder.glob("*.npz"))) == 1
-    real = win.choose
-    monkeypatch.setattr(win, "choose", lambda *a, **k: pytest.fail("chosen again"))
-    again = FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)      # a new process
-    assert again.n_cells == 40 * NY * NZ
+    real = win.build_span
+    monkeypatch.setattr(win, "build_span", lambda *a, **k: pytest.fail("built again"))
+    src = FlexflowSource(case, cache=folder)                         # a new process
+    for x in range(0, 60, 5):                                        # a travelling window
+        assert src.flow(1, ["U"], Box((x, -2, -2), (x + 10, 2, 2))).n_cells == 40 * NY * NZ
     import os
-    os.utime(case / "long.1.plt", ns=(1, 1))                            # the file rewritten
-    monkeypatch.setattr(win, "choose", real)
+    os.utime(case / "long.1.plt", ns=(1, 1))                         # the file rewritten
+    monkeypatch.setattr(win, "build_span", real)
     FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
     assert len(list(folder.glob("*.npz"))) == 2
+
+
+def test_the_span_index_reads_only_the_box(case):
+    with PltFile(case / "long.1.plt") as plt:
+        span = win.build_span(plt, 0, chunk=500)
+        assert span.axis == 0 and np.all(np.diff(span.lo) >= 0)
+        assert len(span.candidates(BOX)) == 40 * NY * NZ + NY * NZ   # those starting inside
+        fast = win.choose(plt, 0, BOX, span=span)
+        scan = win.choose(plt, 0, BOX)
+    assert np.array_equal(fast.nodes, scan.nodes) and np.array_equal(fast.cells, scan.cells)
 
 
 def test_default_cache_and_none(case, tmp_path, monkeypatch):

@@ -9,6 +9,11 @@ through a memory map. Memory and time per step follow the window, not the domain
 The connectivity does not change between steps, so a window chosen at one step serves
 every step; its box is the crop grown by a margin for the body's motion. Each step's
 cells are then cut to the crop exactly as a whole read would cut them.
+
+A window that travels along a long body has a new box every frame, so choosing by a scan
+of the whole zone each time would cost as much as reading it. The :class:`SpanIndex`,
+built once per case and kept on disk, holds the cells sorted by their least coordinate
+along the span: a box's cells are then a binary search away, and only they are read.
 """
 from __future__ import annotations
 
@@ -48,10 +53,53 @@ class Window:
         return int(self.nodes.nbytes + self.cells.nbytes)
 
 
-def choose(plt, zi: int, box: Box, nen: int | None = None, chunk: int = CHUNK) -> Window:
+@dataclass(frozen=True)
+class SpanIndex:
+    """The cells of a zone sorted along ``axis`` (0, 1, 2: its longest extent):
+    ``order`` (cell numbers) and ``lo`` (each one's least coordinate on that axis,
+    ascending)."""
+
+    axis: int
+    order: np.ndarray
+    lo: np.ndarray
+
+    def candidates(self, box: Box) -> np.ndarray:
+        """Cells that may lie in ``box``: those starting inside it along the axis, in
+        ascending cell number (for page locality)."""
+        k = self.axis
+        a = np.searchsorted(self.lo, box.lo[k], side="left")
+        b = np.searchsorted(self.lo, box.hi[k], side="right")
+        return np.sort(self.order[a:b])
+
+
+def build_span(plt, zi: int, nen: int | None = None, chunk: int = CHUNK) -> SpanIndex:
+    """The :class:`SpanIndex` of zone ``zi``, its axis the longest side of the zone's
+    bounds (from the file header), read in chunks."""
+    mm = plt.minmax(zi)
+    sides = [mm[v][1] - mm[v][0] for v in plt.vars[:3]]
+    k = int(np.argmax(sides))
+    along = plt.map_variable(zi, plt.vars[k])
+    conn = plt.map_connectivity(zi, nen)
+    npts = len(along)
+    lows = np.empty(len(conn), dtype=np.float32)
+    for start in range(0, len(conn), chunk):
+        part = np.asarray(conn[start:start + chunk], dtype=np.int64)
+        bad = ~((part >= 0) & (part < npts)).all(axis=1)
+        part[bad] = 0
+        lows[start:start + len(part)] = np.asarray(along[part.ravel()]).reshape(part.shape).min(axis=1)
+        lows[start:start + len(part)][bad] = np.inf                   # never chosen
+    order = np.argsort(lows, kind="stable")
+    return SpanIndex(k, order, lows[order])
+
+
+def choose(plt, zi: int, box: Box, nen: int | None = None, chunk: int = CHUNK,
+           span: SpanIndex | None = None) -> Window:
     """The cells of zone ``zi`` of ``plt`` (a :class:`~flowreel.sources.flexflow.plt.PltFile`)
-    with every node in ``box``, and their nodes. Reads the coordinates and the
-    connectivity in chunks of ``chunk``, never whole."""
+    with every node in ``box``, and their nodes. With ``span`` only the cells it names
+    for the box are read; without, the coordinates and the connectivity are read in
+    chunks of ``chunk``, never whole."""
+    if span is not None:
+        return _choose_from(plt, zi, box, nen, span)
     coords = [plt.map_variable(zi, v) for v in plt.vars[:3]]
     npts = len(coords[0])
     inside = np.zeros(npts, dtype=bool)
@@ -73,6 +121,53 @@ def choose(plt, zi: int, box: Box, nen: int | None = None, chunk: int = CHUNK) -
     return Window(box, nodes, np.searchsorted(nodes, cells))
 
 
+def _choose_from(plt, zi: int, box: Box, nen, span: SpanIndex) -> Window:
+    cand = span.candidates(box)
+    conn = plt.map_connectivity(zi, nen)
+    coords = [plt.map_variable(zi, v) for v in plt.vars[:3]]
+    cells = np.asarray(conn[cand], dtype=np.int64) if len(cand) else \
+        np.empty((0, conn.shape[1]), np.int64)
+    nodes = np.unique(cells)
+    points = np.column_stack([np.asarray(c[nodes], dtype=np.float64) for c in coords]) \
+        if len(nodes) else np.empty((0, 3))
+    inside = box.contains(points)
+    local = np.searchsorted(nodes, cells)
+    cells = cells[inside[local].all(axis=1)] if len(cells) else cells
+    kept = np.unique(cells)
+    return Window(box, kept, np.searchsorted(kept, cells))
+
+
+def span_key(path, zone: str, nen: int | None) -> str:
+    """The key of a span index: the file (path, size, modification time), zone, ``nen``."""
+    path = Path(path).resolve()
+    stat = path.stat()
+    parts = {"v": VERSION, "kind": "span", "file": str(path), "size": stat.st_size,
+             "mtime": stat.st_mtime_ns, "zone": zone, "nen": nen}
+    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:32]
+
+
+def load_span(folder: Path, key: str) -> SpanIndex | None:
+    """The span index stored under ``key``, or ``None``."""
+    try:
+        with np.load(Path(folder) / f"{key}.npz") as data:
+            return SpanIndex(int(data["axis"]), data["order"], data["lo"])
+    except (FileNotFoundError, OSError, KeyError, ValueError):
+        return None
+
+
+def save_span(folder: Path, key: str, span: SpanIndex) -> None:
+    """Store ``span`` under ``key`` (through a temporary name); an unwritable folder is
+    skipped."""
+    try:
+        folder = Path(folder)
+        folder.mkdir(parents=True, exist_ok=True)
+        tmp = folder / f"{key}.{os.getpid()}.part.npz"
+        np.savez(tmp, axis=span.axis, order=span.order, lo=span.lo)
+        os.replace(tmp, folder / f"{key}.npz")
+    except OSError:
+        pass
+
+
 def read(plt, zi: int, window: Window, names: list[str]) -> dict:
     """The window's values of ``names`` (variables of the file), each a float32 array
     in the order of ``window.nodes``; ``None`` for a passive variable."""
@@ -82,34 +177,3 @@ def read(plt, zi: int, window: Window, names: list[str]) -> dict:
         out[name] = None if mapped is None else np.asarray(mapped[window.nodes], dtype="<f4")
     return out
 
-
-def cache_key(path, zone: str, box: Box, nen: int | None) -> str:
-    """The key of a window: the reference file (path, size and modification time, so a
-    rewritten file chooses again), the zone, ``nen`` and the box."""
-    path = Path(path).resolve()
-    stat = path.stat()
-    parts = {"v": VERSION, "file": str(path), "size": stat.st_size, "mtime": stat.st_mtime_ns,
-             "zone": zone, "nen": nen, "lo": list(box.lo), "hi": list(box.hi)}
-    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:32]
-
-
-def load(folder: Path, key: str, box: Box) -> Window | None:
-    """The window stored under ``key``, or ``None``."""
-    try:
-        with np.load(Path(folder) / f"{key}.npz") as data:
-            return Window(box, data["nodes"], data["cells"])
-    except (FileNotFoundError, OSError, KeyError, ValueError):
-        return None
-
-
-def save(folder: Path, key: str, window: Window) -> None:
-    """Store ``window`` under ``key`` (written to a temporary name, then renamed, so a
-    reader never sees half a file). A folder that cannot be written is skipped."""
-    try:
-        folder = Path(folder)
-        folder.mkdir(parents=True, exist_ok=True)
-        tmp = folder / f"{key}.{os.getpid()}.part.npz"
-        np.savez(tmp, nodes=window.nodes, cells=window.cells)
-        os.replace(tmp, folder / f"{key}.npz")
-    except OSError:
-        pass

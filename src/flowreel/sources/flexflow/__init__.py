@@ -40,7 +40,8 @@ class FlexflowSource:
         margin: the window is the crop grown by this much (length unit) on every side,
             chosen at the first step, so cells the body's motion brings into the crop
             at a later step are in it. Give at least the largest displacement.
-        cache: folder of the window indexes, so every render process reuses one;
+        cache: folder of the span index (:meth:`span_index`), so every render process
+            reuses one;
             default :func:`flowreel.sources.flexflow.window.default_cache`; ``None``
             to keep them in memory only.
         name: label of the source.
@@ -136,24 +137,36 @@ class FlexflowSource:
 
     def window_of(self, crop: Box):
         """The :class:`~flowreel.sources.flexflow.window.Window` of the volume zone for
-        ``crop`` grown by ``margin``, chosen at the first step; kept in memory and in
-        ``cache``, keyed by the first step's file, so other processes reuse it."""
+        ``crop`` grown by ``margin``, chosen at the first step through the case's span
+        index (:meth:`span_index`), so a new box costs only its own cells."""
         from flowreel.sources.flexflow import window as win
         box = crop.expanded(self.margin) if self.margin else crop
         key = (tuple(box.lo), tuple(box.hi))
         if key not in self._windows:
-            first = self._files[self.steps()[0]]
-            stored = None
-            if self.cache is not None:
-                disk_key = win.cache_key(first, self.volume, box, self.nen)
-                stored = win.load(self.cache, disk_key, box)
-            if stored is None:
-                with self._open(self.steps()[0]) as plt:
-                    stored = win.choose(plt, plt.zone_index(self.volume), box, nen=self.nen)
-                if self.cache is not None:
-                    win.save(self.cache, disk_key, stored)
-            self._windows[key] = stored
+            span = self.span_index()
+            with self._open(self.steps()[0]) as plt:
+                self._windows[key] = win.choose(plt, plt.zone_index(self.volume), box,
+                                                nen=self.nen, span=span)
+            if len(self._windows) > 64:                  # a travelling window: keep the last
+                self._windows.pop(next(iter(self._windows)))
         return self._windows[key]
+
+    def span_index(self):
+        """The volume zone's :class:`~flowreel.sources.flexflow.window.SpanIndex` at the
+        first step, built once and kept in ``cache`` (keyed by that file's path, size and
+        modification time), so every render process reuses it."""
+        from flowreel.sources.flexflow import window as win
+        if getattr(self, "_span", None) is None:
+            first = self._files[self.steps()[0]]
+            key = win.span_key(first, self.volume, self.nen)
+            span = None if self.cache is None else win.load_span(self.cache, key)
+            if span is None:
+                with self._open(self.steps()[0]) as plt:
+                    span = win.build_span(plt, plt.zone_index(self.volume), nen=self.nen)
+                if self.cache is not None:
+                    win.save_span(self.cache, key, span)
+            self._span = span
+        return self._span
 
     def _windowed(self, step: int, fields: list[str], crop: Box) -> pv.UnstructuredGrid:
         from flowreel.sources.flexflow import window as win

@@ -28,7 +28,8 @@ class Option:
     ``kind`` is a track kind (``number``, ``vector``, ``colour``, ``boolean``, ``choice``)
     or ``None`` to infer it. ``default`` is used when the key is absent; ``required``
     options have none. ``track=False`` keeps the raw YAML value. ``choices`` limits a
-    ``choice``. ``doc`` is the line the reference and ``shot template`` print.
+    ``choice``. ``pixels`` marks a size in pixels (a line width), which a draft render
+    scales with the picture. ``doc`` is the line the reference and ``shot template`` print.
     """
 
     name: str
@@ -37,6 +38,7 @@ class Option:
     required: bool = False
     track: bool = True
     choices: tuple = ()
+    pixels: bool = False
     doc: str = ""
 
 
@@ -60,15 +62,45 @@ class Frame:
 class FrameData:
     """The data of one frame, as layers read it.
 
-    ``crop`` is the shot's crop box (``None``: whole domain), ``flow`` the volume of the
-    frame's step (``UnstructuredGrid``; ``None`` when no layer needs it), ``source`` the source and ``step`` the step.
-    ``body(name)`` gives a wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
-    derived fields to ``flow`` the first time they are asked for.
+    ``crop`` is the shot's crop box (``None``: whole domain), ``source`` the source and
+    ``step`` the step. ``flow`` is the volume of the frame's step (``UnstructuredGrid``):
+    given, or read from the source (fields ``FLOW_FIELDS``, inside the crop) the first
+    time a layer asks for it, so a frame whose layers never read it never loads it.
+    ``body(name)`` gives a wall surface (``None`` for all of them), read once per frame.
+    ``need(*fields)`` adds derived fields to ``flow`` the first time they are asked for.
+    ``cached(key, build)`` returns a surface from the renderer's cache, or builds it.
     """
 
-    def __init__(self, source, step: int, flow=None, crop=None):
-        self.source, self.step, self.flow, self.crop = source, step, flow, crop
+    FLOW_FIELDS = ("U", "V", "W")
+
+    def __init__(self, source, step: int, flow=None, crop=None, cache=None):
+        self.source, self.step, self.crop, self.cache = source, step, crop, cache
+        self._flow = flow
         self._bodies: dict = {}
+
+    @property
+    def flow(self):
+        """The flow volume of this step, read on first use."""
+        if self._flow is None:
+            self._flow = self.source.flow(self.step, list(self.FLOW_FIELDS), self.crop)
+        return self._flow
+
+    @property
+    def flow_loaded(self) -> bool:
+        """True once the flow has been given or read."""
+        return self._flow is not None
+
+    def cached(self, key: dict, build: Callable):
+        """``build()``, or the mesh stored under ``key`` by the renderer's cache.
+
+        ``key`` lists everything the mesh depends on except the source, step and crop,
+        which are added here. Without a cache this is ``build()``.
+        """
+        if self.cache is None:
+            return build()
+        return self.cache.get({**key, "step": self.step,
+                               "crop": None if self.crop is None else
+                               [list(self.crop.lo), list(self.crop.hi)]}, build)
 
     def body(self, name=None):
         """The wall surface called ``name`` at this step (all bodies when ``None``)."""

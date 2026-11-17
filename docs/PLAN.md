@@ -873,13 +873,13 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: these layers, with an example on generated data
 
 **Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)
-- [ ] Backend choice: OSMesa when installed, else EGL; `backend` forces one
-- [ ] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
-- [ ] Frame keys (Section 11): frames are skipped unless their key changed; `force`
-- [ ] Frozen shots contour once and cache the surfaces
-- [ ] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
-- [ ] Memory of one frame measured, and the safe number of jobs
-- [ ] Tests on generated data; docs: rendering and caching
+- [x] Backend choice: OSMesa when installed, else EGL; `backend` forces one
+- [x] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
+- [x] Frame keys (Section 11): frames are skipped unless their key changed; `force`
+- [x] Frozen shots contour once and cache the surfaces
+- [x] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
+- [x] Memory of one frame measured, and the safe number of jobs
+- [x] Tests on generated data; docs: rendering and caching
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
 - [ ] `flowreel` entry point on shellkit: one-shot and interactive

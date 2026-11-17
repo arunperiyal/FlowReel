@@ -66,17 +66,28 @@ class Iso(Layer):
     )
 
     def surface(self, frame, v: dict):
-        """The contour at ``v['level']``, with the wall gap applied (cacheable by the
-        renderer: it depends on source, step, field, level and gap only)."""
+        """The contour at ``v['level']``, with the wall gap applied.
+
+        It depends on the source, step, crop, field, level, colour field and gap only,
+        so the renderer's cache keeps it for a frozen shot (``FrameData.cached``). The
+        flow's bounds go with it as field data ``flow_bounds``, for ``grow``.
+        """
         data = frame.data
-        wanted = [v["field"]] + ([v["colour_by"]] if v.get("colour_by") else [])
-        data.need(*wanted)
-        mesh = data.flow.contour([v["level"]], scalars=v["field"])
-        if v["wall_gap"] > 0 and mesh.n_points:
-            wall = data.body(v.get("gap_body"))
-            mesh["gap"] = cKDTree(wall.points).query(mesh.points)[0]
-            mesh = mesh.clip_scalar(scalars="gap", value=v["wall_gap"], invert=False)
-        return mesh
+        parts = {"layer": "iso", **{k: v.get(k) for k in
+                                    ("field", "level", "colour_by", "wall_gap", "gap_body")}}
+
+        def build():
+            wanted = [v["field"]] + ([v["colour_by"]] if v.get("colour_by") else [])
+            data.need(*wanted)
+            mesh = data.flow.contour([v["level"]], scalars=v["field"])
+            if v["wall_gap"] > 0 and mesh.n_points:
+                wall = data.body(v.get("gap_body"))
+                mesh["gap"] = cKDTree(wall.points).query(mesh.points)[0]
+                mesh = mesh.clip_scalar(scalars="gap", value=v["wall_gap"], invert=False)
+            mesh.field_data["flow_bounds"] = np.asarray(data.flow.bounds, float)
+            return mesh
+
+        return data.cached(parts, build)
 
     def draw(self, plotter, frame) -> None:
         v = frame.values
@@ -95,12 +106,13 @@ class Iso(Layer):
                          ambient=0.25, opacity=v["opacity"], show_scalar_bar=False)
 
     def finish(self, mesh, v, frame):
-        """Apply the clip plane, then the grow limit."""
+        """Apply the clip plane, then the grow limit (along the flow's extent)."""
+        bounds = mesh.field_data["flow_bounds"] if "flow_bounds" in mesh.field_data else None
         if v.get("clip_axis") and v["clip_active"] and mesh.n_points:
             mesh = _cut(mesh, v["clip_axis"], v["clip_position"], v["clip_keep"])
         if v.get("grow_axis") and v["grow"] < 1 and mesh.n_points:
             k = "xyz".index(v["grow_axis"])
-            lo, hi = frame.data.flow.bounds[2 * k:2 * k + 2]
+            lo, hi = (frame.data.flow.bounds if bounds is None else bounds)[2 * k:2 * k + 2]
             mesh = _cut(mesh, v["grow_axis"], lo + v["grow"] * (hi - lo), "below") \
                 if v["grow"] > 0 else _empty(mesh)
         return mesh
@@ -202,7 +214,7 @@ class BodyLayer(Layer):
         Option("colormap", track=False, default="fire_ice"),
         Option("zero_contour", "boolean", default=False),
         Option("zero_colour", "colour", default="#ffffff"),
-        Option("zero_width", "number", default=2.0),
+        Option("zero_width", "number", default=2.0, pixels=True),
     )
     needs_flow = False
 
@@ -216,8 +228,6 @@ class BodyLayer(Layer):
             surf = data.body(None if spec == "all" else spec)
         name = self.raw.get("field")
         if name and name not in surf.point_data:
-            if data.flow is None:
-                raise ValueError(f"layer body: field {name!r} needs the flow, which is not loaded")
             data.need(name)
             surf = surf.sample(data.flow, pass_point_data=False)  # copy with the flow's arrays
         return surf

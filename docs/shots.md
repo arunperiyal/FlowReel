@@ -32,11 +32,14 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `crop` | `{x: [lo, hi], y: [lo, hi], z: [lo, hi]}` in the source's length unit | none (whole domain) | `crop: {x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
 | `background` | colour | `black` | `background: '#101010'` |
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |
+| `lights` | `default`, `raking` or a list (see [cameras](cameras.md#lights)) | none: VTK's own light kit | `lights: raking` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
 
 `crop` is passed to the source, which applies it while reading where the format allows, so
-a small box also means less memory. `camera` is read by the camera code (a later branch of
-Phase 2); until then it is only checked to be a mapping.
+a small box also means less memory. `camera` takes a view, a camera track or a fit, and
+may follow a body; its keys are in [cameras](cameras.md#a-shots-camera). Without
+`lights` the shot keeps VTK's own light kit, which the reveal's golden frame was drawn
+with. To render a shot, see [rendering](rendering.md).
 
 ## Time
 
@@ -54,7 +57,7 @@ time runs at a constant rate. Between two saved steps it takes the nearer one, a
 tie takes the earlier, so a frame never shows the flow later than asked.
 
 A frozen shot (all frames on one step) lets the renderer contour once and reuse the
-surfaces.
+surfaces ([rendering](rendering.md#frozen-shots-contour-once)).
 
 ## Layers
 

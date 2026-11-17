@@ -56,7 +56,7 @@ class Outline(Layer):
     options = (
         Option("bounds", track=False, default="domain"),
         Option("colour", "colour", default="#ffffff"),
-        Option("width", "number", default=1.0),
+        Option("width", "number", default=1.0, pixels=True),
         Option("opacity", "number", default=1.0),
     )
 

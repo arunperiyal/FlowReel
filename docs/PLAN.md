@@ -891,7 +891,7 @@ session. One commit per task; tick the box in that commit.
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)
 - [x] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
 - [x] Golden carving frame drawn by the prototype's `render_carve.py`
-- [ ] Shot files for the domain and carving shots; `examples/` shot on generated data
+- [x] Shot files for the domain and carving shots; `examples/` shot on generated data
 - [ ] Image-difference tests of the three shots through `shot render`
 
 Left out of Phase 2: the `pathlines` layer (no shot of the reference film uses it, and it

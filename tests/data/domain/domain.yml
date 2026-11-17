@@ -1,0 +1,67 @@
+# The domain shot of the reference film (prototype/afms/render_frozen.py, domain): the
+# whole domain as an outline, inflow arrows, clamped ends and the direction the cylinder
+# may move, held while the set-up is labelled; then the camera moves in to the main view,
+# the outline fades and the wake grows downstream. 288 frames; fractions of the shot in
+# the prototype are frames here (t * 287). The golden frame is 224, at 640 x 360.
+name: domain
+source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}
+time: {frozen: 5000, frames: 288}
+camera: {track: domain}
+size: [640, 360]
+background: black
+antialias: ssaa
+layers:
+  - {type: body}
+  - type: outline
+    bounds: &domain {x: [0, 12], y: [-15, 15], z: [-15, 25]}
+    colour: "#8fa3b3"
+    width: 2.5
+    opacity: &fade {from: 1.0, to: 0.0, frames: [189.42, 258.3]}
+  - type: glyphs                       # inflow: a 3 x 4 grid just upstream of the inlet
+    where:
+      points: [[2, -10, -15.5], [2, -3.3333333333333335, -15.5], [2, 3.333333333333332, -15.5], [2, 10, -15.5],
+               [6, -10, -15.5], [6, -3.3333333333333335, -15.5], [6, 3.333333333333332, -15.5], [6, 10, -15.5],
+               [10, -10, -15.5], [10, -3.3333333333333335, -15.5], [10, 3.333333333333332, -15.5], [10, 10, -15.5]]
+    direction: [0, 0, 1]
+    size: 4
+    colour: "#6fb6d6"
+    opacity: *fade
+    ambient: 0.5
+    smooth: false
+    tip_length: 0.3
+    tip_radius: 0.12
+    shaft_radius: 0.04
+  - &clamp                             # the clamped ends
+    type: markers3d
+    shape: block
+    at: [0, 0, 0]
+    size: [0.8, 2, 2]
+    colour: "#8a9299"
+    opacity: *fade
+    ambient: 0.4
+    specular: 0
+    smooth: false
+  - {<<: *clamp, at: [12, 0, 0]}
+  - &motion                            # the cylinder moves cross-flow only
+    type: markers3d
+    shape: arrow3d
+    at: [6, 0.6, 0]
+    direction: [0, 1, 0]
+    length: 3.5
+    colour: "#f5a142"
+    opacity: *fade
+    ambient: 0.5
+    specular: 0
+    smooth: false
+    tip_length: 0.18
+    tip_radius: 0.08
+    shaft_radius: 0.03
+  - {<<: *motion, at: [6, -0.6, 0], direction: [0, -1, 0]}
+  - type: iso                          # the wake, grown downstream from the cylinder
+    field: lambda2
+    level: -1.0
+    wall_gap: 0.4
+    colour_by: vorticity_x
+    range: [-2.5, 2.5]
+    grow_axis: z
+    grow: {from: 0.0, to: 1.0, frames: [183.68, 278.39]}

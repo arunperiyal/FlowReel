@@ -1,0 +1,18 @@
+# Views of the carving shot: the camera keys of prototype/afms/render_carve.py (KEYS),
+# at frame t * 287 of 288. It circles the cylinder while the grooves are cut, closes in
+# at mid-span to show a groove, then ends on the main view of the flow shots.
+views:
+  - {name: carve_start, position: [-2.0, 7.2, -11.8], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 30}
+  - {name: carve_end, position: [2.8, 8.0, -13.4], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 30}
+  - {name: groove_close, position: [4.4, 1.7, -2.7], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 34}
+  - {name: main, position: [-19, 13, -5], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+tracks:
+  carve:
+    path: linear
+    ease: smooth
+    keys:
+      - {frame: 0, view: carve_start}
+      - {frame: 172.2, view: carve_end}
+      - {frame: 218.12, view: groove_close}
+      - {frame: 241.08, view: groove_close}
+      - {frame: 281.26, view: main}

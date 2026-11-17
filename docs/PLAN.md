@@ -841,12 +841,12 @@ and then stacked in this order. Branches 5, 6 and 7 are done in order by the mai
 session. One commit per task; tick the box in that commit.
 
 **Branch 1: `phase2/scene-shot-file`** (data model)
-- [ ] Validation helper: errors name the file and key path; unknown keys suggest the nearest (Section 15)
-- [ ] Shot schema as in Section 7.1: name, source, time, camera, size, crop, background, antialias, layers
-- [ ] Time of a shot: `steps` with `every`, `frozen` with a frame count, `keys`
-- [ ] Frame plan: for each frame, its step and the value of every track
-- [ ] Layer interface and registry: a layer takes the frame's data and values and adds actors to a plot
-- [ ] Docs: shot file reference (type, default and example per key)
+- [x] Validation helper: errors name the file and key path; unknown keys suggest the nearest (Section 15)
+- [x] Shot schema as in Section 7.1: name, source, time, camera, size, crop, background, antialias, layers
+- [x] Time of a shot: `steps` with `every`, `frozen` with a frame count, `keys`
+- [x] Frame plan: for each frame, its step and the value of every track
+- [x] Layer interface and registry: a layer takes the frame's data and values and adds actors to a plot
+- [x] Docs: shot file reference (type, default and example per key)
 
 **Branch 2: `phase2/scene-views`** (cameras and lights; needs branch 1)
 - [ ] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)

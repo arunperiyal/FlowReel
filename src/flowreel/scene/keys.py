@@ -59,6 +59,12 @@ def digest(parts: dict) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
+def source_id(shot) -> list:
+    """The shot's source in a key (see :func:`flowreel.scene.rendering.source_id`)."""
+    from flowreel.scene.rendering import source_id as _id
+    return _id(shot)
+
+
 def frame_parts(scene, index: int) -> dict:
     """What decides the picture of frame ``index`` of ``scene`` (a
     :class:`~flowreel.scene.rendering.Scene`)."""
@@ -66,7 +72,7 @@ def frame_parts(scene, index: int) -> dict:
     data = scene.data(index)
     return {
         "code": code_version(),
-        "source": [*shot.source, shot.source_options],
+        "source": source_id(shot),
         "step": scene.plan.time.step(index),
         "crop": None if shot.crop is None else [list(shot.crop.lo), list(shot.crop.hi)],
         "size": list(scene.size),

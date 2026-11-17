@@ -88,7 +88,8 @@ Each frame has a key: a hash of everything that reaches its picture (plan Sectio
 
 - every layer's option values at that frame (tracks evaluated);
 - the camera's view at that frame (position, focal point, up, angle, scale);
-- the step, the source (`adapter:location`), the crop;
+- the step, the source (the adapter and its options, with paths resolved against the
+  shot file, so the same relative path in two folders is two sources), the crop;
 - the picture size, background, anti-aliasing and lights;
 - FlowReel's code: a hash of its own source files.
 
@@ -102,8 +103,8 @@ if a step's file is rewritten in place, render with `force`.
 A frozen shot (`time: {frozen: ...}`) shows one step in every frame, so its surfaces are
 the same in every frame. The first frame contours each `iso` surface and stores it in
 `<out>/.cache/surfaces/`; the others read it and never load the flow. The key is the
-source, step, crop, the surface's options (`field`, `level`, `colour_by`, `wall_gap`,
-`gap_body`) and the code. A level that is a track gives one surface per distinct level.
+source (paths resolved), step, crop, the surface's options (`field`, `level`,
+`colour_by`, `wall_gap`, `gap_body`) and the code. A level that is a track gives one surface per distinct level.
 In a render with several jobs, the first frame is drawn alone, so the other jobs read the
 surface instead of all contouring it at once. Draft and full-size renders share the
 cache. Moving shots are not cached: each frame shows another step.

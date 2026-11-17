@@ -90,3 +90,16 @@ def test_a_frozen_render_in_processes_fills_the_cache_once(tmp_path):
         pytest.skip(f"off-screen rendering is not available: {error}")
     assert report.count("rendered") == 3
     assert len(list((tmp_path / ".cache" / "surfaces").glob("*.vtp"))) == 1
+
+
+def test_same_relative_source_in_two_folders_is_two_sources(tmp_path):
+    """Two shot files that both write path: flow_*.vti mean two data sets: their surfaces
+    and frames must not share keys (the domain shot once drew the reveal's wake)."""
+    from flowreel.scene.rendering import source_id
+    from flowreel.scene.shot import from_dict
+    spec = {"name": "s", "source": {"adapter": "vtk", "path": "flow_*.vti", "body": "b.vtp"},
+            "time": {"frozen": 0}, "camera": {"view": "main"}, "layers": [{"type": "outline"}]}
+    a = from_dict(spec, file=str(tmp_path / "a" / "s.yml"))
+    b = from_dict(spec, file=str(tmp_path / "b" / "s.yml"))
+    assert source_id(a) != source_id(b)
+    assert source_id(a)[1]["path"] == str(tmp_path / "a" / "flow_*.vti")

@@ -43,6 +43,11 @@ def open_source(shot: Shot):
     adapter but ``geometry``, is taken from the shot file's folder.
     """
     from flowreel import sources
+    return sources.create(shot.source[0], **source_options(shot))
+
+
+def source_options(shot: Shot) -> dict:
+    """The options :func:`open_source` gives the adapter, with paths resolved."""
     adapter, location = shot.source
     if not shot.source_options:
         options = {"body": location} if adapter == "geometry" else {"path": location}
@@ -54,7 +59,7 @@ def open_source(shot: Shot):
         body = options["body"]
         options["body"] = {k: _beside(shot, v) for k, v in body.items()} \
             if isinstance(body, dict) else _beside(shot, body)
-    return sources.create(adapter, **options)
+    return options
 
 
 def _beside(shot: Shot, value):
@@ -66,8 +71,10 @@ def _beside(shot: Shot, value):
 
 
 def source_id(shot: Shot) -> list:
-    """The shot's source as it goes into keys: adapter, location and options."""
-    return [*shot.source, shot.source_options]
+    """The shot's source as it goes into keys: the adapter and its options with paths
+    resolved, so two shot files that write the same relative path for different data
+    (``flow_*.vti`` in two folders) never share a cached surface or a frame key."""
+    return [shot.source[0], source_options(shot)]
 
 
 def _as_shot(shot) -> Shot:

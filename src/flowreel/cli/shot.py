@@ -5,6 +5,8 @@ Each action is a thin layer over a library function (``flowreel.scene.render``,
 """
 from __future__ import annotations
 
+import argparse
+import textwrap
 import time
 from pathlib import Path
 
@@ -38,6 +40,39 @@ def parse_frames(text: str) -> list[int]:
     return out
 
 
+EXAMPLES = {
+    "shot": """examples:
+  flowreel shot template carve -o carve.yml --layers body,iso
+  flowreel shot preview carve.yml
+  flowreel shot memory carve.yml
+  flowreel shot render carve.yml -j 16
+
+In the shell, `use shot:carve.yml` and the shot can be left out.
+Reference: docs/commands.md.""",
+    "render": """examples:
+  flowreel shot render carve.yml -j 16            every frame, 16 at a time
+  flowreel shot render carve.yml --frames 0:48:4  frames 0, 4, ... 48
+  flowreel shot render carve.yml --scale 0.5      a half-size draft, in frames/carve@960x540/
+  flowreel shot render carve.yml --force          draw again even if nothing changed""",
+    "preview": """examples:
+  flowreel shot preview carve.yml                 every 10th frame at a quarter size
+  flowreel shot preview carve.yml --every 4 --scale 0.5""",
+    "memory": """examples:
+  flowreel shot memory carve.yml                  measure frame 0, suggest -j
+  flowreel shot memory carve.yml --frame 200 --threads 2""",
+    "template": """examples:
+  flowreel shot template                          print a shot with a body layer
+  flowreel shot template wake -o wake.yml --layers body,slice,iso""",
+}
+
+
+def _parser(actions, name, help, description):
+    # Raw, so the examples keep their columns; the description is wrapped here instead.
+    return actions.add_parser(name, help=help, description=textwrap.fill(description, 78),
+                              epilog=EXAMPLES[name],
+                              formatter_class=argparse.RawDescriptionHelpFormatter)
+
+
 def _shot_arg(parser):
     add_context_arg(parser, "shot", help="shot file (default: the shot set with use shot:FILE)")
 
@@ -69,11 +104,12 @@ class ShotCommand(BaseCommand):
 
     def setup_parser(self, subparsers):
         p = subparsers.add_parser(self.name, help=self.description,
-                                  description=self.description)
+                                  description=self.description, epilog=EXAMPLES["shot"],
+                                  formatter_class=argparse.RawDescriptionHelpFormatter)
         actions = p.add_subparsers(dest="shot_cmd", metavar="<action>")
 
-        r = actions.add_parser(
-            "render", help="render a shot's frames",
+        r = _parser(
+            actions, "render", help="render a shot's frames",
             description="Render a shot's frames to OUT/<shot>/frame_00000.png. Frames whose "
                         "key did not change are skipped; a draft (--scale, --size) goes to "
                         "OUT/<shot>@<W>x<H>/.")
@@ -85,8 +121,8 @@ class ShotCommand(BaseCommand):
                        help="draw the frames even when their key did not change")
         _run_args(r)
 
-        pv = actions.add_parser(
-            "preview", help="small frames, every N-th, to check timing",
+        pv = _parser(
+            actions, "preview", help="small frames, every N-th, to check timing",
             description="Draw every N-th frame (and the last) at a small size, into "
                         "OUT/<shot>@<W>x<H>/: a quick look at the timing before a full render.")
         _shot_arg(pv)
@@ -95,8 +131,8 @@ class ShotCommand(BaseCommand):
         _draft_args(pv, scale_default=0.25)
         _run_args(pv)
 
-        m = actions.add_parser(
-            "memory", help="memory of one frame and a safe -j for this machine",
+        m = _parser(
+            actions, "memory", help="memory of one frame and a safe -j for this machine",
             description="Draw one frame in a fresh process, as render does, and report its "
                         "peak memory, the free memory and the number of jobs that fit.")
         _shot_arg(m)
@@ -108,8 +144,8 @@ class ShotCommand(BaseCommand):
         m.add_argument("--backend", choices=BACKENDS, default="auto",
                        help="off-screen OpenGL: auto, osmesa, egl or x")
 
-        t = actions.add_parser(
-            "template", help="write a commented shot file with the defaults",
+        t = _parser(
+            actions, "template", help="write a commented shot file with the defaults",
             description="Print (or write with -o) a shot file with every key and every "
                         "option of the chosen layers at its default, each with a comment.")
         t.add_argument("name", nargs="?", default="my_shot", help="the shot's name (default my_shot)")

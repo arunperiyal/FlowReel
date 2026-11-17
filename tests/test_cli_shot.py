@@ -117,3 +117,11 @@ def test_template_writes_a_file_but_not_over_one(sh, tmp_path):
     assert sh.run("shot template -o new.yml --force --layers iso")[0] == 0
     assert "type: iso" in (tmp_path / "new.yml").read_text()
     assert "unknown layer type 'isp'" in sh.run("shot template --layers isp")[2]
+
+
+@pytest.mark.parametrize("action", ["render", "preview", "memory", "template"])
+def test_every_action_has_help_with_examples(action, capsys):
+    from flowreel.cli import main
+    assert main(["shot", action, "--help"]) == 0
+    text = capsys.readouterr().out
+    assert f"flowreel shot {action}" in text and "examples:" in text

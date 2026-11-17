@@ -886,7 +886,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
 - [x] `shot preview` (`--every`, `--scale`) and `shot memory`
 - [x] `shot template`: a commented shot file with the defaults
-- [ ] Help text; docs: commands page
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)
 - [ ] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`

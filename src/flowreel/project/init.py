@@ -1,8 +1,8 @@
 """``flowreel project init``: a ``flowreel.yml`` with one body per surface zone.
 
-Each zone of the source becomes a body under its zone's name, with its axis and
-diameter measured from the surface at one step (:mod:`flowreel.project.measure`). The
-supports and series are left to fill, written commented out: a PLT file does not say how
+Each zone of the source becomes a body under its zone's name. A slender zone becomes a
+beam body, with its axis and diameter measured from the surface at one step
+(:mod:`flowreel.project.measure`). The supports and series are left to fill, written commented out: a PLT file does not say how
 a body is held, and a guess there would be drawn as if it were known. The result loads
 as it is.
 """
@@ -40,18 +40,17 @@ def body_block(zone: str, surface) -> str:
     axis = long_axis(surface)
     lines = [f"  {_key(zone)}:", f"    zone: {_key(zone)}"]
     if axis is None:
-        lines.append(_line("    # axis: x", "not slender: "
-                           + " x ".join(_num(e) for e in ext) + "; give one for stations"))
+        lines.append(_line("    # axis: x", "not slender, so not a beam: "
+                           + " x ".join(_num(e) for e in ext) + "; give one to make it a beam"))
     else:
         k = AXES[axis]
         across = max(np.delete(ext, k))
         lines.append(_line(f"    axis: {axis}", f"measured: {_num(ext[k])} long, {_num(across)} across"))
-    try:
-        d = diameter(surface, axis)
-        lines.append(_line(f"    diameter: {_num(d)}", "measured from the surface; check it"))
-    except ValueError as exc:
-        lines.append(_line("    # diameter: 1.0", f"could not measure ({exc})"))
-    if axis is not None:
+        try:
+            d = diameter(surface, axis)
+            lines.append(_line(f"    diameter: {_num(d)}", "measured from the surface; check it"))
+        except ValueError as exc:
+            lines.append(_line("    # diameter: 1.0", f"could not measure ({exc})"))
         lo, hi = float(pts[:, AXES[axis]].min()), float(pts[:, AXES[axis]].max())
         lines += [_line("    # ends:", "how it is held: " + ", ".join(SUPPORTS)),
                   f"    #   - {{at: {_num(lo)}, support: clamped}}",

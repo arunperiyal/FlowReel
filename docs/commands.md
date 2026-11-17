@@ -123,8 +123,8 @@ flowreel project init SOURCE [--body FILE] [--step N] [-o DIR] [--force]
 ```
 
 Writes `DIR/flowreel.yml` with one body per surface zone of `SOURCE`, each under its
-zone's name, with its `axis` (the direction it is at least 3 times longer in, left out
-for a body that is not slender) and `diameter` measured from the surface. The supports
+zone's name. A zone at least 3 times longer in one direction than across becomes a beam
+body, with its `axis` and `diameter` measured from the surface; other zones get neither. The supports
 and series are written commented out, to fill in: the files do not say how a body is
 held, and a guess would be drawn as if it were known. See [bodies](bodies.md).
 

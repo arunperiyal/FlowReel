@@ -31,7 +31,7 @@ def test_every_zone_becomes_a_measured_body(tmp_path):
     cyl, ball = bodies["cyl"], bodies["ball"]
     assert cyl.zone == "cyl" and cyl.axis == "x" and cyl.diameter == pytest.approx(1.0, rel=1e-3)
     assert cyl.ends == ()                                  # supports are left to fill
-    assert ball.axis is None and ball.diameter == pytest.approx(0.6, rel=0.01)
+    assert ball.axis is None and ball.diameter is None     # a diameter is for beams
     assert "# axis: x" in text and "not slender" in text
 
 

@@ -72,7 +72,8 @@ def test_stations_as_numbers():
 @pytest.mark.parametrize("value, msg", [
     ({"b": {"zon": "c"}}, r"bodies\.b\.zon: unknown key .*did you mean 'zone'"),
     ({"b": {"axis": "w"}}, r"bodies\.b\.axis: 'w' is not allowed"),
-    ({"b": {"diameter": 0}}, r"bodies\.b\.diameter: must be positive"),
+    ({"b": {"axis": "x", "diameter": 0}}, r"bodies\.b\.diameter: must be positive"),
+    ({"b": {"diameter": 1}}, r"bodies\.b\.diameter: a diameter is for a beam body"),
     ({"b": {"ends": [{"at": 0, "support": "pinned"}]}}, r"bodies\.b\.ends: .*give the body an 'axis'"),
     ({"b": {"axis": "x", "ends": [{"at": 0, "support": "pined"}]}},
      r"ends\[0\]\.support: .*did you mean 'pinned'"),

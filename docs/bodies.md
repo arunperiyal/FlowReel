@@ -5,6 +5,11 @@ runs, how thick it is, or how its ends are held. FlowReel does not look for that
 solver's other files. It is written once, in the project's `flowreel.yml`, and every
 shot uses the body by its name.
 
+Every body is a surface zone of the source (for flexflow, a surface zone of the PLT
+file). A slender one, given an `axis`, is a **beam body**: it has a span, a diameter,
+stations and supports. Any other body (a ball, a wall) has a name, a zone and series
+only.
+
 Code: `flowreel.project` (`load_project`, `find_project`), `flowreel.project.bodies`
 (the records), `flowreel.project.names` (names in shots), `flowreel.project.measure`
 (centre, centreline, diameter). A runnable example on generated data is
@@ -43,9 +48,9 @@ axis and diameter measured, and the supports left to fill ([commands](commands.m
 | Key | Type | Default | Example |
 |---|---|---|---|
 | `zone` | the source's surface zone (a name from `source.bodies()`) | the body's name | `zone: cyl` |
-| `axis` | `x`, `y` or `z`: the span direction | none: the body is not slender | `axis: x` |
-| `diameter` | positive number, source length unit: symbols and stations scale with it | measured from the surface when needed | `diameter: 1.0` |
-| `ends` | list of supports (below); needs `axis` | none | `[{at: 0, support: clamped}]` |
+| `axis` | `x`, `y` or `z`: the span direction; makes it a beam body | none: not a beam | `axis: x` |
+| `diameter` | positive number, source length unit: symbols and stations scale with it; beam bodies only | measured from the surface when needed | `diameter: 1.0` |
+| `ends` | list of supports (below); beam bodies only | none | `[{at: 0, support: clamped}]` |
 | `series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` |
 
 Two bodies cannot share a zone. Lengths are in the source's own unit, and a station is a
@@ -74,7 +79,7 @@ the shot file. For a shot built in code, pass the source wrapped:
 
 Where a body has an `axis`, its **centre at a station** is the mean of the surface
 points within a thin slab of the station, so `follow` (and later `supports` and
-`centreline`) work on a bent and moving body. The slab is a quarter of the declared
+`centreline`) work on a bent and moving body. Stations belong to beam bodies. The slab is a quarter of the declared
 diameter; without one, 2% of the body's length but no more than a quarter of its width,
 so a body 500 diameters long is cut into thin slices and not slabs 10 diameters wide.
 `follow` takes its axis from the declaration unless the camera gives `axis`.
@@ -83,15 +88,15 @@ The **diameter** measured from the surface (by `project init`, and where a decla
 leaves it out) is twice the median distance of a section's points from the section's
 own axis, taken as the median over sections along the span. Medians make grooves,
 strakes and the ends count for little: the grooved cylinder of the carving shot
-measures 1.0, its bare diameter. A body without an axis takes the smallest side of its
-bounding box. `project init` gives a body an `axis` when it is at least three times
-longer in one direction than across.
+measures 1.0, its bare diameter. `project init` makes a zone a beam body, with an
+`axis` and a measured `diameter`, when it is at least three times longer in one
+direction than across; other zones get neither.
 
 | Function | Gives |
 |---|---|
 | `measure.centre(surface, station, axis)` | the section's centre, `(x, y, z)` |
 | `measure.centreline(surface, axis, stations=None, count=33)` | `(stations, centres)`, centres `(n, 3)` |
-| `measure.diameter(surface, axis=None)` | the diameter |
+| `measure.diameter(surface, axis)` | the diameter (without `axis`: the bounding box's smallest side) |
 | `measure.long_axis(surface)` | `x`, `y`, `z` or `None` |
 
 ## Supports

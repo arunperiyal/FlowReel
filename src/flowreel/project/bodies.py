@@ -1,8 +1,9 @@
 """Declared bodies: the ``bodies:`` block of ``flowreel.yml`` (plan Section 5.4).
 
 A source's files say where a body's surface is and nothing else. The declaration adds
-what they cannot say: which surface zone it is, the direction of its span, its
-reference diameter, how its ends are held and where its time series are.
+what they cannot say: which surface zone it is and where its time series are, and for a
+**beam body** (a slender one, with an ``axis``) the direction of its span, its
+reference diameter and how its ends are held.
 
 .. code-block:: yaml
 
@@ -10,7 +11,7 @@ reference diameter, how its ends are held and where its time series are.
       riser:
         zone: cyl                    # surface zone in the source; default: the body's name
         axis: x                      # span direction; leave out for a body that is not slender
-        diameter: 1.0                # reference length; measured from the surface when left out
+        diameter: 1.0                # beam bodies only; measured from the surface when left out
         ends:
           - {at: 0.0, support: pinned}
           - {at: 500.0, support: roller, free_along: x, tension: true}
@@ -80,9 +81,9 @@ class Series:
 @dataclass(frozen=True)
 class Body:
     """A declared body: ``name`` as shots use it, the source's surface ``zone``, the span
-    ``axis`` (``x``, ``y``, ``z`` or ``None`` for a body that is not slender), the
-    reference ``diameter`` (``None``: measured from the surface when needed), its
-    ``ends`` and its ``series`` by name."""
+    ``axis`` (``x``, ``y``, ``z``, making it a beam body; ``None`` for a body that is not
+    slender), the reference ``diameter`` of a beam body (``None``: measured from the
+    surface when needed), its ``ends`` (beam bodies only) and its ``series`` by name."""
 
     name: str
     zone: str
@@ -129,6 +130,9 @@ def _body(name: str, spec, check: Checker, folder: Path | None) -> Body:
         axis = check.at("axis").choice(axis, AXES)
     diameter = spec.get("diameter")
     if diameter is not None:
+        if axis is None:
+            raise check.at("diameter").error("a diameter is for a beam body: give the body an "
+                                             "'axis' (its span direction), or leave it out")
         diameter = check.at("diameter").number(diameter)
         if diameter <= 0:
             raise check.at("diameter").error(f"must be positive, got {diameter:g}")

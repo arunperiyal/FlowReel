@@ -163,8 +163,17 @@ lets the tests use small files, the second because the carving shot needs it.
 Parametric bodies for shots that need no data. A body is a function from parameters to a
 surface, with parameters as tracks. First body: `grooved_cylinder` (span, radius, groove
 count, depth, width, turns, phase, `cut_front` for carving, glow behind the cutters),
-which is `render_carve.py` today. Later: `straight_grooved_cylinder`, `smooth_cylinder`,
-`box`.
+which is `render_carve.py` today. Straight grooves are `turns: 0`.
+
+**Grooves in segments** (added 2026-11-18): grooves need not run the whole span. Three
+more parameters of `grooved_cylinder` cut each groove into segments along the span:
+`length` (of a segment; default the whole span), `gap` (between segments of one groove)
+and `stagger` (the shift along the span from one groove to the next, as a fraction of
+`length + gap`; 0.5 puts neighbours half a period apart, like bricks). With `turns: 0`
+these are staggered spanwise grooves: `grooves` evenly spaced round the body, each of
+`width`, `depth` and segment `length`. The ends of a segment are rounded by `edge` as
+its sides are, carving (`cut_front`) works as before, and `cutters` are placed only on
+segments that the front is cutting. Later bodies: `smooth_cylinder`, `box`.
 
 ### 5.4 Bodies
 
@@ -364,8 +373,17 @@ Every property below may be a track.
 | `outline` | bounds (`domain`, `crop` or numbers), colour, width, opacity |
 | `glyphs` | where (a face of the domain with a grid, or points), direction, size, colour, opacity |
 | `markers3d` | `arrow3d`, `block`, `sphere`, `dimension3d`, `label3d`, each at model positions |
+| `axes` | `style`: `triad` (a corner triad that turns with the camera), `arrows` (labelled arrows at a model point, sized in diameters or model units), `ruled` (a box, the domain, the crop or numbers, with ticks and numbers on its edges); labels, colour, opacity |
 | `geometry` | a body from the geometry source, with its parameters |
 | `pathlines` | seeds, length in steps, colour by, width (needs every step saved) |
+
+**Axes** (added 2026-11-18). Three styles, any of them in one shot: a corner `triad`
+for orientation, drawn in its own small viewport so it never hides the flow; `arrows`
+in the scene at `origin` (a point, or a body end), showing the solver's directions next
+to the body; a `ruled` box, for the size of the domain, with tick spacing chosen from
+the box (or given) and numbers in the source's unit or in diameters. Labels are drawn
+with the bundled Lato through VTK's font-file option, so they match the captions; their
+size is in pixels, scaled in drafts like other pixel options.
 
 ### 7.3 Tracks
 
@@ -579,7 +597,18 @@ competition's layout is a different file.
   differed by a second); a fade ends with the shorter of picture and track.
 - Later: ducking under narration, and a `--mute` build.
 
-### 10.7 Build
+### 10.7 Watermark
+
+A signature, logo or watermark, added 2026-11-18. **Film level** by default: a
+`watermark:` in `film.yml` is an image file or a line of text, with `corner` (or
+`place`), `size` (pixels of the film), `opacity`, and when it shows (`shots`, or
+`seconds: [start, end]`, default all, cards included or not). It is drawn at the build
+with the text and shapes, so changing it never re-renders a frame, and the image file
+stays outside the repository (no logos in it). **Shot level** for frames used outside a
+film: the same keys under a shot's `watermark:`, drawn into the PNG frames after the
+screenshot (Pillow), part of the frame key, scaled in drafts.
+
+### 10.8 Build
 
 1. Read and check every file; unknown keys are errors, with the nearest valid key
    suggested.
@@ -784,7 +813,7 @@ Each phase ends with something checkable.
 | 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
 | 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
-| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`; a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
+| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
@@ -931,7 +960,8 @@ Added 2026-11-13 for the studies after the film: long cylinders, pinned ends, cy
 in tandem and bodies modelled by equations. It follows Phase 2 because it builds on
 layers, views and rendering, and before Phase 3 because the panels there take bodies by
 name. Branches 2, 3, 4 and 6 need only branch 1, so they can be built in parallel;
-branch 5 needs branch 4.
+branch 5 needs branch 4. Branches 7 and 8, added 2026-11-18, need nothing of this phase
+and can be built at any time before branch 9.
 
 **Branch 1: `phase2b/bodies-declared`** (data model)
 - [x] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
@@ -974,7 +1004,19 @@ branch 5 needs branch 4.
 - [ ] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
 - [ ] Docs: long bodies page
 
-**Branch 7: `phase2b/bodies-check`** (needs all the others)
+**Branch 7: `phase2b/geometry-grooves`** (geometry source; needs nothing of this phase)
+- [ ] `grooved_cylinder`: grooves in segments, `length`, `gap`, `stagger` (Section 5.3); segment ends rounded by `edge`
+- [ ] Carving and `cutters` with segments; the carving golden frame still matches
+- [ ] Tests on the surface (groove depth inside and outside segments, stagger between neighbours); docs and an example of staggered spanwise grooves
+
+**Branch 8: `phase2b/layers-axes`** (layers; needs nothing of this phase)
+- [ ] Axis labels in Lato through VTK's font file, sized in pixels
+- [ ] `axes` layer, `style: triad`: a corner triad in its own viewport, turning with the camera
+- [ ] `style: arrows`: labelled arrows at a point or a body end, sized in model units or diameters
+- [ ] `style: ruled`: a box (`domain`, `crop` or numbers) with ticks and numbers, in the source unit or in diameters
+- [ ] Tests (projection of the triad and ticks, draft scaling); docs and an example
+
+**Branch 9: `phase2b/bodies-check`** (needs branches 1 to 6)
 - [ ] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum
 - [ ] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
 - [ ] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series

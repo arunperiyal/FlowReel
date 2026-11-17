@@ -866,7 +866,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: these layers, with an example on generated data
 
 **Branch 4: `phase2/layers-markers`** (layers without flow data; needs branch 1)
-- [ ] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
+- [x] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
 - [ ] `glyphs`: arrows on a face of the domain or at points
 - [ ] `markers3d`: `arrow3d`, `block`, `sphere`
 - [ ] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays

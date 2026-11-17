@@ -878,7 +878,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Frame keys (Section 11): frames are skipped unless their key changed; `force`
 - [x] Frozen shots contour once and cache the surfaces
 - [x] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
-- [ ] Memory of one frame measured, and the safe number of jobs
+- [x] Memory of one frame measured, and the safe number of jobs
 - [ ] Tests on generated data; docs: rendering and caching
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)

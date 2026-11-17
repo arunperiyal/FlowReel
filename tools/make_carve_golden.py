@@ -10,7 +10,14 @@ prototype's.
 Not part of the package. Run it again only to change the golden frame on purpose.
 """
 import argparse
+import os
 import sys
+
+# Golden frames are drawn in software by OSMesa, whatever the machine has: it gives the
+# same pixels wherever the same Mesa is installed, and GPU drivers draw wide lines
+# differently (the domain outline differed by half its brightness under X). The
+# prototype itself chose OSMesa on the workstation.
+os.environ["VTK_DEFAULT_OPENGL_WINDOW"] = "vtkOSOpenGLRenderWindow"
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

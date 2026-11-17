@@ -15,8 +15,15 @@ Usage: python tools/make_domain_data.py CASE_DIR [--step 5000] [--out tests/data
 Not part of the package. Run it again only to change the test data on purpose.
 """
 import argparse
+import os
 import json
 import sys
+
+# Golden frames are drawn in software by OSMesa, whatever the machine has: it gives the
+# same pixels wherever the same Mesa is installed, and GPU drivers draw wide lines
+# differently (the domain outline differed by half its brightness under X). The
+# prototype itself chose OSMesa on the workstation.
+os.environ["VTK_DEFAULT_OPENGL_WINDOW"] = "vtkOSOpenGLRenderWindow"
 from pathlib import Path
 
 import numpy as np

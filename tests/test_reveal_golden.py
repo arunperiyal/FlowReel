@@ -12,9 +12,12 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from flowreel.reveal import render_shot
+from flowreel import sources
+from flowreel.scene.draw import draw_frame
+from flowreel.scene.shot import load
 
-SHOT = Path(__file__).parent / "data" / "reveal" / "shot.yml"
+DATA = Path(__file__).parent / "data" / "reveal"
+SHOT = DATA / "reveal.yml"
 MEAN_LIMIT = 0.5        # mean absolute difference, grey levels of 255
 CLEAR_LEVEL = 32        # a pixel "clearly differs" above this
 CLEAR_LIMIT = 0.002     # fraction of pixels allowed to differ clearly
@@ -26,16 +29,18 @@ def difference(a, b):
     return d.mean(), (d.max(axis=2) > CLEAR_LEVEL).mean()
 
 
-def draw(frame=None):
+def draw(frame=16):
+    shot = load(SHOT)
+    source = sources.create("vtk", path=str(DATA / "flow_*.vti"), body=str(DATA / "body.vtp"))
     try:
-        return render_shot(SHOT, frame)
+        return draw_frame(shot, source, frame)
     except (RuntimeError, OSError) as error:        # no OpenGL on this machine
         pytest.skip(f"off-screen rendering is not available: {error}")
 
 
 @pytest.fixture(scope="module")
 def golden():
-    return np.asarray(Image.open(SHOT.parent / "golden.png").convert("RGB"))
+    return np.asarray(Image.open(DATA / "golden.png").convert("RGB"))
 
 
 def test_reveal_frame_matches_the_prototype(golden):

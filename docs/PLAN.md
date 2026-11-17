@@ -858,12 +858,12 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: cameras page
 
 **Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)
-- [ ] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
-- [ ] `iso`: clip by a plane, `grow` along an axis, `grey`
-- [ ] `slice`: normal, position, field, range, fade_weak, mask near the wall
-- [ ] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour
-- [ ] Reveal look written as a shot file on these layers; `reveal.py` goes, its golden test stays
-- [ ] Docs: these layers, with an example on generated data
+- [x] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
+- [x] `iso`: clip by a plane, `grow` along an axis, `grey`
+- [x] `slice`: normal, position, field, range, fade_weak, mask near the wall
+- [x] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour
+- [x] Reveal look written as a shot file on these layers; `reveal.py` goes, its golden test stays
+- [x] Docs: these layers, with an example on generated data
 
 **Branch 4: `phase2/layers-markers`** (layers without flow data; needs branch 1)
 - [ ] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity

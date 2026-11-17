@@ -57,6 +57,33 @@ class Frame:
     values: Any = field(default_factory=dict)
 
 
+class FrameData:
+    """The data of one frame, as layers read it.
+
+    ``flow`` is the volume of the frame's step (``UnstructuredGrid``; ``None`` when no
+    layer needs it), ``source`` the source and ``step`` the step. ``body(name)`` gives a
+    wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
+    derived fields to ``flow`` the first time they are asked for.
+    """
+
+    def __init__(self, source, step: int, flow=None):
+        self.source, self.step, self.flow = source, step, flow
+        self._bodies: dict = {}
+
+    def body(self, name=None):
+        """The wall surface called ``name`` at this step (all bodies when ``None``)."""
+        if name not in self._bodies:
+            self._bodies[name] = self.source.body(self.step, name)
+        return self._bodies[name]
+
+    def need(self, *names: str) -> None:
+        """Make sure ``flow`` carries the fields ``names`` (computed from U, V, W, p)."""
+        from flowreel import fields
+        missing = [n for n in names if n not in self.flow.point_data]
+        for name, value in fields.compute(self.flow, missing).items():
+            self.flow.point_data[name] = value
+
+
 class Layer:
     """Base class of layer types. Subclasses set ``name`` and ``options`` and override
     :meth:`draw`.

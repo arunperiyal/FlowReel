@@ -37,6 +37,12 @@ class FlexflowSource:
         window: read a crop through a window (default): only the crop's nodes of the
             asked variables leave the disk (:mod:`flowreel.sources.flexflow.window`).
             ``False`` reads the zone whole and then cuts it; the result is the same.
+        margin: the window is the crop grown by this much (length unit) on every side,
+            chosen at the first step, so cells the body's motion brings into the crop
+            at a later step are in it. Give at least the largest displacement.
+        cache: folder of the window indexes, so every render process reuses one;
+            default :func:`flowreel.sources.flexflow.window.default_cache`; ``None``
+            to keep them in memory only.
         name: label of the source.
 
     Coordinates in the files are the deformed mesh, so ``flow`` and ``body`` are already at
@@ -45,11 +51,19 @@ class FlexflowSource:
 
     def __init__(self, path, volume: str | None = None,
                  body: str | list[str] | None = None,
-                 nen: int | None = None, window: bool = True, name: str = "flexflow"):
+                 nen: int | None = None, window: bool = True, margin: float = 0.0,
+                 cache: str | Path | None | bool = True, name: str = "flexflow"):
         self.name = name
         self.path = Path(path)
         self.nen = nen
         self.window = window
+        self.margin = float(margin)
+        if self.margin < 0:
+            raise ValueError(f"margin must be at least 0, got {margin}")
+        if cache is True:
+            from flowreel.sources.flexflow.window import default_cache
+            cache = default_cache()
+        self.cache = None if cache in (None, False) else Path(cache)
         self._windows = {}
         folder = self.path / "binary" if (self.path / "binary").is_dir() else self.path
         self._files = {}
@@ -122,13 +136,23 @@ class FlexflowSource:
 
     def window_of(self, crop: Box):
         """The :class:`~flowreel.sources.flexflow.window.Window` of the volume zone for
-        ``crop``, chosen at the first step and kept for this source's life."""
+        ``crop`` grown by ``margin``, chosen at the first step; kept in memory and in
+        ``cache``, keyed by the first step's file, so other processes reuse it."""
         from flowreel.sources.flexflow import window as win
-        key = (tuple(crop.lo), tuple(crop.hi))
+        box = crop.expanded(self.margin) if self.margin else crop
+        key = (tuple(box.lo), tuple(box.hi))
         if key not in self._windows:
-            with self._open(self.steps()[0]) as plt:
-                self._windows[key] = win.choose(plt, plt.zone_index(self.volume), crop,
-                                                nen=self.nen)
+            first = self._files[self.steps()[0]]
+            stored = None
+            if self.cache is not None:
+                disk_key = win.cache_key(first, self.volume, box, self.nen)
+                stored = win.load(self.cache, disk_key, box)
+            if stored is None:
+                with self._open(self.steps()[0]) as plt:
+                    stored = win.choose(plt, plt.zone_index(self.volume), box, nen=self.nen)
+                if self.cache is not None:
+                    win.save(self.cache, disk_key, stored)
+            self._windows[key] = stored
         return self._windows[key]
 
     def _windowed(self, step: int, fields: list[str], crop: Box) -> pv.UnstructuredGrid:

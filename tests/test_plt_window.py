@@ -82,3 +82,42 @@ def test_the_window_is_chosen_once(case, monkeypatch):
     src.flow(1, ["U"], BOX)
     monkeypatch.setattr(win, "choose", lambda *a, **k: pytest.fail("chosen again"))
     src.flow(2, ["U"], BOX)
+
+
+# -- margin and the cached index ---------------------------------------------------------
+
+EDGE = Box((40.0, -1.48, -2.0), (50.0, 2.0, 2.0))    # the floor row is just outside at step 1
+
+
+def test_a_margin_keeps_cells_the_motion_brings_in(case):
+    # step 2 moves the mesh 0.05 up: the floor nodes (y = -1.5 at step 1) are inside
+    whole = FlexflowSource(case, window=False).flow(2, ["U"], EDGE)
+    tight = FlexflowSource(case, cache=None).flow(2, ["U"], EDGE)
+    wide = FlexflowSource(case, margin=0.1, cache=None).flow(2, ["U"], EDGE)
+    assert whole.n_cells == 40 * NY * NZ and tight.n_cells == 40 * (NY - 1) * NZ
+    assert wide.n_cells == whole.n_cells and np.array_equal(wide.points, whole.points)
+    with pytest.raises(ValueError, match="margin must be at least 0"):
+        FlexflowSource(case, margin=-1)
+
+
+def test_the_index_is_kept_on_disk_for_other_processes(case, tmp_path, monkeypatch):
+    folder = tmp_path / "windows"
+    FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
+    assert len(list(folder.glob("*.npz"))) == 1
+    real = win.choose
+    monkeypatch.setattr(win, "choose", lambda *a, **k: pytest.fail("chosen again"))
+    again = FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)      # a new process
+    assert again.n_cells == 40 * NY * NZ
+    import os
+    os.utime(case / "long.1.plt", ns=(1, 1))                            # the file rewritten
+    monkeypatch.setattr(win, "choose", real)
+    FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
+    assert len(list(folder.glob("*.npz"))) == 2
+
+
+def test_default_cache_and_none(case, tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    FlexflowSource(case).flow(1, ["U"], BOX)
+    assert len(list((tmp_path / "xdg" / "flowreel" / "windows").glob("*.npz"))) == 1
+    FlexflowSource(case, cache=None).flow(1, ["U"], Box((0, -2, -2), (5, 2, 2)))
+    assert len(list((tmp_path / "xdg" / "flowreel" / "windows").glob("*.npz"))) == 1

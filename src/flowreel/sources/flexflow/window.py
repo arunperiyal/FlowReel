@@ -12,13 +12,25 @@ cells are then cut to the crop exactly as a whole read would cut them.
 """
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
 from flowreel.box import Box
 
 CHUNK = 4_000_000          # nodes or elements per chunk while choosing the window
+VERSION = 1                # of the cached index's layout
+
+
+def default_cache() -> Path:
+    """Where window indexes are kept: ``$XDG_CACHE_HOME/flowreel/windows`` (default
+    ``~/.cache/flowreel/windows``), outside the case, which may be read-only."""
+    root = os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache"
+    return Path(root) / "flowreel" / "windows"
 
 
 @dataclass(frozen=True)
@@ -69,3 +81,35 @@ def read(plt, zi: int, window: Window, names: list[str]) -> dict:
         mapped = plt.map_variable(zi, name)
         out[name] = None if mapped is None else np.asarray(mapped[window.nodes], dtype="<f4")
     return out
+
+
+def cache_key(path, zone: str, box: Box, nen: int | None) -> str:
+    """The key of a window: the reference file (path, size and modification time, so a
+    rewritten file chooses again), the zone, ``nen`` and the box."""
+    path = Path(path).resolve()
+    stat = path.stat()
+    parts = {"v": VERSION, "file": str(path), "size": stat.st_size, "mtime": stat.st_mtime_ns,
+             "zone": zone, "nen": nen, "lo": list(box.lo), "hi": list(box.hi)}
+    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:32]
+
+
+def load(folder: Path, key: str, box: Box) -> Window | None:
+    """The window stored under ``key``, or ``None``."""
+    try:
+        with np.load(Path(folder) / f"{key}.npz") as data:
+            return Window(box, data["nodes"], data["cells"])
+    except (FileNotFoundError, OSError, KeyError, ValueError):
+        return None
+
+
+def save(folder: Path, key: str, window: Window) -> None:
+    """Store ``window`` under ``key`` (written to a temporary name, then renamed, so a
+    reader never sees half a file). A folder that cannot be written is skipped."""
+    try:
+        folder = Path(folder)
+        folder.mkdir(parents=True, exist_ok=True)
+        tmp = folder / f"{key}.{os.getpid()}.part.npz"
+        np.savez(tmp, nodes=window.nodes, cells=window.cells)
+        os.replace(tmp, folder / f"{key}.npz")
+    except OSError:
+        pass

@@ -890,7 +890,7 @@ session. One commit per task; tick the box in that commit.
 
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)
 - [x] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
-- [ ] Golden carving frame drawn by the prototype's `render_carve.py`
+- [x] Golden carving frame drawn by the prototype's `render_carve.py`
 - [ ] Shot files for the domain and carving shots; `examples/` shot on generated data
 - [ ] Image-difference tests of the three shots through `shot render`
 

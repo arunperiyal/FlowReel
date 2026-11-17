@@ -853,7 +853,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Camera track between named views: linear and spline path, eased
 - [x] `fit`: along a view's direction, far enough to show a box
 - [x] `follow`: focal point on a body's centre at a station
-- [ ] Lights: default kit, `raking`, or a list
+- [x] Lights: default kit, `raking`, or a list
 - [ ] Projection of model points to the screen, with exact tests
 - [ ] Docs: cameras page
 

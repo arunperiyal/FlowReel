@@ -994,7 +994,7 @@ and can be built at any time before branch 9.
 - [x] Virtual body in `bodies:`: `shape`, `params`, `attach`, `drive`
 - [x] Shapes `pendulum`, `spring`, `mass`
 - [x] `ghost` style; wall fields on a virtual body are an error
-- [ ] Docs, with an example on generated data
+- [x] Docs, with an example on generated data
 
 **Branch 6: `phase2b/long-span`** (needs branch 1)
 - [ ] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped

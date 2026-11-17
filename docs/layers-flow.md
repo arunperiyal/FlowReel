@@ -68,7 +68,8 @@ the section does not paint over the wall. Both multiply with `opacity`.
 | `body` | name, list of names, or `all` | `all` | `[riser, mast]` |
 | `colour` | track, colour | `#c8ccd0` | `"#c8ccd0"` |
 | `opacity` | track | `1` | `0.8` |
-| `style` | `solid` or `ghost` | `solid` | `ghost` |
+| `style` | `solid` or `ghost` | `solid`; `ghost` when every body drawn is virtual | `ghost` |
+| `edge_width` | track, pixels: a ghost's outline | `1.5` | `2` |
 | `specular` | track | `0.4` | `0.2` |
 | `field` | name | none | `speed` |
 | `range`, `colormap` | as `iso`, for `field` | `[-1, 1]`, `fire_ice` | `[0, 1]` |
@@ -79,7 +80,9 @@ the section does not paint over the wall. Both multiply with `opacity`.
 | `rest_step` | step whose shape is the rest shape | the first saved step | `5000` |
 
 `ghost` draws the body at a third of its opacity and without highlights, so the flow shows
-through it. With `field`, the surface takes the colour of that field: an array already on
+through it, with an outline `edge_width` pixels wide in its colour. Virtual bodies
+([bodies](bodies.md#virtual-bodies)) are ghosts unless `style` is given, and have no
+wall: `field` on one is an error. With `field`, the surface takes the colour of that field: an array already on
 the body, or a derived field computed on the flow and sampled onto the surface (the flow
 is then loaded). `zero_contour` draws the line where `field` is 0; with a wall shear
 component that line is where the flow separates.

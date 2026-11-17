@@ -266,7 +266,11 @@ lift = src.series("force")
 - **Series:** `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
   `dy`, `dz`; `probe` is the row in the file, from 0) and `force` from
   `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a
-  coefficient). Where restarts repeat a time, the later file wins.
+  coefficient). Where restarts repeat a time, the later file wins. These are for a
+  quick look at a case with **one body**: a file holding several groups (`othId` probe
+  sets or `osgId` surfaces, one per body) is refused with a `ValueError` rather than
+  mixed. For such a case, export each group as CSV with FlexFlow Analyzer and declare it
+  under its body ([bodies](bodies.md#series)).
 
 - **Zones are found, not assumed.** The adapter reads the zone list of the first file, so
   a case needs no options whatever its zones are called: `src.volume` and `src.bodies()`

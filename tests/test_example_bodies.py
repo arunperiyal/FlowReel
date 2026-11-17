@@ -18,6 +18,8 @@ def test_example_declares_measures_and_follows(tmp_path):
     out = done.stdout
     assert "axis: x" in out and "diameter: 1 " in out          # measured by project init
     assert "declared: riser (zone cyl), ball (zone ball)" in out
+    assert ("displacement: 50 rows, nodes [0, 1, 2, 3, 4]; dy at t = 0.3 by station: "
+            "0: 0.000, 10: 1.009, 20: 1.427, 30: 1.009, 40: 0.000") in out
     for focal_y, bend in re.findall(r"focal \([\d.]+, ([\d.]+), [\d.]+\); bend there ([\d.]+)", out):
         assert abs(float(focal_y) - float(bend)) < 0.01
     assert "riser_travel: 12 drawn, 0 skipped" in out

@@ -119,17 +119,57 @@ the declarations are read and checked now.
 
 ## Series
 
-A body's time histories are CSV files, whatever wrote them (for flexflow, FlexFlow
-Analyzer's `data table --output`). A file is given by path alone (`force:
-data/force.csv`) or with these keys:
+A body's time histories are CSV files, whatever wrote them. A file is given by path
+alone (`force: data/force.csv`) or with these keys:
 
 | Key | Meaning | Default |
 |---|---|---|
-| `file` | the CSV, relative to the project folder | required |
+| `file` | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | required |
 | `time` | name of the time column | `time` |
-| `columns` | names to use for columns, `{dy: aleDisp_y}` | the file's own |
+| `columns` | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | the file's own |
 | `by` | a column numbering the points along the body (`node`), for a history at many points | none: one row per time |
-| `stations` | where those points are: a list of numbers, or a CSV of `node, station`; needs `by` | none |
+| `stations` | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | none |
 
-The series are declared and checked here; reading them (`source.series(name,
-body=...)`) and series tracks come in the next branches of this phase.
+```python
+from flowreel.scene.rendering import Scene
+source = Scene.make("shots/riser.yml").source     # the shot's source, with the project's bodies
+lift = source.series("force", body="riser")       # time, then the values
+disp = source.series("displacement")              # the one body that declares it
+```
+
+`series(name, body=...)` reads the CSV declared under that body, once per process.
+Without `body` it takes the one declared body with a series of that name, or else the
+source's own series (flexflow's OTHD and OISD files, for one-body cases). The result is
+a `pandas.DataFrame`: `time` first, in ascending order, then (with `by`) the point
+number and `station`, then the value columns. Where a restart repeats a time, the
+later row wins. A missing file or column is reported with the file's name and the
+columns it has.
+
+### Exporting from FlexFlow Analyzer
+
+For flexflow, the series come from FlexFlow Analyzer's `data table`, which handles
+restarts, the groups of several bodies (`--othid`, `--osgid`) and the pendulum's lines.
+It writes `tsId, time, <variables>`, which FlowReel reads as it is:
+
+```text
+data table CASE --var totTrac_x,totTrac_y --osgid 0 --output data/riser_force.csv   # force
+data table CASE --var aleDisp_y --othid 0 --node 24 --output data/riser_disp_24.csv
+```
+
+A history along the span (every probe node) is one file per node today, so declare the
+file with `{node}` and give the stations:
+
+```yaml
+series:
+  displacement:
+    file: data/riser_disp_{node}.csv      # riser_disp_0.csv, riser_disp_1.csv, ...
+    by: node
+    stations: data/riser_nodes.csv        # node, station
+    columns: {dy: aleDisp_y}
+```
+
+A single long-form export of all nodes (one file with a `node` column) is asked of the
+Analyzer; it reads with `file: data/riser_disp.csv` and the same `by`.
+
+FlowReel's own OTHD and OISD readers refuse a file that holds more than one group, so
+two bodies' rows are never mixed: export each group as above instead.

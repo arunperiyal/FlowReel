@@ -46,14 +46,15 @@ class Frame:
 
     ``index`` is the frame number, ``step`` the simulation step shown, ``time`` its
     physical time, ``data`` the loaded flow and bodies (filled by the renderer), and
-    ``values`` the layer's options at this frame.
+    ``values`` the options at this frame: one dict per layer in a frame plan (in the
+    order of the shot's layers), the layer's own dict when passed to :meth:`Layer.draw`.
     """
 
     index: int
     step: int
     time: float
     data: Any = None
-    values: dict = field(default_factory=dict)
+    values: Any = field(default_factory=dict)
 
 
 class Layer:

@@ -851,8 +851,8 @@ session. One commit per task; tick the box in that commit.
 **Branch 2: `phase2/scene-views`** (cameras and lights; needs branch 1)
 - [x] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)
 - [x] Camera track between named views: linear and spline path, eased
-- [ ] `fit`: along a view's direction, far enough to show a box
-- [ ] `follow`: focal point on a body's centre at a station
+- [x] `fit`: along a view's direction, far enough to show a box
+- [x] `follow`: focal point on a body's centre at a station
 - [ ] Lights: default kit, `raking`, or a list
 - [ ] Projection of model points to the screen, with exact tests
 - [ ] Docs: cameras page

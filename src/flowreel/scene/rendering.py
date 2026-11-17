@@ -27,7 +27,7 @@ from flowreel.scene.keys import KeyStore, frame_key
 from flowreel.scene.layers import Frame, FrameData
 from flowreel.scene.lights import apply_lights
 from flowreel.scene.plan import FramePlan, plan
-from flowreel.scene.shot import Shot, load
+from flowreel.scene.shot import CropAround, Shot, load
 from flowreel.tracks import parse_colour
 
 FRAME_NAME = "frame_{:05d}.png"
@@ -157,9 +157,21 @@ class Scene:
             out.append(v)
         return out
 
+    def crop(self, index: int):
+        """The box read from the source for frame ``index``: the shot's crop, or for a
+        crop that travels with a body (``around``), that frame's box; ``None`` for the
+        whole domain."""
+        crop = self.shot.crop
+        if not isinstance(crop, CropAround):
+            return crop
+        boxes = self.__dict__.setdefault("_crops", {})
+        if index not in boxes:
+            boxes[index] = crop.box(index, self.source, self.plan.time.step(index))
+        return boxes[index]
+
     def data(self, index: int) -> FrameData:
         """The data of frame ``index`` (flow read on first use)."""
-        return FrameData(self.source, self.plan.time.step(index), crop=self.shot.crop,
+        return FrameData(self.source, self.plan.time.step(index), crop=self.crop(index),
                          cache=self.cache)
 
     def draw(self, index: int) -> np.ndarray:

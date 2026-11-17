@@ -71,12 +71,13 @@ def frame_parts(scene, index: int) -> dict:
     from flowreel.project.names import bodies_key
     shot = scene.shot
     data = scene.data(index)
+    crop = scene.crop(index)
     return {
         "code": code_version(),
         "source": source_id(shot),
         "bodies": bodies_key(scene.source),
         "step": scene.plan.time.step(index),
-        "crop": None if shot.crop is None else [list(shot.crop.lo), list(shot.crop.hi)],
+        "crop": None if crop is None else [list(crop.lo), list(crop.hi)],
         "size": list(scene.size),
         "background": shot.background,
         "antialias": shot.antialias,

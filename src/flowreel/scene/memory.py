@@ -95,7 +95,7 @@ def measure(shot, frame: int = 0, source=None, *, views=None, tracks=None,
         raise IndexError(f"frame {frame} is outside 0..{scene.plan.n_frames - 1}")
     threads = threads or default_threads(1)
     estimate = getattr(scene.source, "memory_per_step", None)
-    estimate = None if estimate is None else int(estimate(shot.crop) * GB)
+    estimate = None if estimate is None else int(estimate(scene.crop(frame)) * GB)
     env = backend_mod.environment(backend_mod.choose(backend), threads)
     with _environment(env), ProcessPoolExecutor(
             1, mp_context=multiprocessing.get_context("spawn")) as pool:

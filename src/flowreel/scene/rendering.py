@@ -193,9 +193,25 @@ class Scene:
                 plotter.enable_anti_aliasing(shot.antialias)
             for layer, values in zip(shot.layers, self.values(index)):
                 layer.draw(plotter, Frame(index, step, time, data, values))
+            if shot.stretch is not None:
+                self._stretch(plotter)
             return np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
         finally:
             plotter.close()
+
+
+    def _stretch(self, plotter) -> None:
+        """Scale every 3D actor by the shot's stretch (about the origin, so the scene
+        keeps its layout) and write the note."""
+        from vtkmodules.vtkRenderingCore import vtkProp3D
+        st = self.shot.stretch
+        for actor in plotter.renderer.actors.values():
+            if isinstance(actor, vtkProp3D):
+                actor.SetScale(*st.scale)
+        if st.note:
+            from flowreel.scene.text import corner_text
+            corner_text(plotter, st.note, st.corner, st.size * self.pixel_scale, st.colour,
+                        self.size)
 
 
 def draft_size(shot_size: tuple[int, int], scale: float | None = None,

@@ -27,7 +27,7 @@ from flowreel.box import Box
 from flowreel.scene.errors import Checker, ConfigError
 
 KEYS = ("name", "source", "time", "camera", "size", "crop", "background", "antialias",
-        "lights", "layers")
+        "lights", "stretch", "layers")
 REQUIRED = ("name", "source", "time", "layers")
 ANTIALIAS = ("none", "fxaa", "ssaa")
 DEFAULT_SIZE = (1920, 1080)
@@ -61,6 +61,7 @@ class Shot:
     lights: tuple | None = None
     source_options: dict = field(default_factory=dict)
     file: str | None = None
+    stretch: "Stretch | None" = None
 
 
 def load(path: str | Path) -> Shot:
@@ -93,12 +94,13 @@ def from_dict(data, file: str | None = None) -> Shot:
     if data.get("lights") is not None:
         from flowreel.scene.lights import parse_lights
         lights = parse_lights(data["lights"], check.at("lights"))
+    stretch = _stretch(data.get("stretch"), check.at("stretch"))
     items = check.at("layers").sequence(data["layers"], minimum=1)
     layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
     _check_amplify(layers, check)
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
                 size=size, crop=crop, background=background, antialias=antialias,
-                lights=lights, source_options=source_options, file=file)
+                lights=lights, source_options=source_options, file=file, stretch=stretch)
 
 
 def _check_amplify(layers, check: Checker) -> None:
@@ -147,6 +149,66 @@ def _size(value, check: Checker) -> tuple[int, int]:
     if len(items) != 2:
         raise check.error(f"expected [width, height], got {len(items)} entries")
     return tuple(check.at(i).integer(v, minimum=1) for i, v in enumerate(items))
+
+
+CORNERS = ("lower_left", "lower_right", "upper_left", "upper_right")
+
+
+@dataclass(frozen=True)
+class Stretch:
+    """A shot drawn with its model scaled along axes (``scale``, x, y, z), after
+    contouring, so a long body fits the frame; the frame carries ``note`` (``None`` for
+    none) in ``corner``, ``size`` pixels high, in ``colour``, because a stretched wake is
+    not the wake's true shape."""
+
+    scale: tuple[float, float, float]
+    note: str | None
+    corner: str = "lower_left"
+    size: float = 18.0
+    colour: str = "#c8ccd0"
+
+
+def stretch_note(scale) -> str:
+    """The default note: each scaled axis and its ratio, such as ``x drawn at 1/20 of its
+    length``."""
+    parts = []
+    for axis, s in zip("xyz", scale):
+        if s == 1:
+            continue
+        ratio = 1 / s if s < 1 else s
+        text = f"{ratio:.3g}"
+        parts.append(f"{axis} drawn at 1/{text} of its length" if s < 1
+                     else f"{axis} drawn at {text} times its length")
+    return "; ".join(parts)
+
+
+def _stretch(value, check: Checker) -> Stretch | None:
+    if value is None:
+        return None
+    spec = check.mapping(value, ("x", "y", "z", "note", "corner", "size", "colour"))
+    scale = []
+    for axis in "xyz":
+        s = check.at(axis).number(spec.get(axis, 1.0))
+        if s <= 0:
+            raise check.at(axis).error(f"must be positive, got {s:g}")
+        scale.append(s)
+    if scale == [1.0, 1.0, 1.0]:
+        raise check.error("give the factor of at least one axis, such as {x: 0.05}")
+    note = spec.get("note", True)
+    if note is True:
+        note = stretch_note(scale)
+    elif note is False:
+        note = None
+    else:
+        note = check.at("note").string(note)
+    size = check.at("size").number(spec.get("size", 18.0))
+    colour = spec.get("colour", "#c8ccd0")
+    try:
+        tracks_mod.parse_colour(colour)
+    except ValueError as exc:
+        raise check.at("colour").wrap(exc) from None
+    return Stretch(tuple(scale), note, check.at("corner").choice(spec.get("corner", "lower_left"),
+                                                                  CORNERS), size, colour)
 
 
 @dataclass

@@ -40,13 +40,14 @@ class ShotCamera:
     """
 
     def __init__(self, spec: dict, views: dict[str, View], tracks: dict[str, CameraTrack],
-                 check: Checker, rest_step: int | None = None, crop=None):
+                 check: Checker, rest_step: int | None = None, crop=None, stretch=None):
         given = [k for k in BASES if k in spec]
         if len(given) != 1:
             raise check.error(f"give exactly one of {', '.join(BASES)}"
                               + (f", got {', '.join(given)}" if given else ""))
         self.base = given[0]
         self.rest_step = rest_step
+        self.stretch = None if stretch is None else tuple(stretch)
         self.view_ = self.track = None
         if self.base == "view":
             self.view_ = views[check.at("view").choice(spec["view"], list(views))]
@@ -100,7 +101,12 @@ class ShotCamera:
             view = self.track.at(frame)
         elif self.base == "fit":
             from flowreel.scene.marker_layers import region
-            view = fit(self.view_, region(self.fit, data), self.margin)
+            box = region(self.fit, data)
+            if self.stretch:                      # fit the box as it is drawn
+                from flowreel.box import Box
+                s = self.stretch
+                box = Box(tuple(a * k for a, k in zip(box.lo, s)), tuple(a * k for a, k in zip(box.hi, s)))
+            view = fit(self.view_, box, self.margin)
         else:
             view = self.view_
         if self.follows:
@@ -110,7 +116,10 @@ class ShotCamera:
             body = declaration(data.source, name)
             axis = self.axis or (body.axis if body else None) or long_axis(surface) or "z"
             slab = 0.25 * body.diameter if body and body.diameter else None
-            view = follow(view, body_centre(surface, self.station.at(frame), axis, slab))
+            at = body_centre(surface, self.station.at(frame), axis, slab)
+            if self.stretch:                      # the centre as it is drawn
+                at = tuple(a * k for a, k in zip(at, self.stretch))
+            view = follow(view, at)
         return view
 
     def key(self, frame: int, data) -> dict:
@@ -141,4 +150,5 @@ def shot_camera(shot, views: dict[str, View] | None = None,
         views = load_views(path)
         if tracks is None:
             tracks = load_tracks(path, views)
-    return ShotCamera(shot.camera, views, tracks or {}, check, rest_step, shot.crop)
+    return ShotCamera(shot.camera, views, tracks or {}, check, rest_step, shot.crop,
+                      None if shot.stretch is None else shot.stretch.scale)

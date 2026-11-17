@@ -81,6 +81,7 @@ def frame_parts(scene, index: int) -> dict:
         "size": list(scene.size),
         "background": shot.background,
         "antialias": shot.antialias,
+        "stretch": shot.stretch,
         "lights": None if shot.lights is None else [dataclasses.asdict(lt) for lt in shot.lights],
         "view": scene.camera.key(index, data),
         "layers": [{"type": layer.name, **layer.key_fields(index)}

@@ -1,0 +1,24 @@
+# A body, a section and a surface on generated data (see run.py). The vortex tube
+# grows along z while the section sweeps across it.
+name: flow_layers
+source: toy:generated
+time: {frozen: 0, frames: 24}
+camera: {view: main}
+size: [640, 360]
+layers:
+  - {type: body, colour: "#c8ccd0"}
+  - type: slice
+    normal: x
+    position: {from: -0.8, to: 0.8, frames: [0, 23]}
+    field: speed
+    range: [0, 1]
+    colormap: viridis
+    opacity: 0.8
+  - type: iso
+    field: speed
+    level: 0.5
+    colour_by: speed
+    range: [0, 1]
+    colormap: viridis
+    grow_axis: z
+    grow: {from: 0.1, to: 1.0, frames: [0, 23]}

@@ -992,7 +992,7 @@ and can be built at any time before branch 9.
 
 **Branch 5: `phase2b/bodies-virtual`** (needs branch 4)
 - [x] Virtual body in `bodies:`: `shape`, `params`, `attach`, `drive`
-- [ ] Shapes `pendulum`, `spring`, `mass`
+- [x] Shapes `pendulum`, `spring`, `mass`
 - [ ] `ghost` style; wall fields on a virtual body are an error
 - [ ] Docs, with an example on generated data
 

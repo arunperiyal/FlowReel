@@ -1,0 +1,3 @@
+views:
+  - {name: close, position: [-7, 3, 7], focal: [0, 0, 0], up: [0, 1, 0], view_angle: 40}
+  - {name: wide, position: [20, 25, 45], focal: [20, 0, 0], up: [0, 1, 0], view_angle: 30}

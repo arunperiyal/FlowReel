@@ -22,6 +22,7 @@ import numpy as np
 from flowreel.scene import backend as backend_mod
 from flowreel.scene.camera import shot_camera
 from flowreel.scene.errors import Checker
+from flowreel.scene.keys import KeyStore, frame_key
 from flowreel.scene.layers import Frame, FrameData
 from flowreel.scene.lights import apply_lights
 from flowreel.scene.plan import FramePlan, plan
@@ -119,8 +120,9 @@ def render_frame(shot, frame: int, source=None, *, views=None, tracks=None,
 
 @dataclass
 class FrameResult:
-    """One frame of a :func:`render`: its index, the file, ``status`` (``rendered``),
-    the seconds it took and the peak memory of its process in bytes (0 in-process)."""
+    """One frame of a :func:`render`: its index, the file, ``status`` (``rendered``, or
+    ``skipped`` when the file was already drawn with the same key), the seconds it took
+    and the peak memory of its process in bytes (0 in-process or skipped)."""
 
     index: int
     path: Path
@@ -150,11 +152,13 @@ def default_threads(jobs: int) -> int:
 
 def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None,
            tracks=None, out: str | Path = "frames", jobs: int = 1,
-           threads: int | None = None, backend: str = "auto", processes: bool = True,
-           progress: Callable[[FrameResult], None] | None = None) -> RenderReport:
+           threads: int | None = None, backend: str = "auto", force: bool = False,
+           processes: bool = True, progress: Callable[[FrameResult], None] | None = None) -> RenderReport:
     """Render ``frames`` (default all) of ``shot`` to PNG files.
 
-    Frames go to ``out/<shot name>/frame_00000.png``. ``jobs`` frames are drawn at a time,
+    Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
+    drawn with the same key (plan Section 11, :mod:`flowreel.scene.keys`) is skipped;
+    ``force`` draws every frame asked for again. ``jobs`` frames are drawn at a time,
     each in its own process (``processes=False`` draws them here, one by one, for
     debugging). ``threads`` caps the threads of each job (default
     :func:`default_threads`). ``backend`` is one of
@@ -172,13 +176,23 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     chosen = backend_mod.choose(backend)
     report = RenderReport(folder, chosen)
     results: dict[int, FrameResult] = {}
+    store = KeyStore(folder)
+    keys = {i: frame_key(scene, i) for i in indices}
 
     def done(result: FrameResult):
         results[result.index] = result
+        if result.status == "rendered":
+            store.put(result.path.name, keys[result.index])
         if progress:
             progress(result)
 
-    todo = list(indices)
+    todo = []
+    for i in indices:
+        path = folder / FRAME_NAME.format(i)
+        if not force and store.fresh(path, keys[i]):
+            done(FrameResult(i, path, "skipped"))
+        else:
+            todo.append(i)
     with _environment(backend_mod.environment(chosen, threads)):
         if not processes:
             for i in todo:

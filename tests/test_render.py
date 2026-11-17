@@ -54,7 +54,7 @@ def test_render_in_process_and_a_subset(toy_source, tmp_path):
     report = render(toy_shot(), [2, 0], source=toy_source, views=VIEWS, out=tmp_path,
                     processes=False)
     assert [f.index for f in report.frames] == [0, 2]
-    assert sorted(p.name for p in (tmp_path / "toy").iterdir()) == \
+    assert sorted(p.name for p in (tmp_path / "toy").glob("*.png")) == \
         ["frame_00000.png", "frame_00002.png"]
 
 

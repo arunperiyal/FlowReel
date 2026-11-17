@@ -8,6 +8,10 @@ blocks: a header line ``<name> <n> <rows>`` followed by the rows. FlowReel reads
 
 Where restarts repeat a time, the later file (by modification time, then name) and the
 later record win, as in the prototype's ``extract_series.py``.
+
+These readers are for a quick look at a case with one body. A file with several groups
+(``othId`` or ``osgId``, one per probe set or body) is refused, not mixed: export each
+group as CSV with FlexFlow Analyzer and declare it under its body (plan Section 5.4).
 """
 from __future__ import annotations
 
@@ -19,12 +23,21 @@ import pandas as pd
 AXES = ("x", "y", "z")
 
 
+GROUP_KEYS = ("othId", "osgId")
+EXPORT = ("FlexFlow Analyzer exports one group as CSV: data table CASE --var VAR "
+          "--othid N (or --osgid N) --output FILE.csv; declare it as a body's series in "
+          "flowreel.yml (docs/bodies.md)")
+
+
 def records(path, block: str, rows_from_header: bool):
     """Yield ``(time, rows)`` for every ``block`` in the file at ``path``.
 
     ``rows`` is a list of lists of floats. With ``rows_from_header`` the third header
-    field gives the number of rows; otherwise the block has one row.
+    field gives the number of rows; otherwise the block has one row. A file of a case
+    with several bodies holds a group per probe set (``othId``) or surface (``osgId``);
+    such a file raises ``ValueError``, since mixing the groups' rows would mix bodies.
     """
+    groups: set[str] = set()
     with open(path) as f:
         time = None
         for line in f:
@@ -32,6 +45,13 @@ def records(path, block: str, rows_from_header: bool):
                 time = float(line.split()[1])
                 continue
             head = line.split()
+            if len(head) == 2 and head[0] in GROUP_KEYS:
+                groups.add(head[1])
+                if len(groups) > 1:
+                    raise ValueError(f"{path}: more than one group ({head[0]} "
+                                     f"{', '.join(sorted(groups))}); FlowReel reads OTHD and "
+                                     f"OISD files of one-body cases only. {EXPORT}")
+                continue
             if time is None or len(head) != 3 or head[0] != block:
                 continue
             n = int(head[2]) if rows_from_header else 1

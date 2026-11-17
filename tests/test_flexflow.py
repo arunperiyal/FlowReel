@@ -133,6 +133,28 @@ def test_series_restart_later_file_wins(tmp_path):
     assert FlexflowSource(tmp_path).series("force").fx.tolist() == [2.0]
 
 
+def test_series_with_one_group_reads(tmp_path):
+    """The solver writes the group id even for one body: one id is fine."""
+    (tmp_path / "riser.1.plt").write_bytes((CASE / "binary" / "riser.5000.plt").read_bytes())
+    _write_series(tmp_path, "a.oisd", "oisd_files",
+                  "tsId 1\ntime 1.0\nosgId 0\nosdFlag 1\ntotTrac 3 1\n1 2 3\n"
+                  "tsId 2\ntime 2.0\nosgId 0\nosdFlag 1\ntotTrac 3 1\n4 5 6\n")
+    assert FlexflowSource(tmp_path).series("force").fy.tolist() == [2.0, 5.0]
+
+
+@pytest.mark.parametrize("folder, name, key, block", [
+    ("othd_files", "displacement", "othId", "aleDisp 3 1\n0 0 0\n"),
+    ("oisd_files", "force", "osgId", "totTrac 3 1\n1 1 1\n"),
+])
+def test_series_with_two_groups_is_refused(tmp_path, folder, name, key, block):
+    """Two bodies' groups in one file would mix their rows: refused, with the export."""
+    (tmp_path / "riser.1.plt").write_bytes((CASE / "binary" / "riser.5000.plt").read_bytes())
+    text = "".join(f"time 1.0\n{key} {g}\n{block}" for g in (0, 1))
+    _write_series(tmp_path, "a." + folder[:4], folder, text)
+    with pytest.raises(ValueError, match=rf"more than one group \({key} 0, 1\).*data table CASE"):
+        FlexflowSource(tmp_path).series(name)
+
+
 def test_zones_are_found_in_the_file(src):
     assert src.volume == "FIELD" and src.bodies() == ["cyl"]
     assert src.body(5000, "cyl").n_cells == src.body(5000).n_cells == 64

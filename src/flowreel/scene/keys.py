@@ -68,11 +68,13 @@ def source_id(shot) -> list:
 def frame_parts(scene, index: int) -> dict:
     """What decides the picture of frame ``index`` of ``scene`` (a
     :class:`~flowreel.scene.rendering.Scene`)."""
+    from flowreel.project.names import bodies_key
     shot = scene.shot
     data = scene.data(index)
     return {
         "code": code_version(),
         "source": source_id(shot),
+        "bodies": bodies_key(scene.source),
         "step": scene.plan.time.step(index),
         "crop": None if shot.crop is None else [list(shot.crop.lo), list(shot.crop.hi)],
         "size": list(scene.size),

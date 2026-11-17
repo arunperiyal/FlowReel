@@ -57,3 +57,39 @@ def test_a_new_kind_is_accepted_by_the_schema():
 def test_unknown_symbol():
     with pytest.raises(KeyError, match="no symbol for support 'hinge'"):
         S.symbol(End(0.0, "hinge"), place())
+
+
+def test_roller_slides_along_free_along():
+    meshes = S.symbol(End(0.0, "roller", options={"free_along": "x"}), place(down=(0, 0, -1)))
+    rollers = [m for m in meshes if np.ptp(m.points[:, 1]) > 1.1 and np.ptp(m.points[:, 0]) < 0.3]
+    assert len(rollers) == 3                                   # axes across the slide (y)
+    centres = sorted(round(float(m.center[0]), 3) for m in rollers)
+    assert centres == [-0.35, 0.0, 0.35]
+    lo, _ = bounds(meshes)
+    assert np.isclose(lo[2], -1.86)
+
+
+def test_spring_coil_reaches_the_ground_block():
+    lo, hi = bounds(S.symbol(End(0.0, "spring", options={"stiffness": 1.0}), place(down=(0, -1, 0))))
+    assert np.isclose(hi[1], -0.5 + 0.035, atol=0.01) and np.isclose(lo[1], -2.65)
+
+
+def test_free_is_drawn_only_when_marked():
+    assert S.symbol(End(0.0, "free"), place()) == []
+    lo, hi = bounds(S.symbol(End(0.0, "free", options={"mark": True}), place()))
+    assert np.isclose(hi[1], 0.64, atol=0.01) and abs(hi[0] - lo[0]) < 0.1   # a ring round x
+
+
+def test_prescribed_points_both_ways_along_its_direction():
+    lo, hi = bounds(S.symbol(End(0.0, "prescribed", options={"direction": "y"}), place()))
+    assert np.isclose(lo[1], -1.8) and np.isclose(hi[1], 1.8)
+
+
+def test_tension_pulls_out_of_the_end():
+    low_end = S.tension_arrow(place(outward=False))
+    assert low_end.points[:, 0].max() <= -0.5 + 1e-9 and np.isclose(low_end.points[:, 0].min(), -2.5)
+    assert np.isclose(S.tension_arrow(place(outward=True)).points[:, 0].max(), 2.5)
+
+
+def test_every_kind_in_the_schema_has_a_symbol():
+    assert set(bodies_mod.SUPPORTS) <= set(S.available())

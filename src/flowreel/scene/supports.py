@@ -118,3 +118,69 @@ def _cone_and_base(place: Place) -> list:
 def pinned(end: End, place: Place) -> list:
     """A cone with its tip on the body, the body free to turn about it, on a plate."""
     return _cone_and_base(place) + [place.box((-0.7, 1.5, -0.7), (0.7, 1.65, 0.7))]
+
+
+def _axis_vector(value) -> np.ndarray:
+    """``x``, ``y``, ``z`` or three numbers, as a unit vector."""
+    v = np.eye(3)["xyz".index(value)] if isinstance(value, str) else np.asarray(value, float)
+    return v / np.linalg.norm(v)
+
+
+def _tube(points, radius: float) -> pv.PolyData:
+    line = pv.lines_from_points(np.asarray(points, float))
+    return line.tube(radius=radius, n_sides=12)
+
+
+@register_support("roller")
+def roller(end: End, place: Place) -> list:
+    """The pinned cone on three rollers and a ground plate: held across ``free_along``,
+    free to slide along it."""
+    free = _axis_vector(end.options["free_along"])
+    free = free - place.down * float(free @ place.down)
+    free = free / np.linalg.norm(free) if np.linalg.norm(free) > 1e-9 else place.along
+    turn = np.cross(place.down, free)
+    out = _cone_and_base(place)
+    for k in (-1, 0, 1):
+        centre = place.point(0, 1.62, 0) + 0.35 * k * place.size * free
+        out.append(pv.Cylinder(center=centre, direction=turn, radius=0.12 * place.size,
+                               height=1.2 * place.size, resolution=24))
+    out.append(place.box((-0.7, 1.74, -0.7), (0.7, 1.86, 0.7)))
+    return out
+
+
+@register_support("spring")
+def spring(end: End, place: Place) -> list:
+    """A coil from the body's underside to a block on the ground."""
+    t = np.linspace(0, 1, 241)
+    turns, radius = 5, 0.25
+    coil = [place.point(radius * np.cos(2 * np.pi * turns * u), 0.5 + 2 * u,
+                        radius * np.sin(2 * np.pi * turns * u)) for u in t]
+    return [_tube(coil, 0.035 * place.size), place.box((-0.5, 2.5, -0.5), (0.5, 2.65, 0.5))]
+
+
+@register_support("free")
+def free(end: End, place: Place) -> list:
+    """Nothing, or with ``mark: true`` a thin ring round the body at the station."""
+    if not end.options.get("mark"):
+        return []
+    a = np.linspace(0, 2 * np.pi, 97)
+    ring = [place.point(0, 0.6 * np.cos(u), 0.6 * np.sin(u)) for u in a]
+    return [_tube(ring, 0.04 * place.size)]
+
+
+@register_support("prescribed")
+def prescribed(end: End, place: Place) -> list:
+    """A double arrow along ``direction``, through the station: the solver moves it."""
+    d = _axis_vector(end.options["direction"])
+    out = []
+    for sign in (1, -1):
+        start = place.centre + sign * 0.6 * place.size * d
+        out.append(pv.Arrow(start=start, direction=sign * d, scale=1.2 * place.size,
+                            tip_length=0.3, tip_radius=0.12, shaft_radius=0.04))
+    return out
+
+
+def tension_arrow(place: Place) -> pv.PolyData:
+    """An arrow 2 diameters long out of the end along the axis: the body is pulled."""
+    return pv.Arrow(start=place.point(0.5, 0, 0), direction=place.along, scale=2 * place.size,
+                    tip_length=0.25, tip_radius=0.12, shaft_radius=0.04)

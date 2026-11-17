@@ -2,7 +2,8 @@
 # whole domain as an outline, inflow arrows, clamped ends and the direction the cylinder
 # may move, held while the set-up is labelled; then the camera moves in to the main view,
 # the outline fades and the wake grows downstream. 288 frames; fractions of the shot in
-# the prototype are frames here (t * 287). The golden frame is 224, at 640 x 360.
+# the prototype are frames here (t * 287). The golden frame is 224, at 640 x 360. The
+# body and its clamped ends are declared in flowreel.yml beside this file.
 name: domain
 source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}
 time: {frozen: 5000, frames: 288}
@@ -31,17 +32,9 @@ layers:
     tip_length: 0.3
     tip_radius: 0.12
     shaft_radius: 0.04
-  - &clamp                             # the clamped ends
-    type: markers3d
-    shape: block
-    at: [0, 0, 0]
-    size: [0.8, 2, 2]
+  - type: supports                     # the clamped ends, from flowreel.yml
     colour: "#8a9299"
     opacity: *fade
-    ambient: 0.4
-    specular: 0
-    smooth: false
-  - {<<: *clamp, at: [12, 0, 0]}
   - &motion                            # the cylinder moves cross-flow only
     type: markers3d
     shape: arrow3d

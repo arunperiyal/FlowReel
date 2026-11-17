@@ -170,6 +170,19 @@ def one_body(source) -> str:
     raise LookupError(f"name the body: {source.name} has {', '.join(names)}")
 
 
+def require_wall(source, name: str | None, what: str) -> None:
+    """Raise ``ValueError`` when ``name`` is a virtual body: it has no wall in the flow, so
+    no wall field, wall gap or wall mask (``what`` names the asking option)."""
+    if isinstance(source, DeclaredSource) and source.is_virtual(name):
+        raise ValueError(f"{what}: {name!r} is a virtual body, modelled by equations and "
+                         "not in the flow: it has no wall")
+
+
+def is_virtual(source, name: str | None) -> bool:
+    """Whether ``name`` is a virtual body of ``source``."""
+    return isinstance(source, DeclaredSource) and source.is_virtual(name)
+
+
 def declaration(source, name: str) -> Body | None:
     """The declaration of body ``name`` when ``source`` carries declarations, else ``None``."""
     return source.declaration(name) if isinstance(source, DeclaredSource) else None

@@ -10,6 +10,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from flowreel.colours import BODY, MUTED, colormap, smoothstep
+from flowreel.project.names import is_virtual, require_wall
 from flowreel.scene.layers import Layer, Option, register
 from flowreel.tracks import parse_colour
 
@@ -73,6 +74,8 @@ class Iso(Layer):
         so the renderer's cache keeps it for a frozen shot (``FrameData.cached``).
         """
         data = frame.data
+        if v["wall_gap"] > 0:
+            require_wall(data.source, v.get("gap_body"), "iso gap_body")
         parts = {"layer": "iso", **{k: v.get(k) for k in
                                     ("field", "level", "colour_by", "wall_gap", "gap_body")}}
 
@@ -180,6 +183,7 @@ class Slice(Layer):
         if v.get("fade_weak"):
             alpha = alpha * smoothstep(np.abs(value), *v["fade_weak"])
         if v.get("near_wall"):
+            require_wall(data.source, v.get("mask_body"), "slice mask_body")
             wall = data.body(v.get("mask_body")).triangulate()
             dist = cut.compute_implicit_distance(wall)["implicit_distance"]
             alpha = alpha * smoothstep(np.abs(dist), *v["near_wall"])
@@ -207,6 +211,11 @@ class BodyLayer(Layer):
     draw the line where ``field`` is 0, such as separation in wall shear) with
     ``zero_colour`` and ``zero_width`` (pixels, track).
 
+    A virtual body (``flowreel.yml``) is drawn as a ghost unless ``style`` says
+    otherwise, and a ghost has an outline ``edge_width`` pixels wide in its colour, so it
+    reads as modelled, not meshed. A virtual body has no wall: ``field`` on it is an
+    error.
+
     ``amplify`` (track) draws the body's displacement from its shape at ``rest_step``
     (default the source's first saved step) that many times larger, so a vibration of a
     hundredth of a diameter can be seen. It is refused in a shot with flow layers, whose
@@ -218,7 +227,8 @@ class BodyLayer(Layer):
         Option("body", track=False, default="all"),
         Option("colour", "colour", default=BODY),
         Option("opacity", "number", default=1.0),
-        Option("style", "choice", default="solid", choices=("solid", "ghost")),
+        Option("style", "choice", choices=("solid", "ghost"),
+               doc="default solid; ghost for virtual bodies"),
         Option("specular", "number", default=0.4),
         Option("field", track=False),
         Option("range", track=False, default=(-1.0, 1.0)),
@@ -226,6 +236,7 @@ class BodyLayer(Layer):
         Option("zero_contour", "boolean", default=False),
         Option("zero_colour", "colour", default="#ffffff"),
         Option("zero_width", "number", default=2.0, pixels=True),
+        Option("edge_width", "number", default=1.5, pixels=True, doc="a ghost's outline"),
         Option("amplify", "number", default=1.0, doc="displacement drawn this many times larger"),
         Option("rest_step", track=False, doc="step of the rest shape; default the first saved"),
     )
@@ -240,6 +251,9 @@ class BodyLayer(Layer):
         else:
             surf = data.body(None if spec == "all" else spec)
         name = self.raw.get("field")
+        if name:
+            for body in self._names():
+                require_wall(data.source, body, f"body field {name!r}")
         if name and name not in surf.point_data:
             data.need(name)
             surf = surf.sample(data.flow, pass_point_data=False)  # copy with the flow's arrays
@@ -249,6 +263,19 @@ class BodyLayer(Layer):
     def check(cls, raw: dict, check) -> None:
         if raw.get("rest_step") is not None:
             check.at("rest_step").integer(raw["rest_step"])
+
+    def _names(self) -> list:
+        spec = self.raw.get("body", "all")
+        return spec if isinstance(spec, list) else [None if spec == "all" else spec]
+
+    def style(self, frame) -> str:
+        """``solid`` or ``ghost``: as given, else ghost when every body drawn is virtual
+        (drawn to look modelled, not meshed), else solid."""
+        given = frame.values.get("style")
+        if given:
+            return given
+        virtual = [is_virtual(frame.data.source, n) for n in self._names()]
+        return "ghost" if all(virtual) else "solid"
 
     def amplified(self, frame, surf):
         """``surf`` moved from its rest shape by ``amplify`` times its displacement."""
@@ -270,7 +297,7 @@ class BodyLayer(Layer):
     def draw(self, plotter, frame) -> None:
         v = frame.values
         surf = self.amplified(frame, self.surface(frame))
-        ghost = v["style"] == "ghost"
+        ghost = self.style(frame) == "ghost"
         opacity = v["opacity"] / 3 if ghost else v["opacity"]
         common = dict(smooth_shading=True, split_sharp_edges=True, opacity=opacity,
                       specular=0 if ghost else v["specular"], specular_power=20, ambient=0.25)
@@ -284,3 +311,6 @@ class BodyLayer(Layer):
                                      lighting=False)
         else:
             plotter.add_mesh(surf, color=v["colour"], **common)
+        if ghost:                         # the outline, on top: modelled, not meshed
+            plotter.add_silhouette(surf, color=v["colour"], line_width=v["edge_width"],
+                                   opacity=v["opacity"], feature_angle=60)

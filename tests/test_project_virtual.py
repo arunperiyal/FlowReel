@@ -98,3 +98,76 @@ def test_attached_to_another_virtual_body_is_refused():
     with pytest.raises(ConfigError, match=r"p\.attach\.body: 'q' is virtual"):
         parse_bodies({"q": {"virtual": True, "shape": "stick"},
                       "p": {"virtual": True, "shape": "stick", "attach": {"body": "q"}}}, Checker())
+
+
+# -- drawn as a ghost; no wall --------------------------------------------------------------
+
+from flowreel.scene import flow_layers  # noqa: E402,F401  (registers the layer types)
+from flowreel.scene.layers import Frame, FrameData, build  # noqa: E402
+
+PENDULUM = PROJECT + """\
+  pendulum:
+    virtual: true
+    shape: pendulum
+    params: {length: 3.0, bob: 0.4}
+    attach: {body: riser, station: 20}
+"""
+
+
+@pytest.fixture
+def with_pendulum(tmp_path):
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "stretch.csv").write_text("time,L\n0,1\n1,2\n")
+    (tmp_path / PROJECT_FILE).write_text(PENDULUM)
+    return DeclaredSource(Riser(), load_project(tmp_path).bodies)
+
+
+def body_layer(spec):
+    return build({"type": "body", **spec}, Checker())
+
+
+def frame_of(layer, source):
+    return Frame(0, 0, 0.0, FrameData(source, 0), layer.values(0))
+
+
+@pytest.mark.parametrize("spec, style", [
+    ({"body": "pendulum"}, "ghost"),                     # virtual: ghost by default
+    ({"body": "pendulum", "style": "solid"}, "solid"),
+    ({"body": "riser"}, "solid"),
+    ({"body": ["riser", "pendulum"]}, "solid"),          # not every body drawn is virtual
+    ({}, "solid"),                                       # all: the walls
+])
+def test_virtual_bodies_are_ghosts_by_default(with_pendulum, spec, style):
+    layer = body_layer(spec)
+    assert layer.style(frame_of(layer, with_pendulum)) == style
+
+
+def test_a_ghost_is_drawn_with_its_outline(with_pendulum):
+    layer = body_layer({"body": "pendulum"})
+    plotter = pv.Plotter(off_screen=True)
+    try:
+        layer.draw(plotter, frame_of(layer, with_pendulum))
+        actors = list(plotter.renderer.actors.values())
+        assert len(actors) == 2                                    # the body, its outline
+        assert actors[0].GetProperty().GetOpacity() == pytest.approx(1 / 3)
+    finally:
+        plotter.close()
+
+
+def test_a_virtual_body_has_no_wall(with_pendulum):
+    layer = body_layer({"body": "pendulum", "field": "speed"})
+    with pytest.raises(ValueError, match="body field 'speed': 'pendulum' is a virtual body"):
+        layer.surface(frame_of(layer, with_pendulum))
+    iso = build({"type": "iso", "field": "Q", "level": 0.1, "wall_gap": 0.3,
+                 "gap_body": "pendulum"}, Checker())
+    with pytest.raises(ValueError, match="iso gap_body: 'pendulum' is a virtual body"):
+        iso.surface(Frame(0, 0, 0.0, FrameData(with_pendulum, 0), iso.values(0)), iso.values(0))
+    sl = build({"type": "slice", "normal": "z", "position": 0.5, "field": "speed",
+                "near_wall": [0, 0.5],
+                "mask_body": "pendulum"}, Checker())
+    plotter = pv.Plotter(off_screen=True)
+    try:
+        with pytest.raises(ValueError, match="slice mask_body: 'pendulum' is a virtual body"):
+            sl.draw(plotter, Frame(0, 0, 0.0, FrameData(with_pendulum, 0), sl.values(0)))
+    finally:
+        plotter.close()

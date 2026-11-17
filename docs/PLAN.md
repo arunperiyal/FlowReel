@@ -849,13 +849,13 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: shot file reference (type, default and example per key)
 
 **Branch 2: `phase2/scene-views`** (cameras and lights; needs branch 1)
-- [ ] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)
-- [ ] Camera track between named views: linear and spline path, eased
-- [ ] `fit`: along a view's direction, far enough to show a box
-- [ ] `follow`: focal point on a body's centre at a station
-- [ ] Lights: default kit, `raking`, or a list
-- [ ] Projection of model points to the screen, with exact tests
-- [ ] Docs: cameras page
+- [x] View: perspective and parallel, flexflow's camera keys; `cameras.yml` views (Section 8.1)
+- [x] Camera track between named views: linear and spline path, eased
+- [x] `fit`: along a view's direction, far enough to show a box
+- [x] `follow`: focal point on a body's centre at a station
+- [x] Lights: default kit, `raking`, or a list
+- [x] Projection of model points to the screen, with exact tests
+- [x] Docs: cameras page
 
 **Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)
 - [ ] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap

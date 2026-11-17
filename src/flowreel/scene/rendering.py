@@ -20,6 +20,7 @@ from typing import Callable, Iterable
 import numpy as np
 
 from flowreel.scene import backend as backend_mod
+from flowreel.scene.cache import SurfaceCache
 from flowreel.scene.camera import shot_camera
 from flowreel.scene.errors import Checker
 from flowreel.scene.keys import KeyStore, frame_key
@@ -30,6 +31,7 @@ from flowreel.scene.shot import Shot, load
 from flowreel.tracks import parse_colour
 
 FRAME_NAME = "frame_{:05d}.png"
+CACHE_FOLDER = ".cache/surfaces"
 
 
 def open_source(shot: Shot):
@@ -65,20 +67,25 @@ class Scene:
     plan: FramePlan
     camera: object
     size: tuple[int, int]
+    cache: SurfaceCache | None = None
 
     @classmethod
-    def make(cls, shot, source=None, views=None, tracks=None, size=None) -> "Scene":
+    def make(cls, shot, source=None, views=None, tracks=None, size=None,
+             cache: str | Path | None = None) -> "Scene":
         """Load ``shot`` (a :class:`Shot` or a path), open its source (unless given) and
-        plan it. ``views``/``tracks`` default to the shot's ``cameras.yml``."""
+        plan it. ``views``/``tracks`` default to the shot's ``cameras.yml``. ``cache`` is
+        the surface cache folder, used only when the shot is frozen."""
         shot = _as_shot(shot)
         source = source if source is not None else open_source(shot)
         fp = plan(shot, source)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
-        return cls(shot, source, fp, camera, tuple(size or shot.size))
+        surfaces = SurfaceCache(cache, shot.source) if cache is not None and fp.frozen else None
+        return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces)
 
     def data(self, index: int) -> FrameData:
         """The data of frame ``index`` (flow read on first use)."""
-        return FrameData(self.source, self.plan.time.step(index), crop=self.shot.crop)
+        return FrameData(self.source, self.plan.time.step(index), crop=self.shot.crop,
+                         cache=self.cache)
 
     def draw(self, index: int) -> np.ndarray:
         """Draw frame ``index``: ``(height, width, 3)`` uint8."""
@@ -168,7 +175,8 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     """
     if jobs < 1:
         raise ValueError(f"jobs must be at least 1, got {jobs}")
-    scene = Scene.make(shot, source, views, tracks)
+    cache = Path(out) / CACHE_FOLDER
+    scene = Scene.make(shot, source, views, tracks, cache=cache)
     indices = _frames(frames, scene.plan.n_frames, scene.shot)
     folder = Path(out) / scene.shot.name
     folder.mkdir(parents=True, exist_ok=True)
@@ -198,14 +206,18 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
             for i in todo:
                 done(_draw_to_file(scene, i, folder / FRAME_NAME.format(i)))
         elif todo:
-            job = _Job(scene.shot, source, views, tracks)
+            job = _Job(scene.shot, source, views, tracks, str(cache))
             ctx = multiprocessing.get_context("spawn")
+            # A frozen shot draws its first frame alone, so that it fills the surface
+            # cache and the other jobs read it instead of all contouring at once.
+            batches = [todo[:1], todo[1:]] if scene.plan.frozen else [todo]
             with ProcessPoolExecutor(max_workers=min(jobs, len(todo)), mp_context=ctx,
                                      max_tasks_per_child=1) as pool:
-                futures = [pool.submit(_worker, job, i, str(folder / FRAME_NAME.format(i)))
-                           for i in todo]
-                for fut in as_completed(futures):
-                    done(fut.result())
+                for batch in batches:
+                    futures = [pool.submit(_worker, job, i, str(folder / FRAME_NAME.format(i)))
+                               for i in batch]
+                    for fut in as_completed(futures):
+                        done(fut.result())
     report.frames = [results[i] for i in indices]
     return report
 
@@ -228,10 +240,11 @@ class _Job:
     source: object
     views: dict | None
     tracks: dict | None
+    cache: str | None = None
 
 
 def _worker(job: _Job, index: int, path: str) -> FrameResult:
-    scene = Scene.make(job.shot, job.source, job.views, job.tracks)
+    scene = Scene.make(job.shot, job.source, job.views, job.tracks, cache=job.cache)
     result = _draw_to_file(scene, index, Path(path))
     result.peak_bytes = peak_memory()
     return result

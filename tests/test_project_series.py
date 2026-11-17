@@ -103,3 +103,67 @@ def test_a_series_is_read_once(source, tmp_path):
     (tmp_path / "data" / "riser.csv").unlink()
     first.loc[0, "aleDisp_y"] = 99.0                 # a copy: the cache is not touched
     assert source.series("displacement", body="riser")["aleDisp_y"].iloc[0] == 0.010
+
+
+# -- histories at many points ------------------------------------------------------------
+
+LONG = """time,node,dy
+0.1,0,0.0
+0.1,1,0.5
+0.1,2,0.0
+0.2,0,0.0
+0.2,1,0.6
+0.2,2,0.1
+"""
+
+
+def test_long_form_with_stations(tmp_path):
+    path = write(tmp_path, "disp.csv", LONG)
+    frame = read_series(Series("disp", path, by="node", stations=(0.0, 250.0, 500.0)))
+    assert list(frame.columns) == ["time", "node", "station", "dy"]
+    assert frame["station"].tolist() == [0.0, 250.0, 500.0] * 2
+    assert frame[frame.time == 0.2]["dy"].tolist() == [0.0, 0.6, 0.1]
+    plain = read_series(Series("disp", path, by="node"))
+    assert list(plain.columns) == ["time", "node", "dy"]
+
+
+def test_stations_from_a_file(tmp_path):
+    path = write(tmp_path, "disp.csv", LONG)
+    nodes = write(tmp_path, "nodes.csv", "node, station\n2, 500\n0, 0\n1, 250\n")
+    frame = read_series(Series("disp", path, by="node", stations=nodes))
+    assert frame["station"].tolist() == [0.0, 250.0, 500.0] * 2
+
+
+def test_one_file_per_node(tmp_path):
+    """FlexFlow Analyzer's `data table --node N --output disp_N.csv`, once per node."""
+    for node, dy in ((0, 0.0), (12, 0.5), (24, 0.2)):
+        write(tmp_path, f"disp_{node}.csv", f"tsId,time,aleDisp_y\n1,0.1,{dy}\n2,0.2,{dy * 2}\n")
+    write(tmp_path, "disp_all.csv", "not, this\n")
+    spec = Series("disp", tmp_path / "disp_{node}.csv", by="node", stations=(0.0, 6.0, 12.0),
+                  columns={"dy": "aleDisp_y"})
+    frame = read_series(spec)
+    assert list(frame.columns) == ["time", "node", "station", "tsId", "dy"]
+    assert frame["node"].tolist() == [0, 12, 24, 0, 12, 24]
+    assert frame[frame.time == 0.2]["dy"].tolist() == [0.0, 1.0, 0.4]
+    assert frame[frame.node == 24]["station"].tolist() == [12.0, 12.0]
+
+
+@pytest.mark.parametrize("spec, msg", [
+    (dict(by="probe"), "no column 'probe'"),
+    (dict(by="node", stations=(0.0, 1.0)), r"2 stations for 3 points \(node 0 to 2\)"),
+])
+def test_point_errors(tmp_path, spec, msg):
+    with pytest.raises(ValueError, match=msg):
+        read_series(Series("disp", write(tmp_path, "disp.csv", LONG), **spec))
+
+
+def test_station_file_errors(tmp_path):
+    path = write(tmp_path, "disp.csv", LONG)
+    short = write(tmp_path, "nodes.csv", "node,station\n0,0\n1,250\n")
+    with pytest.raises(ValueError, match="no station for node 2"):
+        read_series(Series("disp", path, by="node", stations=short))
+    bad = write(tmp_path, "bad.csv", "node,where\n0,0\n")
+    with pytest.raises(ValueError, match="no column 'station'"):
+        read_series(Series("disp", path, by="node", stations=bad))
+    with pytest.raises(FileNotFoundError, match="no file matches"):
+        read_series(Series("disp", tmp_path / "x_{node}.csv", by="node"))

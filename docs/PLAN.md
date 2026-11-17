@@ -972,7 +972,7 @@ and can be built at any time before branch 9.
 
 **Branch 2: `phase2b/series-csv`** (time histories; needs branch 1)
 - [x] CSV series: `file`, `time`, `columns`; `series(name, body=...)`
-- [ ] Histories at many points: `by` and `stations`
+- [x] Histories at many points: `by` and `stations`; one file per node through `{node}` in `file` (Section 24, question 2)
 - [ ] OTHD and OISD readers refuse a file with more than one group
 - [ ] Tests on generated CSV files; docs, with the Analyzer commands that export them
 

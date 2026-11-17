@@ -861,7 +861,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
 - [x] `iso`: clip by a plane, `grow` along an axis, `grey`
 - [x] `slice`: normal, position, field, range, fade_weak, mask near the wall
-- [ ] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour
+- [x] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour
 - [ ] Reveal look written as a shot file on these layers; `reveal.py` goes, its golden test stays
 - [ ] Docs: these layers, with an example on generated data
 

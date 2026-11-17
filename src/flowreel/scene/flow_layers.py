@@ -174,3 +174,68 @@ class Slice(Layer):
         if cut is not None:
             plotter.add_mesh(cut, scalars="rgba", rgb=True, lighting=False,
                              show_scalar_bar=False)
+
+
+@register
+class BodyLayer(Layer):
+    """One wall surface, a list of them, or all, drawn solid or as a ghost.
+
+    Options: ``body`` (a name, a list of names, or ``all``; default ``all``), ``colour``
+    and ``opacity`` (tracks), ``style`` (``solid``; ``ghost`` draws the body see-through
+    at a third of its opacity and without highlights, so the flow shows through it),
+    ``specular`` (track), ``field`` (colour the surface by this field instead: an array
+    already on the surface, or a derived field computed on the flow and sampled onto the
+    surface), ``range`` and ``colormap`` for ``field``, ``zero_contour`` (boolean track:
+    draw the line where ``field`` is 0, such as separation in wall shear) with
+    ``zero_colour`` and ``zero_width`` (pixels, track).
+    """
+
+    name = "body"
+    options = (
+        Option("body", track=False, default="all"),
+        Option("colour", "colour", default=BODY),
+        Option("opacity", "number", default=1.0),
+        Option("style", "choice", default="solid", choices=("solid", "ghost")),
+        Option("specular", "number", default=0.4),
+        Option("field", track=False),
+        Option("range", track=False, default=(-1.0, 1.0)),
+        Option("colormap", track=False, default="fire_ice"),
+        Option("zero_contour", "boolean", default=False),
+        Option("zero_colour", "colour", default="#ffffff"),
+        Option("zero_width", "number", default=2.0),
+    )
+    needs_flow = False
+
+    def surface(self, frame):
+        """The wall surface(s) this layer draws, with ``field`` as point data if asked."""
+        data, spec = frame.data, self.raw.get("body", "all")
+        if isinstance(spec, list):
+            meshes = [data.body(n) for n in spec]
+            surf = meshes[0] if len(meshes) == 1 else meshes[0].merge(meshes[1:])
+        else:
+            surf = data.body(None if spec == "all" else spec)
+        name = self.raw.get("field")
+        if name and name not in surf.point_data:
+            if data.flow is None:
+                raise ValueError(f"layer body: field {name!r} needs the flow, which is not loaded")
+            data.need(name)
+            surf = surf.sample(data.flow, pass_point_data=False)  # copy with the flow's arrays
+        return surf
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        surf = self.surface(frame)
+        ghost = v["style"] == "ghost"
+        opacity = v["opacity"] / 3 if ghost else v["opacity"]
+        common = dict(smooth_shading=True, split_sharp_edges=True, opacity=opacity,
+                      specular=0 if ghost else v["specular"], specular_power=20, ambient=0.25)
+        if v.get("field"):
+            plotter.add_mesh(surf, scalars=v["field"], cmap=colormap(v["colormap"]),
+                             clim=list(v["range"]), show_scalar_bar=False, **common)
+            if v["zero_contour"]:
+                line = surf.contour([0.0], scalars=v["field"])
+                if line.n_points:
+                    plotter.add_mesh(line, color=v["zero_colour"], line_width=v["zero_width"],
+                                     lighting=False)
+        else:
+            plotter.add_mesh(surf, color=v["colour"], **common)

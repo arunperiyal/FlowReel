@@ -107,6 +107,17 @@ class ShotCommand(BaseCommand):
                        help="threads per job; caps the suggested jobs at cores / T")
         m.add_argument("--backend", choices=BACKENDS, default="auto",
                        help="off-screen OpenGL: auto, osmesa, egl or x")
+
+        t = actions.add_parser(
+            "template", help="write a commented shot file with the defaults",
+            description="Print (or write with -o) a shot file with every key and every "
+                        "option of the chosen layers at its default, each with a comment.")
+        t.add_argument("name", nargs="?", default="my_shot", help="the shot's name (default my_shot)")
+        t.add_argument("--layers", default="body", metavar="TYPES",
+                       help="comma list of layer types, e.g. body,slice,iso (default body)")
+        t.add_argument("-o", "--output", metavar="FILE",
+                       help="write to FILE instead of printing").completer = paths((".yml", ".yaml"))
+        t.add_argument("--force", action="store_true", help="overwrite FILE if it exists")
         return p
 
     def execute(self, args, ctx):
@@ -148,6 +159,26 @@ class ShotCommand(BaseCommand):
         except (ValueError, IndexError) as exc:
             raise CommandError(str(exc)) from None
         ctx.out(report.text())
+        return 0
+
+
+    # -- template -----------------------------------------------------------------------
+
+    def do_template(self, args, ctx):
+        from flowreel.scene.template import template
+        layers = [n.strip() for n in args.layers.split(",") if n.strip()]
+        try:
+            text = template(args.name, layers)
+        except ValueError as exc:
+            raise CommandError(str(exc)) from None
+        if not args.output:
+            ctx.out(text, end="")
+            return 0
+        path = Path(args.output)
+        if path.exists() and not args.force:
+            raise CommandError(f"{path} exists (use --force to overwrite)")
+        path.write_text(text)
+        ctx.out(f"wrote {path}")
         return 0
 
 

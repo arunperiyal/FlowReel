@@ -29,7 +29,8 @@ class Option:
     or ``None`` to infer it. ``default`` is used when the key is absent; ``required``
     options have none. ``track=False`` keeps the raw YAML value. ``choices`` limits a
     ``choice``. ``pixels`` marks a size in pixels (a line width), which a draft render
-    scales with the picture. ``doc`` is the line the reference and ``shot template`` print.
+    scales with the picture. ``doc`` is the line the reference and ``shot template`` print;
+    ``example`` is the value ``shot template`` writes for a required option.
     """
 
     name: str
@@ -40,6 +41,7 @@ class Option:
     choices: tuple = ()
     pixels: bool = False
     doc: str = ""
+    example: Any = None
 
 
 @dataclass

@@ -885,7 +885,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `flowreel` entry point on shellkit: one-shot and interactive
 - [x] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
 - [x] `shot preview` (`--every`, `--scale`) and `shot memory`
-- [ ] `shot template`: a commented shot file with the defaults
+- [x] `shot template`: a commented shot file with the defaults
 - [ ] Help text; docs: commands page
 
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)

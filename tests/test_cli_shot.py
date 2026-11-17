@@ -96,3 +96,24 @@ def test_memory_reports_a_safe_jobs(sh):
     assert status == 0, err
     assert "frame 1: peak" in out and "suggested jobs: -j" in out
     assert "outside" in sh.run("shot memory g.yml --frame 99")[2]
+
+
+def test_template_loads_as_a_shot_with_every_layer(sh, tmp_path):
+    import yaml
+    from flowreel.scene.shot import from_dict
+    types = ["body", "geometry", "glyphs", "iso", "markers3d", "outline", "slice"]
+    status, out, err = sh.run(f"shot template demo --layers {','.join(types)}")
+    assert status == 0, err
+    shot = from_dict(yaml.safe_load(out))
+    assert shot.name == "demo" and [l.name for l in shot.layers] == types
+    assert "# required" in out and "# fade_weak: ~" in out
+
+
+def test_template_writes_a_file_but_not_over_one(sh, tmp_path):
+    assert sh.run("shot template -o new.yml")[0] == 0
+    assert "type: body" in (tmp_path / "new.yml").read_text()
+    status, _, err = sh.run("shot template -o new.yml")
+    assert status == 2 and "exists" in err
+    assert sh.run("shot template -o new.yml --force --layers iso")[0] == 0
+    assert "type: iso" in (tmp_path / "new.yml").read_text()
+    assert "unknown layer type 'isp'" in sh.run("shot template --layers isp")[2]

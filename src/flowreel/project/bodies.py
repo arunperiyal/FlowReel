@@ -18,6 +18,12 @@ reference diameter and how its ends are held.
         series:
           displacement: {file: data/riser_disp.csv, by: node, stations: data/riser_nodes.csv}
 
+A **virtual body** (``virtual: true``) has no surface in the files: it is modelled by
+the solver as equations (a pendulum, a spring) and drawn from a registered ``shape``
+(a body function of :mod:`flowreel.sources.bodies`) with fixed ``params`` and
+parameters ``drive``-n by series tracks, its origin ``attach``-ed to a real body at a
+station or to a fixed point (plan Section 5.5).
+
 Lengths are in the source's unit. Paths are taken from the folder of ``flowreel.yml``.
 The records are plain and frozen; drawing supports and reading series are the jobs of
 the ``supports`` layer and the series reader.
@@ -46,6 +52,8 @@ SUPPORTS: dict[str, tuple[str, ...]] = {
 REQUIRED = {"roller": ("free_along",), "spring": ("stiffness",), "prescribed": ("direction",)}
 END_KEYS = ("at", "support", "tension")
 BODY_KEYS = ("zone", "axis", "diameter", "ends", "series")
+VIRTUAL_KEYS = ("virtual", "shape", "params", "attach", "drive", "series")
+ATTACH_KEYS = ("body", "station", "point", "offset")
 SERIES_KEYS = ("file", "time", "columns", "by", "stations")
 
 
@@ -80,6 +88,17 @@ class Series:
 
 
 @dataclass(frozen=True)
+class Attach:
+    """Where a virtual body's origin is: on ``body``'s centre at ``station`` (the body's
+    centre when no station), or at a fixed ``point``; then moved by ``offset``."""
+
+    body: str | None = None
+    station: float | None = None
+    point: tuple[float, float, float] | None = None
+    offset: tuple[float, float, float] = (0.0, 0.0, 0.0)
+
+
+@dataclass(frozen=True)
 class Body:
     """A declared body: ``name`` as shots use it, the source's surface ``zone``, the span
     ``axis`` (``x``, ``y``, ``z``, making it a beam body; ``None`` for a body that is not
@@ -87,15 +106,25 @@ class Body:
     surface when needed), its ``ends`` (beam bodies only) and its ``series`` by name."""
 
     name: str
-    zone: str
+    zone: str | None
     axis: str | None = None
     diameter: float | None = None
     ends: tuple[End, ...] = ()
     series: dict = field(default_factory=dict)
+    virtual: bool = False
+    shape: str | None = None
+    params: dict = field(default_factory=dict)
+    attach: Attach | None = None
+    drive: dict = field(default_factory=dict)
 
     def key(self) -> dict:
         """What the declaration adds to frame keys: zone, axis and diameter (supports and
-        series reach a picture through the layers that read them)."""
+        series reach a picture through the layers that read them); for a virtual body,
+        its shape, parameters, attachment and drives."""
+        if self.virtual:
+            from dataclasses import asdict
+            return {"shape": self.shape, "params": self.params, "drive": self.drive,
+                    "attach": None if self.attach is None else asdict(self.attach)}
         return {"zone": self.zone, "axis": self.axis, "diameter": self.diameter}
 
 
@@ -115,12 +144,89 @@ def parse_bodies(value, check: Checker, folder: Path | None = None) -> dict[str,
         at = check.at(name)
         if not isinstance(name, str) or not name:
             raise at.error("a body name must be a non-empty string")
-        body = _body(name, {} if spec is None else spec, at, folder)
+        spec = {} if spec is None else spec
+        if isinstance(spec, dict) and spec.get("virtual") is not None:
+            bodies[name] = _virtual(name, spec, at, folder)
+            continue
+        body = _body(name, spec, at, folder)
         if body.zone in zones:
             raise at.at("zone").error(f"zone {body.zone!r} is already the body {zones[body.zone]!r}")
         zones[body.zone] = name
         bodies[name] = body
+    for name, body in bodies.items():
+        if body.virtual and body.attach is not None and body.attach.body is not None:
+            _check_attach(body.attach, bodies, check.at(name, "attach"))
     return bodies
+
+
+def _virtual(name: str, spec, check: Checker, folder: Path | None) -> Body:
+    """A virtual body: no surface in the files, drawn from a registered ``shape``."""
+    import inspect
+
+    from flowreel.sources.bodies import available_bodies, get_body
+    from flowreel.tracks import SeriesTrack
+    spec = check.mapping(spec, VIRTUAL_KEYS, required=("shape",))
+    if spec["virtual"] is not True:
+        raise check.at("virtual").error("write virtual: true, or leave the key out for a "
+                                        "body with a surface in the files")
+    shape = check.at("shape").choice(spec["shape"], available_bodies())
+    params = spec.get("params") or {}
+    if not isinstance(params, dict):
+        raise check.at("params").error("expected a mapping of the shape's parameters")
+    drive = spec.get("drive") or {}
+    if not isinstance(drive, dict):
+        raise check.at("drive").error("expected a mapping of parameters to series tracks")
+    signature = inspect.signature(get_body(shape))
+    for key, where in [(k, "params") for k in params] + [(k, "drive") for k in drive]:
+        if key not in signature.parameters:
+            raise check.at(where, key).error(
+                f"shape {shape!r} has no parameter {key!r} (parameters: "
+                f"{', '.join(signature.parameters)})")
+    both = sorted(set(params) & set(drive))
+    if both:
+        raise check.at("drive", both[0]).error("is also in params: a parameter is fixed or driven")
+    for key, track in drive.items():
+        if not isinstance(track, dict) or "series" not in track:
+            raise check.at("drive", key).error("expected a series track {series: NAME, column: ...}")
+        try:
+            SeriesTrack.parse(track, key)
+        except ValueError as exc:
+            raise check.at("drive", key).wrap(exc) from None
+    series_spec = spec.get("series") or {}
+    if not isinstance(series_spec, dict):
+        raise check.at("series").error("expected a mapping of series names to files")
+    series = {k: _series(k, v, check.at("series", k), folder) for k, v in series_spec.items()}
+    return Body(name, None, series=series, virtual=True, shape=shape, params=dict(params),
+                attach=_attach(spec.get("attach"), check.at("attach")),
+                drive={k: dict(v) for k, v in drive.items()})
+
+
+def _attach(spec, check: Checker) -> Attach:
+    if spec is None:
+        return Attach(point=(0.0, 0.0, 0.0))
+    spec = check.mapping(spec, ATTACH_KEYS)
+    if ("body" in spec) == ("point" in spec):
+        raise check.error("give body (with station) or point")
+    if "station" in spec and "body" not in spec:
+        raise check.at("station").error("a station is along a body: give body")
+    offset = check.at("offset").numbers(spec.get("offset", (0, 0, 0)), 3)
+    if "point" in spec:
+        return Attach(point=check.at("point").numbers(spec["point"], 3), offset=offset)
+    station = None if "station" not in spec else check.at("station").number(spec["station"])
+    return Attach(body=check.at("body").string(spec["body"]), station=station, offset=offset)
+
+
+def _check_attach(attach: Attach, bodies: dict, check: Checker) -> None:
+    host = bodies.get(attach.body)
+    if host is None:
+        from flowreel.scene.errors import unknown_key_message
+        raise check.at("body").error(unknown_key_message(attach.body, list(bodies))
+                                     .replace("unknown key", "no body"))
+    if host.virtual:
+        raise check.at("body").error(f"{attach.body!r} is virtual; attach to a body with a surface")
+    if attach.station is not None and host.axis is None:
+        raise check.at("station").error(f"{attach.body!r} has no axis; declare one, or leave "
+                                        "the station out to attach at its centre")
 
 
 def _body(name: str, spec, check: Checker, folder: Path | None) -> Body:

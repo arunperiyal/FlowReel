@@ -25,6 +25,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7"]
 
+[project.scripts]
+flowreel = "flowreel.cli:main"
+
 [project.entry-points."flowreel.sources"]
 flexflow = "flowreel.sources.flexflow:FlexflowSource"
 vtk = "flowreel.sources.vtk:VtkSource"

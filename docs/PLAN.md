@@ -882,7 +882,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Tests on generated data; docs: rendering and caching
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
-- [ ] `flowreel` entry point on shellkit: one-shot and interactive
+- [x] `flowreel` entry point on shellkit: one-shot and interactive
 - [ ] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
 - [ ] `shot preview` (`--every`, `--scale`) and `shot memory`
 - [ ] `shot template`: a commented shot file with the defaults

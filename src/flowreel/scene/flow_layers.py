@@ -206,6 +206,11 @@ class BodyLayer(Layer):
     surface), ``range`` and ``colormap`` for ``field``, ``zero_contour`` (boolean track:
     draw the line where ``field`` is 0, such as separation in wall shear) with
     ``zero_colour`` and ``zero_width`` (pixels, track).
+
+    ``amplify`` (track) draws the body's displacement from its shape at ``rest_step``
+    (default the source's first saved step) that many times larger, so a vibration of a
+    hundredth of a diameter can be seen. It is refused in a shot with flow layers, whose
+    flow would no longer fit the body.
     """
 
     name = "body"
@@ -221,6 +226,8 @@ class BodyLayer(Layer):
         Option("zero_contour", "boolean", default=False),
         Option("zero_colour", "colour", default="#ffffff"),
         Option("zero_width", "number", default=2.0, pixels=True),
+        Option("amplify", "number", default=1.0, doc="displacement drawn this many times larger"),
+        Option("rest_step", track=False, doc="step of the rest shape; default the first saved"),
     )
     needs_flow = False
 
@@ -238,9 +245,31 @@ class BodyLayer(Layer):
             surf = surf.sample(data.flow, pass_point_data=False)  # copy with the flow's arrays
         return surf
 
+    @classmethod
+    def check(cls, raw: dict, check) -> None:
+        if raw.get("rest_step") is not None:
+            check.at("rest_step").integer(raw["rest_step"])
+
+    def amplified(self, frame, surf):
+        """``surf`` moved from its rest shape by ``amplify`` times its displacement."""
+        amp = frame.values.get("amplify", 1.0)
+        if amp == 1.0:
+            return surf
+        source, spec = frame.data.source, self.raw.get("body", "all")
+        rest_step = self.raw.get("rest_step", source.steps()[0])
+        names = spec if isinstance(spec, list) else [None if spec == "all" else spec]
+        rests = [source.body(rest_step, n) for n in names]
+        rest = rests[0] if len(rests) == 1 else rests[0].merge(rests[1:])
+        if rest.n_points != surf.n_points:
+            raise ValueError(f"body: amplify needs the same surface points at every step; step "
+                             f"{rest_step} has {rest.n_points}, step {frame.step} {surf.n_points}")
+        out = surf.copy()
+        out.points = rest.points + amp * (np.asarray(surf.points) - rest.points)
+        return out
+
     def draw(self, plotter, frame) -> None:
         v = frame.values
-        surf = self.surface(frame)
+        surf = self.amplified(frame, self.surface(frame))
         ghost = v["style"] == "ghost"
         opacity = v["opacity"] / 3 if ghost else v["opacity"]
         common = dict(smooth_shading=True, split_sharp_edges=True, opacity=opacity,

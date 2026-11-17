@@ -987,7 +987,7 @@ and can be built at any time before branch 9.
 - [x] Series track: value at the frame's time, `column`, `scale`, `offset`; `station` for a history at many points
 - [x] `centreline` layer from the surface: tube, colour by a value per station
 - [x] `centreline` from probes; `amplify`, rest line, envelope
-- [ ] `amplify` on a `body` layer, refused in shots with flow layers
+- [x] `amplify` on a `body` layer, refused in shots with flow layers
 - [ ] Tests with exact values; docs
 
 **Branch 5: `phase2b/bodies-virtual`** (needs branch 4)

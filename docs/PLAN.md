@@ -934,7 +934,7 @@ name. Branches 2, 3, 4 and 6 need only branch 1, so they can be built in paralle
 branch 5 needs branch 4.
 
 **Branch 1: `phase2b/bodies-declared`** (data model)
-- [ ] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
+- [x] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
 - [ ] Body names resolved through `bodies:` (`zone`, default the name) for layers, `follow` and wall fields; one declared body may go unnamed (layers already take the source's zone names)
 - [ ] A body's centreline and diameter from the surface; `follow` takes `axis` from the declaration (the centre at a station is `framing.body_centre`, from Phase 2)
 - [ ] `project init` writes `bodies:` from the source's surface zones, supports left to fill

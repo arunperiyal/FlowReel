@@ -295,7 +295,8 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
            tracks=None, out: str | Path = "frames", jobs: int = 1,
            threads: int | None = None, backend: str = "auto", force: bool = False,
            scale: float | None = None, size: tuple[int, int] | None = None,
-           processes: bool = True, progress: Callable[[FrameResult], None] | None = None) -> RenderReport:
+           processes: bool = True, progress: Callable[[FrameResult], None] | None = None,
+           check_memory: bool = True) -> RenderReport:
     """Render ``frames`` (default all) of ``shot`` to PNG files.
 
     Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
@@ -308,7 +309,9 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     :func:`default_threads`). ``backend`` is one of
     :data:`flowreel.scene.backend.BACKENDS`. ``source`` must pickle when
     ``processes`` is true. ``progress`` is called with each finished
-    :class:`FrameResult`. Returns a :class:`RenderReport`.
+    :class:`FrameResult`. ``check_memory`` refuses, before drawing, a render whose jobs
+    would not fit in the free memory (:func:`flowreel.scene.memory.check_fits`), with
+    the ``jobs`` that would. Returns a :class:`RenderReport`.
     """
     if jobs < 1:
         raise ValueError(f"jobs must be at least 1, got {jobs}")
@@ -317,6 +320,9 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     cache = Path(out) / CACHE_FOLDER
     scene = Scene.make(shot, source, views, tracks, size, cache=cache)
     indices = _frames(frames, scene.plan.n_frames, shot)
+    if check_memory:
+        from flowreel.scene.memory import check_fits
+        check_fits(scene, indices, jobs if processes else 1)
     folder = frame_folder(out, shot, size)
     folder.mkdir(parents=True, exist_ok=True)
     threads = threads or default_threads(jobs)

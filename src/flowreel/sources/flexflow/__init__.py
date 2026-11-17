@@ -220,13 +220,17 @@ class FlexflowSource:
 
     def memory_per_step(self, crop: Box | None) -> float:
         """Rough GB to hold one step with velocity and pressure: float32 coordinates and
-        four fields, int64 connectivity, doubled for the VTK copy. The file is read whole
-        before cropping, so ``crop`` does not lower the estimate."""
+        four fields, int64 connectivity, doubled for the VTK copy. With a crop read
+        through a window, the window's nodes and cells; without, the whole zone."""
+        nfields = 7                                    # x, y, z, U, V, W, p
+        if crop is not None and self.window:
+            w = self.window_of(crop)
+            npe = w.cells.shape[1] if w.cells.ndim == 2 else 8
+            return 2 * (len(w.nodes) * nfields * 4 + len(w.cells) * (npe + 1) * 8) / 1e9
         with self._open(self.steps()[0]) as plt:
             z = plt.zones[plt.zone_index(self.volume)]
             npe = self.nen or NPE.get(z["ztype"], 8)
-            return 2 * (z["npts"] * 7 * 4 + z["nelem"] * (npe + 1) * 8) / 1e9
-
+            return 2 * (z["npts"] * nfields * 4 + z["nelem"] * (npe + 1) * 8) / 1e9
 
 def _take(mapped, nodes):
     """``mapped[nodes]`` as float32 (only those pages read); ``None`` stays ``None``."""

@@ -1001,7 +1001,7 @@ and can be built at any time before branch 9.
 - [x] Cached window index, with a margin for the body's motion
 - [x] `crop: {around: ...}`, its station a track shared with the camera's `follow` (`follow` with a station track and `motion: false` is built in Phase 2)
 - [x] `stretch` on a shot, with its note in the frame
-- [ ] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
+- [x] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
 - [ ] Docs: long bodies page
 
 **Branch 7: `phase2b/geometry-grooves`** (geometry source; needs nothing of this phase)

@@ -59,7 +59,7 @@ shot file.
 | `margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` |
 | `follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body | | `{view: close, follow: riser, station: 6}` |
 | `station` | track, length unit along `axis`; with `follow`, required | | `{from: 2, to: 10, frames: [0, 120]}` |
-| `axis` | `x`, `y` or `z`, the body's long axis; with `follow` | `z` | `axis: x` |
+| `axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else `z` | `axis: x` |
 | `motion` | boolean; with `follow` | `true` | `motion: false` |
 
 With `motion: false` the centre is taken from the body at the shot's first frame, so the
@@ -72,8 +72,10 @@ camera keeps still while the body vibrates.
   (safe for any aspect, with some spare room) times `margin`. Perspective: distance
   `r*margin / sin(view_angle/2)`; parallel: `parallel_scale = r*margin`.
 - **`follow`**: `camera: {follow: riser, station: 6.0}` puts the focal point on the body's
-  centre at that station (mean of the surface points within a slab of the station, along
-  the body's axis, default `z`), keeping the view's direction and distance. With
+  centre at that station, keeping the view's direction and distance. The centre is the
+  mean of the surface points within a slab of the station, along the body's axis (the
+  declared `axis`, else `z`). The slab is a quarter of the declared diameter, else 2% of
+  the body's length but no more than a quarter of its width, so a long body is cut thin. With
   `motion: false` the centre is taken from the body at rest, so a vibrating body stays
   visibly moving. `station` may be a track. The name is a body declared in the
   project's `flowreel.yml` ([bodies](bodies.md)) or a zone of the source; `follow: true`

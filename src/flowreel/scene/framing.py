@@ -38,20 +38,13 @@ def body_centre(surface, station: float, axis: str = "z", slab: float | None = N
     """Centre of a body's cross-section at ``station`` along ``axis``.
 
     ``surface`` is the body's ``PolyData`` (``Source.body``). The centre is the mean of
-    the surface points within ``slab`` of the station (default: 2% of the surface's
-    extent along the axis), with the axis coordinate set to ``station`` exactly. Raises
+    the surface points within ``slab`` of the station (default
+    :func:`flowreel.project.measure.default_slab`: 2% of the body's length, at most a
+    quarter of its width), with the axis coordinate set to ``station`` exactly. Raises
     ``ValueError`` when no point lies in the slab.
     """
-    k = AXES[axis]
-    pts = np.asarray(surface.points)
-    if slab is None:
-        slab = 0.02 * float(np.ptp(pts[:, k])) or 1e-9
-    near = pts[np.abs(pts[:, k] - station) <= slab]
-    if len(near) == 0:
-        raise ValueError(f"the body has no points within {slab:g} of {axis}={station:g}")
-    centre = near.mean(axis=0)
-    centre[k] = station
-    return tuple(float(c) for c in centre)
+    from flowreel.project.measure import centre
+    return centre(surface, station, axis, slab)
 
 
 def follow(view: View, centre) -> View:

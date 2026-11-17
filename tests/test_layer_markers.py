@@ -91,3 +91,36 @@ def test_glyph_direction_follows_velocity():
 def test_glyph_errors(where, msg):
     with pytest.raises(ConfigError, match=msg):
         make("glyphs", where=where)
+
+
+def mk(**spec):
+    return make("markers3d", at=[1, 2, 3], **spec)
+
+
+def test_sphere_block_arrow_geometry():
+    s = mk(shape="sphere", radius=0.5).mesh(mk(shape="sphere", radius=0.5).values(0))
+    assert s.bounds == pytest.approx((0.5, 1.5, 1.5, 2.5, 2.5, 3.5), abs=0.02)
+    b = mk(shape="block", size=[2, 4, 6])
+    assert b.mesh(b.values(0)).bounds == pytest.approx((0, 2, 0, 4, 0, 6))
+    a = mk(shape="arrow3d", direction=[0, 0, 5], length=2.0)
+    ab = a.mesh(a.values(0)).bounds
+    assert ab[4] == pytest.approx(3) and ab[5] == pytest.approx(5)    # tail at z=3, length 2
+
+
+def test_marker_moves_with_a_track():
+    m = mk(shape="sphere", radius=0.1)
+    m = make("markers3d", shape="sphere", radius=0.1,
+             at={"from": [0, 0, 0], "to": [10, 0, 0], "frames": [0, 10], "ease": "linear"})
+    assert m.values(5)["at"] == pytest.approx((5, 0, 0))
+    assert m.mesh(m.values(5)).center == pytest.approx((5, 0, 0), abs=1e-6)
+
+
+def test_marker_draws_and_errors():
+    assert actors_of(mk(shape="block"))
+    with pytest.raises(ConfigError, match="shape: .*did you mean 'sphere'"):
+        mk(shape="spher")
+    with pytest.raises(ConfigError, match="missing key 'at'"):
+        make("markers3d", shape="sphere")
+    with pytest.raises(ValueError, match="zero vector"):
+        z = mk(shape="arrow3d", direction=[0, 0, 0])
+        z.mesh(z.values(0))

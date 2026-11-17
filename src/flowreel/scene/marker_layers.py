@@ -163,3 +163,49 @@ class Glyphs(Layer):
         mesh = _arrows(pts, self.directions(pts, frame.data, v), v["size"])
         if mesh is not None:
             plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], smooth_shading=True)
+
+
+@register
+class Markers3d(Layer):
+    """A solid marker at a model position: an arrow, a block or a sphere.
+
+    Options: ``shape`` (``arrow3d``, ``block`` or ``sphere``, required), ``at`` (vector
+    track, the position: an arrow's tail, a block's or a sphere's centre), ``colour``,
+    ``opacity``. ``arrow3d`` takes ``direction`` (vector track; its length does not
+    matter) and ``length`` (track); ``block`` takes ``size`` (vector track, edge lengths
+    along x, y, z); ``sphere`` takes ``radius`` (track). Because every value is a track,
+    a marker can move, turn or grow, and a ``series`` track (Phase 2B) can drive it.
+    One marker per layer; use several layers for several markers.
+    """
+
+    name = "markers3d"
+    options = (
+        Option("shape", "choice", required=True, choices=("arrow3d", "block", "sphere")),
+        Option("at", "vector", required=True),
+        Option("colour", "colour", default="#ffffff"),
+        Option("opacity", "number", default=1.0),
+        Option("direction", "vector", default=(1.0, 0.0, 0.0)),
+        Option("length", "number", default=1.0),
+        Option("size", "vector", default=(1.0, 1.0, 1.0)),
+        Option("radius", "number", default=0.5),
+    )
+
+    def mesh(self, v: dict) -> pv.PolyData:
+        """The marker's surface at the frame's values."""
+        at = np.asarray(v["at"], float)
+        shape = v["shape"]
+        if shape == "sphere":
+            return pv.Sphere(radius=v["radius"], center=at)
+        if shape == "block":
+            half = np.asarray(v["size"], float) / 2
+            return pv.Box(bounds=(at[0] - half[0], at[0] + half[0], at[1] - half[1],
+                                  at[1] + half[1], at[2] - half[2], at[2] + half[2]))
+        d = np.asarray(v["direction"], float)
+        if not np.linalg.norm(d):
+            raise ValueError("markers3d arrow3d: direction is the zero vector")
+        return pv.Arrow(start=at, direction=d / np.linalg.norm(d), scale=v["length"])
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"],
+                         smooth_shading=True, specular=0.3)

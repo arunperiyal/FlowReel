@@ -184,3 +184,123 @@ def tension_arrow(place: Place) -> pv.PolyData:
     """An arrow 2 diameters long out of the end along the axis: the body is pulled."""
     return pv.Arrow(start=place.point(0.5, 0, 0), direction=place.along, scale=2 * place.size,
                     tip_length=0.25, tip_radius=0.12, shaft_radius=0.04)
+
+
+# -- the layer ---------------------------------------------------------------------------
+
+from flowreel.scene.layers import Layer, Option, register  # noqa: E402
+
+
+def pixels_per_unit(camera, point, height: int) -> float:
+    """Pixels per model unit at ``point`` in a picture ``height`` pixels high."""
+    if camera.parallel_projection:
+        return height / (2 * camera.parallel_scale)
+    pos, focal = np.asarray(camera.position), np.asarray(camera.focal_point)
+    view = (focal - pos) / np.linalg.norm(focal - pos)
+    depth = max(float((np.asarray(point) - pos) @ view), 1e-9)
+    return height / (2 * depth * np.tan(np.radians(camera.view_angle) / 2))
+
+
+@register
+class Supports(Layer):
+    """How the declared bodies are held, drawn at their ends (plan Section 5.4).
+
+    The ends come from ``flowreel.yml`` (``bodies: NAME: ends:``). Each symbol stands at
+    the body's centre at its station in this frame, so it moves with the body, and is
+    sized in diameters (the declared diameter, else measured), so it looks the same on a
+    short or a long body. Options: ``body`` (a name, a list, or ``all``: every declared
+    body with ends), ``ends`` (``all`` or a list of indices into the body's ends),
+    ``size`` (track, times a diameter), ``min_pixels`` (track, pixels: a diameter of a
+    symbol is at least this many pixels, so symbols stay readable in a view of a whole
+    long span; 0 is off), ``down`` (vector track: towards the ground the symbols stand
+    on), ``colour``, ``opacity``, ``arrow_colour`` (the tension arrows) and the
+    material (``ambient``, ``specular``, ``smooth``).
+    """
+
+    name = "supports"
+    options = (
+        Option("body", track=False, default="all", doc="a body name, a list, or all"),
+        Option("ends", track=False, default="all", doc="all, or indices into the body's ends"),
+        Option("size", "number", default=1.0, doc="symbol scale, in diameters"),
+        Option("min_pixels", "number", default=0.0, pixels=True,
+               doc="a diameter is at least this many pixels; 0: off"),
+        Option("down", "vector", default=(0.0, -1.0, 0.0), doc="towards the ground"),
+        Option("colour", "colour", default="#8a9299"),
+        Option("opacity", "number", default=1.0),
+        Option("arrow_colour", "colour", default="#f5a142", doc="tension arrows"),
+        Option("ambient", "number", default=0.4, doc="light the surface gives off, 0..1"),
+        Option("specular", "number", default=0.0, doc="weight of the highlight"),
+        Option("smooth", "boolean", default=False, doc="smooth shading; false: flat faces"),
+    )
+
+    @classmethod
+    def check(cls, raw: dict, check) -> None:
+        body = raw.get("body", "all")
+        if isinstance(body, list):
+            for i, name in enumerate(body):
+                check.at("body", i).string(name)
+        else:
+            check.at("body").string(body)
+        ends = raw.get("ends", "all")
+        if ends != "all":
+            for i, k in enumerate(check.at("ends").sequence(ends, 1)):
+                check.at("ends", i).integer(k, minimum=0)
+
+    def _bodies(self, source) -> list:
+        declared = getattr(source, "declared", None)
+        if declared is None:
+            raise ValueError("supports: no bodies are declared; declare their ends in "
+                             "flowreel.yml (docs/bodies.md)")
+        spec = self.raw.get("body", "all")
+        if spec == "all":
+            return [b for b in declared.values() if b.ends]
+        out = []
+        for name in ([spec] if isinstance(spec, str) else spec):
+            body = source.declaration(name)
+            if body is None:
+                source.zone(name)                           # KeyError for a wrong name
+                raise ValueError(f"supports: body {name!r} is not declared in flowreel.yml")
+            if not body.ends:
+                raise ValueError(f"supports: body {body.name!r} declares no ends")
+            out.append(body)
+        return out
+
+    def places(self, plotter, frame) -> list:
+        """``(end, place)`` of every support drawn in ``frame``."""
+        from flowreel.project.measure import AXES, centre, diameter
+        v, data = frame.values, frame.data
+        height = plotter.window_size[1]
+        out = []
+        for body in self._bodies(data.source):
+            surface = data.body(body.name)
+            d = body.diameter or diameter(surface, body.axis)
+            k = AXES[body.axis]
+            span = np.asarray(surface.points)[:, k]
+            middle = (span.min() + span.max()) / 2
+            picks = self.raw.get("ends", "all")
+            picks = range(len(body.ends)) if picks == "all" else picks
+            for i in picks:
+                if i >= len(body.ends):
+                    raise ValueError(f"supports: body {body.name!r} has {len(body.ends)} ends, "
+                                     f"no end {i}")
+                end = body.ends[i]
+                try:
+                    at = centre(surface, end.at, body.axis, 0.25 * d)
+                except ValueError as exc:
+                    raise ValueError(f"supports: {body.name} end at {end.at:g}: {exc}") from None
+                size = d * v["size"]
+                if v["min_pixels"] > 0:
+                    px = pixels_per_unit(plotter.camera, at, height)
+                    size = max(size, v["min_pixels"] / px)
+                out.append((end, Place.make(at, np.eye(3)[k], end.at >= middle, v["down"], size)))
+        return out
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        look = dict(smooth_shading=v["smooth"], specular=v["specular"], ambient=v["ambient"])
+        for end, place in self.places(plotter, frame):
+            for mesh in symbol(end, place):
+                plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], **look)
+            if end.tension:
+                plotter.add_mesh(tension_arrow(place), color=v["arrow_colour"],
+                                 opacity=v["opacity"], **look)

@@ -979,7 +979,7 @@ and can be built at any time before branch 9.
 **Branch 3: `phase2b/layers-supports`** (needs branch 1)
 - [x] Support registry; `clamped` and `pinned`
 - [x] `roller`, `spring`, `free`, `prescribed`; `tension`
-- [ ] `supports` layer: at the body's position per frame, sized in diameters, `min_pixels`
+- [x] `supports` layer: at the body's position per frame, sized in diameters, `min_pixels`
 - [ ] The domain shot's clamps drawn by `supports`; its golden frame still matches
 - [ ] Docs, with a picture of each symbol
 

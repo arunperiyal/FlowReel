@@ -11,6 +11,7 @@ import yaml
 
 from flowreel.scene import flow_layers as _flow_layers  # noqa: F401  (registers layers)
 from flowreel.scene import marker_layers as _marker_layers  # noqa: F401
+from flowreel.scene import supports as _supports  # noqa: F401
 from flowreel.scene.layers import available, layer_type
 
 HEADER = """\

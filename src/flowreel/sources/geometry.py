@@ -101,6 +101,10 @@ class GeometrySource:
             raise KeyError(f"{self.name}: no body {name!r}; bodies: {self.body_name}")
         return self._default().copy()
 
+    def files(self, step: int) -> list:
+        """A geometry source reads no file."""
+        return []
+
     def bounds(self) -> Box:
         """Bounds of the body built from the source's parameters."""
         return Box.from_bounds(self._default().bounds)

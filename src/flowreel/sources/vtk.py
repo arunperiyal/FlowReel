@@ -420,6 +420,15 @@ class VtkSource:
             data = _block(data, block, str(file))
         return data if isinstance(data, pv.PolyData) else outer_surface(data)
 
+    def files(self, step: int) -> list[Path]:
+        """The files read for ``step``: its flow file and its body files."""
+        self._check(step)
+        out = [Path(self._files[step])]
+        for files, _ in self._bodies.values():
+            if files:
+                out.append(Path(files[step] if step in files else next(iter(files.values()))))
+        return out
+
     def series(self, name: str) -> pd.DataFrame:
         """VTK files carry no time series: always raises ``KeyError``."""
         raise KeyError(f"{self.name}: the vtk adapter has no time series (asked for {name!r})")

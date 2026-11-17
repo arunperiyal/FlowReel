@@ -43,6 +43,12 @@ class DeclaredSource:
         claimed = {b.zone for b in self.declared.values() if not b.virtual}
         return list(self.declared) + [z for z in self.source.bodies() if z not in claimed]
 
+    def files(self, step: int) -> list:
+        """The source's files for ``step`` and every declared body's series files."""
+        own = self.source.files(step) if hasattr(self.source, "files") else []
+        series = [s.file for b in self.declared.values() for s in b.series.values()]
+        return list(own) + sorted(series)
+
     def is_virtual(self, name: str | None) -> bool:
         """Whether ``name`` is a declared virtual body."""
         return name in self.declared and self.declared[name].virtual

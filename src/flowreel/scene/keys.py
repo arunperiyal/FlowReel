@@ -65,6 +65,27 @@ def source_id(shot) -> list:
     return _id(shot)
 
 
+def file_stamps(source, step: int) -> list | None:
+    """``[path, size, modification time]`` of each file ``source`` reads for ``step``
+    (``Source.files``), so a file rewritten in place changes the key; ``None`` for a
+    source that does not say. A ``{node}`` series pattern is stamped file by file."""
+    files = getattr(source, "files", None)
+    if files is None:
+        return None
+    out = []
+    for path in files(step):
+        path = Path(path)
+        matches = ([path] if "{" not in path.name else
+                   sorted(path.parent.glob(path.name.split("{")[0] + "*")))
+        for p in matches:
+            try:
+                st = p.stat()
+                out.append([str(p), st.st_size, st.st_mtime_ns])
+            except OSError:
+                out.append([str(p), None, None])
+    return out
+
+
 def frame_parts(scene, index: int) -> dict:
     """What decides the picture of frame ``index`` of ``scene`` (a
     :class:`~flowreel.scene.rendering.Scene`)."""
@@ -77,6 +98,7 @@ def frame_parts(scene, index: int) -> dict:
         "source": source_id(shot),
         "bodies": bodies_key(scene.source),
         "step": scene.plan.time.step(index),
+        "files": file_stamps(scene.source, scene.plan.time.step(index)),
         "crop": None if crop is None else [list(crop.lo), list(crop.hi)],
         "size": list(scene.size),
         "background": shot.background,

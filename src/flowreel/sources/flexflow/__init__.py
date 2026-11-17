@@ -99,6 +99,12 @@ class FlexflowSource:
         """Saved step numbers, ascending."""
         return sorted(self._files)
 
+    def files(self, step: int) -> list[Path]:
+        """The file read for ``step``."""
+        if step not in self._files:
+            raise KeyError(f"step {step} is not saved in {self.path}; steps: {self.steps()}")
+        return [self._files[step]]
+
     def time(self, step: int) -> float:
         """Solution time stored in the step's file."""
         with self._open(step) as plt:

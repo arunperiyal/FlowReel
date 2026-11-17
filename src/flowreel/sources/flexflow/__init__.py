@@ -34,6 +34,9 @@ class FlexflowSource:
             elements (triangles or quadrilaterals) in the file.
         nen: nodes per element of the volume zone, to override a wrong zone type
             (see the reader); ``None`` trusts the file.
+        window: read a crop through a window (default): only the crop's nodes of the
+            asked variables leave the disk (:mod:`flowreel.sources.flexflow.window`).
+            ``False`` reads the zone whole and then cuts it; the result is the same.
         name: label of the source.
 
     Coordinates in the files are the deformed mesh, so ``flow`` and ``body`` are already at
@@ -42,10 +45,12 @@ class FlexflowSource:
 
     def __init__(self, path, volume: str | None = None,
                  body: str | list[str] | None = None,
-                 nen: int | None = None, name: str = "flexflow"):
+                 nen: int | None = None, window: bool = True, name: str = "flexflow"):
         self.name = name
         self.path = Path(path)
         self.nen = nen
+        self.window = window
+        self._windows = {}
         folder = self.path / "binary" if (self.path / "binary").is_dir() else self.path
         self._files = {}
         for f in folder.glob("*.plt"):
@@ -103,6 +108,8 @@ class FlexflowSource:
         Only the coordinates and the requested variables are read from the file.
         """
         self._check(fields)
+        if crop is not None and self.window:
+            return self._windowed(step, fields, crop)
         with self._open(step) as plt:
             zi = plt.zone_index(self.volume)
             conn = plt.load_connectivity(zi, nen=self.nen)
@@ -112,6 +119,29 @@ class FlexflowSource:
         if crop is not None:
             conn = conn[crop.contains(points)[conn].all(axis=1)]
         return _grid(points, conn, data, ztype)
+
+    def window_of(self, crop: Box):
+        """The :class:`~flowreel.sources.flexflow.window.Window` of the volume zone for
+        ``crop``, chosen at the first step and kept for this source's life."""
+        from flowreel.sources.flexflow import window as win
+        key = (tuple(crop.lo), tuple(crop.hi))
+        if key not in self._windows:
+            with self._open(self.steps()[0]) as plt:
+                self._windows[key] = win.choose(plt, plt.zone_index(self.volume), crop,
+                                                nen=self.nen)
+        return self._windows[key]
+
+    def _windowed(self, step: int, fields: list[str], crop: Box) -> pv.UnstructuredGrid:
+        from flowreel.sources.flexflow import window as win
+        window = self.window_of(crop)
+        with self._open(step) as plt:
+            zi = plt.zone_index(self.volume)
+            names = list(plt.vars[:3]) + [NAMES.get(f, f) for f in fields]
+            values = win.read(plt, zi, window, names)
+            ztype = plt.zones[zi]["ztype"]
+        points = np.column_stack([values[v] for v in names[:3]])
+        conn = window.cells[crop.contains(points)[window.cells].all(axis=1)]
+        return _grid(points, conn, {f: values[NAMES.get(f, f)] for f in fields}, ztype)
 
     def bodies(self) -> list[str]:
         """Names of the wall zones."""
@@ -129,9 +159,12 @@ class FlexflowSource:
                 conn = plt.load_connectivity(zi)
                 if conn is None:
                     raise ValueError(f"zone {zone!r} of {plt.path} has no connectivity of its own")
-                points = np.column_stack([plt.read_variable(zi, v) for v in plt.vars[:3]])
-                data = {f: plt.read_variable(zi, NAMES.get(f, f)) for f in fields}
-                surfaces.append(outer_surface(_grid(points, conn, data, plt.zones[zi]["ztype"])))
+                used = np.unique(conn)        # read only the wall's own nodes
+                points = np.column_stack([_take(plt.map_variable(zi, v), used)
+                                          for v in plt.vars[:3]])
+                data = {f: _take(plt.map_variable(zi, NAMES.get(f, f)), used) for f in fields}
+                surfaces.append(outer_surface(_grid(points, np.searchsorted(used, conn), data,
+                                                    plt.zones[zi]["ztype"])))
         return merge_surfaces(surfaces)
 
     def bounds(self) -> Box:
@@ -156,6 +189,11 @@ class FlexflowSource:
             z = plt.zones[plt.zone_index(self.volume)]
             npe = self.nen or NPE.get(z["ztype"], 8)
             return 2 * (z["npts"] * 7 * 4 + z["nelem"] * (npe + 1) * 8) / 1e9
+
+
+def _take(mapped, nodes):
+    """``mapped[nodes]`` as float32 (only those pages read); ``None`` stays ``None``."""
+    return None if mapped is None else np.asarray(mapped[nodes], dtype="<f4")
 
 
 def _grid(points, conn, data, ztype) -> pv.UnstructuredGrid:

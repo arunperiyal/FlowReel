@@ -997,7 +997,7 @@ and can be built at any time before branch 9.
 - [x] Docs, with an example on generated data
 
 **Branch 6: `phase2b/long-span`** (needs branch 1)
-- [ ] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
+- [x] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
 - [ ] Cached window index, with a margin for the body's motion
 - [ ] `crop: {around: ...}`, its station a track shared with the camera's `follow` (`follow` with a station track and `motion: false` is built in Phase 2)
 - [ ] `stretch` on a shot, with its note in the frame

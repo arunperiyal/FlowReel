@@ -119,6 +119,32 @@ class PltFile:
                           % (name, arr.size, count))
         return arr.astype("<f4", copy=False)
 
+    def map_variable(self, zi, name):
+        """One variable of zone ``zi`` as a read-only memory map over the owning zone's
+        node array: nothing is read until it is indexed, and indexing reads only the
+        pages it touches. ``None`` for a passive variable. Index with node numbers
+        (sorted, for the fewest pages) and convert with ``astype("<f4")``."""
+        v = self.vars.index(name)
+        owner = self.variable_owner(zi, v)
+        if owner is None:
+            return None
+        entry = self._layout()[owner]
+        return np.memmap(self.path, dtype=FMT_NP[entry["fmts"][v]], mode="r",
+                         offset=entry["var_offset"][v], shape=(self.zones[owner]["npts"],))
+
+    def map_connectivity(self, zi, nen=None):
+        """Zone ``zi``'s connectivity as a read-only memory map, ``(elements, nodes per
+        element)`` int32 in the shared node indexing, or ``None`` if the zone borrows
+        it. Unlike :meth:`load_connectivity` it is not trimmed of trailing invalid rows;
+        callers drop rows with a node outside ``0..npts-1``."""
+        entry = self._layout()[zi]
+        if entry["conn_offset"] is None:
+            return None
+        z = self.zones[zi]
+        npe = nen if nen is not None else NPE.get(z["ztype"], 8)
+        return np.memmap(self.path, dtype="<i4", mode="r", offset=entry["conn_offset"],
+                         shape=(z["nelem"], npe))
+
     # ---- header / zone records -------------------------------------------
     def _parse_header(self):
         f = open(self.path, "rb")

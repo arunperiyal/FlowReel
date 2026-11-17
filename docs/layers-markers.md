@@ -1,6 +1,6 @@
-# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`
+# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`, `supports`
 
-Code: `flowreel.scene.marker_layers`. Entries of a shot's `layers:` list
+Code: `flowreel.scene.marker_layers` (`supports`: `flowreel.scene.supports`). Entries of a shot's `layers:` list
 (`docs/shots.md`). *Track* options take a number or keys (`docs/tracks.md`). Colours are
 hex strings; lengths and positions are in the source's unit; line widths in pixels. None
 of these needs the flow, except `glyphs` with `direction: velocity`; a shot made only of
@@ -122,6 +122,41 @@ in facets.
 Unknown parameters are errors when the shot is read, with the nearest name suggested.
 The surface is rebuilt each frame from the tracks' values; the renderer will reuse it
 while they do not change.
+
+## `supports`
+
+How the declared bodies are held, drawn at their ends. The ends are not options of the
+layer: they are written once under each body in `flowreel.yml` ([bodies](bodies.md#supports)),
+so every shot of the project draws the same supports. Each symbol stands at the body's
+centre at its station **in that frame**, so it moves with a vibrating body, and is sized
+in **diameters** (the declared diameter, else measured), so it looks the same on a body
+12 or 500 diameters long.
+
+| Option | Type | Default | Example |
+|---|---|---|---|
+| `body` | a declared body name, a list, or `all` (every declared body with ends) | `all` | `body: riser` |
+| `ends` | `all`, or indices into the body's `ends` | `all` | `ends: [0]` |
+| `size` | track, symbol size in diameters | `1.0` | `size: 2` |
+| `min_pixels` | track, pixels: a diameter of a symbol is at least this many pixels; `0` is off | `0` | `min_pixels: 8` |
+| `down` | vector track: towards the ground the symbols stand on | `[0, -1, 0]` | `down: [0, 0, -1]` |
+| `colour`, `opacity` | tracks | `#8a9299`, `1` | `opacity: {from: 1, to: 0, frames: [0, 24]}` |
+| `arrow_colour` | track, the `tension` arrows | `#f5a142` | |
+| `ambient`, `specular`, `smooth` | tracks, the material | `0.4`, `0`, `false` (flat, the prototype's clamps) | |
+
+`min_pixels` is for a view of a whole long span, where a diameter is a pixel or two:
+symbols are enlarged until a diameter covers that many pixels, and drawn at their true
+size once the camera is close enough. It is in pixels, so a draft scales it. `down` is
+made perpendicular to the body's axis; the symbol's base sits on that side.
+
+```yaml
+- type: supports                      # every declared end, faded out with the outline
+  opacity: {from: 1.0, to: 0.0, frames: [189, 258]}
+```
+
+![Every support symbol on a short beam](images/supports.png)
+
+The domain shot of the reference film draws its two clamps this way
+(`tests/data/domain/`); `examples/supports/run.py` draws the picture above.
 
 ## Example
 

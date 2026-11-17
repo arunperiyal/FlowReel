@@ -1,0 +1,17 @@
+# A frozen shot on generated data (see run.py): the camera pans round a vortex tube
+# while the flow stays at one step, so the surface is contoured once and cached.
+name: render_shot
+source: toy:generated            # run.py builds the source in code
+time: {frozen: 0, frames: 12}
+camera: {track: pan}
+size: [640, 360]
+lights: raking
+layers:
+  - {type: outline, bounds: domain, colour: "#8899aa", width: 2}
+  - {type: body, colour: "#c8ccd0"}
+  - type: iso
+    field: speed
+    level: 0.5
+    colour_by: speed
+    range: [0, 1]
+    colormap: viridis

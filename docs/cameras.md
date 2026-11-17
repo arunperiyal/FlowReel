@@ -44,6 +44,27 @@ position and focal point through all keys on a Catmull-Rom curve (smooth through
 no overshoot control; add a key to tame a bend). A perspective and a parallel view cannot
 blend, so the track switches at the later key. A shot uses it with `camera: {track: carve}`.
 
+## A shot's camera
+
+The shot's `camera` mapping takes exactly one of `view`, `track` and `fit`; `follow` then
+moves that view onto a body. Views and tracks are read from the `cameras.yml` beside the
+shot file.
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `view` | a view name | | `camera: {view: main}` |
+| `track` | a camera track name | | `camera: {track: carve}` |
+| `fit` | `domain`, `crop` or `{x: [lo, hi], y: ..., z: ...}` | | `{fit: domain, direction_of: main}` |
+| `direction_of` | a view name; with `fit`, required | | `direction_of: main` |
+| `margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` |
+| `follow` | a body name | | `{view: close, follow: riser, station: 6}` |
+| `station` | track, length unit along `axis`; with `follow`, required | | `{from: 2, to: 10, frames: [0, 120]}` |
+| `axis` | `x`, `y` or `z`, the body's long axis; with `follow` | `z` | `axis: x` |
+| `motion` | boolean; with `follow` | `true` | `motion: false` |
+
+With `motion: false` the centre is taken from the body at the shot's first frame, so the
+camera keeps still while the body vibrates.
+
 ## Framing
 
 - **`fit`**: `camera: {fit: domain, direction_of: main, margin: 1.1}` places the camera
@@ -58,7 +79,8 @@ blend, so the track switches at the later key. A shot uses it with `camera: {tra
 
 ## Lights
 
-`lights: default | raking | [list]`.
+A shot's `lights: default | raking | [list]`. Without the key the shot keeps VTK's own
+light kit (a key light, fill lights and a headlight).
 
 | Preset | Look |
 |---|---|

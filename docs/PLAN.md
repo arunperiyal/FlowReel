@@ -879,7 +879,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Frozen shots contour once and cache the surfaces
 - [x] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
 - [x] Memory of one frame measured, and the safe number of jobs
-- [ ] Tests on generated data; docs: rendering and caching
+- [x] Tests on generated data; docs: rendering and caching
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
 - [ ] `flowreel` entry point on shellkit: one-shot and interactive

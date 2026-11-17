@@ -248,7 +248,14 @@ class GeometryLayer(Layer):
     required), ``params`` (mapping of the body's parameters to values or tracks; a
     parameter not listed keeps the body's default), ``colour`` and ``opacity`` (tracks),
     ``colour_by`` (a point array of the built surface, such as ``fresh`` for the carving
-    glow; with ``range`` and ``colormap`` for its values), ``specular`` (track).
+    glow; with ``range`` and ``colormap`` for its values), or ``blend`` (a list of
+    ``{array, colour, weight}``: each point's colour is ``colour`` plus, for each entry,
+    ``weight * array * (entry colour - colour)``, so a carved groove can take one colour
+    and a fresh cut another), ``specular``, ``specular_power`` and ``ambient``
+    (tracks), ``sharp_edges`` (false: shade across sharp edges, for steep but smooth
+    grooves), and ``markers`` (a list of ``{points, radius, colour, opacity, lighting}``:
+    a sphere at each point of the body's field data ``points``, such as the carving
+    ``cutters``).
     Parameters are checked against the body's signature when the shot is read, so a
     typo fails at once, not at the first frame. The surface is built every frame from
     the tracks' values; the renderer caches it while they do not change.
@@ -265,11 +272,45 @@ class GeometryLayer(Layer):
         Option("colour_by", track=False),
         Option("range", track=False, default=(0.0, 1.0)),
         Option("colormap", track=False, default="fire_ice"),
+        Option("blend", track=False, doc="[{array, colour, weight}, ...]: tint by point arrays"),
+        Option("specular_power", "number", default=20.0, doc="sharpness of the highlight"),
+        Option("ambient", "number", default=0.25),
+        Option("sharp_edges", "boolean", default=True, doc="false: smooth across sharp edges"),
+        Option("markers", track=False,
+               doc="[{points, radius, colour, opacity, lighting}, ...]: spheres at body points"),
     )
 
     @classmethod
     def check(cls, raw, check):
         check.at("body").choice(raw["body"], available_bodies())
+        if raw.get("blend") is not None:
+            if raw.get("colour_by"):
+                raise check.at("blend").error("give colour_by or blend, not both")
+            items = check.at("blend").sequence(raw["blend"], 1)
+            raw["blend"] = []
+            for i, item in enumerate(items):
+                where = check.at("blend", i)
+                item = where.mapping(item, ("array", "colour", "weight"),
+                                     required=("array", "colour"))
+                raw["blend"].append({"array": where.at("array").string(item["array"]),
+                                     "colour": _colour(item["colour"], where.at("colour")),
+                                     "weight": where.at("weight").number(item.get("weight", 1.0))})
+        if raw.get("markers") is not None:
+            items = check.at("markers").sequence(raw["markers"], 1)
+            raw["markers"] = []
+            for i, item in enumerate(items):
+                where = check.at("markers", i)
+                item = where.mapping(item, ("points", "radius", "colour", "opacity", "lighting"),
+                                     required=("points", "radius"))
+                lighting = item.get("lighting", True)
+                if not isinstance(lighting, bool):
+                    raise where.at("lighting").error(f"expected true or false, got {lighting!r}")
+                raw["markers"].append({
+                    "points": where.at("points").string(item["points"]),
+                    "radius": where.at("radius").number(item["radius"]),
+                    "colour": _colour(item.get("colour", "#ffffff"), where.at("colour")),
+                    "opacity": where.at("opacity").number(item.get("opacity", 1.0)),
+                    "lighting": lighting})
         params = check.at("params").mapping(raw.get("params") or {},
                                             list(inspect.signature(get_body(raw["body"])).parameters))
         raw["params"] = {}
@@ -294,13 +335,54 @@ class GeometryLayer(Layer):
     def draw(self, plotter, frame) -> None:
         v = frame.values
         surf = self.mesh(v)
-        common = dict(smooth_shading=True, split_sharp_edges=True, opacity=v["opacity"],
-                      specular=v["specular"], specular_power=20, ambient=0.25)
+        common = dict(smooth_shading=True, split_sharp_edges=v["sharp_edges"],
+                      opacity=v["opacity"], specular=v["specular"],
+                      specular_power=v["specular_power"], ambient=v["ambient"])
         if v.get("colour_by"):
             plotter.add_mesh(surf, scalars=v["colour_by"], cmap=colormap(v["colormap"]),
                              clim=list(v["range"]), show_scalar_bar=False, **common)
+        elif v.get("blend"):
+            surf["rgb"] = self.blend(surf, v)
+            plotter.add_mesh(surf, scalars="rgb", rgb=True, show_scalar_bar=False, **common)
         else:
             plotter.add_mesh(surf, color=v["colour"], **common)
+        for m in v.get("markers") or ():
+            spheres = self.markers(surf, m)
+            if spheres is not None:
+                plotter.add_mesh(spheres, color=m["colour"], opacity=m["opacity"],
+                                 lighting=m["lighting"])
+
+    @staticmethod
+    def blend(surf, v) -> np.ndarray:
+        """Point colours (uint8 RGB) of ``colour`` tinted by the ``blend`` entries."""
+        base = np.asarray(v["colour"], float)
+        rgb = np.tile(base, (surf.n_points, 1))
+        for b in v["blend"]:
+            if b["array"] not in surf.point_data:
+                raise ValueError(f"layer geometry: blend array {b['array']!r} is not on the body "
+                                 f"(it has: {', '.join(surf.point_data.keys())})")
+            amount = b["weight"] * np.asarray(surf[b["array"]], float)[:, None]
+            rgb += amount * (np.asarray(b["colour"]) - base)
+        return np.rint(np.clip(rgb, 0, 1) * 255).astype(np.uint8)
+
+    @staticmethod
+    def markers(surf, m):
+        """Spheres at the points of field data ``m['points']``, or ``None`` when the body
+        has none at this frame (the cutters exist only while the front is on the span)."""
+        if m["points"] not in surf.field_data:
+            return None
+        pts = np.asarray(surf.field_data[m["points"]], float).reshape(-1, 3)
+        if not len(pts):
+            return None
+        return pv.merge([pv.Sphere(radius=m["radius"], center=p) for p in pts])
+
+
+def _colour(value, check: Checker) -> tuple:
+    from flowreel.tracks import parse_colour
+    try:
+        return tuple(parse_colour(value))
+    except ValueError as exc:
+        raise check.wrap(exc) from None
 
 
 def _plain(value):

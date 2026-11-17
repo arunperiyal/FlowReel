@@ -87,6 +87,37 @@ tracks: the groove depth, the carved length, the radius.
 | `colour`, `opacity`, `specular` | tracks | `#c8ccd0`, `1`, `0.4` | |
 | `colour_by` | a point array of the surface | none | `fresh` |
 | `range`, `colormap` | for `colour_by` | `[0, 1]`, `fire_ice` | `[0, 1]`, `viridis` |
+| `blend` | list of `{array, colour, weight}` (weight default 1); not with `colour_by` | none | see below |
+| `specular_power` | track: sharpness of the highlight | `20` | `30` |
+| `ambient` | track, 0 to 1 | `0.25` | `0.18` |
+| `sharp_edges` | track, boolean: `false` shades smoothly across sharp edges | `true` | `false` |
+| `markers` | list of `{points, radius, colour, opacity, lighting}` | none | see below |
+
+**`blend`** tints `colour` by point arrays of the surface: each point's colour is
+`colour + sum(weight * array * (entry colour - colour))`, clipped to the colour range. It
+gives a carved groove one colour and a fresh cut another, as the carving shot does:
+
+```yaml
+colour: "#d4d9db"
+blend:
+  - {array: groove, colour: "#f5a142", weight: 0.45}
+  - {array: fresh, colour: "#ffd98c", weight: 0.6}
+```
+
+**`markers`** draws a sphere of `radius` at each point of the body's field data `points`
+(`colour` default white, `opacity` 1, `lighting` true; `false` makes it glow evenly). A
+body that has no such points at a frame draws none, so the carving cutters appear only
+while the front is on the span:
+
+```yaml
+markers:
+  - {points: cutters, radius: 0.06, colour: "#ffd08a", lighting: false}
+  - {points: cutters, radius: 0.16, colour: "#ffd08a", opacity: 0.25, lighting: false}
+```
+
+**`sharp_edges: false`** suits steep but smooth walls such as the grooves: with the
+default, edges steeper than 30 degrees are shaded as creases, and the grooves look cut
+in facets.
 
 Unknown parameters are errors when the shot is read, with the nearest name suggested.
 The surface is rebuilt each frame from the tracks' values; the renderer will reuse it

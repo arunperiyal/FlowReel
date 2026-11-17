@@ -11,7 +11,8 @@
 
 The commands are a thin layer over library functions (`flowreel.scene.render`,
 `flowreel.scene.memory.measure`, `flowreel.scene.template.template`), so everything here
-can also be done from Python; [rendering](rendering.md) explains what those do. The
+can also be done from Python; [rendering](rendering.md) explains what those do. A runnable
+example on a shot that needs no data is `examples/shot_commands/run.sh`. The
 command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 
 ## The shell

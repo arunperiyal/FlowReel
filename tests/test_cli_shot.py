@@ -125,3 +125,11 @@ def test_every_action_has_help_with_examples(action, capsys):
     assert main(["shot", action, "--help"]) == 0
     text = capsys.readouterr().out
     assert f"flowreel shot {action}" in text and "examples:" in text
+
+
+def test_the_commands_example_renders(sh, tmp_path):
+    from pathlib import Path
+    shot = Path(__file__).parent.parent / "examples" / "shot_commands" / "shot.yml"
+    status, out, err = run(sh, f"shot render {shot} --frames 23 --scale 0.25 -o {tmp_path}")
+    assert status == 0, err
+    assert (tmp_path / "cylinder@160x90" / "frame_00023.png").exists()

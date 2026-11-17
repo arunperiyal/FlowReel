@@ -79,3 +79,20 @@ def test_shot_file_errors_name_the_key(sh, tmp_path):
     (tmp_path / "bad.yml").write_text(SHOT.replace("size: [64, 48]", "sise: [64, 48]"))
     status, _, err = sh.run("shot render bad.yml")
     assert status == 2 and "bad.yml: sise" in err and "did you mean 'size'" in err
+
+
+def test_preview_draws_every_nth_and_the_last_small(sh, tmp_path):
+    status, out, err = run(sh, "shot preview g.yml --every 4")
+    assert status == 0, err
+    folder = tmp_path / "frames" / "g@16x12"                    # a quarter of 64 x 48
+    assert sorted(p.name for p in folder.glob("*.png")) == ["frame_00000.png", "frame_00004.png",
+                                                            "frame_00005.png"]
+    assert "3 rendered" in out
+    assert run(sh, "shot preview g.yml --every 0")[0] == 2
+
+
+def test_memory_reports_a_safe_jobs(sh):
+    status, out, err = run(sh, "shot memory g.yml --frame 1 --threads 1")
+    assert status == 0, err
+    assert "frame 1: peak" in out and "suggested jobs: -j" in out
+    assert "outside" in sh.run("shot memory g.yml --frame 99")[2]

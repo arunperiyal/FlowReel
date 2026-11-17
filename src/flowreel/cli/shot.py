@@ -84,6 +84,29 @@ class ShotCommand(BaseCommand):
         r.add_argument("--force", action="store_true",
                        help="draw the frames even when their key did not change")
         _run_args(r)
+
+        pv = actions.add_parser(
+            "preview", help="small frames, every N-th, to check timing",
+            description="Draw every N-th frame (and the last) at a small size, into "
+                        "OUT/<shot>@<W>x<H>/: a quick look at the timing before a full render.")
+        _shot_arg(pv)
+        pv.add_argument("--every", type=int, default=10, metavar="N",
+                        help="draw frames 0, N, 2N, ... and the last (default 10)")
+        _draft_args(pv, scale_default=0.25)
+        _run_args(pv)
+
+        m = actions.add_parser(
+            "memory", help="memory of one frame and a safe -j for this machine",
+            description="Draw one frame in a fresh process, as render does, and report its "
+                        "peak memory, the free memory and the number of jobs that fit.")
+        _shot_arg(m)
+        m.add_argument("--frame", type=int, default=0, metavar="N",
+                       help="frame to measure (default 0: in a frozen shot, the one that contours)")
+        _draft_args(m)
+        m.add_argument("--threads", type=int, metavar="T",
+                       help="threads per job; caps the suggested jobs at cores / T")
+        m.add_argument("--backend", choices=BACKENDS, default="auto",
+                       help="off-screen OpenGL: auto, osmesa, egl or x")
         return p
 
     def execute(self, args, ctx):
@@ -102,6 +125,30 @@ class ShotCommand(BaseCommand):
     def do_render(self, args, ctx):
         frames = parse_frames(args.frames) if args.frames else None
         return _render(args, ctx, frames, args.scale, args.size, args.force)
+
+
+    # -- preview and memory -------------------------------------------------------------
+
+    def do_preview(self, args, ctx):
+        from flowreel.scene.rendering import Scene
+        if args.every < 1:
+            raise CommandError("--every must be at least 1")
+        n = Scene.make(args.shot).plan.n_frames
+        frames = sorted(set(range(0, n, args.every)) | {n - 1})
+        return _render(args, ctx, frames, None if args.size else args.scale, args.size, False)
+
+    def do_memory(self, args, ctx):
+        from flowreel.scene.memory import measure
+        if args.scale is not None and args.size is not None:
+            raise CommandError("give --scale or --size, not both")
+        try:
+            report = measure(args.shot, args.frame, scale=args.scale,
+                             size=tuple(args.size) if args.size else None,
+                             threads=args.threads, backend=args.backend)
+        except (ValueError, IndexError) as exc:
+            raise CommandError(str(exc)) from None
+        ctx.out(report.text())
+        return 0
 
 
 def _render(args, ctx, frames, scale, size, force) -> int:

@@ -42,11 +42,8 @@ each ramp is its own track. The greying mixes colours in display values, not lin
 as the prototype does, so that the pictures match. Layer options: `docs/layers-flow.md`.
 
 ```python
-from flowreel import sources
 from flowreel.scene import render_frame
-from flowreel.scene.shot import load
-source = sources.create("vtk", path="flow_*.vti", body="body.vtp")
-picture = render_frame(load("tests/data/reveal/reveal.yml"), 16, source)   # (h, w, 3) uint8
+picture = render_frame("tests/data/reveal/reveal.yml", 16)   # (h, w, 3) uint8
 ```
 
 ## The golden-frame test

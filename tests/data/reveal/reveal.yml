@@ -2,7 +2,7 @@
 # tools/make_reveal_data.py): a body, a section that sweeps along x, and a wake surface
 # cut at the plane that turns grey. Frame 16 is two thirds of the 24-frame sweep.
 name: reveal
-source: vtk:flow_*.vti          # the test builds the source with its body file
+source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}
 time: {frozen: 5000, frames: 25}
 camera: {view: main}
 size: [640, 360]

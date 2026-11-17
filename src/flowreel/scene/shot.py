@@ -36,7 +36,10 @@ DEFAULT_SIZE = (1920, 1080)
 class Shot:
     """A parsed shot file.
 
-    ``source`` is ``(adapter, location)``, from ``adapter:location``. ``time`` and
+    ``source`` is ``(adapter, location)``, from ``adapter:location``; the mapping form
+    ``{adapter: vtk, path: ..., body: ...}`` also fills ``source_options``, the other
+    keys as written, passed to the adapter (:func:`flowreel.scene.rendering.open_source`
+    resolves paths). ``time`` and
     ``camera`` hold the mapping as written; the frame plan and the camera code read
     them. ``size`` is ``(width, height)`` in pixels. ``crop`` is the box read from the
     source, or ``None`` for the whole domain. ``layers`` are built layer objects, bottom
@@ -54,6 +57,7 @@ class Shot:
     background: str | list = "black"
     antialias: str = "ssaa"
     lights: tuple | None = None
+    source_options: dict = field(default_factory=dict)
     file: str | None = None
 
 
@@ -76,7 +80,7 @@ def from_dict(data, file: str | None = None) -> Shot:
     check = Checker(file)
     data = check.mapping(data, KEYS, REQUIRED)
     name = check.at("name").string(data["name"])
-    source = _source(data["source"], check.at("source"))
+    source, source_options = _source(data["source"], check.at("source"))
     time = check.at("time").mapping(data["time"], _TIME_KEYS)
     camera = check.at("camera").mapping(data.get("camera", {}), _CAMERA_KEYS)
     size = _size(data.get("size", DEFAULT_SIZE), check.at("size"))
@@ -91,7 +95,7 @@ def from_dict(data, file: str | None = None) -> Shot:
     layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
                 size=size, crop=crop, background=background, antialias=antialias,
-                lights=lights, file=file)
+                lights=lights, source_options=source_options, file=file)
 
 
 # Keys of the sub-mappings. Time is read by scene.plan, camera by scene.camera.
@@ -100,12 +104,23 @@ _CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "follow", "sta
                 "axis", "motion")
 
 
-def _source(value, check: Checker) -> tuple[str, str]:
+def _source(value, check: Checker) -> tuple[tuple[str, str], dict]:
+    if isinstance(value, dict):
+        if "adapter" not in value:
+            raise check.error("missing key 'adapter' (for example {adapter: vtk, path: flow.pvd})")
+        adapter = check.at("adapter").string(value["adapter"])
+        options = {k: v for k, v in value.items() if k != "adapter"}
+        for k in options:
+            if not isinstance(k, str):
+                raise check.error(f"option names are words, got {k!r}")
+        location = options.get("path", options.get("body", ""))
+        return (adapter, str(location)), options
     text = check.string(value)
     adapter, sep, location = text.partition(":")
     if not sep or not adapter or not location:
-        raise check.error(f"expected 'adapter:location' (for example flexflow:bare/BR0SG0U1P0), got {text!r}")
-    return adapter, location
+        raise check.error(f"expected 'adapter:location' (for example flexflow:bare/BR0SG0U1P0) "
+                          f"or {{adapter: ..., path: ...}}, got {text!r}")
+    return (adapter, location), {}
 
 
 def _size(value, check: Checker) -> tuple[int, int]:

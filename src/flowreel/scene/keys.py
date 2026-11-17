@@ -66,7 +66,7 @@ def frame_parts(scene, index: int) -> dict:
     data = scene.data(index)
     return {
         "code": code_version(),
-        "source": list(shot.source),
+        "source": [*shot.source, shot.source_options],
         "step": scene.plan.time.step(index),
         "crop": None if shot.crop is None else [list(shot.crop.lo), list(shot.crop.hi)],
         "size": list(scene.size),

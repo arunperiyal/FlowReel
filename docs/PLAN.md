@@ -883,7 +883,7 @@ session. One commit per task; tick the box in that commit.
 
 **Branch 6: `phase2/cli-shot`** (commands; needs branch 5)
 - [x] `flowreel` entry point on shellkit: one-shot and interactive
-- [ ] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
+- [x] `shot render` with `-j`, `--frames`, `--scale`, `--size`, `--backend`, `--force`
 - [ ] `shot preview` (`--every`, `--scale`) and `shot memory`
 - [ ] `shot template`: a commented shot file with the defaults
 - [ ] Help text; docs: commands page

@@ -32,7 +32,7 @@ traceback when a command fails.
 
 ```text
 flowreel shot render [SHOT] [--frames SPEC] [--scale S | --size W H] [--force]
-                     [-j N] [--threads T] [--backend B] [-o DIR]
+                     [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
 ```
 
 Renders the shot's frames to `DIR/<shot>/frame_00000.png`. Frames whose key did not
@@ -48,6 +48,7 @@ change since they were drawn are skipped (see [rendering](rendering.md#frame-key
 | `-j N`, `--jobs N` | 1 | frames drawn at once, each in its own process |
 | `--threads T` | `min(4, cores / N)` | threads per job |
 | `--backend B` | `auto` | `auto` (OSMesa, else EGL), `osmesa`, `egl` or `x` |
+| `--no-memory-check` | off | draw even if the jobs look too big for the free memory ([long bodies](long-bodies.md#memory)) |
 | `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
 
 Drafts go to `DIR/<shot>@<W>x<H>/` and never mix with the full-size frames. Each frame is

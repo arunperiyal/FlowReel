@@ -1,0 +1,10 @@
+# The whole channel, its length drawn at a tenth so it fits the frame; the frame says so.
+name: whole
+source: {adapter: flexflow, path: case}
+time: {frozen: 5, frames: 1}
+camera: {view: whole}
+size: [480, 270]
+stretch: {x: 0.1}
+layers:
+  - {type: outline, bounds: domain, colour: "#8fa3b3", width: 2}
+  - {type: body, body: floor, colour: "#c8ccd0"}

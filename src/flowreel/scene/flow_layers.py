@@ -52,6 +52,17 @@ class Iso(Layer):
         Option("opacity", "number", default=1.0),
         Option("wall_gap", "number", default=0.0),
         Option("gap_body", track=False),
+        Option("clip_axis", "choice", default=None, choices=AXES,
+               doc="axis of the cutting plane"),
+        Option("clip_position", "number", default=0.0, doc="where the plane cuts, length unit"),
+        Option("clip_keep", "choice", default="below", choices=("below", "above"),
+               doc="which side of the plane stays"),
+        Option("clip_active", "boolean", default=True, doc="false: the surface is whole"),
+        Option("grow_axis", "choice", default=None, choices=AXES,
+               doc="axis along which the surface appears"),
+        Option("grow", "number", default=1.0, doc="fraction 0..1 of the flow's extent shown"),
+        Option("grey", "number", default=0.0, doc="0..1: blend of the colours to grey_colour"),
+        Option("grey_colour", "colour", default=MUTED),
     )
 
     def surface(self, frame, v: dict):
@@ -72,7 +83,7 @@ class Iso(Layer):
         mesh = self.surface(frame, v)
         if not mesh.n_points:
             return
-        mesh = self.finish(mesh, v)
+        mesh = self.finish(mesh, v, frame)
         if not mesh.n_points:
             return
         if v.get("colour_by"):
@@ -83,10 +94,28 @@ class Iso(Layer):
         plotter.add_mesh(mesh, scalars="rgb", rgb=True, smooth_shading=True, specular=0.3,
                          ambient=0.25, opacity=v["opacity"], show_scalar_bar=False)
 
-    def finish(self, mesh, v):
-        """Hook for cutting and growing the surface (see the clip and grow options)."""
+    def finish(self, mesh, v, frame):
+        """Apply the clip plane, then the grow limit."""
+        if v.get("clip_axis") and v["clip_active"] and mesh.n_points:
+            mesh = _cut(mesh, v["clip_axis"], v["clip_position"], v["clip_keep"])
+        if v.get("grow_axis") and v["grow"] < 1 and mesh.n_points:
+            k = "xyz".index(v["grow_axis"])
+            lo, hi = frame.data.flow.bounds[2 * k:2 * k + 2]
+            mesh = _cut(mesh, v["grow_axis"], lo + v["grow"] * (hi - lo), "below") \
+                if v["grow"] > 0 else _empty(mesh)
         return mesh
 
     def grey(self, rgb, v):
-        """Hook for blending the colours to a flat grey."""
-        return rgb
+        """Blend the colours towards ``grey_colour`` by ``grey``."""
+        g = v["grey"]
+        return rgb if g == 0 else (1 - g) * rgb + g * np.asarray(v["grey_colour"])
+
+
+def _empty(mesh):
+    import pyvista as pv
+    return pv.PolyData()
+
+
+def _cut(mesh, axis: str, position: float, keep: str):
+    """Keep the part of ``mesh`` on one side of the plane ``axis = position``."""
+    return mesh.clip(axis, origin=_origin(axis, position), invert=(keep == "below"))

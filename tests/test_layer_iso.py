@@ -47,3 +47,39 @@ def test_draws_into_a_plotter():
     layer.draw(pl, frame_for(layer))
     assert len(pl.renderer.actors) >= 1
     pl.close()
+
+
+def surface_of(spec):
+    layer = make({"level": 0.5, **spec})
+    f = frame_for(layer)
+    mesh = layer.finish(layer.surface(f, f.values), f.values, f)
+    return layer, f, mesh
+
+
+def test_clip_keeps_one_side():
+    _, _, below = surface_of({"clip_axis": "z", "clip_position": 0.5, "clip_keep": "below"})
+    _, _, above = surface_of({"clip_axis": "z", "clip_position": 0.5, "clip_keep": "above"})
+    assert below.points[:, 2].max() <= 0.5 + 1e-9 and above.points[:, 2].min() >= 0.5 - 1e-9
+    assert below.n_points and above.n_points
+
+
+def test_clip_active_false_leaves_whole():
+    _, _, whole = surface_of({})
+    _, _, off = surface_of({"clip_axis": "z", "clip_position": 0.5, "clip_active": False})
+    assert off.n_points == whole.n_points
+
+
+def test_grow_reveals_along_an_axis():
+    _, f, half = surface_of({"grow_axis": "z", "grow": 0.5})
+    lo, hi = f.data.flow.bounds[4:6]
+    assert half.points[:, 2].max() <= lo + 0.5 * (hi - lo) + 1e-9
+    assert surface_of({"grow_axis": "z", "grow": 0})[2].n_points == 0
+    _, _, full = surface_of({"grow_axis": "z", "grow": 1})
+    assert full.n_points == surface_of({})[2].n_points
+
+
+def test_grey_blends_to_grey_colour():
+    layer, _, _ = surface_of({"grey": 0.5, "grey_colour": "#000000"})
+    rgb = np.array([[1.0, 0.5, 0.0]])
+    assert layer.grey(rgb, layer.values(0)) == pytest.approx(rgb * 0.5)
+    assert make({"level": 0.5}).grey(rgb, make({"level": 0.5}).values(0)) is rgb

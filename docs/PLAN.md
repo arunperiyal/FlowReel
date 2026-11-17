@@ -858,7 +858,7 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: cameras page
 
 **Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)
-- [ ] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
+- [x] `iso`: field, level, colour_by, range, colormap, opacity, wall_gap
 - [ ] `iso`: clip by a plane, `grow` along an axis, `grey`
 - [ ] `slice`: normal, position, field, range, fade_weak, mask near the wall
 - [ ] `body`: one named body, a list or all; colour, opacity, field and range on the surface, zero contour

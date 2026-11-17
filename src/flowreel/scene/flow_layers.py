@@ -90,7 +90,7 @@ class Iso(Layer):
             rgb = _rgb(mesh[v["colour_by"]], v["range"], v["colormap"])[:, :3]
         else:
             rgb = np.tile(v["colour"], (mesh.n_points, 1))
-        mesh["rgb"] = (self.grey(rgb, v) * 255).astype(np.uint8)
+        mesh["rgb"] = np.rint(self.grey(rgb, v) * 255).astype(np.uint8)
         plotter.add_mesh(mesh, scalars="rgb", rgb=True, smooth_shading=True, specular=0.3,
                          ambient=0.25, opacity=v["opacity"], show_scalar_bar=False)
 
@@ -119,3 +119,58 @@ def _empty(mesh):
 def _cut(mesh, axis: str, position: float, keep: str):
     """Keep the part of ``mesh`` on one side of the plane ``axis = position``."""
     return mesh.clip(axis, origin=_origin(axis, position), invert=(keep == "below"))
+
+
+@register
+class Slice(Layer):
+    """A cutting plane through the flow, coloured by a field and faded where it is weak.
+
+    Options: ``normal`` (``x``, ``y`` or ``z``, required), ``position`` (track, length
+    unit), ``field`` (required), ``range`` and ``colormap`` as for ``iso``, ``opacity``
+    (track), ``fade_weak`` (``[low, high]``: opacity ramps smoothly from 0 where
+    ``|field| <= low`` to 1 where ``|field| >= high``; ``null`` keeps it opaque),
+    ``near_wall`` (``[low, high]`` in length unit: opacity ramps from 0 at the body to 1
+    at ``high``, the mask of the wall's own layer), ``mask_body`` (body name, default
+    all bodies).
+    """
+
+    name = "slice"
+    needs_flow = True
+    options = (
+        Option("normal", track=False, required=True, doc="x, y or z"),
+        Option("position", "number", required=True),
+        Option("field", track=False, required=True),
+        Option("range", track=False, default=(-1.0, 1.0)),
+        Option("colormap", track=False, default="fire_ice"),
+        Option("opacity", "number", default=1.0),
+        Option("fade_weak", track=False, default=None),
+        Option("near_wall", track=False, default=None),
+        Option("mask_body", track=False),
+    )
+
+    def mesh(self, frame, v):
+        """The section as triangles with an ``rgba`` array (uint8), or ``None`` if empty."""
+        data = frame.data
+        data.need(v["field"])
+        cut = data.flow.slice(normal=v["normal"],
+                              origin=_origin(v["normal"], v["position"])).triangulate()
+        if not cut.n_points:
+            return None
+        value = np.asarray(cut[v["field"]])
+        rgba = _rgb(value, v["range"], v["colormap"])
+        alpha = np.full(len(value), float(v["opacity"]))
+        if v.get("fade_weak"):
+            alpha = alpha * smoothstep(np.abs(value), *v["fade_weak"])
+        if v.get("near_wall"):
+            wall = data.body(v.get("mask_body")).triangulate()
+            dist = cut.compute_implicit_distance(wall)["implicit_distance"]
+            alpha = alpha * smoothstep(np.abs(dist), *v["near_wall"])
+        rgba[:, 3] = alpha
+        cut["rgba"] = np.rint(rgba * 255).astype(np.uint8)
+        return cut
+
+    def draw(self, plotter, frame) -> None:
+        cut = self.mesh(frame, frame.values)
+        if cut is not None:
+            plotter.add_mesh(cut, scalars="rgba", rgb=True, lighting=False,
+                             show_scalar_bar=False)

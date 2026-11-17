@@ -1,0 +1,32 @@
+# The reveal shot as a shot file (the same picture as shot.yml, which only feeds
+# tools/make_reveal_data.py): a body, a section that sweeps along x, and a wake surface
+# cut at the plane that turns grey. Frame 16 is two thirds of the 24-frame sweep.
+name: reveal
+source: vtk:flow_*.vti          # the test builds the source with its body file
+time: {frozen: 5000, frames: 25}
+camera: {view: main}
+size: [640, 360]
+background: black
+antialias: ssaa
+layers:
+  - {type: body}
+  - type: slice
+    normal: x
+    position: &sweep {from: 4.1, to: 6.0, frames: [0, 24]}
+    field: vorticity_x
+    range: [-2.5, 2.5]
+    opacity: {from: 0.0, to: 1.0, frames: [0, 2.4]}
+    fade_weak: [0.05, 0.5]
+    near_wall: [0.03, 0.1]
+  - type: iso
+    field: lambda2
+    level: -1.0
+    wall_gap: 0.4
+    colour_by: vorticity_x
+    range: [-2.5, 2.5]
+    clip_axis: x
+    clip_position: *sweep
+    clip_keep: above
+    clip_active: {keys: [[0, false], [0.01, true]]}
+    grey: {from: 0.0, to: 1.0, frames: [9.6, 24]}
+    grey_colour: "#6f8796"

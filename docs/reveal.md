@@ -43,15 +43,15 @@ as the prototype does, so that the pictures match. Layer options: `docs/layers-f
 
 ```python
 from flowreel import sources
-from flowreel.scene.draw import draw_frame
+from flowreel.scene import render_frame
 from flowreel.scene.shot import load
 source = sources.create("vtk", path="flow_*.vti", body="body.vtp")
-picture = draw_frame(load("tests/data/reveal/reveal.yml"), source, 16)   # (h, w, 3) uint8
+picture = render_frame(load("tests/data/reveal/reveal.yml"), 16, source)   # (h, w, 3) uint8
 ```
 
 ## The golden-frame test
 
-`tests/test_reveal_golden.py` draws `tests/data/reveal/reveal.yml` through `flowreel.scene.draw.draw_frame` and compares it with
+`tests/test_reveal_golden.py` draws `tests/data/reveal/reveal.yml` through `flowreel.scene.render_frame` and compares it with
 `golden.png`, which the **prototype's own functions** drew from the same data. The
 limits are a mean difference under 0.5 grey levels and under 0.2% of pixels differing by
 more than 32; a frame two steps earlier in the sweep must fail them. The test is skipped

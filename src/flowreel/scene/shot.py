@@ -26,7 +26,7 @@ from flowreel.box import Box
 from flowreel.scene.errors import Checker, ConfigError
 
 KEYS = ("name", "source", "time", "camera", "size", "crop", "background", "antialias",
-        "layers")
+        "lights", "layers")
 REQUIRED = ("name", "source", "time", "layers")
 ANTIALIAS = ("none", "fxaa", "ssaa")
 DEFAULT_SIZE = (1920, 1080)
@@ -40,7 +40,8 @@ class Shot:
     ``camera`` hold the mapping as written; the frame plan and the camera code read
     them. ``size`` is ``(width, height)`` in pixels. ``crop`` is the box read from the
     source, or ``None`` for the whole domain. ``layers`` are built layer objects, bottom
-    first. Lengths are in the source's unit.
+    first. ``lights`` is a tuple of :class:`~flowreel.scene.lights.Light`, or ``None``
+    for VTK's own light kit. Lengths are in the source's unit.
     """
 
     name: str
@@ -52,6 +53,7 @@ class Shot:
     crop: Box | None = None
     background: str | list = "black"
     antialias: str = "ssaa"
+    lights: tuple | None = None
     file: str | None = None
 
 
@@ -81,17 +83,21 @@ def from_dict(data, file: str | None = None) -> Shot:
     crop = _crop(data.get("crop"), check.at("crop"))
     background = data.get("background", "black")
     antialias = check.at("antialias").choice(data.get("antialias", "ssaa"), ANTIALIAS)
+    lights = None
+    if data.get("lights") is not None:
+        from flowreel.scene.lights import parse_lights
+        lights = parse_lights(data["lights"], check.at("lights"))
     items = check.at("layers").sequence(data["layers"], minimum=1)
     layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
-                size=size, crop=crop, background=background, antialias=antialias, file=file)
+                size=size, crop=crop, background=background, antialias=antialias,
+                lights=lights, file=file)
 
 
-# Keys of the sub-mappings. Time is read by scene.plan; camera keys grow with the views
-# and follow/fit work (plan Section 7.4).
+# Keys of the sub-mappings. Time is read by scene.plan, camera by scene.camera.
 _TIME_KEYS = ("steps", "every", "frozen", "frames", "keys", "ease")
 _CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "follow", "station",
-                "motion")
+                "axis", "motion")
 
 
 def _source(value, check: Checker) -> tuple[str, str]:

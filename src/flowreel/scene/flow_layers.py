@@ -216,8 +216,6 @@ class BodyLayer(Layer):
             surf = data.body(None if spec == "all" else spec)
         name = self.raw.get("field")
         if name and name not in surf.point_data:
-            if data.flow is None:
-                raise ValueError(f"layer body: field {name!r} needs the flow, which is not loaded")
             data.need(name)
             surf = surf.sample(data.flow, pass_point_data=False)  # copy with the flow's arrays
         return surf

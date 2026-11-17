@@ -874,7 +874,7 @@ session. One commit per task; tick the box in that commit.
 
 **Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)
 - [x] Backend choice: OSMesa when installed, else EGL; `backend` forces one
-- [ ] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
+- [x] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
 - [ ] Frame keys (Section 11): frames are skipped unless their key changed; `force`
 - [ ] Frozen shots contour once and cache the surfaces
 - [ ] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)

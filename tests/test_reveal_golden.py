@@ -13,7 +13,7 @@ import pytest
 from PIL import Image
 
 from flowreel import sources
-from flowreel.scene.draw import draw_frame
+from flowreel.scene import render_frame
 from flowreel.scene.shot import load
 
 DATA = Path(__file__).parent / "data" / "reveal"
@@ -33,7 +33,7 @@ def draw(frame=16):
     shot = load(SHOT)
     source = sources.create("vtk", path=str(DATA / "flow_*.vti"), body=str(DATA / "body.vtp"))
     try:
-        return draw_frame(shot, source, frame)
+        return render_frame(shot, frame, source)
     except (RuntimeError, OSError) as error:        # no OpenGL on this machine
         pytest.skip(f"off-screen rendering is not available: {error}")
 

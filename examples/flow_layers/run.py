@@ -11,7 +11,7 @@ import numpy as np
 import pyvista as pv
 from PIL import Image
 
-from flowreel.scene.draw import draw_frame
+from flowreel.scene import render_frame
 from flowreel.scene.shot import load
 
 
@@ -39,4 +39,4 @@ class Vortex:
 if __name__ == "__main__":
     shot = load(Path(__file__).with_name("shot.yml"))
     for frame in (0, 12, 23):
-        Image.fromarray(draw_frame(shot, Vortex(), frame)).save(f"flow_layers_{frame}.png")
+        Image.fromarray(render_frame(shot, frame, Vortex())).save(f"flow_layers_{frame}.png")

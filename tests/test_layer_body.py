@@ -43,10 +43,19 @@ def test_field_from_the_flow_is_sampled_onto_the_body():
     assert np.asarray(surf["speed"]) == pytest.approx(r, abs=0.06)    # speed = omega * r
 
 
-def test_field_needs_the_flow():
+def test_field_reads_the_flow_when_it_is_not_loaded():
     layer = make(field="speed")
-    with pytest.raises(ValueError, match="needs the flow"):
-        layer.surface(frame_for(layer, flow=False))
+    frame = frame_for(layer, flow=False)
+    assert not frame.data.flow_loaded
+    assert "speed" in layer.surface(frame).point_data
+    assert frame.data.flow_loaded
+
+
+def test_a_plain_body_never_reads_the_flow():
+    layer = make()
+    frame = frame_for(layer, flow=False)
+    layer.surface(frame)
+    assert not frame.data.flow_loaded
 
 
 def test_ghost_is_see_through_and_draws():

@@ -1,6 +1,7 @@
-# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`, `supports`
+# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`, `supports`, `centreline`
 
-Code: `flowreel.scene.marker_layers` (`supports`: `flowreel.scene.supports`). Entries of a shot's `layers:` list
+Code: `flowreel.scene.marker_layers` (`supports`: `flowreel.scene.supports`;
+`centreline`: `flowreel.scene.centreline`). Entries of a shot's `layers:` list
 (`docs/shots.md`). *Track* options take a number or keys (`docs/tracks.md`). Colours are
 hex strings; lengths and positions are in the source's unit; line widths in pixels. None
 of these needs the flow, except `glyphs` with `direction: velocity`; a shot made only of
@@ -157,6 +158,59 @@ made perpendicular to the body's axis; the symbol's base sits on that side.
 
 The domain shot of the reference film draws its two clamps this way
 (`tests/data/domain/`); `examples/supports/run.py` draws the picture above.
+
+## `centreline`
+
+A beam body's axis as a tube, for a view of a whole long span, where the body is a
+pixel or two thick and its motion cannot be seen (plan Section 5.6). The centre of the
+body's section is taken at `count` stations and drawn as a tube `radius` diameters
+thick, coloured by its displacement from the **rest line**, the straight line through
+its two ends.
+
+| Option | Type | Default | Example |
+|---|---|---|---|
+| `body` | a body name | the one body | `body: riser` |
+| `from` | `surface` (the body's surface at the frame's step) or `probes` | `surface` | `from: probes` |
+| `count` | stations along the span (`surface`) | `65` | `count: 129` |
+| `radius` | track, tube radius in diameters | `0.3` | `radius: 0.5` |
+| `colour`, `opacity` | tracks | `#e0e4e8`, `1` | |
+| `colour_by` | `none`, `displacement` (its size), `dx`, `dy` or `dz`, from the rest line | `none` | `colour_by: dy` |
+| `range`, `colormap` | of `colour_by`, in the source's length unit | `[-1, 1]`, `fire_ice` | `[-0.5, 0.5]` |
+| `amplify` | track: the displacement drawn this many times larger; colours keep the true value | `1` | `amplify: 20` |
+| `rest`, `rest_colour` | tracks: draw the rest line | `false`, `#7f8a94` | `rest: true` |
+| `envelope` | `[first step, last step]`: the least and greatest displacement over them | none | `envelope: [5000, 9000]` |
+| `envelope_axis`, `envelope_colour` | the component shown; its colour | `y`, `#f5a142` | `envelope_axis: z` |
+| `series`, `columns`, `origin` | with `from: probes`: the series, its displacement columns, a point of the rest axis | `displacement`, `{x: dx, y: dy, z: dz}`, `[0, 0, 0]` | `columns: {y: aleDisp_y}` |
+| `ambient`, `specular`, `smooth` | tracks, the material | `0.2`, `0.3`, `true` | |
+
+**From probes.** `from: probes` reads no flow file: each station of the body's history
+at many points ([bodies](bodies.md#series), with `by` and `stations`) is put on the rest
+axis (through `origin`, along the body's declared `axis`) and moved by its displacement
+at the frame's time. A shot of the span's motion over thousands of steps then costs the
+CSV and nothing else. The body must be declared with an `axis`.
+
+**Envelope.** The extremes of one displacement component (`envelope_axis`) at each
+station over the steps `envelope`, drawn as two thin lines, amplified like the tube.
+From probes it takes the samples between those steps' times; from the surface it reads
+the body at every saved step in the range, once per render process.
+
+**Amplify** is allowed here in any shot, flow or not: the centreline is a diagram of
+the body, not the body itself (compare `amplify` on the [`body`](layers-flow.md#body)
+layer).
+
+```yaml
+- type: centreline                    # the whole riser from its probes, motion x 20
+  body: riser
+  from: probes
+  amplify: 20
+  colour_by: dy
+  range: [-0.05, 0.05]
+  rest: true
+  envelope: [5000, 9000]
+```
+
+`examples/bodies/span.yml` draws a riser this way, with its supports and an arrow whose
+length follows the mid-span displacement (a series track).
 
 ## Example
 

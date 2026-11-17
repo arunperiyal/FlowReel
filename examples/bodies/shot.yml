@@ -4,7 +4,8 @@
 name: riser_travel
 source:
   adapter: vtk
-  path: data/flow.vti
+  path: "data/flow_*.vti"
+  dt: 0.1
   body: {cyl: data/cyl.vtp, ball: data/ball.vtp}
 time: {frozen: 0, frames: 12}
 camera:

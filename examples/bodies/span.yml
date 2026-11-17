@@ -1,0 +1,31 @@
+# The whole riser over the run, drawn from its probe history and not the flow files:
+# the centreline from the probes (displacement drawn twice as large, coloured by the true
+# value), its rest line, the envelope of its motion, the supports of flowreel.yml, and an
+# arrow whose length follows the displacement at mid-span (a series track).
+name: riser_span
+source:
+  adapter: vtk
+  path: "data/flow_*.vti"
+  dt: 0.1
+  body: {cyl: data/cyl.vtp, ball: data/ball.vtp}
+time: {steps: [1, 9]}
+camera: {view: wide}
+size: [640, 360]
+lights: raking
+layers:
+  - type: centreline
+    body: riser
+    from: probes
+    radius: 0.4
+    colour_by: dy
+    range: [-1.5, 1.5]
+    amplify: 2
+    rest: true
+    envelope: [1, 9]
+  - {type: supports, body: riser, size: 1.5}
+  - type: markers3d
+    shape: arrow3d
+    at: [20, 0, 4]
+    direction: [0, 1, 0]
+    length: {series: displacement, body: riser, column: dy, station: 20, offset: 2}
+    colour: "#f5a142"

@@ -23,3 +23,7 @@ def test_example_declares_measures_and_follows(tmp_path):
     for focal_y, bend in re.findall(r"focal \([\d.]+, ([\d.]+), [\d.]+\); bend there ([\d.]+)", out):
         assert abs(float(focal_y) - float(bend)) < 0.01
     assert "riser_travel: 12 drawn, 0 skipped" in out
+    assert "riser_span: 9 drawn, 0 skipped" in out
+    # 2 + dy at mid-span, dy = 1.5 sin(2 pi t) at t = 0.1 ... 0.9
+    assert ("arrow length by frame: 2.882, 3.427, 3.427, 2.882, 2.000, 1.118, 0.573, "
+            "0.573, 1.118") in out

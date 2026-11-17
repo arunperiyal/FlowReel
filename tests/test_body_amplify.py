@@ -50,3 +50,4 @@ def test_refused_with_flow_layers_but_not_on_a_centreline():
         shot([{"type": "body", "amplify": 10},
               {"type": "glyphs", "where": {"points": [[0, 0, 0]]}, "direction": "velocity"}])
     shot([{"type": "iso", "field": "Q", "level": 0.1}, {"type": "centreline", "amplify": 50}])
+    shot([{"type": "iso", "field": "Q", "level": 0.1}, {"type": "body", "amplify": 1}])  # no-op

@@ -93,21 +93,22 @@ def from_dict(data, file: str | None = None) -> Shot:
         lights = parse_lights(data["lights"], check.at("lights"))
     items = check.at("layers").sequence(data["layers"], minimum=1)
     layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
-    _check_amplify(items, layers, check)
+    _check_amplify(layers, check)
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
                 size=size, crop=crop, background=background, antialias=antialias,
                 lights=lights, source_options=source_options, file=file)
 
 
-def _check_amplify(items, layers, check: Checker) -> None:
+def _check_amplify(layers, check: Checker) -> None:
     """``amplify`` on a ``body`` layer is refused in a shot that draws the flow: a body
     moved 50 times further than it went no longer matches the flow around it (plan
     Section 5.6). The ``centreline`` layer may amplify anywhere: it is a diagram."""
     flow = [i for i, layer in enumerate(layers) if layer.needs_flow]
     if not flow:
         return
-    for i, (spec, layer) in enumerate(zip(items, layers)):
-        if layer.name == "body" and "amplify" in spec:
+    for i, layer in enumerate(layers):
+        amp = layer.tracks.get("amplify") if layer.name == "body" else None
+        if amp is not None and not (amp.fixed and amp.at(0) == 1.0):
             raise check.at("layers", i, "amplify").error(
                 f"a body drawn amplified would not match the flow of layers[{flow[0]}] "
                 f"({layers[flow[0]].name}); amplify in a shot without flow layers, or use "

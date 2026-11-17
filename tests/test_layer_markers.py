@@ -50,3 +50,44 @@ def test_outline_width_opacity_tracks_and_errors():
         make("outline", bounds="domian")
     with pytest.raises(ConfigError, match=r"bounds.x: expected \[low, high\]"):
         make("outline", bounds={"x": [1, 0], "y": [0, 1], "z": [0, 1]})
+
+
+def glyph(**spec):
+    return make("glyphs", where={"face": "z-", "grid": [3, 2]}, **spec)
+
+
+def test_glyph_grid_on_a_face():
+    layer = glyph()
+    pts = layer.points(frame_for(layer).data)
+    assert pts.shape == (6, 3) and (pts[:, 2] == 0).all()
+    assert sorted(set(pts[:, 0].round(6))) == pytest.approx([-2 / 3, 0, 2 / 3])
+    assert sorted(set(pts[:, 1].round(6))) == pytest.approx([-0.5, 0.5])
+    hi = make("glyphs", where={"face": "x+", "grid": [1, 1], "in": {"x": [0, 2], "y": [0, 2], "z": [0, 4]}})
+    assert hi.points(frame_for(hi).data)[0] == pytest.approx((2, 1, 2))
+
+
+def test_glyph_points_and_fixed_direction_draw():
+    layer = make("glyphs", where={"points": [[0, 0, 0], [1, 1, 1]]}, direction=[0, 0, 2], size=0.5)
+    a = actors_of(layer)[0]
+    assert a.GetMapper().GetInput().GetNumberOfPoints() > 0
+    assert bounds_of(a)[5] == pytest.approx(1.5)         # tip of the arrow at z = 1 + 0.5
+
+
+def test_glyph_direction_follows_velocity():
+    layer = make("glyphs", where={"points": [[0.5, 0.0, 0.5]]}, direction="velocity", size=1.0)
+    assert layer.needs_flow
+    a = actors_of(layer, flow=True)[0]
+    b = bounds_of(a)
+    assert b[3] - b[2] > 0.9 and b[1] - b[0] < 0.3       # solid-body flow at +x is +y
+
+
+@pytest.mark.parametrize("where, msg", [
+    ({"face": "z-"}, "missing key 'grid'"),
+    ({"face": "w-", "grid": [2, 2]}, "where.face"),
+    ({"face": "z-", "grid": [2]}, "expected \\[n, m\\]"),
+    ({"points": [[0, 0]]}, r"points\[0\]: expected 3 numbers"),
+    ({"points": [[0, 0, 0]], "face": "z-"}, "either 'face'"),
+])
+def test_glyph_errors(where, msg):
+    with pytest.raises(ConfigError, match=msg):
+        make("glyphs", where=where)

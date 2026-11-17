@@ -61,8 +61,8 @@ class FrameData:
     """The data of one frame, as layers read it.
 
     ``crop`` is the shot's crop box (``None``: whole domain), ``flow`` the volume of the
-    frame's step (``UnstructuredGrid``; ``None`` when no layer needs it), ``source`` the source and ``step`` the step. ``body(name)`` gives a
-    wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
+    frame's step (``UnstructuredGrid``; ``None`` when no layer needs it), ``source`` the source and ``step`` the step.
+    ``body(name)`` gives a wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
     derived fields to ``flow`` the first time they are asked for.
     """
 
@@ -95,6 +95,7 @@ class Layer:
     name: str = ""
     options: tuple[Option, ...] = ()
     needs_flow: bool = False
+    allow_text: tuple[str, ...] = ()   # tracked options that may also be a plain word
 
     def __init__(self, tracks: dict, raw: dict):
         self.tracks = tracks   # option name -> Track (tracked options)
@@ -170,7 +171,8 @@ def build(spec, check: Checker) -> Layer:
                 continue
         else:
             value = spec[opt.name]
-        if not opt.track:
+        if not opt.track or (opt.kind == "vector" and isinstance(value, str)
+                             and opt.name in cls.allow_text):
             raw[opt.name] = value
             continue
         try:

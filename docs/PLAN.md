@@ -869,7 +869,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
 - [x] `glyphs`: arrows on a face of the domain or at points
 - [x] `markers3d`: `arrow3d`, `block`, `sphere`
-- [ ] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
+- [x] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
 - [ ] Docs: these layers, with an example on generated data
 
 **Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)

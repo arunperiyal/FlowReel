@@ -124,3 +124,36 @@ def test_marker_draws_and_errors():
     with pytest.raises(ValueError, match="zero vector"):
         z = mk(shape="arrow3d", direction=[0, 0, 0])
         z.mesh(z.values(0))
+
+
+def geo(**spec):
+    return make("geometry", body="grooved_cylinder", **spec)
+
+
+SMALL = {"span": 4.0, "samples": [41, 81]}
+
+
+def test_geometry_params_are_tracks_and_build():
+    layer = geo(params={**SMALL, "radius": {"from": 0.5, "to": 1.0, "frames": [0, 10], "ease": "linear"}})
+    v = layer.values(5)
+    assert v["params"]["radius"] == pytest.approx(0.75) and v["params"]["span"] == 4.0
+    bounds = layer.mesh(v).bounds
+    assert bounds[1] == pytest.approx(4.0, abs=1e-6) and bounds[3] == pytest.approx(0.75, abs=0.01)
+    small = layer.mesh(layer.values(0))
+    assert small.bounds[3] < bounds[3]
+
+
+def test_geometry_colour_by_array_draws():
+    layer = geo(params=SMALL, colour_by="groove", range=[0, 1])
+    assert actors_of(layer)
+    assert actors_of(geo(params=SMALL))
+
+
+@pytest.mark.parametrize("spec, msg", [
+    ({"body": "grooved_cylinde"}, "body: 'grooved_cylinde' is not allowed.*did you mean"),
+    ({"params": {"radus": 1}}, "params.radus: unknown key.*did you mean 'radius'"),
+    ({"params": {"radius": {"from": 1}}}, "params.radius: radius: missing key"),
+])
+def test_geometry_errors(spec, msg):
+    with pytest.raises(ConfigError, match=msg):
+        make("geometry", **{"body": "grooved_cylinder", **spec})

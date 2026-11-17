@@ -209,3 +209,70 @@ class Markers3d(Layer):
         v = frame.values
         plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"],
                          smooth_shading=True, specular=0.3)
+
+
+@register
+class GeometryLayer(Layer):
+    """A body built from a registered body function, its parameters tracks.
+
+    Options: ``body`` (name of a registered body, such as ``grooved_cylinder``,
+    required), ``params`` (mapping of the body's parameters to values or tracks; a
+    parameter not listed keeps the body's default), ``colour`` and ``opacity`` (tracks),
+    ``colour_by`` (a point array of the built surface, such as ``fresh`` for the carving
+    glow; with ``range`` and ``colormap`` for its values), ``specular`` (track).
+    Parameters are checked against the body's signature when the shot is read, so a
+    typo fails at once, not at the first frame. The surface is built every frame from
+    the tracks' values; the renderer caches it while they do not change.
+    """
+
+    name = "geometry"
+    options = (
+        Option("body", track=False, required=True),
+        Option("params", track=False, default=None),
+        Option("colour", "colour", default="#c8ccd0"),
+        Option("opacity", "number", default=1.0),
+        Option("specular", "number", default=0.4),
+        Option("colour_by", track=False),
+        Option("range", track=False, default=(0.0, 1.0)),
+        Option("colormap", track=False, default="fire_ice"),
+    )
+
+    @classmethod
+    def check(cls, raw, check):
+        check.at("body").choice(raw["body"], available_bodies())
+        params = check.at("params").mapping(raw.get("params") or {},
+                                            list(inspect.signature(get_body(raw["body"])).parameters))
+        raw["params"] = {}
+        raw["_param_tracks"] = {}
+        for key, spec in params.items():
+            try:
+                raw["_param_tracks"][key] = parse_track(spec, name=key)
+            except ValueError as exc:
+                raise check.at("params", key).wrap(exc) from None
+
+    def values(self, frame: float) -> dict:
+        """Every option's value, with ``params`` evaluated at ``frame``."""
+        out = super().values(frame)
+        out["params"] = {k: _plain(t.at(frame)) for k, t in self.raw["_param_tracks"].items()}
+        out.pop("_param_tracks", None)
+        return out
+
+    def mesh(self, v: dict) -> pv.PolyData:
+        """The body built with the frame's parameters."""
+        return get_body(v["body"])(**v["params"])
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        surf = self.mesh(v)
+        common = dict(smooth_shading=True, split_sharp_edges=True, opacity=v["opacity"],
+                      specular=v["specular"], specular_power=20, ambient=0.25)
+        if v.get("colour_by"):
+            plotter.add_mesh(surf, scalars=v["colour_by"], cmap=colormap(v["colormap"]),
+                             clim=list(v["range"]), show_scalar_bar=False, **common)
+        else:
+            plotter.add_mesh(surf, color=v["colour"], **common)
+
+
+def _plain(value):
+    """Tracks give tuples for vectors; bodies may want lists or numbers."""
+    return list(value) if isinstance(value, tuple) else value

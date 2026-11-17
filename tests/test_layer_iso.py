@@ -70,9 +70,10 @@ def test_clip_active_false_leaves_whole():
 
 
 def test_grow_reveals_along_an_axis():
-    _, f, half = surface_of({"grow_axis": "z", "grow": 0.5})
-    lo, hi = f.data.flow.bounds[4:6]
+    _, _, half = surface_of({"grow_axis": "z", "grow": 0.5})
+    lo, hi = surface_of({})[2].bounds[4:6]                  # the surface's own extent
     assert half.points[:, 2].max() <= lo + 0.5 * (hi - lo) + 1e-9
+    assert half.points[:, 2].max() >= lo + 0.4 * (hi - lo)
     assert surface_of({"grow_axis": "z", "grow": 0})[2].n_points == 0
     _, _, full = surface_of({"grow_axis": "z", "grow": 1})
     assert full.n_points == surface_of({})[2].n_points

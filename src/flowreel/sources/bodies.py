@@ -98,6 +98,9 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
         The surface with two point arrays, both from 0 to 1: ``groove`` (how far the
         point is cut, 1 on a groove floor) and ``fresh`` (1 just behind the front,
         fading to 0 over ``glow_length``; all 0 when fully carved), for colour and glow.
+        Field data ``cutters`` holds one point per groove where it meets the front, on
+        the uncut surface (``grooves x 3``), while ``0 <= cut_front <= span``; it is
+        absent otherwise. A layer can mark them (the geometry layer's ``markers``).
     """
     if not 0 <= depth < radius:
         raise ValueError("depth must be at least 0 and below radius")
@@ -130,7 +133,7 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
     grid["fresh"] = fresh.ravel(order="F")
     surface = outer_surface(grid)
     if not caps:
-        return surface
+        return _with_cutters(surface, cut_front, span, radius, grooves, turns, phase)
     parts = [surface]
     for end in (0, -1):
         ring = np.c_[np.full(n_theta - 1, x[end, 0]), r[end, :-1] * np.sin(theta[0, :-1]),
@@ -139,4 +142,16 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
         cap["groove"] = np.zeros(cap.n_points)
         cap["fresh"] = np.zeros(cap.n_points)
         parts.append(cap)
-    return pv.merge(parts, merge_points=False)
+    return _with_cutters(pv.merge(parts, merge_points=False), cut_front, span, radius,
+                         grooves, turns, phase)
+
+
+def _with_cutters(surface, front, span, radius, grooves, turns, phase):
+    """Add field data ``cutters`` (where each groove meets the carving front) while the
+    front is on the span and there are grooves."""
+    if front is not None and 0 <= front <= span and int(grooves) > 0:
+        a = np.array([groove_angle(front, k, span=span, grooves=grooves, turns=turns,
+                                   phase=phase) for k in range(int(grooves))])
+        surface.field_data["cutters"] = np.c_[np.full(len(a), front), radius * np.sin(a),
+                                              radius * np.cos(a)]
+    return surface

@@ -212,6 +212,10 @@ choice (the prototype baked colours into the mesh):
 - `fresh`: 1 just behind the cutting front, fading to 0 over `glow_length`; all 0 when
   `cut_front` is none. Use it for the glow behind the cutters.
 
+While the front is on the span (`0 <= cut_front <= span`), the surface also carries field
+data `cutters`: one point per groove where it meets the front, on the uncut radius. The
+geometry layer's `markers` draws the cutters there (see `docs/layers-markers.md`).
+
 `flowreel.sources.bodies.groove_angle(x, k, span=, grooves=, turns=, phase=)` gives the
 angle in radians of groove `k` at `x`, for placing a cutter or an arrow on a groove.
 

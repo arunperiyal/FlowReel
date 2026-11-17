@@ -61,7 +61,7 @@ class Iso(Layer):
         Option("clip_active", "boolean", default=True, doc="false: the surface is whole"),
         Option("grow_axis", "choice", default=None, choices=AXES,
                doc="axis along which the surface appears"),
-        Option("grow", "number", default=1.0, doc="fraction 0..1 of the flow's extent shown"),
+        Option("grow", "number", default=1.0, doc="fraction 0..1 of the surface's extent shown"),
         Option("grey", "number", default=0.0, doc="0..1: blend of the colours to grey_colour"),
         Option("grey_colour", "colour", default=MUTED),
     )
@@ -70,8 +70,7 @@ class Iso(Layer):
         """The contour at ``v['level']``, with the wall gap applied.
 
         It depends on the source, step, crop, field, level, colour field and gap only,
-        so the renderer's cache keeps it for a frozen shot (``FrameData.cached``). The
-        flow's bounds go with it as field data ``flow_bounds``, for ``grow``.
+        so the renderer's cache keeps it for a frozen shot (``FrameData.cached``).
         """
         data = frame.data
         parts = {"layer": "iso", **{k: v.get(k) for k in
@@ -85,7 +84,6 @@ class Iso(Layer):
                 wall = data.body(v.get("gap_body"))
                 mesh["gap"] = cKDTree(wall.points).query(mesh.points)[0]
                 mesh = mesh.clip_scalar(scalars="gap", value=v["wall_gap"], invert=False)
-            mesh.field_data["flow_bounds"] = np.asarray(data.flow.bounds, float)
             return mesh
 
         return data.cached(parts, build)
@@ -107,13 +105,18 @@ class Iso(Layer):
                          ambient=0.25, opacity=v["opacity"], show_scalar_bar=False)
 
     def finish(self, mesh, v, frame):
-        """Apply the clip plane, then the grow limit (along the flow's extent)."""
-        bounds = mesh.field_data["flow_bounds"] if "flow_bounds" in mesh.field_data else None
+        """Apply the clip plane, then the grow limit.
+
+        ``grow`` is a fraction of the whole surface's extent along ``grow_axis`` (taken
+        before the clip), so at 0.5 the surface reaches halfway from its upstream end to
+        its downstream end, wherever the flow box ends: the prototype's wake growth.
+        """
+        bounds = mesh.bounds
         if v.get("clip_axis") and v["clip_active"] and mesh.n_points:
             mesh = _cut(mesh, v["clip_axis"], v["clip_position"], v["clip_keep"])
         if v.get("grow_axis") and v["grow"] < 1 and mesh.n_points:
             k = "xyz".index(v["grow_axis"])
-            lo, hi = (frame.data.flow.bounds if bounds is None else bounds)[2 * k:2 * k + 2]
+            lo, hi = bounds[2 * k:2 * k + 2]
             mesh = _cut(mesh, v["grow_axis"], lo + v["grow"] * (hi - lo), "below") \
                 if v["grow"] > 0 else _empty(mesh)
         return mesh

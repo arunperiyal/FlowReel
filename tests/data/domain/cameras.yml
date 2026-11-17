@@ -1,0 +1,16 @@
+# Views of the domain shot. domain_wide is the prototype's domain_camera(): the main
+# view's direction, moved back 0.55 times the domain's diagonal over tan(15 deg) from the
+# domain's centre (tools/make_domain_data.py prints it).
+views:
+  - {name: domain_wide, position: [-78.45015434876665, 43.914080261358656, -40.60308334833399],
+     focal: [6, 0, 5], up: [0, 1, 0], view_angle: 30}
+  - {name: main, position: [-19, 13, -5], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+tracks:
+  # Held while the set-up is labelled (to 0.6 of the shot), then in to the main view.
+  domain:
+    path: linear
+    ease: smooth
+    keys:
+      - {frame: 0, view: domain_wide}
+      - {frame: 172.2, view: domain_wide}
+      - {frame: 287, view: main}

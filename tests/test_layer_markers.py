@@ -157,3 +157,54 @@ def test_geometry_colour_by_array_draws():
 def test_geometry_errors(spec, msg):
     with pytest.raises(ConfigError, match=msg):
         make("geometry", **{"body": "grooved_cylinder", **spec})
+
+
+def test_markers_and_glyphs_take_a_look_and_arrow_proportions():
+    import pyvista as pv
+    from flowreel.scene.errors import Checker
+    from flowreel.scene import layers as L
+    plain = L.build({"type": "markers3d", "shape": "arrow3d", "at": [0, 0, 0]}, Checker())
+    thin = L.build({"type": "markers3d", "shape": "arrow3d", "at": [0, 0, 0],
+                    "shaft_radius": 0.01, "tip_radius": 0.05, "ambient": 0.5,
+                    "specular": 0, "smooth": False}, Checker())
+    v0, v1 = plain.values(0), thin.values(0)
+    assert (v0["ambient"], v0["specular"], v0["smooth"]) == (0.0, 0.3, True)
+    assert plain.mesh(v0).volume > thin.mesh(v1).volume
+    glyphs = L.build({"type": "glyphs", "where": {"points": [[0, 0, 0]]}}, Checker())
+    assert glyphs.values(0)["specular"] == 0.0                # as before: no highlight
+    pl = pv.Plotter(off_screen=True)
+    thin.draw(pl, L.Frame(0, 0, 0.0, None, v1))
+    actor = next(iter(pl.renderer.actors.values()))
+    assert actor.prop.ambient == 0.5 and actor.prop.interpolation.name == "FLAT"
+    pl.close()
+
+
+def test_geometry_blend_markers_and_material():
+    import pyvista as pv
+    from flowreel.scene.errors import Checker, ConfigError
+    from flowreel.scene import layers as L
+    spec = {"type": "geometry", "body": "grooved_cylinder", "colour": "#000000",
+            "params": {"cut_front": 6.0, "samples": [61, 121]},
+            "blend": [{"array": "groove", "colour": "#ff0000", "weight": 0.5},
+                      {"array": "fresh", "colour": "#00ff00"}],
+            "markers": [{"points": "cutters", "radius": 0.06, "colour": "#ffd08a",
+                         "lighting": False}],
+            "specular_power": 30, "ambient": 0.18, "sharp_edges": False}
+    layer = L.build(spec, Checker())
+    v = layer.values(0)
+    surf = layer.mesh(v)
+    rgb = layer.blend(surf, v)
+    floor = np.asarray(surf["groove"]) == 1
+    assert (rgb[floor & (np.asarray(surf["fresh"]) == 0)] == [128, 0, 0]).all()   # half red
+    assert np.asarray(surf.field_data["cutters"]).shape == (4, 3)
+    assert np.allclose(surf.field_data["cutters"][:, 0], 6.0)
+    pl = pv.Plotter(off_screen=True)
+    layer.draw(pl, L.Frame(0, 0, 0.0, None, v))
+    assert len(pl.renderer.actors) == 2                      # the body and the cutters
+    pl.close()
+    whole = L.build({**spec, "params": {"samples": [61, 121]}}, Checker())
+    assert "cutters" not in whole.mesh(whole.values(0)).field_data   # fully carved: none
+    with pytest.raises(ConfigError, match="not both"):
+        L.build({**spec, "colour_by": "fresh"}, Checker())
+    with pytest.raises(ConfigError, match=r"markers\[0\]: missing key 'radius'"):
+        L.build({**spec, "markers": [{"points": "cutters"}]}, Checker())

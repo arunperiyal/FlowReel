@@ -75,8 +75,31 @@ class Outline(Layer):
 FACES = tuple(f"{a}{s}" for a in AXES for s in "-+")
 
 
-def _arrows(points, directions, length: float):
-    """Arrow glyphs at ``points`` along ``directions`` (not normalised: zero vectors skipped)."""
+def look_options(specular: float) -> tuple[Option, ...]:
+    """Options for the look of solid markers and arrows: the material and an arrow's
+    proportions (fractions of its length; pyvista's defaults). Shared by glyphs and
+    markers3d, each with its own default highlight."""
+    return (
+        Option("ambient", "number", default=0.0, doc="light the surface gives off, 0..1"),
+        Option("specular", "number", default=specular, doc="weight of the highlight"),
+        Option("smooth", "boolean", default=True, doc="smooth shading; false: flat faces"),
+        Option("tip_length", track=False, default=0.25, doc="arrow head length, fraction"),
+        Option("tip_radius", track=False, default=0.1, doc="arrow head radius, fraction"),
+        Option("shaft_radius", track=False, default=0.05, doc="arrow shaft radius, fraction"),
+    )
+
+
+def _arrow_shape(v) -> dict:
+    return {k: float(v[k]) for k in ("tip_length", "tip_radius", "shaft_radius")}
+
+
+def _look(v) -> dict:
+    return dict(smooth_shading=v["smooth"], specular=v["specular"], ambient=v["ambient"])
+
+
+def _arrows(points, directions, length: float, shape: dict | None = None):
+    """Arrow glyphs at ``points`` along ``directions`` (not normalised: zero vectors
+    skipped); ``shape`` holds the arrow's proportions."""
     d = np.asarray(directions, float)
     n = np.linalg.norm(d, axis=1)
     keep = n > 1e-12
@@ -84,7 +107,7 @@ def _arrows(points, directions, length: float):
     cloud["dir"] = d[keep] / n[keep][:, None]
     if not cloud.n_points:
         return None
-    return cloud.glyph(orient="dir", scale=False, factor=length, geom=pv.Arrow())
+    return cloud.glyph(orient="dir", scale=False, factor=length, geom=pv.Arrow(**(shape or {})))
 
 
 @register
@@ -97,7 +120,8 @@ class Glyphs(Layer):
     ``{points: [[x, y, z], ...]}``. ``direction`` is a vector track, or ``velocity`` to
     point along the local flow (needs the flow; arrows where the flow is zero are
     skipped). ``size`` is the arrow length (track, length unit), ``colour`` and
-    ``opacity`` are tracks.
+    ``opacity`` are tracks. ``ambient``, ``specular``, ``smooth`` and the arrow's
+    ``tip_length``, ``tip_radius`` and ``shaft_radius`` set its look.
     """
 
     name = "glyphs"
@@ -110,7 +134,7 @@ class Glyphs(Layer):
         Option("size", "number", default=1.0),
         Option("colour", "colour", default="#ffffff"),
         Option("opacity", "number", default=1.0),
-    )
+    ) + look_options(specular=0.0)
 
     def __init__(self, tracks, raw):
         super().__init__(tracks, raw)
@@ -162,9 +186,9 @@ class Glyphs(Layer):
     def draw(self, plotter, frame) -> None:
         v = frame.values
         pts = self.points(frame.data)
-        mesh = _arrows(pts, self.directions(pts, frame.data, v), v["size"])
+        mesh = _arrows(pts, self.directions(pts, frame.data, v), v["size"], _arrow_shape(v))
         if mesh is not None:
-            plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], smooth_shading=True)
+            plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], **_look(v))
 
 
 @register
@@ -177,7 +201,8 @@ class Markers3d(Layer):
     matter) and ``length`` (track); ``block`` takes ``size`` (vector track, edge lengths
     along x, y, z); ``sphere`` takes ``radius`` (track). Because every value is a track,
     a marker can move, turn or grow, and a ``series`` track (Phase 2B) can drive it.
-    One marker per layer; use several layers for several markers.
+    One marker per layer; use several layers for several markers. ``ambient``,
+    ``specular``, ``smooth`` and the arrow's proportions set the look, as for glyphs.
     """
 
     name = "markers3d"
@@ -192,7 +217,7 @@ class Markers3d(Layer):
         Option("length", "number", default=1.0),
         Option("size", "vector", default=(1.0, 1.0, 1.0)),
         Option("radius", "number", default=0.5),
-    )
+    ) + look_options(specular=0.3)
 
     def mesh(self, v: dict) -> pv.PolyData:
         """The marker's surface at the frame's values."""
@@ -207,12 +232,12 @@ class Markers3d(Layer):
         d = np.asarray(v["direction"], float)
         if not np.linalg.norm(d):
             raise ValueError("markers3d arrow3d: direction is the zero vector")
-        return pv.Arrow(start=at, direction=d / np.linalg.norm(d), scale=v["length"])
+        return pv.Arrow(start=at, direction=d / np.linalg.norm(d), scale=v["length"],
+                        **_arrow_shape(v))
 
     def draw(self, plotter, frame) -> None:
         v = frame.values
-        plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"],
-                         smooth_shading=True, specular=0.3)
+        plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"], **_look(v))
 
 
 @register
@@ -223,7 +248,14 @@ class GeometryLayer(Layer):
     required), ``params`` (mapping of the body's parameters to values or tracks; a
     parameter not listed keeps the body's default), ``colour`` and ``opacity`` (tracks),
     ``colour_by`` (a point array of the built surface, such as ``fresh`` for the carving
-    glow; with ``range`` and ``colormap`` for its values), ``specular`` (track).
+    glow; with ``range`` and ``colormap`` for its values), or ``blend`` (a list of
+    ``{array, colour, weight}``: each point's colour is ``colour`` plus, for each entry,
+    ``weight * array * (entry colour - colour)``, so a carved groove can take one colour
+    and a fresh cut another), ``specular``, ``specular_power`` and ``ambient``
+    (tracks), ``sharp_edges`` (false: shade across sharp edges, for steep but smooth
+    grooves), and ``markers`` (a list of ``{points, radius, colour, opacity, lighting}``:
+    a sphere at each point of the body's field data ``points``, such as the carving
+    ``cutters``).
     Parameters are checked against the body's signature when the shot is read, so a
     typo fails at once, not at the first frame. The surface is built every frame from
     the tracks' values; the renderer caches it while they do not change.
@@ -240,11 +272,45 @@ class GeometryLayer(Layer):
         Option("colour_by", track=False),
         Option("range", track=False, default=(0.0, 1.0)),
         Option("colormap", track=False, default="fire_ice"),
+        Option("blend", track=False, doc="[{array, colour, weight}, ...]: tint by point arrays"),
+        Option("specular_power", "number", default=20.0, doc="sharpness of the highlight"),
+        Option("ambient", "number", default=0.25),
+        Option("sharp_edges", "boolean", default=True, doc="false: smooth across sharp edges"),
+        Option("markers", track=False,
+               doc="[{points, radius, colour, opacity, lighting}, ...]: spheres at body points"),
     )
 
     @classmethod
     def check(cls, raw, check):
         check.at("body").choice(raw["body"], available_bodies())
+        if raw.get("blend") is not None:
+            if raw.get("colour_by"):
+                raise check.at("blend").error("give colour_by or blend, not both")
+            items = check.at("blend").sequence(raw["blend"], 1)
+            raw["blend"] = []
+            for i, item in enumerate(items):
+                where = check.at("blend", i)
+                item = where.mapping(item, ("array", "colour", "weight"),
+                                     required=("array", "colour"))
+                raw["blend"].append({"array": where.at("array").string(item["array"]),
+                                     "colour": _colour(item["colour"], where.at("colour")),
+                                     "weight": where.at("weight").number(item.get("weight", 1.0))})
+        if raw.get("markers") is not None:
+            items = check.at("markers").sequence(raw["markers"], 1)
+            raw["markers"] = []
+            for i, item in enumerate(items):
+                where = check.at("markers", i)
+                item = where.mapping(item, ("points", "radius", "colour", "opacity", "lighting"),
+                                     required=("points", "radius"))
+                lighting = item.get("lighting", True)
+                if not isinstance(lighting, bool):
+                    raise where.at("lighting").error(f"expected true or false, got {lighting!r}")
+                raw["markers"].append({
+                    "points": where.at("points").string(item["points"]),
+                    "radius": where.at("radius").number(item["radius"]),
+                    "colour": _colour(item.get("colour", "#ffffff"), where.at("colour")),
+                    "opacity": where.at("opacity").number(item.get("opacity", 1.0)),
+                    "lighting": lighting})
         params = check.at("params").mapping(raw.get("params") or {},
                                             list(inspect.signature(get_body(raw["body"])).parameters))
         raw["params"] = {}
@@ -269,13 +335,54 @@ class GeometryLayer(Layer):
     def draw(self, plotter, frame) -> None:
         v = frame.values
         surf = self.mesh(v)
-        common = dict(smooth_shading=True, split_sharp_edges=True, opacity=v["opacity"],
-                      specular=v["specular"], specular_power=20, ambient=0.25)
+        common = dict(smooth_shading=True, split_sharp_edges=v["sharp_edges"],
+                      opacity=v["opacity"], specular=v["specular"],
+                      specular_power=v["specular_power"], ambient=v["ambient"])
         if v.get("colour_by"):
             plotter.add_mesh(surf, scalars=v["colour_by"], cmap=colormap(v["colormap"]),
                              clim=list(v["range"]), show_scalar_bar=False, **common)
+        elif v.get("blend"):
+            surf["rgb"] = self.blend(surf, v)
+            plotter.add_mesh(surf, scalars="rgb", rgb=True, show_scalar_bar=False, **common)
         else:
             plotter.add_mesh(surf, color=v["colour"], **common)
+        for m in v.get("markers") or ():
+            spheres = self.markers(surf, m)
+            if spheres is not None:
+                plotter.add_mesh(spheres, color=m["colour"], opacity=m["opacity"],
+                                 lighting=m["lighting"])
+
+    @staticmethod
+    def blend(surf, v) -> np.ndarray:
+        """Point colours (uint8 RGB) of ``colour`` tinted by the ``blend`` entries."""
+        base = np.asarray(v["colour"], float)
+        rgb = np.tile(base, (surf.n_points, 1))
+        for b in v["blend"]:
+            if b["array"] not in surf.point_data:
+                raise ValueError(f"layer geometry: blend array {b['array']!r} is not on the body "
+                                 f"(it has: {', '.join(surf.point_data.keys())})")
+            amount = b["weight"] * np.asarray(surf[b["array"]], float)[:, None]
+            rgb += amount * (np.asarray(b["colour"]) - base)
+        return np.rint(np.clip(rgb, 0, 1) * 255).astype(np.uint8)
+
+    @staticmethod
+    def markers(surf, m):
+        """Spheres at the points of field data ``m['points']``, or ``None`` when the body
+        has none at this frame (the cutters exist only while the front is on the span)."""
+        if m["points"] not in surf.field_data:
+            return None
+        pts = np.asarray(surf.field_data[m["points"]], float).reshape(-1, 3)
+        if not len(pts):
+            return None
+        return pv.merge([pv.Sphere(radius=m["radius"], center=p) for p in pts])
+
+
+def _colour(value, check: Checker) -> tuple:
+    from flowreel.tracks import parse_colour
+    try:
+        return tuple(parse_colour(value))
+    except ValueError as exc:
+        raise check.wrap(exc) from None
 
 
 def _plain(value):

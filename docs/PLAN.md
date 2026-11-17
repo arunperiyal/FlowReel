@@ -889,10 +889,10 @@ session. One commit per task; tick the box in that commit.
 - [x] Help text; docs: commands page
 
 **Branch 7: `phase2/golden-shots`** (the check; needs all the others)
-- [ ] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
-- [ ] Golden carving frame drawn by the prototype's `render_carve.py`
-- [ ] Shot files for the domain and carving shots; `examples/` shot on generated data
-- [ ] Image-difference tests of the three shots through `shot render`
+- [x] Small domain data and a golden domain frame drawn by the prototype's `render_frozen.py`
+- [x] Golden carving frame drawn by the prototype's `render_carve.py`
+- [x] Shot files for the domain and carving shots; `examples/` shot on generated data
+- [x] Image-difference tests of the three shots through `shot render`
 
 Left out of Phase 2: the `pathlines` layer (no shot of the reference film uses it, and it
 needs every step saved), `dimension3d` and `label3d` (they draw text, so they come with
@@ -900,7 +900,9 @@ Phase 4's text and Phase 6's anchored annotations), ambient occlusion, and `--sl
 `--submit` (Phase 5).
 
 **Phase 2 is done when** the reveal, domain and carving shots, each rendered from a shot
-file by `flowreel shot render`, match the golden frames.
+file by `flowreel shot render`, match the golden frames. **Done 2026-11-17:** all three match
+(`tests/test_golden_shots.py`): mean differences 0.08, 0.006 and 0.05 grey levels under
+OSMesa, and a nearby frame of each fails the same limits.
 
 ### 19.3 Phase 2B tasks
 

@@ -854,7 +854,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `fit`: along a view's direction, far enough to show a box
 - [x] `follow`: focal point on a body's centre at a station
 - [x] Lights: default kit, `raking`, or a list
-- [ ] Projection of model points to the screen, with exact tests
+- [x] Projection of model points to the screen, with exact tests
 - [ ] Docs: cameras page
 
 **Branch 3: `phase2/layers-flow`** (layers that draw the flow; needs branch 1)

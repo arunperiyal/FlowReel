@@ -1,0 +1,119 @@
+"""The shot file (plan Section 7.1): one YAML file describes one shot.
+
+.. code-block:: yaml
+
+    name: bare_reveal
+    source: flexflow:bare/BR0SG0U1P0
+    time: {steps: [5000, 5600], every: 5}
+    camera: {view: main}
+    size: [1920, 1080]
+    crop: {x: [-1, 13], y: [-6, 6], z: [-2, 25]}
+    background: black
+    antialias: ssaa
+    layers: [...]
+
+:func:`load` reads a file, :func:`from_dict` an already parsed mapping. Both return a
+:class:`Shot` or raise :class:`~flowreel.scene.errors.ConfigError`.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
+
+from flowreel.box import Box
+from flowreel.scene.errors import Checker, ConfigError
+
+KEYS = ("name", "source", "time", "camera", "size", "crop", "background", "antialias",
+        "layers")
+REQUIRED = ("name", "source", "time", "layers")
+ANTIALIAS = ("none", "fxaa", "ssaa")
+DEFAULT_SIZE = (1920, 1080)
+
+
+@dataclass
+class Shot:
+    """A parsed shot file.
+
+    ``source`` is ``(adapter, location)``, from ``adapter:location``. ``time`` and
+    ``camera`` hold the mapping as written; the frame plan and the camera code read
+    them. ``size`` is ``(width, height)`` in pixels. ``crop`` is the box read from the
+    source, or ``None`` for the whole domain. ``layers`` are built layer objects, bottom
+    first. Lengths are in the source's unit.
+    """
+
+    name: str
+    source: tuple[str, str]
+    time: dict
+    layers: list
+    camera: dict = field(default_factory=dict)
+    size: tuple[int, int] = DEFAULT_SIZE
+    crop: Box | None = None
+    background: str | list = "black"
+    antialias: str = "ssaa"
+    file: str | None = None
+
+
+def load(path: str | Path) -> Shot:
+    """Read the shot file at ``path``. Errors name the file."""
+    path = Path(path)
+    try:
+        data = yaml.safe_load(path.read_text())
+    except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
+        where = f"line {mark.line + 1}" if mark else "syntax"
+        raise ConfigError(f"{where}: {getattr(exc, 'problem', None) or exc}", path) from None
+    return from_dict(data, file=str(path))
+
+
+def from_dict(data, file: str | None = None) -> Shot:
+    """Check ``data`` (a parsed YAML mapping) and build the :class:`Shot`."""
+    from flowreel.scene import layers as layer_mod  # late: layer types register on import
+    check = Checker(file)
+    data = check.mapping(data, KEYS, REQUIRED)
+    name = check.at("name").string(data["name"])
+    source = _source(data["source"], check.at("source"))
+    time = check.at("time").mapping(data["time"], _TIME_KEYS)
+    camera = check.at("camera").mapping(data.get("camera", {}), _CAMERA_KEYS)
+    size = _size(data.get("size", DEFAULT_SIZE), check.at("size"))
+    crop = _crop(data.get("crop"), check.at("crop"))
+    background = data.get("background", "black")
+    antialias = check.at("antialias").choice(data.get("antialias", "ssaa"), ANTIALIAS)
+    items = check.at("layers").sequence(data["layers"], minimum=1)
+    layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
+    return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
+                size=size, crop=crop, background=background, antialias=antialias, file=file)
+
+
+# Keys of the sub-mappings. Time is read by scene.plan; camera keys grow with the views
+# and follow/fit work (plan Section 7.4).
+_TIME_KEYS = ("steps", "every", "frozen", "frames", "keys", "ease")
+_CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "follow", "station",
+                "motion")
+
+
+def _source(value, check: Checker) -> tuple[str, str]:
+    text = check.string(value)
+    adapter, sep, location = text.partition(":")
+    if not sep or not adapter or not location:
+        raise check.error(f"expected 'adapter:location' (for example flexflow:bare/BR0SG0U1P0), got {text!r}")
+    return adapter, location
+
+
+def _size(value, check: Checker) -> tuple[int, int]:
+    items = check.sequence(value)
+    if len(items) != 2:
+        raise check.error(f"expected [width, height], got {len(items)} entries")
+    return tuple(check.at(i).integer(v, minimum=1) for i, v in enumerate(items))
+
+
+def _crop(value, check: Checker) -> Box | None:
+    if value is None:
+        return None
+    crop = check.mapping(value, ("x", "y", "z"), required=("x", "y", "z"))
+    ranges = [check.at(a).numbers(crop[a], 2) for a in "xyz"]
+    for axis, (lo, hi) in zip("xyz", ranges):
+        if lo >= hi:
+            raise check.at(axis).error(f"expected [low, high] with low < high, got [{lo}, {hi}]")
+    return Box(lo=tuple(r[0] for r in ranges), hi=tuple(r[1] for r in ranges))

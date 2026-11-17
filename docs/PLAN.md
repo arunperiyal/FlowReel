@@ -985,7 +985,7 @@ and can be built at any time before branch 9.
 
 **Branch 4: `phase2b/tracks-series`** (needs branch 1)
 - [x] Series track: value at the frame's time, `column`, `scale`, `offset`; `station` for a history at many points
-- [ ] `centreline` layer from the surface: tube, colour by a value per station
+- [x] `centreline` layer from the surface: tube, colour by a value per station
 - [ ] `centreline` from probes; `amplify`, rest line, envelope
 - [ ] `amplify` on a `body` layer, refused in shots with flow layers
 - [ ] Tests with exact values; docs

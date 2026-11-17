@@ -28,7 +28,8 @@ class Option:
     ``kind`` is a track kind (``number``, ``vector``, ``colour``, ``boolean``, ``choice``)
     or ``None`` to infer it. ``default`` is used when the key is absent; ``required``
     options have none. ``track=False`` keeps the raw YAML value. ``choices`` limits a
-    ``choice``. ``doc`` is the line the reference and ``shot template`` print.
+    ``choice``. ``pixels`` marks a size in pixels (a line width), which a draft render
+    scales with the picture. ``doc`` is the line the reference and ``shot template`` print.
     """
 
     name: str
@@ -37,6 +38,7 @@ class Option:
     required: bool = False
     track: bool = True
     choices: tuple = ()
+    pixels: bool = False
     doc: str = ""
 
 

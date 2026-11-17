@@ -877,7 +877,7 @@ session. One commit per task; tick the box in that commit.
 - [x] `scene.render_frame(shot, frame)` and `scene.render(shot, ...)`: a process per frame, `jobs`, threads per job
 - [x] Frame keys (Section 11): frames are skipped unless their key changed; `force`
 - [x] Frozen shots contour once and cache the surfaces
-- [ ] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
+- [x] Draft size: `scale` and `size`, frames in `frames/<shot>@<W>x<H>/` (Section 7.5)
 - [ ] Memory of one frame measured, and the safe number of jobs
 - [ ] Tests on generated data; docs: rendering and caching
 

@@ -59,7 +59,9 @@ def _as_shot(shot) -> Shot:
 class Scene:
     """Everything needed to draw any frame of a shot, made once per render.
 
-    Build with :meth:`make`. ``size`` is the picture's ``(width, height)``.
+    Build with :meth:`make`. ``size`` is the picture's ``(width, height)``; when it
+    differs from the shot's (a draft), :meth:`values` scales the options given in pixels
+    by the ratio of the heights, so lines keep their look.
     """
 
     shot: Shot
@@ -82,6 +84,23 @@ class Scene:
         surfaces = SurfaceCache(cache, shot.source) if cache is not None and fp.frozen else None
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces)
 
+    @property
+    def pixel_scale(self) -> float:
+        """Picture height over the shot's height: 1 at full size, 0.5 for half."""
+        return self.size[1] / self.shot.size[1]
+
+    def values(self, index: int) -> list[dict]:
+        """Every layer's option values at frame ``index``, pixel sizes scaled."""
+        out = []
+        for layer in self.shot.layers:
+            v = layer.values(index)
+            if self.pixel_scale != 1:
+                for opt in layer.options:
+                    if opt.pixels and v.get(opt.name) is not None:
+                        v[opt.name] = v[opt.name] * self.pixel_scale
+            out.append(v)
+        return out
+
     def data(self, index: int) -> FrameData:
         """The data of frame ``index`` (flow read on first use)."""
         return FrameData(self.source, self.plan.time.step(index), crop=self.shot.crop,
@@ -92,7 +111,8 @@ class Scene:
         import pyvista as pv
         if not 0 <= index < self.plan.n_frames:
             raise IndexError(f"frame {index} is outside 0..{self.plan.n_frames - 1}")
-        shot, frame = self.shot, self.plan.frame(index)
+        shot, step = self.shot, self.plan.time.step(index)
+        time = self.plan.times[step]
         data = self.data(index)
         view = self.camera.view(index, data)
         plotter = pv.Plotter(off_screen=True, window_size=list(self.size))
@@ -103,24 +123,54 @@ class Scene:
                 apply_lights(plotter, shot.lights, view)
             if shot.antialias != "none":
                 plotter.enable_anti_aliasing(shot.antialias)
-            for layer, values in zip(shot.layers, frame.values):
-                layer.draw(plotter, Frame(frame.index, frame.step, frame.time, data, values))
+            for layer, values in zip(shot.layers, self.values(index)):
+                layer.draw(plotter, Frame(index, step, time, data, values))
             return np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
         finally:
             plotter.close()
 
 
+def draft_size(shot_size: tuple[int, int], scale: float | None = None,
+               size: tuple[int, int] | None = None) -> tuple[int, int]:
+    """The picture size of a render: the shot's, ``size``, or the shot's times ``scale``.
+
+    A scaled size is rounded to even numbers of pixels (at least 2), because video
+    encoders need even sides. Give ``scale`` or ``size``, not both.
+    """
+    if scale is not None and size is not None:
+        raise ValueError("give scale or size, not both")
+    if size is not None:
+        w, h = (int(x) for x in size)
+        if w < 1 or h < 1:
+            raise ValueError(f"size must be positive, got {w} x {h}")
+        return w, h
+    if scale is None:
+        return tuple(shot_size)
+    if not scale > 0:
+        raise ValueError(f"scale must be positive, got {scale}")
+    return tuple(max(2, 2 * round(n * scale / 2)) for n in shot_size)
+
+
+def frame_folder(out: str | Path, shot: Shot, size: tuple[int, int]) -> Path:
+    """``out/<shot>`` at the shot's size, ``out/<shot>@<W>x<H>`` for a draft, so draft
+    frames never mix with the full-size ones (plan Section 7.5)."""
+    name = shot.name if tuple(size) == tuple(shot.size) else f"{shot.name}@{size[0]}x{size[1]}"
+    return Path(out) / name
+
+
 def render_frame(shot, frame: int, source=None, *, views=None, tracks=None,
-                 size: tuple[int, int] | None = None, backend: str = "auto") -> np.ndarray:
+                 size: tuple[int, int] | None = None, scale: float | None = None,
+                 backend: str = "auto") -> np.ndarray:
     """Draw frame ``frame`` (0-based) of ``shot`` in this process.
 
     ``shot`` is a :class:`~flowreel.scene.shot.Shot` or a shot file path; ``source``
     defaults to the shot's own (:func:`open_source`); ``views`` and ``tracks`` to the
-    ``cameras.yml`` beside the shot file; ``size`` (``(width, height)``) to the shot's.
-    ``backend`` is chosen as in :func:`render`, so a frame drawn here and the same frame
+    ``cameras.yml`` beside the shot file. ``size`` (``(width, height)``) or ``scale``
+    draws a draft (:func:`draft_size`); by default the shot's size. ``backend`` is chosen as in :func:`render`, so a frame drawn here and the same frame
     drawn by a render are the same picture. Returns ``(height, width, 3)`` uint8.
     """
-    scene = Scene.make(shot, source, views, tracks, size)
+    shot = _as_shot(shot)
+    scene = Scene.make(shot, source, views, tracks, draft_size(shot.size, scale, size))
     with _environment(backend_mod.environment(backend_mod.choose(backend))):
         return scene.draw(frame)
 
@@ -160,12 +210,15 @@ def default_threads(jobs: int) -> int:
 def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None,
            tracks=None, out: str | Path = "frames", jobs: int = 1,
            threads: int | None = None, backend: str = "auto", force: bool = False,
+           scale: float | None = None, size: tuple[int, int] | None = None,
            processes: bool = True, progress: Callable[[FrameResult], None] | None = None) -> RenderReport:
     """Render ``frames`` (default all) of ``shot`` to PNG files.
 
     Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
     drawn with the same key (plan Section 11, :mod:`flowreel.scene.keys`) is skipped;
-    ``force`` draws every frame asked for again. ``jobs`` frames are drawn at a time,
+    ``force`` draws every frame asked for again. ``scale`` or ``size`` draws a draft:
+    the same shot with fewer pixels (:func:`draft_size`), into ``out/<shot>@<W>x<H>/``.
+    ``jobs`` frames are drawn at a time,
     each in its own process (``processes=False`` draws them here, one by one, for
     debugging). ``threads`` caps the threads of each job (default
     :func:`default_threads`). ``backend`` is one of
@@ -175,10 +228,12 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     """
     if jobs < 1:
         raise ValueError(f"jobs must be at least 1, got {jobs}")
+    shot = _as_shot(shot)
+    size = draft_size(shot.size, scale, size)
     cache = Path(out) / CACHE_FOLDER
-    scene = Scene.make(shot, source, views, tracks, cache=cache)
-    indices = _frames(frames, scene.plan.n_frames, scene.shot)
-    folder = Path(out) / scene.shot.name
+    scene = Scene.make(shot, source, views, tracks, size, cache=cache)
+    indices = _frames(frames, scene.plan.n_frames, shot)
+    folder = frame_folder(out, shot, size)
     folder.mkdir(parents=True, exist_ok=True)
     threads = threads or default_threads(jobs)
     chosen = backend_mod.choose(backend)
@@ -206,7 +261,7 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
             for i in todo:
                 done(_draw_to_file(scene, i, folder / FRAME_NAME.format(i)))
         elif todo:
-            job = _Job(scene.shot, source, views, tracks, str(cache))
+            job = _Job(shot, source, views, tracks, size, str(cache))
             ctx = multiprocessing.get_context("spawn")
             # A frozen shot draws its first frame alone, so that it fills the surface
             # cache and the other jobs read it instead of all contouring at once.
@@ -240,11 +295,12 @@ class _Job:
     source: object
     views: dict | None
     tracks: dict | None
+    size: tuple[int, int]
     cache: str | None = None
 
 
 def _worker(job: _Job, index: int, path: str) -> FrameResult:
-    scene = Scene.make(job.shot, job.source, job.views, job.tracks, cache=job.cache)
+    scene = Scene.make(job.shot, job.source, job.views, job.tracks, job.size, cache=job.cache)
     result = _draw_to_file(scene, index, Path(path))
     result.peak_bytes = peak_memory()
     return result

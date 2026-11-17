@@ -214,7 +214,7 @@ class BodyLayer(Layer):
         Option("colormap", track=False, default="fire_ice"),
         Option("zero_contour", "boolean", default=False),
         Option("zero_colour", "colour", default="#ffffff"),
-        Option("zero_width", "number", default=2.0),
+        Option("zero_width", "number", default=2.0, pixels=True),
     )
     needs_flow = False
 

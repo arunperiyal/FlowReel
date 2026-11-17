@@ -71,9 +71,10 @@ def centreline(surface, axis: str, stations=None, count: int = 33,
 def diameter(surface, axis: str | None = None, count: int = 9, slab: float | None = None) -> float:
     """The body's diameter.
 
-    With ``axis``: the median over ``count`` sections of twice the mean distance of a
+    With ``axis``: the median over ``count`` sections of twice the median distance of a
     section's points from its own axis (a line fitted through the section, so a bent
-    body's tilt does not widen it); the median makes ends and grooves count for little.
+    body's tilt does not widen it). Medians, so grooves and strakes, which cover less
+    than half the circumference, and the ends count for little: it is the bare body's.
     Without: the smallest extent of the bounding box.
     """
     pts = _points(surface)
@@ -85,7 +86,7 @@ def diameter(surface, axis: str | None = None, count: int = 9, slab: float | Non
 
 
 def _radius(cut: np.ndarray, k: int) -> float:
-    """Mean distance of the points of a section from a line fitted through it."""
+    """Median distance of the points of a section from a line fitted through it."""
     along = cut[:, k]
     resid = []
     for j in (i for i in range(3) if i != k):
@@ -94,7 +95,7 @@ def _radius(cut: np.ndarray, k: int) -> float:
         else:
             fit = cut[:, j].mean()
         resid.append(cut[:, j] - fit)
-    return float(np.mean(np.hypot(*resid)))
+    return float(np.median(np.hypot(*resid)))
 
 
 def long_axis(surface, ratio: float = 3.0) -> str | None:

@@ -937,7 +937,7 @@ branch 5 needs branch 4.
 - [x] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
 - [x] Body names resolved through `bodies:` (`zone`, default the name) for layers, `follow` and wall fields; one declared body may go unnamed (layers already take the source's zone names)
 - [x] A body's centreline and diameter from the surface; `follow` takes `axis` from the declaration (the centre at a station is `framing.body_centre`, from Phase 2)
-- [ ] `project init` writes `bodies:` from the source's surface zones, supports left to fill
+- [x] `project init` writes `bodies:` from the source's surface zones, supports left to fill
 - [ ] Docs: bodies page
 
 **Branch 2: `phase2b/series-csv`** (time histories; needs branch 1)

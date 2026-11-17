@@ -59,6 +59,22 @@ One solid marker at a position; use one layer per marker.
 `at` is the arrow's tail, or the centre of a block or sphere. The length of `direction`
 does not matter; a zero `direction` is an error.
 
+### Look of `glyphs` and `markers3d`
+
+Both take the same options for their material and, for arrows, their proportions.
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `ambient` | track, 0 to 1: light the surface gives off, so its shadowed side stays visible | `0` | `0.5` |
+| `specular` | track: weight of the highlight | `0` (glyphs), `0.3` (markers3d) | `0` |
+| `smooth` | track, boolean: smooth shading; `false` shades each face flat, as a block should look | `true` | `false` |
+| `tip_length` | arrow head length, fraction of the arrow | `0.25` | `0.3` |
+| `tip_radius` | arrow head radius, fraction of the arrow | `0.1` | `0.12` |
+| `shaft_radius` | arrow shaft radius, fraction of the arrow | `0.05` | `0.04` |
+
+A long arrow with the default proportions has a thick shaft; the domain shot's motion
+arrow (3.5 D long) uses `tip_length: 0.18, tip_radius: 0.08, shaft_radius: 0.03`.
+
 ## `geometry`
 
 A body built from a registered body function (`docs/sources.md`), with its parameters as

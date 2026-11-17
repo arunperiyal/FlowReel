@@ -35,8 +35,10 @@ An isosurface of `field` at `level`.
   high rotation wrapped round a wall, which is not part of the wake.
 - **Clip** keeps one side of the plane `axis = clip_position`. `clip_active: false` shows
   the surface whole.
-- **`grow`** shows the part of the surface up to that fraction of the flow's extent along
-  `grow_axis`, so a wake appears to travel downstream.
+- **`grow`** shows the part of the surface up to that fraction of the surface's own
+  extent along `grow_axis` (measured before any clip), so a wake appears to travel
+  downstream from its upstream end and is whole at 1, wherever the flow box ends. This
+  is the prototype's wake growth in the domain shot.
 - **`grey`** blends the colours to `grey_colour` in display (sRGB) values, as the
   prototype does.
 

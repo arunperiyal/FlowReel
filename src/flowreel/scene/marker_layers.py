@@ -75,8 +75,31 @@ class Outline(Layer):
 FACES = tuple(f"{a}{s}" for a in AXES for s in "-+")
 
 
-def _arrows(points, directions, length: float):
-    """Arrow glyphs at ``points`` along ``directions`` (not normalised: zero vectors skipped)."""
+def look_options(specular: float) -> tuple[Option, ...]:
+    """Options for the look of solid markers and arrows: the material and an arrow's
+    proportions (fractions of its length; pyvista's defaults). Shared by glyphs and
+    markers3d, each with its own default highlight."""
+    return (
+        Option("ambient", "number", default=0.0, doc="light the surface gives off, 0..1"),
+        Option("specular", "number", default=specular, doc="weight of the highlight"),
+        Option("smooth", "boolean", default=True, doc="smooth shading; false: flat faces"),
+        Option("tip_length", track=False, default=0.25, doc="arrow head length, fraction"),
+        Option("tip_radius", track=False, default=0.1, doc="arrow head radius, fraction"),
+        Option("shaft_radius", track=False, default=0.05, doc="arrow shaft radius, fraction"),
+    )
+
+
+def _arrow_shape(v) -> dict:
+    return {k: float(v[k]) for k in ("tip_length", "tip_radius", "shaft_radius")}
+
+
+def _look(v) -> dict:
+    return dict(smooth_shading=v["smooth"], specular=v["specular"], ambient=v["ambient"])
+
+
+def _arrows(points, directions, length: float, shape: dict | None = None):
+    """Arrow glyphs at ``points`` along ``directions`` (not normalised: zero vectors
+    skipped); ``shape`` holds the arrow's proportions."""
     d = np.asarray(directions, float)
     n = np.linalg.norm(d, axis=1)
     keep = n > 1e-12
@@ -84,7 +107,7 @@ def _arrows(points, directions, length: float):
     cloud["dir"] = d[keep] / n[keep][:, None]
     if not cloud.n_points:
         return None
-    return cloud.glyph(orient="dir", scale=False, factor=length, geom=pv.Arrow())
+    return cloud.glyph(orient="dir", scale=False, factor=length, geom=pv.Arrow(**(shape or {})))
 
 
 @register
@@ -97,7 +120,8 @@ class Glyphs(Layer):
     ``{points: [[x, y, z], ...]}``. ``direction`` is a vector track, or ``velocity`` to
     point along the local flow (needs the flow; arrows where the flow is zero are
     skipped). ``size`` is the arrow length (track, length unit), ``colour`` and
-    ``opacity`` are tracks.
+    ``opacity`` are tracks. ``ambient``, ``specular``, ``smooth`` and the arrow's
+    ``tip_length``, ``tip_radius`` and ``shaft_radius`` set its look.
     """
 
     name = "glyphs"
@@ -110,7 +134,7 @@ class Glyphs(Layer):
         Option("size", "number", default=1.0),
         Option("colour", "colour", default="#ffffff"),
         Option("opacity", "number", default=1.0),
-    )
+    ) + look_options(specular=0.0)
 
     def __init__(self, tracks, raw):
         super().__init__(tracks, raw)
@@ -162,9 +186,9 @@ class Glyphs(Layer):
     def draw(self, plotter, frame) -> None:
         v = frame.values
         pts = self.points(frame.data)
-        mesh = _arrows(pts, self.directions(pts, frame.data, v), v["size"])
+        mesh = _arrows(pts, self.directions(pts, frame.data, v), v["size"], _arrow_shape(v))
         if mesh is not None:
-            plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], smooth_shading=True)
+            plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], **_look(v))
 
 
 @register
@@ -177,7 +201,8 @@ class Markers3d(Layer):
     matter) and ``length`` (track); ``block`` takes ``size`` (vector track, edge lengths
     along x, y, z); ``sphere`` takes ``radius`` (track). Because every value is a track,
     a marker can move, turn or grow, and a ``series`` track (Phase 2B) can drive it.
-    One marker per layer; use several layers for several markers.
+    One marker per layer; use several layers for several markers. ``ambient``,
+    ``specular``, ``smooth`` and the arrow's proportions set the look, as for glyphs.
     """
 
     name = "markers3d"
@@ -192,7 +217,7 @@ class Markers3d(Layer):
         Option("length", "number", default=1.0),
         Option("size", "vector", default=(1.0, 1.0, 1.0)),
         Option("radius", "number", default=0.5),
-    )
+    ) + look_options(specular=0.3)
 
     def mesh(self, v: dict) -> pv.PolyData:
         """The marker's surface at the frame's values."""
@@ -207,12 +232,12 @@ class Markers3d(Layer):
         d = np.asarray(v["direction"], float)
         if not np.linalg.norm(d):
             raise ValueError("markers3d arrow3d: direction is the zero vector")
-        return pv.Arrow(start=at, direction=d / np.linalg.norm(d), scale=v["length"])
+        return pv.Arrow(start=at, direction=d / np.linalg.norm(d), scale=v["length"],
+                        **_arrow_shape(v))
 
     def draw(self, plotter, frame) -> None:
         v = frame.values
-        plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"],
-                         smooth_shading=True, specular=0.3)
+        plotter.add_mesh(self.mesh(v), color=v["colour"], opacity=v["opacity"], **_look(v))
 
 
 @register

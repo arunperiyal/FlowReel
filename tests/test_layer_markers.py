@@ -157,3 +157,23 @@ def test_geometry_colour_by_array_draws():
 def test_geometry_errors(spec, msg):
     with pytest.raises(ConfigError, match=msg):
         make("geometry", **{"body": "grooved_cylinder", **spec})
+
+
+def test_markers_and_glyphs_take_a_look_and_arrow_proportions():
+    import pyvista as pv
+    from flowreel.scene.errors import Checker
+    from flowreel.scene import layers as L
+    plain = L.build({"type": "markers3d", "shape": "arrow3d", "at": [0, 0, 0]}, Checker())
+    thin = L.build({"type": "markers3d", "shape": "arrow3d", "at": [0, 0, 0],
+                    "shaft_radius": 0.01, "tip_radius": 0.05, "ambient": 0.5,
+                    "specular": 0, "smooth": False}, Checker())
+    v0, v1 = plain.values(0), thin.values(0)
+    assert (v0["ambient"], v0["specular"], v0["smooth"]) == (0.0, 0.3, True)
+    assert plain.mesh(v0).volume > thin.mesh(v1).volume
+    glyphs = L.build({"type": "glyphs", "where": {"points": [[0, 0, 0]]}}, Checker())
+    assert glyphs.values(0)["specular"] == 0.0                # as before: no highlight
+    pl = pv.Plotter(off_screen=True)
+    thin.draw(pl, L.Frame(0, 0, 0.0, None, v1))
+    actor = next(iter(pl.renderer.actors.values()))
+    assert actor.prop.ambient == 0.5 and actor.prop.interpolation.name == "FLAT"
+    pl.close()

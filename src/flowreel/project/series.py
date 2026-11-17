@@ -27,7 +27,7 @@ from flowreel.project.bodies import Series
 
 def read_series(spec: Series) -> pd.DataFrame:
     """The series ``spec`` as a frame: ``time``, then (with ``by``) the point number and
-    ``station``, then the values. Raises ``FileNotFoundError`` for a missing file and
+    ``station``, then the values; ``frame.attrs["by"]`` names the point column. Raises ``FileNotFoundError`` for a missing file and
     ``ValueError`` naming the file for a missing column."""
     if spec.by is not None and "{" + spec.by + "}" in spec.file.name:
         frame = _read_per_point(spec)
@@ -37,7 +37,9 @@ def read_series(spec: Series) -> pd.DataFrame:
     frame = frame.drop_duplicates(keys, keep="last").sort_values(keys, kind="stable")
     if spec.by is not None and spec.stations is not None:
         frame.insert(2, "station", _stations(spec, frame[spec.by]))
-    return frame.reset_index(drop=True)
+    frame = frame.reset_index(drop=True)
+    frame.attrs["by"] = spec.by                  # the point numbers: not a value column
+    return frame
 
 
 def _read_one(path: Path, spec: Series) -> pd.DataFrame:

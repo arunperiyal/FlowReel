@@ -866,11 +866,11 @@ session. One commit per task; tick the box in that commit.
 - [x] Docs: these layers, with an example on generated data
 
 **Branch 4: `phase2/layers-markers`** (layers without flow data; needs branch 1)
-- [ ] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
-- [ ] `glyphs`: arrows on a face of the domain or at points
-- [ ] `markers3d`: `arrow3d`, `block`, `sphere`
-- [ ] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
-- [ ] Docs: these layers, with an example on generated data
+- [x] `outline`: bounds from `domain`, `crop` or numbers; colour, width, opacity
+- [x] `glyphs`: arrows on a face of the domain or at points
+- [x] `markers3d`: `arrow3d`, `block`, `sphere`
+- [x] `geometry`: a body from the geometry source, parameters as tracks, colour by its arrays
+- [x] Docs: these layers, with an example on generated data
 
 **Branch 5: `phase2/render-cache`** (rendering; needs branches 2, 3 and 4)
 - [ ] Backend choice: OSMesa when installed, else EGL; `backend` forces one

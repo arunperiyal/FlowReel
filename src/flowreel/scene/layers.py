@@ -60,14 +60,14 @@ class Frame:
 class FrameData:
     """The data of one frame, as layers read it.
 
-    ``flow`` is the volume of the frame's step (``UnstructuredGrid``; ``None`` when no
-    layer needs it), ``source`` the source and ``step`` the step. ``body(name)`` gives a
-    wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
+    ``crop`` is the shot's crop box (``None``: whole domain), ``flow`` the volume of the
+    frame's step (``UnstructuredGrid``; ``None`` when no layer needs it), ``source`` the source and ``step`` the step.
+    ``body(name)`` gives a wall surface (``None`` for all of them), read once per frame. ``need(*fields)`` adds
     derived fields to ``flow`` the first time they are asked for.
     """
 
-    def __init__(self, source, step: int, flow=None):
-        self.source, self.step, self.flow = source, step, flow
+    def __init__(self, source, step: int, flow=None, crop=None):
+        self.source, self.step, self.flow, self.crop = source, step, flow, crop
         self._bodies: dict = {}
 
     def body(self, name=None):
@@ -95,6 +95,7 @@ class Layer:
     name: str = ""
     options: tuple[Option, ...] = ()
     needs_flow: bool = False
+    allow_text: tuple[str, ...] = ()   # tracked options that may also be a plain word
 
     def __init__(self, tracks: dict, raw: dict):
         self.tracks = tracks   # option name -> Track (tracked options)
@@ -109,6 +110,13 @@ class Layer:
     def key_fields(self, frame: float) -> dict:
         """What decides whether the frame's image changed (Section 11): the values."""
         return self.values(frame)
+
+    @classmethod
+    def check(cls, raw: dict, check: Checker) -> None:
+        """Validate (and may rewrite) the untracked options ``raw`` at build time.
+
+        Raise through ``check.at(key).error(...)`` so the message names the key path.
+        """
 
     def draw(self, plotter, frame: Frame) -> None:
         """Add this layer's actors to ``plotter`` for ``frame``."""
@@ -163,7 +171,8 @@ def build(spec, check: Checker) -> Layer:
                 continue
         else:
             value = spec[opt.name]
-        if not opt.track:
+        if not opt.track or (opt.kind == "vector" and isinstance(value, str)
+                             and opt.name in cls.allow_text):
             raw[opt.name] = value
             continue
         try:
@@ -174,4 +183,5 @@ def build(spec, check: Checker) -> Layer:
             for v in track.values:
                 where.choice(v, opt.choices)
         tracks[opt.name] = track
+    cls.check(raw, check)
     return cls(tracks, raw)

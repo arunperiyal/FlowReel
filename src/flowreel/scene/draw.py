@@ -12,6 +12,7 @@ import numpy as np
 import pyvista as pv
 
 from flowreel.scene import flow_layers as _flow_layers  # noqa: F401  (registers layers)
+from flowreel.scene import marker_layers as _marker_layers  # noqa: F401
 from flowreel.scene.errors import Checker
 from flowreel.scene.layers import Frame, FrameData
 from flowreel.scene.plan import plan
@@ -49,7 +50,7 @@ def draw_frame(shot: Shot, source, index: int, views: dict[str, View] | None = N
     flow = None
     if any(layer.needs_flow for layer in shot.layers):
         flow = source.flow(frame.step, FLOW_FIELDS, shot.crop)
-    data = FrameData(source, frame.step, flow)
+    data = FrameData(source, frame.step, flow, shot.crop)
     view = find_view(shot, views)
     plotter = pv.Plotter(off_screen=True, window_size=list(size or shot.size))
     try:

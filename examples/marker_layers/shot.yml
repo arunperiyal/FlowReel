@@ -1,0 +1,30 @@
+# Layers that need no flow: a grooved cylinder whose radius grows, its bounding box,
+# arrows on the ground and a block and a sphere that move. Needs no data (see run.py).
+name: marker_layers
+source: geometry:grooved_cylinder
+time: {frozen: 0, frames: 24}
+camera: {view: main}
+size: [640, 360]
+background: "#101418"
+layers:
+  - type: geometry
+    body: grooved_cylinder
+    params:
+      span: 6
+      samples: [81, 161]
+      radius: {from: 0.3, to: 0.6, frames: [0, 23]}
+    colour_by: groove
+    range: [0, 1]
+    colormap: viridis
+  - {type: outline, bounds: {x: [0, 6], y: [-1.5, 1.5], z: [-1.5, 1.5]}, colour: "#8899aa", width: 2}
+  - type: glyphs
+    where: {face: y-, grid: [6, 3], in: {x: [0, 6], y: [-1.5, 1.5], z: [-1.5, 1.5]}}
+    direction: [0, 1, 0]
+    size: 0.5
+    colour: "#f25c05"
+  - type: markers3d
+    shape: sphere
+    radius: 0.15
+    at: {from: [0, 1.2, 0], to: [6, 1.2, 0], frames: [0, 23]}
+    colour: "#ffe08a"
+  - {type: markers3d, shape: block, size: [0.3, 0.3, 0.3], at: [3, 0, 1.2], colour: "#00b4e6"}

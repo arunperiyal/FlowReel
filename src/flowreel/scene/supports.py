@@ -24,6 +24,7 @@ import pyvista as pv
 
 from flowreel.project import bodies as bodies_mod
 from flowreel.project.bodies import End
+from flowreel.scene.drawn import keep_shape, to_drawn
 
 Symbol = Callable[[End, "Place"], list]
 _symbols: dict[str, Symbol] = {}
@@ -290,7 +291,7 @@ class Supports(Layer):
                     raise ValueError(f"supports: {body.name} end at {end.at:g}: {exc}") from None
                 size = d * v["size"]
                 if v["min_pixels"] > 0:
-                    px = pixels_per_unit(plotter.camera, at, height)
+                    px = pixels_per_unit(plotter.camera, to_drawn(plotter.renderer, at), height)
                     size = max(size, v["min_pixels"] / px)
                 out.append((end, Place.make(at, np.eye(3)[k], end.at >= middle, v["down"], size)))
         return out
@@ -300,7 +301,9 @@ class Supports(Layer):
         look = dict(smooth_shading=v["smooth"], specular=v["specular"], ambient=v["ambient"])
         for end, place in self.places(plotter, frame):
             for mesh in symbol(end, place):
+                mesh = keep_shape(plotter.renderer, mesh, place.centre)
                 plotter.add_mesh(mesh, color=v["colour"], opacity=v["opacity"], **look)
             if end.tension:
-                plotter.add_mesh(tension_arrow(place), color=v["arrow_colour"],
+                arrow = keep_shape(plotter.renderer, tension_arrow(place), place.centre)
+                plotter.add_mesh(arrow, color=v["arrow_colour"],
                                  opacity=v["opacity"], **look)

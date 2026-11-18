@@ -1,0 +1,20 @@
+# Motion, lift and drag of both cases on one time axis.
+type: series
+size: [480, 720]
+times: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5]
+style: style.yml
+x: {label: '$tU/D$', range: [0, 8]}
+rows:
+  - label: '$y/D$'
+    lines:
+      - {body: bare, series: motion, column: y, label: bare}
+      - {body: helical, series: motion, column: y, label: helical}
+  - label: '$C_L$'
+    lines:
+      - {body: bare, series: force, column: cl}
+      - {body: helical, series: force, column: cl}
+  - label: '$C_D$'
+    lines:
+      - {body: bare, series: force, column: cd}
+      - {body: helical, series: force, column: cd}
+margins: {left: 0.2, right: 0.95, top: 0.92, bottom: 0.09}

@@ -1,0 +1,6 @@
+# The look every panel of the film shares.
+font_size: 15
+maths: dejavusans
+text: '#b4bec8'
+grid: '#3a4046'
+colours: ['#e8b04a', '#6ac1c8']

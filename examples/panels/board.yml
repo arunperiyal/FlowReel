@@ -1,0 +1,6 @@
+# Both panels' frames side by side.
+size: [960, 720]
+background: black
+tiles:
+  - {frames: frames/compare, at: [0, 0], size: [480, 720]}
+  - {frames: frames/phase, at: [480, 180], size: [480, 360]}

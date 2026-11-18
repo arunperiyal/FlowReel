@@ -31,7 +31,8 @@ from flowreel.scene.rendering import FRAME_NAME
 
 REGISTRY: dict[str, type] = {}
 # Modules that register the built-in types.
-TYPE_MODULES: tuple[str, ...] = ("flowreel.compose.series_panel", "flowreel.compose.phase_panel")
+TYPE_MODULES: tuple[str, ...] = ("flowreel.compose.series_panel", "flowreel.compose.phase_panel",
+                                 "flowreel.compose.span_panels")
 DPI = 100
 
 

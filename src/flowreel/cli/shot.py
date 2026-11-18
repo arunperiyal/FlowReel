@@ -91,6 +91,8 @@ def _run_args(parser):
                         help="threads per job (default: min(4, cores / jobs))")
     parser.add_argument("--backend", choices=BACKENDS, default="auto",
                         help="off-screen OpenGL: auto (OSMesa, else EGL), osmesa, egl or x")
+    parser.add_argument("--no-memory-check", dest="check_memory", action="store_false",
+                        help="draw even if the jobs look too big for the free memory")
     parser.add_argument("-o", "--out", default="frames", metavar="DIR",
                         help="folder of the frame folders (default ./frames)")
 
@@ -235,7 +237,8 @@ def _render(args, ctx, frames, scale, size, force) -> int:
     try:
         report = render(args.shot, frames, out=args.out, jobs=args.jobs, threads=args.threads,
                         backend=args.backend, force=force, scale=scale,
-                        size=tuple(size) if size else None, progress=progress)
+                        size=tuple(size) if size else None, progress=progress,
+                        check_memory=args.check_memory)
     except (ValueError, IndexError) as exc:
         raise CommandError(str(exc)) from None
     ctx.out(f"{report.count('rendered')} rendered, {report.count('skipped')} skipped in "

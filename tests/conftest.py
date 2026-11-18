@@ -59,3 +59,9 @@ class ToySource:
 @pytest.fixture
 def toy_source():
     return ToySource()
+
+
+@pytest.fixture(autouse=True)
+def _private_cache(tmp_path_factory, monkeypatch):
+    """Caches FlowReel keeps outside a project (window indexes) go to a test folder."""
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path_factory.mktemp("xdg_cache")))

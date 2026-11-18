@@ -256,6 +256,7 @@ lift = src.series("force")
 | `volume` | text | found in the file | name of the volume zone; default the first zone of tetrahedra or bricks |
 | `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
 | `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
+| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](long-bodies.md#reading-only-the-window) |
 | `name` | text | `flexflow` | label of the source |
 
 - **Time** is the solution time stored in each file.
@@ -265,8 +266,9 @@ lift = src.series("force")
   (`dispX`, `dispY`, `dispZ`, `eddy`, `orderPar`). The stored `xVor`, `yVor`, `zVor` and
   `QCriterion` are **not provided**: they are nodal sums that depend on the mesh. Ask
   `flowreel.fields` for vorticity and Q instead.
-- **Crop** keeps the cells with every node inside the box. The file is read before the
-  crop, so the crop saves memory afterwards but not while reading.
+- **Crop** keeps the cells with every node inside the box. It is read through a window:
+  only the box's nodes of the asked variables leave the disk ([long
+  bodies](long-bodies.md#reading-only-the-window)).
 - **Series:** `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
   `dy`, `dz`; `probe` is the row in the file, from 0) and `force` from
   `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a

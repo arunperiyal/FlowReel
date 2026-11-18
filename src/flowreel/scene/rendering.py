@@ -27,7 +27,7 @@ from flowreel.scene.keys import KeyStore, frame_key
 from flowreel.scene.layers import Frame, FrameData
 from flowreel.scene.lights import apply_lights
 from flowreel.scene.plan import FramePlan, plan
-from flowreel.scene.shot import Shot, load
+from flowreel.scene.shot import CropAround, Shot, load
 from flowreel.tracks import parse_colour
 
 FRAME_NAME = "frame_{:05d}.png"
@@ -157,9 +157,21 @@ class Scene:
             out.append(v)
         return out
 
+    def crop(self, index: int):
+        """The box read from the source for frame ``index``: the shot's crop, or for a
+        crop that travels with a body (``around``), that frame's box; ``None`` for the
+        whole domain."""
+        crop = self.shot.crop
+        if not isinstance(crop, CropAround):
+            return crop
+        boxes = self.__dict__.setdefault("_crops", {})
+        if index not in boxes:
+            boxes[index] = crop.box(index, self.source, self.plan.time.step(index))
+        return boxes[index]
+
     def data(self, index: int) -> FrameData:
         """The data of frame ``index`` (flow read on first use)."""
-        return FrameData(self.source, self.plan.time.step(index), crop=self.shot.crop,
+        return FrameData(self.source, self.plan.time.step(index), crop=self.crop(index),
                          cache=self.cache)
 
     def draw(self, index: int) -> np.ndarray:
@@ -181,9 +193,25 @@ class Scene:
                 plotter.enable_anti_aliasing(shot.antialias)
             for layer, values in zip(shot.layers, self.values(index)):
                 layer.draw(plotter, Frame(index, step, time, data, values))
+            if shot.stretch is not None:
+                self._stretch(plotter)
             return np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
         finally:
             plotter.close()
+
+
+    def _stretch(self, plotter) -> None:
+        """Scale every 3D actor by the shot's stretch (about the origin, so the scene
+        keeps its layout) and write the note."""
+        from vtkmodules.vtkRenderingCore import vtkProp3D
+        st = self.shot.stretch
+        for actor in plotter.renderer.actors.values():
+            if isinstance(actor, vtkProp3D):
+                actor.SetScale(*st.scale)
+        if st.note:
+            from flowreel.scene.text import corner_text
+            corner_text(plotter, st.note, st.corner, st.size * self.pixel_scale, st.colour,
+                        self.size)
 
 
 def draft_size(shot_size: tuple[int, int], scale: float | None = None,
@@ -267,7 +295,8 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
            tracks=None, out: str | Path = "frames", jobs: int = 1,
            threads: int | None = None, backend: str = "auto", force: bool = False,
            scale: float | None = None, size: tuple[int, int] | None = None,
-           processes: bool = True, progress: Callable[[FrameResult], None] | None = None) -> RenderReport:
+           processes: bool = True, progress: Callable[[FrameResult], None] | None = None,
+           check_memory: bool = True) -> RenderReport:
     """Render ``frames`` (default all) of ``shot`` to PNG files.
 
     Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
@@ -280,7 +309,9 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     :func:`default_threads`). ``backend`` is one of
     :data:`flowreel.scene.backend.BACKENDS`. ``source`` must pickle when
     ``processes`` is true. ``progress`` is called with each finished
-    :class:`FrameResult`. Returns a :class:`RenderReport`.
+    :class:`FrameResult`. ``check_memory`` refuses, before drawing, a render whose jobs
+    would not fit in the free memory (:func:`flowreel.scene.memory.check_fits`), with
+    the ``jobs`` that would. Returns a :class:`RenderReport`.
     """
     if jobs < 1:
         raise ValueError(f"jobs must be at least 1, got {jobs}")
@@ -289,6 +320,9 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     cache = Path(out) / CACHE_FOLDER
     scene = Scene.make(shot, source, views, tracks, size, cache=cache)
     indices = _frames(frames, scene.plan.n_frames, shot)
+    if check_memory:
+        from flowreel.scene.memory import check_fits
+        check_fits(scene, indices, jobs if processes else 1)
     folder = frame_folder(out, shot, size)
     folder.mkdir(parents=True, exist_ok=True)
     threads = threads or default_threads(jobs)

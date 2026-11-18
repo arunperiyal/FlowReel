@@ -67,6 +67,10 @@ class Source(Protocol):
         """
         ...
 
+    # Optional: ``files(step) -> list[Path]``, the files read for ``step``. Frame keys
+    # and cached surfaces include their size and modification time, so a file rewritten
+    # in place redraws what it changed; a source without it is keyed by name only.
+
     def memory_per_step(self, crop: Box | None) -> float:
         """Estimated memory in GB for one step read with ``crop``, used to pick ``-j``."""
         ...

@@ -29,10 +29,11 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` |
 | `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` |
-| `crop` | `{x: [lo, hi], y: [lo, hi], z: [lo, hi]}` in the source's length unit | none (whole domain) | `crop: {x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
+| `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
 | `background` | colour | `black` | `background: '#101010'` |
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |
 | `lights` | `default`, `raking` or a list (see [cameras](cameras.md#lights)) | none: VTK's own light kit | `lights: raking` |
+| `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
 
 `source` in its short form gives the adapter one location (a path, or a body name for

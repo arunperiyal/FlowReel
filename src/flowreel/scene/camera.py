@@ -11,7 +11,8 @@
 
 Exactly one of ``view``, ``track`` and ``fit`` gives the base view; ``follow`` then moves
 it onto a body: a body name (declared in ``flowreel.yml`` or a zone of the source), or
-``true`` for the one body there is. Views and tracks come from ``cameras.yml`` beside the shot file.
+``true`` for the one body there is. Without ``station``, ``follow`` takes the station
+(and, with ``follow: true``, the body) of the shot's ``crop: {around: ...}``. Views and tracks come from ``cameras.yml`` beside the shot file.
 """
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ from flowreel import tracks as tracks_mod
 from flowreel.scene.camera_path import CameraTrack, load_tracks
 from flowreel.scene.errors import Checker
 from flowreel.scene.framing import AXES, body_centre, fit, follow
+from flowreel.project.measure import long_axis
 from flowreel.project.names import declaration, one_body
 from flowreel.scene.views import View, load_views
 
@@ -38,13 +40,14 @@ class ShotCamera:
     """
 
     def __init__(self, spec: dict, views: dict[str, View], tracks: dict[str, CameraTrack],
-                 check: Checker, rest_step: int | None = None):
+                 check: Checker, rest_step: int | None = None, crop=None, stretch=None):
         given = [k for k in BASES if k in spec]
         if len(given) != 1:
             raise check.error(f"give exactly one of {', '.join(BASES)}"
                               + (f", got {', '.join(given)}" if given else ""))
         self.base = given[0]
         self.rest_step = rest_step
+        self.stretch = None if stretch is None else tuple(stretch)
         self.view_ = self.track = None
         if self.base == "view":
             self.view_ = views[check.at("view").choice(spec["view"], list(views))]
@@ -73,12 +76,19 @@ class ShotCamera:
         if self.follows:
             if self.body is not None:
                 check.at("follow").string(self.body)
-            if "station" not in spec:
+            around = getattr(crop, "station", None) is not None
+            if "station" not in spec and not around:
                 raise check.error("'follow' needs 'station' (where along the body)")
-            try:
-                self.station = tracks_mod.parse(spec["station"], kind="number", name="station")
-            except ValueError as exc:
-                raise check.at("station").wrap(exc) from None
+            if "station" in spec:
+                try:
+                    self.station = tracks_mod.parse(spec["station"], kind="number",
+                                                    name="station")
+                except ValueError as exc:
+                    raise check.at("station").wrap(exc) from None
+            else:                         # the crop's: window and camera travel together
+                self.station = crop.station
+                if self.body is None:
+                    self.body = crop.body
             self.axis = (None if "axis" not in spec
                          else check.at("axis").choice(spec["axis"], list(AXES)))
             self.motion = spec.get("motion", True)
@@ -91,7 +101,12 @@ class ShotCamera:
             view = self.track.at(frame)
         elif self.base == "fit":
             from flowreel.scene.marker_layers import region
-            view = fit(self.view_, region(self.fit, data), self.margin)
+            box = region(self.fit, data)
+            if self.stretch:                      # fit the box as it is drawn
+                from flowreel.box import Box
+                s = self.stretch
+                box = Box(tuple(a * k for a, k in zip(box.lo, s)), tuple(a * k for a, k in zip(box.hi, s)))
+            view = fit(self.view_, box, self.margin)
         else:
             view = self.view_
         if self.follows:
@@ -99,9 +114,12 @@ class ShotCamera:
             name = self.body if self.body is not None else one_body(data.source)
             surface = data.source.body(step, name)
             body = declaration(data.source, name)
-            axis = self.axis or (body.axis if body else None) or "z"
+            axis = self.axis or (body.axis if body else None) or long_axis(surface) or "z"
             slab = 0.25 * body.diameter if body and body.diameter else None
-            view = follow(view, body_centre(surface, self.station.at(frame), axis, slab))
+            at = body_centre(surface, self.station.at(frame), axis, slab)
+            if self.stretch:                      # the centre as it is drawn
+                at = tuple(a * k for a, k in zip(at, self.stretch))
+            view = follow(view, at)
         return view
 
     def key(self, frame: int, data) -> dict:
@@ -132,4 +150,5 @@ def shot_camera(shot, views: dict[str, View] | None = None,
         views = load_views(path)
         if tracks is None:
             tracks = load_tracks(path, views)
-    return ShotCamera(shot.camera, views, tracks or {}, check, rest_step)
+    return ShotCamera(shot.camera, views, tracks or {}, check, rest_step, shot.crop,
+                      None if shot.stretch is None else shot.stretch.scale)

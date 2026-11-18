@@ -65,21 +65,45 @@ def source_id(shot) -> list:
     return _id(shot)
 
 
+def file_stamps(source, step: int) -> list | None:
+    """``[path, size, modification time]`` of each file ``source`` reads for ``step``
+    (``Source.files``), so a file rewritten in place changes the key; ``None`` for a
+    source that does not say. A ``{node}`` series pattern is stamped file by file."""
+    files = getattr(source, "files", None)
+    if files is None:
+        return None
+    out = []
+    for path in files(step):
+        path = Path(path)
+        matches = ([path] if "{" not in path.name else
+                   sorted(path.parent.glob(path.name.split("{")[0] + "*")))
+        for p in matches:
+            try:
+                st = p.stat()
+                out.append([str(p), st.st_size, st.st_mtime_ns])
+            except OSError:
+                out.append([str(p), None, None])
+    return out
+
+
 def frame_parts(scene, index: int) -> dict:
     """What decides the picture of frame ``index`` of ``scene`` (a
     :class:`~flowreel.scene.rendering.Scene`)."""
     from flowreel.project.names import bodies_key
     shot = scene.shot
     data = scene.data(index)
+    crop = scene.crop(index)
     return {
         "code": code_version(),
         "source": source_id(shot),
         "bodies": bodies_key(scene.source),
         "step": scene.plan.time.step(index),
-        "crop": None if shot.crop is None else [list(shot.crop.lo), list(shot.crop.hi)],
+        "files": file_stamps(scene.source, scene.plan.time.step(index)),
+        "crop": None if crop is None else [list(crop.lo), list(crop.hi)],
         "size": list(scene.size),
         "background": shot.background,
         "antialias": shot.antialias,
+        "stretch": shot.stretch,
         "lights": None if shot.lights is None else [dataclasses.asdict(lt) for lt in shot.lights],
         "view": scene.camera.key(index, data),
         "layers": [{"type": layer.name, **layer.key_fields(index)}

@@ -100,7 +100,9 @@ class FrameData:
         """
         if self.cache is None:
             return build()
+        from flowreel.scene.keys import file_stamps
         return self.cache.get({**key, "step": self.step,
+                               "files": file_stamps(self.source, self.step),
                                "crop": None if self.crop is None else
                                [list(self.crop.lo), list(self.crop.hi)]}, build)
 

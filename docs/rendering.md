@@ -90,20 +90,24 @@ Each frame has a key: a hash of everything that reaches its picture (plan Sectio
 - the camera's view at that frame (position, focal point, up, angle, scale);
 - the step, the source (the adapter and its options, with paths resolved against the
   shot file, so the same relative path in two folders is two sources), the crop;
+- the size and modification time of every file read for that step (`Source.files`: the
+  flow and body files, and the project's series files);
 - the picture size, background, anti-aliasing and lights;
 - FlowReel's code: a hash of its own source files.
 
 A frame is skipped when its file exists and `.keys.json` holds the same key. So a change
 to a track that only moves frames 40 to 60 re-renders those frames and no others,
-and a new FlowReel version re-renders everything it drew. `force=True` draws every frame asked for. The key does not cover the data files:
-if a step's file is rewritten in place, render with `force`.
+and a new FlowReel version re-renders everything it drew. A step's file rewritten in
+place (a re-run, a new export) re-renders the frames that show that step, and no others.
+`force=True` draws every frame asked for. A source without `files` is keyed by its
+options alone; render it with `force` after changing its data.
 
 ## Frozen shots contour once
 
 A frozen shot (`time: {frozen: ...}`) shows one step in every frame, so its surfaces are
 the same in every frame. The first frame contours each `iso` surface and stores it in
 `<out>/.cache/surfaces/`; the others read it and never load the flow. The key is the
-source (paths resolved), step, crop, the surface's options (`field`, `level`,
+source (paths resolved), step, its files' sizes and times, crop, the surface's options (`field`, `level`,
 `colour_by`, `wall_gap`, `gap_body`) and the code. A level that is a track gives one surface per distinct level.
 In a render with several jobs, the first frame is drawn alone, so the other jobs read the
 surface instead of all contouring it at once. Draft and full-size renders share the

@@ -15,6 +15,8 @@ import time as _time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 
+import numpy as np
+
 from flowreel.scene import backend as backend_mod
 from flowreel.scene.rendering import (Scene, _as_shot, _environment, _Job, default_threads,
                                       draft_size, peak_memory)
@@ -67,6 +69,58 @@ def available_memory() -> int:
     return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_AVPHYS_PAGES")
 
 
+#: Memory of a render job before any data: Python, VTK and the reader (measured).
+BASE_BYTES = int(0.7 * GB)
+
+
+class NotEnoughMemory(ValueError):
+    """A render that cannot fit in this machine's free memory."""
+
+
+def estimate_job(scene, frames=None, samples: int = 5) -> int | None:
+    """Bytes one render job is expected to need: :data:`BASE_BYTES` plus the source's
+    own estimate (``memory_per_step``) for the frame that reads the most, among a few
+    of ``frames`` (all frames by default) when the crop travels. ``None`` when the
+    source gives no estimate."""
+    estimate = getattr(scene.source, "memory_per_step", None)
+    if estimate is None:
+        return None
+    frames = list(range(scene.plan.n_frames)) if frames is None else list(frames)
+    if not frames:
+        return None
+    from flowreel.scene.shot import CropAround
+    if isinstance(scene.shot.crop, CropAround) and len(frames) > samples:
+        picks = np.linspace(0, len(frames) - 1, samples).round().astype(int)
+        frames = [frames[i] for i in picks]
+    elif not isinstance(scene.shot.crop, CropAround):
+        frames = frames[:1]                       # one box for every frame
+    return BASE_BYTES + int(max(estimate(scene.crop(i)) for i in frames) * GB)
+
+
+def check_fits(scene, frames, jobs: int, available: int | None = None,
+               headroom: float = HEADROOM) -> int | None:
+    """Raise :class:`NotEnoughMemory` when ``jobs`` jobs of :func:`estimate_job` do not
+    fit in ``headroom`` of the ``available`` memory (default the machine's free memory),
+    saying what does. Returns the estimate per job (``None``: no estimate, no check)."""
+    per_job = estimate_job(scene, frames)
+    if per_job is None:
+        return None
+    available = available_memory() if available is None else available
+    room = available * headroom
+    if per_job > room:
+        raise NotEnoughMemory(
+            f"one frame needs about {per_job / GB:.1f} GB ({BASE_BYTES / GB:.1f} GB for "
+            f"Python and VTK, the rest for the data) and {room / GB:.1f} GB is free to use; "
+            "read less (crop the shot, or crop: {around: ...} for a long body) or render "
+            "on a machine with more memory")
+    fits = int(room // per_job)
+    if jobs > fits:
+        raise NotEnoughMemory(
+            f"-j {jobs} needs about {jobs * per_job / GB:.1f} GB ({per_job / GB:.1f} GB per "
+            f"job) and {room / GB:.1f} GB is free to use: use -j {fits} or fewer")
+    return per_job
+
+
 def safe_jobs(peak_bytes: int, available_bytes: int, cpus: int, threads: int = 1,
               headroom: float = HEADROOM) -> int:
     """How many jobs fit: as many frames of ``peak_bytes`` as ``headroom`` of the free
@@ -95,7 +149,7 @@ def measure(shot, frame: int = 0, source=None, *, views=None, tracks=None,
         raise IndexError(f"frame {frame} is outside 0..{scene.plan.n_frames - 1}")
     threads = threads or default_threads(1)
     estimate = getattr(scene.source, "memory_per_step", None)
-    estimate = None if estimate is None else int(estimate(shot.crop) * GB)
+    estimate = None if estimate is None else int(estimate(scene.crop(frame)) * GB)
     env = backend_mod.environment(backend_mod.choose(backend), threads)
     with _environment(env), ProcessPoolExecutor(
             1, mp_context=multiprocessing.get_context("spawn")) as pool:

@@ -645,9 +645,10 @@ Every cached thing has a key from everything that changes it.
 bugs were stale clips keyed by names only; content keys prevent that class of bug.
 
 The source's paths are resolved against the shot file, so the same relative path in two
-folders is two sources (a bug of Phase 2, found by the golden tests). The keys of Phase 2
-do not cover the data files themselves: a step's file rewritten in place needs `--force`
-(Section 24, question 3).
+folders is two sources (a bug of Phase 2, found by the golden tests). Since Phase 2B,
+frame keys and frozen surfaces also cover the size and modification time of every file
+read for the step (`Source.files`), so a step's file rewritten in place re-renders the
+frames that show it (Section 24, question 3).
 
 ## 12. Annotations
 
@@ -997,12 +998,13 @@ and can be built at any time before branch 9.
 - [x] Docs, with an example on generated data
 
 **Branch 6: `phase2b/long-span`** (needs branch 1)
-- [ ] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
-- [ ] Cached window index, with a margin for the body's motion
-- [ ] `crop: {around: ...}`, its station a track shared with the camera's `follow` (`follow` with a station track and `motion: false` is built in Phase 2)
-- [ ] `stretch` on a shot, with its note in the frame
-- [ ] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
-- [ ] Docs: long bodies page
+- [x] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
+- [x] Cached window index, with a margin for the body's motion
+- [x] `crop: {around: ...}`, its station a track shared with the camera's `follow` (`follow` with a station track and `motion: false` is built in Phase 2)
+- [x] `stretch` on a shot, with its note in the frame
+- [x] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
+- [x] Frame keys and frozen surfaces include each data file's size and modification time (Section 24, question 3)
+- [x] Docs: long bodies page
 
 **Branch 7: `phase2b/geometry-grooves`** (geometry source; needs nothing of this phase)
 - [ ] `grooved_cylinder`: grooves in segments, `length`, `gap`, `stagger` (Section 5.3); segment ends rounded by `edge`
@@ -1087,7 +1089,7 @@ New ones are added here as the work raises them.
 |---|---|---|
 | 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
 | 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
-| 3 | Should frame keys (and Phase 2B's window index) include each data file's size and modification time? Cheap, and it removes the need for `--force` when a step is rewritten in place, the class of stale-cache bug Section 11 is about. Phase 2 keys do not. | Phase 2B, branch 6 |
+| 3 | ~~Should frame keys (and Phase 2B's window index) include each data file's size and modification time?~~ **Decided 2026-11-18: yes**, done in Phase 2B branch 6; the span index is keyed by its file's the same way. | Phase 2B, branch 6 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

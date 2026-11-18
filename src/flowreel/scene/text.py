@@ -34,3 +34,59 @@ def corner_text(plotter, text: str, corner: str, size: float, colour, picture: t
     prop.SetFontSize(max(int(round(size)), 1))     # pyvista doubles the size it is given
     prop.SetJustificationToLeft() if corner.endswith("left") else prop.SetJustificationToRight()
     return actor
+
+
+def lato(prop, size: float, colour, opacity: float = 1.0, bold: bool = False):
+    """Set a ``vtkTextProperty`` to the bundled Lato through VTK's font-file option,
+    ``size`` pixels high, in ``colour`` (``#rrggbb`` or an RGB triple of 0..1).
+    Returns ``prop``."""
+    from vtkmodules.vtkCommonCore import VTK_FONT_FILE
+
+    from flowreel.tracks import parse_colour
+    prop.SetFontFamily(VTK_FONT_FILE)
+    prop.SetFontFile(font_file("Bold" if bold else "Regular"))
+    prop.SetFontSize(max(int(round(size)), 1))
+    prop.SetColor(*(parse_colour(colour) if isinstance(colour, str) else colour))
+    prop.SetOpacity(opacity)
+    prop.SetJustificationToCentered()
+    prop.SetVerticalJustificationToCentered()
+    return prop
+
+
+def to_display(renderer, point) -> tuple[float, float, float]:
+    """Where model ``point`` falls in the window, in pixels from the lower left, and its
+    depth (0 near .. 1 far; outside that range it is not in view), through
+    ``renderer``'s camera and viewport."""
+    from vtkmodules.vtkRenderingCore import vtkCoordinate
+    c = vtkCoordinate()
+    c.SetCoordinateSystemToWorld()
+    c.SetValue(*(float(v) for v in point))
+    x, y = c.GetComputedDoubleDisplayValue(renderer)
+    renderer.SetWorldPoint(*(float(v) for v in point), 1.0)
+    renderer.WorldToDisplay()
+    return x, y, renderer.GetDisplayPoint()[2]
+
+
+def label_at(renderer, text: str, point, size: float, colour, opacity: float = 1.0,
+             offset=(0.0, 0.0)):
+    """A label in Lato, ``size`` pixels high, centred where model ``point`` falls in
+    ``renderer``'s view, moved ``offset`` pixels (right, up). Returns the actor (a 2D
+    ``vtkTextActor``, added to ``renderer``), or ``None`` when the point is behind the
+    camera.
+
+    The label is placed once, for the camera as it is when this is called, so call it
+    after the frame's camera is set. It is drawn over the model, never hidden by it:
+    labels of axes stay readable.
+    """
+    from vtkmodules.vtkRenderingCore import vtkTextActor
+    x, y, depth = to_display(renderer, point)
+    if not 0 <= depth <= 1:
+        return None
+    actor = vtkTextActor()
+    actor.SetInput(text)
+    actor.SetTextScaleModeToNone()
+    actor.GetPositionCoordinate().SetCoordinateSystemToDisplay()
+    actor.SetPosition(x + offset[0], y + offset[1])
+    lato(actor.GetTextProperty(), size, colour, opacity)
+    renderer.AddActor2D(actor)
+    return actor

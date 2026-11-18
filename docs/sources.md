@@ -192,7 +192,8 @@ drawn from their origin and can be used here too.
 
 ### Body `grooved_cylinder`
 
-A cylinder along **x**, from `x = 0` to `x = span`, with helical grooves. Angles around
+A cylinder along **x**, from `x = 0` to `x = span`, with helical or straight grooves,
+whole or in segments. Angles around
 the axis are measured as `atan2(y, z)`. All lengths share one unit; the defaults are the
 AFMS helical case in diameters. With the defaults it gives the same surface as
 `prototype/afms/render_carve.py`.
@@ -206,10 +207,13 @@ AFMS helical case in diameters. With the defaults it gives the same surface as
 | `width` | number | `0.2` | Chord width of a groove at the surface |
 | `turns` | number | `1.0` | Turns each groove makes over the span; negative for the other hand, `0` for straight grooves |
 | `phase` | number, degrees | `45.0` | Angle of the first groove at `x = 0` |
+| `length` | number or none | none | Length along the span of one segment of a groove; none for grooves that run the whole span. Example: `1.5` |
+| `gap` | number | `0.0` | Length along the span between two segments of one groove; needs `length`. Example: `0.5` |
+| `stagger` | number | `0.0` | Shift of each groove's segments from the previous groove's, as a fraction of `length + gap`; needs `length`. Example: `0.5`, neighbours half a period apart |
 | `cut_front` | number or none | none | Carving progress: grooves exist for `x < cut_front`. None means fully carved. Example: run it from `-0.3` to `span + 0.3` |
 | `cut_length` | number | `0.25` | Distance behind the front over which a groove reaches full depth |
 | `glow_length` | number | `0.8` | Distance behind the front over which a new cut counts as fresh |
-| `edge` | number, radians | `0.012` | Angle over which a groove wall turns, to keep it smooth to the eye |
+| `edge` | number, radians | `0.012` | Angle over which a groove wall turns, to keep it smooth to the eye; a segment's ends turn over the same arc, `edge * radius` along the span |
 | `samples` | pair of integers | `(721, 1441)` | Points along the span and around the body. Example: `(241, 361)` for a draft |
 | `caps` | boolean | `true` | Close the two ends |
 
@@ -221,11 +225,45 @@ choice (the prototype baked colours into the mesh):
   `cut_front` is none. Use it for the glow behind the cutters.
 
 While the front is on the span (`0 <= cut_front <= span`), the surface also carries field
-data `cutters`: one point per groove where it meets the front, on the uncut radius. The
+data `cutters`: one point per groove where it meets the front, on the uncut radius. With
+grooves in segments, only the grooves whose segment the front is on have a cutter; when
+the front is in every groove's gap there are none, and the field data is absent. The
 geometry layer's `markers` draws the cutters there (see `docs/layers-markers.md`).
 
 `flowreel.sources.bodies.groove_angle(x, k, span=, grooves=, turns=, phase=)` gives the
 angle in radians of groove `k` at `x`, for placing a cutter or an arrow on a groove.
+`on_segment(x, k, length=, gap=, stagger=)` says whether `x` is on a segment of groove
+`k`, and `segment_start(k, ...)` where its segments start within one period.
+
+### Grooves in segments
+
+Grooves need not run the whole span. `length` cuts each groove into segments of that
+length along the span, `gap` apart; groove 0's first segment starts at `x = 0`.
+`stagger` shifts each next groove's segments along by that fraction of a period
+(`length + gap`), so with 0.5 neighbouring grooves alternate like bricks in a wall.
+With `turns: 0` these are **staggered spanwise grooves**: `grooves` of them evenly spaced
+round the body, each of `width`, `depth` and segment `length`:
+
+```yaml
+params: {grooves: 6, turns: 0, width: 0.16, depth: 0.06, length: 1.5, gap: 0.5, stagger: 0.5}
+```
+
+With `turns` other than 0 the segments follow the helix; `length` and `gap` are still
+measured along the axis. A segment's ends are rounded as its sides are, over
+`edge * radius` either side of the end, so a sharp end needs `edge: 0` or enough samples
+along the span to show it (`samples[0]`: the defaults put a point every 0.017 along 12).
+Carving works as before: the front cuts each segment as it reaches it.
+
+![Six staggered spanwise grooves: carving, carved, close in](images/grooves.png)
+
+`examples/grooves/` is this shot: the front carves the segments from end to end, with a
+cutter on each segment it is cutting, and the camera closes in. `run.py` draws the three
+frames above:
+
+```bash
+python examples/grooves/run.py grooves.png
+flowreel shot preview examples/grooves/shot.yml
+```
 
 ## Example
 

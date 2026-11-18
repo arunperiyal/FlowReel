@@ -23,7 +23,7 @@ bodies:
   pendulum:
     virtual: true
     shape: pendulum
-    params: {length: 2.5, bob: 0.5, rod: 0.06, swing: [1, 0, 0]}   # swings along the span
+    params: {length: 2.5, bob: 0.5, rod: 0.06, swing: [0, 0, 1]}   # turns about z: swings along the span
     attach: {body: riser, station: 250}
     drive:
       angle: {series: swing, column: pendDisp}                     # radians

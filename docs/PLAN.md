@@ -1031,6 +1031,67 @@ and pendulum shots render from the generated case (`tests/test_riser500.py`); a 
 through the window costs 0.61 MB against 15.6 MB whole, and 0.61 MB in a case half as
 long. Section 24 question 1 (a real run's file) stays open.
 
+### 19.4 Phase 3 tasks
+
+Added 2026-11-18. Phase 3 builds `compose`: layouts that tile frame folders, and the 2D
+panels of Section 9.2, drawn per frame by matplotlib. Branches 1 and 2 need nothing of
+this phase, so they can be built in parallel. Branches 3 and 4 need only branch 2 and
+can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs branches
+1 to 5, and branch 7 needs all of them.
+
+**Branch 1: `phase3/compose-layout`** (data model and tiling)
+- [ ] Layout schema (Section 9.1): `size`, `background`, `tiles` with `frames`, `at` and `size`; errors name the file and key path
+- [ ] `grid: [rows, cols]` places tiles automatically, with a gap
+- [ ] Frames matched by index across tiles; a missing frame is an error unless `missing: hold`
+- [ ] `stations: {shot, at}`: one shot rendered at several stations of a long body (its crop and its camera's `follow`), each tile labelled with its station
+- [ ] `compose.layout(...)`: frames skipped unless their key changed (the tiles' files, sizes and modification times, the layout's settings); `force`
+- [ ] Docs: layouts page, with an example on generated frames
+
+**Branch 2: `phase3/panels-core`** (panel interface and time plots)
+- [ ] Panel file: `type`, `size`, `times` (a shot's frame times, or a list), and one `style` block shared by all panels (Lato, maths font, colours, line widths)
+- [ ] Panel registry and the drawing loop: the figure is built once and moved along in time; drawn in parallel chunks, `jobs`
+- [ ] Panel cache (Section 11): key from the panel's settings, its times, the style and the files it reads
+- [ ] `series` panel: one or several series from `flowreel.yml` by body, lines to the current time ending at a dot at the interpolated value, shared time axis, labels and colours per entry
+- [ ] `phase` panel: one series against another, the trace to the current time and a dot
+- [ ] Tests with exact values (line ends, dot positions, times between samples); docs: panels page
+
+**Branch 3: `phase3/panels-span`** (panels of a long body; needs branch 2)
+- [ ] `map` panel: a history at many points (`by`, `stations`) against span and time, filling in to the current time; colormap, range, colorbar, one or several bodies stacked
+- [ ] `locator` panel: a body's span as a bar, its shape now (amplified), its supports, and the windows on show (from the shots' crops at that frame)
+- [ ] Tests on generated histories; docs, with an example on the riser case
+
+**Branch 4: `phase3/panels-flow`** (panels from flow data; needs branch 2)
+- [ ] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
+- [ ] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
+- [ ] `cuts` panel: the same cut at several stations side by side, labelled
+- [ ] `strip` panel: a body from one side coloured by a wall field, with its zero contour
+- [ ] Tests on generated data; docs
+
+**Branch 5: `phase3/compose-rate`** (panels in a layout; needs branches 1 and 2)
+- [ ] Panel tiles in a layout: `panel: FILE`, drawn at the layout's frames
+- [ ] `rate: output` (Section 9.3): such a panel is drawn at given output times, between flow frames and held through given holds; `compose.layout` takes those times so the film build (Phase 4) can pass its freezes
+- [ ] Tests (a dot drawn between two flow frames lies between their values); docs
+
+**Branch 6: `phase3/cli-compose`** (commands; needs branches 1 to 5)
+- [ ] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
+- [ ] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
+- [ ] Help text; docs: commands page
+
+**Branch 7: `phase3/golden-compose`** (the check; needs all the others)
+- [ ] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
+- [ ] Generated sectional lift of two cases and a golden lift-map frame drawn by the prototype's `render_extras.py liftmap`
+- [ ] Layout and panel files for both; image-difference tests through `compose layout` and `compose panel`, each with a nearby frame that must fail the same limits
+- [ ] `examples/` project on generated data
+
+Left out of Phase 3: `compose plot` (Section 13 lists it, but nothing defines it beyond
+`compose panel`), and the `data surface` and `data series` commands. The lift map's
+golden test reads sectional lift as a CSV history at many points, so it does not need
+`data surface`. The `section`, `cuts` and `strip` panels have no golden frame in this
+phase; Phase 4's rebuilt AFMS film checks them.
+
+**Phase 3 is done when** the comparison and lift-map frames, composed from files by
+`flowreel compose`, match golden frames drawn by the prototype's own code.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |

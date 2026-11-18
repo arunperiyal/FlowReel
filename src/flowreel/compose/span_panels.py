@@ -28,6 +28,20 @@ one colour bar.
     colormap: fire_ice
     range: [-1.5, 1.5]
     colorbar: {label: 'Sectional $C_L$'}
+
+**locator.** Where we are along a long body: its span as a bar, its shape now (the
+displacement history, amplified), its supports, and the windows that shots show at
+this frame (their crops). Frame ``i`` shows each shot's window of its frame ``i``.
+
+.. code-block:: yaml
+
+    type: locator
+    size: [1920, 200]
+    times: {shot: travel.yml}
+    body: riser
+    shape: {series: displacement, column: dy, amplify: 50}
+    windows: [{shot: travel.yml, label: window}]
+    x: {label: 'Span $x/D$'}
 """
 from __future__ import annotations
 
@@ -40,6 +54,11 @@ from flowreel.compose.series_panel import (LINE_KEYS, find_project, parse_axis, 
                                            parse_margins)
 from flowreel.compose.style import colour
 from flowreel.scene.errors import Checker
+
+AXES = "xyz"
+#: Marker of each support kind on the locator's bar (``free`` only when ``mark``).
+SUPPORT_MARKERS = {"pinned": "^", "roller": "o", "clamped": "s", "spring": "X",
+                   "prescribed": "D", "free": "|"}
 
 EPS = 1e-9            # a sample at the current time is shown, despite rounding
 
@@ -203,3 +222,171 @@ def symmetric(tables: list[np.ndarray]) -> tuple[float, float]:
     colour map has its middle at zero."""
     a = max(float(np.nanmax(np.abs(z))) for z in tables)
     return (-a, a) if a > 0 else (-1.0, 1.0)
+
+
+@register
+class LocatorPanel(PanelType):
+    """A long body's span as a bar: its shape now, amplified, its supports and the
+    windows on show."""
+
+    name = "locator"
+    KEYS = ("body", "shape", "supports", "windows", "x", "y", "colour", "margins")
+    SHAPE_KEYS = ("series", "column", "scale", "offset", "amplify", "colour")
+    WINDOW_KEYS = ("shot", "colour", "label")
+
+    def parse(self, options, check):
+        from flowreel.colours import BODY
+        project = find_project(self.panel, check)
+        if "body" not in options:
+            raise check.error("missing key 'body' (the long body to show)")
+        name = check.at("body").string(options["body"])
+        if name not in project.bodies:
+            raise check.at("body").error(f"no body {name!r} in {project.file} "
+                                         f"(bodies: {', '.join(project.bodies) or 'none'})")
+        self.body = project.bodies[name]
+        if self.body.axis is None:
+            raise check.at("body").error(f"body {name!r} has no axis, so no span; declare "
+                                         "its 'axis' in flowreel.yml")
+        self.axis = AXES.index(self.body.axis)
+        self.colour = colour(options.get("colour", BODY), check.at("colour"))
+        self.shape = None
+        if options.get("shape") is not None:
+            at = check.at("shape")
+            spec = at.mapping(options["shape"], self.SHAPE_KEYS, required=("series",))
+            line = parse_line({"body": name, **{k: v for k, v in spec.items()
+                                                if k in LINE_KEYS[1:5]}}, at, project)
+            amplify = at.at("amplify").number(spec.get("amplify", 1.0))
+            if amplify <= 0:
+                raise at.at("amplify").error(f"must be positive, got {amplify:g}")
+            tint = colour(spec.get("colour", self.colour), at.at("colour"))
+            self.shape = (line, amplify, tint, at)
+        supports = options.get("supports", True)
+        if not isinstance(supports, bool):
+            raise check.at("supports").error(f"expected true or false, got {supports!r}")
+        self.supports = supports
+        items = check.at("windows").sequence(options.get("windows") or [])
+        self.windows = [self._window(w, check.at("windows", i)) for i, w in enumerate(items)]
+        self.x = parse_axis(options.get("x"), check.at("x"))
+        self.y = parse_axis(options.get("y"), check.at("y"))
+        self.margins = parse_margins({"bottom": 0.3, "top": 0.85, "left": 0.04, "right": 0.98,
+                                      **(options.get("margins") or {})}, check.at("margins"))
+        if not self.body.ends and self.shape is None and self.x["range"] is None:
+            raise check.error(f"body {name!r} declares no ends: give a 'shape' or an x 'range' "
+                              "so the span is known")
+
+    def _window(self, spec, check: Checker) -> dict:
+        """A shot's window: its crop along the body's axis, per frame."""
+        from flowreel.compose.stations import read_shot
+        from flowreel.scene.shot import CropAround
+        spec = check.mapping(spec, self.WINDOW_KEYS, required=("shot",))
+        path = (self.panel.folder / check.at("shot").string(spec["shot"])).resolve()
+        shot = read_shot(path, check.at("shot"))
+        crop = shot.crop
+        if crop is None:
+            raise check.at("shot").error(f"shot {shot.name!r} has no crop, so no window to show")
+        if isinstance(crop, CropAround):
+            if crop.body is not None and crop.body != self.body.name:
+                raise check.at("shot").error(f"shot {shot.name!r} crops around {crop.body!r}, "
+                                             f"not {self.body.name!r}")
+            window = {"station": crop.station, "half": crop.half[self.axis]}
+        else:
+            window = {"range": (crop.lo[self.axis], crop.hi[self.axis])}
+        window["file"] = path
+        window["colour"] = colour(spec.get("colour", self.style.colours[0]), check.at("colour"))
+        window["label"] = None if spec.get("label") is None else check.at("label").string(spec["label"])
+        return window
+
+    def files(self):
+        out = [] if self.shape is None else series_files(self.shape[0].spec)
+        return out + [w["file"] for w in self.windows]
+
+    def span(self) -> tuple[float, float]:
+        """The body's first and last station: its ends, else its shape's points."""
+        if self.body.ends:
+            stations = [e.at for e in self.body.ends]
+        else:
+            stations = list(self.table[1]) if self.table is not None else [0.0, 1.0]
+        return min(stations), max(stations)
+
+    def build(self, figure):
+        from matplotlib.patches import Rectangle
+
+        from flowreel.colours import MUTED
+        m = self.margins
+        ax = figure.add_subplot()
+        figure.subplots_adjust(left=m["left"], right=m["right"], top=m["top"], bottom=m["bottom"])
+        ax.set_facecolor(self.style.background)
+        for side in ("left", "right", "top"):
+            ax.spines[side].set_visible(False)
+        ax.tick_params(length=0)
+        ax.set_yticks([])
+        self.table = None if self.shape is None else span_table(self.shape[0], self.shape[3])
+        lo, hi = self.span()
+        reach = 1.0
+        if self.table is not None:
+            reach = max(float(np.nanmax(np.abs(self.table[2]))) * self.shape[1], 1e-9)
+        ylo, yhi = self.y["range"] or (-1.4 * reach, 1.4 * reach)
+        ax.set_ylim(ylo, yhi)
+        length = hi - lo
+        ax.set_xlim(*(self.x["range"] or (lo - 0.03 * length, hi + 0.03 * length)))
+        if self.x["label"]:
+            ax.set_xlabel(self.x["label"])
+        thick = 0.16 * (yhi - ylo)
+        ax.add_patch(Rectangle((lo, -thick / 2), length, thick, color=MUTED, alpha=0.45,
+                               linewidth=0, zorder=1))
+        self.boxes = []
+        for w in self.windows:
+            box = Rectangle((lo, ylo), 0, yhi - ylo, facecolor=w["colour"], alpha=0.3,
+                            edgecolor=w["colour"], linewidth=self.style.grid_width, zorder=2)
+            ax.add_patch(box)
+            text = None
+            if w["label"]:
+                text = ax.text(lo, yhi, w["label"], color=w["colour"], ha="center", va="bottom",
+                               clip_on=False)
+            self.boxes.append((box, text, w))
+        self.line = None
+        if self.table is not None:
+            (self.line,) = ax.plot([], [], color=self.shape[2], linewidth=self.style.line_width,
+                                   zorder=3)
+        if self.supports:
+            self._supports(ax, lo, hi, yhi - ylo)
+
+    def _supports(self, ax, lo: float, hi: float, height: float) -> None:
+        size = self.style.dot_size * 1.6
+        for end in self.body.ends:
+            if end.support == "free" and not end.options.get("mark"):
+                continue
+            ax.plot([end.at], [0], SUPPORT_MARKERS[end.support], color=self.style.text,
+                    markersize=size, zorder=4, clip_on=False)
+            if end.tension:
+                out = 1 if end.at >= (lo + hi) / 2 else -1
+                reach = 0.025 * (hi - lo)
+                ax.annotate("", xy=(end.at + out * 2 * reach, 0), xytext=(end.at + out * 0.6 * reach, 0),
+                            arrowprops={"arrowstyle": "-|>", "color": self.style.text,
+                                        "linewidth": self.style.line_width}, zorder=4,
+                            annotation_clip=False)
+
+    def update(self, time, index=None):
+        if self.line is not None:
+            self.line.set_data(*shape_at(*self.table, time, self.shape[1]))
+        for box, text, w in self.boxes:
+            a, b = window_at(w, index or 0)
+            box.set_x(a)
+            box.set_width(b - a)
+            if text is not None:
+                text.set_x((a + b) / 2)
+
+
+def shape_at(t, s, z, time: float, amplify: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
+    """The body's shape at ``time``: each station's value interpolated in time
+    (held at the ends), times ``amplify``."""
+    now = np.array([np.interp(time, t, z[:, j]) for j in range(len(s))])
+    return s, now * amplify
+
+
+def window_at(window: dict, index: int) -> tuple[float, float]:
+    """The span a window covers in frame ``index`` of its shot."""
+    if "range" in window:
+        return window["range"]
+    station = window["station"].at(index)
+    return station - window["half"], station + window["half"]

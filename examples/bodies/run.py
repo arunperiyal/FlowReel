@@ -5,7 +5,8 @@ Usage: python run.py [DIR]   (default ./bodies_example)
 Needs no data. It writes into DIR a riser 40 diameters long, bent to
 y = 1.5 sin(pi x / 40), a ball beside it, a small flow box, and the riser's
 displacement at five probe nodes as FlexFlow Analyzer exports it (one CSV per node,
-``tsId, time, aleDisp_y``), all in data/. Then:
+``tsId, time, aleDisp_y``), all in data/. The flow is ten tiny steps 0.1 apart, so the
+second shot has a time to follow. Then:
 
 1. ``project init`` (here its library function) measures every surface zone and writes
    init/flowreel.yml: axis and diameter measured, supports left to fill.
@@ -15,6 +16,8 @@ displacement at five probe nodes as FlexFlow Analyzer exports it (one CSV per no
    one history with their stations.
 4. The shot follows ``riser`` along its span; the focal point of each frame is printed,
    on the bend, and the frames go to DIR/frames/riser_travel/.
+5. span.yml draws the whole riser from its probes: centreline, rest line, envelope,
+   supports and an arrow driven by a series track, into DIR/frames/riser_span/.
 """
 import shutil
 import sys
@@ -56,7 +59,8 @@ def write_data(folder: Path) -> None:
     for name in ("U", "V", "W"):
         box.point_data[name] = np.zeros(box.n_points, dtype=np.float32)
     box["U"][:] = 1.0
-    box.save(data / "flow.vti")
+    for step in range(10):
+        box.save(data / f"flow_{step}.vti")
     times = np.arange(1, 11) * 0.1
     for node, x in enumerate(np.linspace(0, LENGTH, 5)):
         dy = BEND * np.sin(np.pi * x / LENGTH) * np.sin(2 * np.pi * times)
@@ -67,12 +71,12 @@ def write_data(folder: Path) -> None:
 def main(folder: Path) -> None:
     folder.mkdir(parents=True, exist_ok=True)
     write_data(folder)
-    source = sources.create("vtk", path=str(folder / "data/flow.vti"),
+    source = sources.create("vtk", path=str(folder / "data/flow_*.vti"), dt=0.1,
                             body={"cyl": str(folder / "data/cyl.vtp"),
                                   "ball": str(folder / "data/ball.vtp")})
-    measured = init_project(folder / "init", source, label="vtk:data/flow.vti", force=True)
+    measured = init_project(folder / "init", source, label="vtk:data/flow_*.vti", force=True)
     print(measured.read_text())
-    for name in ("flowreel.yml", "shot.yml", "cameras.yml"):
+    for name in ("flowreel.yml", "shot.yml", "span.yml", "cameras.yml"):
         shutil.copy(HERE / name, folder / name)
     print("declared:", ", ".join(f"{b.name} (zone {b.zone})"
                                  for b in load_project(folder).bodies.values()))
@@ -86,9 +90,13 @@ def main(folder: Path) -> None:
         x, y, z = scene.camera.view(i, scene.data(i)).focal
         print(f"frame {i:2d}: focal ({x:.2f}, {y:.3f}, {z:.3f}); "
               f"bend there {BEND * np.sin(np.pi * x / LENGTH):.3f}")
-    report = render(folder / "shot.yml", out=folder / "frames", jobs=2)
-    print(f"{report.folder}: {report.count('rendered')} drawn, "
-          f"{report.count('skipped')} skipped (backend {report.backend})")
+    for shot in ("shot.yml", "span.yml"):
+        report = render(folder / shot, out=folder / "frames", jobs=2)
+        print(f"{report.folder}: {report.count('rendered')} drawn, "
+              f"{report.count('skipped')} skipped (backend {report.backend})")
+    span = Scene.make(folder / "span.yml")
+    arrow = [span.values(i)[2]["length"] for i in range(span.plan.n_frames)]
+    print("arrow length by frame: " + ", ".join(f"{a:.3f}" for a in arrow))
 
 
 if __name__ == "__main__":

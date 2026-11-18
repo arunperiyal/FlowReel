@@ -77,6 +77,24 @@ def source_id(shot: Shot) -> list:
     return [shot.source[0], source_options(shot)]
 
 
+def bind_series(shot: Shot, source, fp: FramePlan) -> None:
+    """Give every series track of the shot's layers the source and the time of each
+    frame (the time of the step it shows)."""
+    from flowreel.tracks import SeriesTrack
+    series = [(layer, name, t) for layer in shot.layers for name, t in layer.tracks.items()
+              if isinstance(t, SeriesTrack)]
+    if not series:
+        return
+    times = [fp.times[fp.time.step(i)] for i in range(fp.n_frames)]
+    for layer, name, track in series:
+        check = Checker(shot.file, ("layers", shot.layers.index(layer), name))
+        try:
+            track.bind(source, times)
+        except (KeyError, ValueError, FileNotFoundError) as exc:
+            message = exc.args[0] if isinstance(exc, KeyError) and exc.args else str(exc)
+            raise check.error(str(message).removeprefix(f"{name}: ")) from None
+
+
 def _as_shot(shot) -> Shot:
     return shot if isinstance(shot, Shot) else load(shot)
 
@@ -115,6 +133,7 @@ class Scene:
         if not isinstance(source, DeclaredSource):
             source = declare(source, project_for(shot.file))
         fp = plan(shot, source)
+        bind_series(shot, source, fp)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
         declared = bodies_key(source)
         key_source = source_id(shot) + ([{"bodies": declared}] if declared else [])

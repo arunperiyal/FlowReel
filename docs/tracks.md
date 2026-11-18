@@ -86,6 +86,32 @@ A track never extrapolates.
 grey: {keys: [[58, 0], [72, 1]]}    # 0 on frames 0 to 58, 1 from frame 72 on
 ```
 
+## Series as a track
+
+```yaml
+length: {series: force, body: riser, column: fy, scale: 0.5}       # an arrow's length from a force
+height: {series: displacement, body: riser, column: dy, station: 250, offset: 2}
+```
+
+A number may come from a body's time series ([bodies](bodies.md#series)): the value of
+`column` at the frame's time, interpolated linearly between samples, held at the first
+and last sample outside them, then `value * scale + offset`. Nothing more: no
+expressions. The frame's time is the time of the step it shows, so in a frozen shot a
+series track is constant.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `series` | the series' name | required |
+| `body` | the body it is declared under | the one body that declares it, else the source's own series |
+| `column` | the value column | the only one, when there is one |
+| `station` | for a history at many points: where along the body, interpolated between stations | required for such a series |
+| `scale`, `offset` | `value * scale + offset` | `1`, `0` |
+
+Series tracks give numbers, so they drive number options (a length, a height, an
+opacity), not colours or vectors. They are read when the shot's source is opened; a
+wrong name or column is reported with the layer's key path. The value at each frame is
+part of the frame's key, so a changed CSV re-renders the frames whose values moved.
+
 ## Time as a track
 
 ```yaml

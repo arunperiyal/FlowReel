@@ -6,8 +6,9 @@ A track is built from one of three YAML forms, already parsed into Python object
     position: {from: 0.02, to: 6.0, frames: [48, 72]}      # two keys, eased
     grey: {keys: [[0, 0], [58, 0], [72, 1]]}               # any number of keys
     level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
+    length: {series: force, column: fy, body: riser, scale: 0.5}   # from a time series
 
-Use :func:`parse` to build a :class:`Track`. Malformed specs raise ``ValueError`` with the
+Use :func:`parse` to build a :class:`Track` (a :class:`SeriesTrack` for the last form). Malformed specs raise ``ValueError`` with the
 track's name and the offending key, so the message can be shown to the user as it is.
 """
 from __future__ import annotations
@@ -140,8 +141,12 @@ def parse(spec, kind: str | None = None, name: str = "track",
     """
     if kind is not None and kind not in KINDS:
         raise ValueError(f"{name}: unknown kind {kind!r} (allowed: {', '.join(KINDS)})")
-    if isinstance(spec, Track):
+    if isinstance(spec, (Track, SeriesTrack)):
         return spec
+    if isinstance(spec, Mapping) and "series" in spec:
+        if kind not in (None, "number"):
+            raise ValueError(f"{name}: a series track gives numbers; {name} is a {kind}")
+        return SeriesTrack.parse(spec, name)
     if not isinstance(spec, Mapping):
         frames, raw, ease_name = (0.0,), [spec], None
     else:
@@ -378,3 +383,113 @@ def nearest_step(value: float, steps):
         return ordered[-1]
     lo, hi = ordered[i - 1], ordered[i]
     return lo if value - lo <= hi - value else hi
+
+
+class SeriesTrack:
+    """A number taken from a time series at each frame's time (plan Section 7.3).
+
+    ``{series: NAME, column: C, body: B, station: S, scale: K, offset: A}``: the value
+    of column ``C`` of series ``NAME`` (of body ``B``; see ``Source.series``) at the
+    frame's time, interpolated linearly between samples and held at the first and last
+    sample outside them, then ``value * scale + offset``. Nothing else: no expressions.
+    ``column`` may be left out when the series has one value column. For a history at
+    many points (a ``station`` column), ``station`` picks where along the body,
+    interpolated between stations.
+
+    A series track knows nothing until :meth:`bind` gives it the source and the time of
+    every frame (the renderer does this when it opens the shot's source).
+    """
+
+    kind = "number"
+    fixed = False
+    KEYS = ("series", "column", "body", "station", "scale", "offset")
+    _SKIP = ("time", "tsId", "station")
+
+    def __init__(self, series: str, column: str | None = None, body: str | None = None,
+                 station: float | None = None, scale: float = 1.0, offset: float = 0.0,
+                 name: str = "track"):
+        self.series, self.column, self.body, self.station = series, column, body, station
+        self.scale, self.offset, self.name = scale, offset, name
+        self._values = None
+
+    @classmethod
+    def parse(cls, spec: Mapping, name: str = "track") -> "SeriesTrack":
+        """Read the YAML mapping; raises ``ValueError`` naming the key."""
+        unknown = [k for k in spec if k not in cls.KEYS]
+        if unknown:
+            raise ValueError(f"{name}: unknown key {unknown[0]!r} in a series track "
+                             f"(allowed: {', '.join(cls.KEYS)})")
+        for key in ("series", "column", "body"):
+            if key in spec and (not isinstance(spec[key], str) or not spec[key]):
+                raise ValueError(f"{name}: {key} must be a name, got {spec[key]!r}")
+        numbers = {k: _number(spec[k], f"{name}.{k}") for k in ("station", "scale", "offset")
+                   if k in spec}
+        return cls(spec["series"], spec.get("column"), spec.get("body"), numbers.get("station"),
+                   numbers.get("scale", 1.0), numbers.get("offset", 0.0), name)
+
+    def bind(self, source, times) -> "SeriesTrack":
+        """Read the series from ``source`` and take its value at each of ``times`` (the
+        time of frames 0, 1, ...). Raises ``ValueError``/``KeyError`` naming the track."""
+        import numpy as np
+        try:
+            frame = (source.series(self.series, body=self.body) if self.body is not None
+                     else source.series(self.series))
+        except TypeError:
+            raise ValueError(f"{self.name}: body= needs bodies declared in flowreel.yml") from None
+        except KeyError as exc:
+            raise KeyError(f"{self.name}: {exc.args[0] if exc.args else exc}") from None
+        column = self._column(frame)
+        times = np.asarray(times, float)
+        if "station" in frame.columns:
+            if self.station is None:
+                raise ValueError(f"{self.name}: series {self.series!r} is at many stations; "
+                                 "give 'station'")
+            stations = np.sort(frame["station"].unique())
+            at_time = np.array([[np.interp(t, g["time"], g[column]) for t in times]
+                                for _, g in sorted(frame.groupby("station"))])
+            raw = np.array([np.interp(self.station, stations, at_time[:, i])
+                            for i in range(len(times))])
+        else:
+            if self.station is not None:
+                raise ValueError(f"{self.name}: series {self.series!r} has no stations")
+            raw = np.interp(times, frame["time"].to_numpy(float), frame[column].to_numpy(float))
+        self._values = raw * self.scale + self.offset
+        return self
+
+    def _column(self, frame) -> str:
+        skip = set(self._SKIP) | {frame.attrs.get("by")}
+        values = [c for c in frame.columns if c not in skip]
+        if self.column is None:
+            if len(values) != 1:
+                raise ValueError(f"{self.name}: series {self.series!r} has columns "
+                                 f"{', '.join(values)}; give 'column'")
+            return values[0]
+        if self.column not in frame.columns:
+            raise ValueError(f"{self.name}: series {self.series!r} has no column "
+                             f"{self.column!r} (columns: {', '.join(map(str, frame.columns))})")
+        return self.column
+
+    @property
+    def bound(self) -> bool:
+        """Whether :meth:`bind` has run."""
+        return self._values is not None
+
+    def at(self, frame: float) -> float:
+        """The value at ``frame`` (between frames, interpolated)."""
+        if self._values is None:
+            raise RuntimeError(f"{self.name}: a series track has no values until the shot's "
+                               "source is opened")
+        v, n = self._values, len(self._values)
+        if frame <= 0:
+            return float(v[0])
+        if frame >= n - 1:
+            return float(v[-1])
+        i = int(frame)
+        return float(v[i] + (v[i + 1] - v[i]) * (frame - i))
+
+    __call__ = at
+
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        state["_values"] = None           # bound again where the shot is opened
+        return state

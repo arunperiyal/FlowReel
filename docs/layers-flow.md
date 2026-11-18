@@ -75,12 +75,21 @@ the section does not paint over the wall. Both multiply with `opacity`.
 | `zero_contour` | track, boolean | `false` | `true` |
 | `zero_colour` | track, colour | `#ffffff` | `"#ffffff"` |
 | `zero_width` | track, pixels | `2` | `3` |
+| `amplify` | track: the displacement from rest drawn this many times larger | `1` | `50` |
+| `rest_step` | step whose shape is the rest shape | the first saved step | `5000` |
 
 `ghost` draws the body at a third of its opacity and without highlights, so the flow shows
 through it. With `field`, the surface takes the colour of that field: an array already on
 the body, or a derived field computed on the flow and sampled onto the surface (the flow
 is then loaded). `zero_contour` draws the line where `field` is 0; with a wall shear
 component that line is where the flow separates.
+
+`amplify` moves every point of the surface from its place at `rest_step` by `amplify`
+times its displacement, so a vibration of a hundredth of a diameter can be seen. The
+surface must have the same points at every step (as a solver's deformed mesh does). It
+is refused in a shot with flow layers (`iso`, `slice`, `glyphs` of the velocity): a body
+moved 50 times further than it went no longer fits the flow around it. For a long body,
+the [`centreline`](layers-markers.md#centreline) may amplify in any shot.
 
 ## Example
 

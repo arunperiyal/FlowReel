@@ -138,9 +138,10 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
         The surface with two point arrays, both from 0 to 1: ``groove`` (how far the
         point is cut, 1 on a groove floor) and ``fresh`` (1 just behind the front,
         fading to 0 over ``glow_length``; all 0 when fully carved), for colour and glow.
-        Field data ``cutters`` holds one point per groove where it meets the front, on
-        the uncut surface (``grooves x 3``), while ``0 <= cut_front <= span``; it is
-        absent otherwise. A layer can mark them (the geometry layer's ``markers``).
+        Field data ``cutters`` holds one point for each groove whose segment the front
+        is on, where the groove meets the front on the uncut surface (``n x 3``), while
+        ``0 <= cut_front <= span`` and the front is on some segment; it is absent
+        otherwise. A layer can mark them (the geometry layer's ``markers``).
     """
     if not 0 <= depth < radius:
         raise ValueError("depth must be at least 0 and below radius")
@@ -199,13 +200,16 @@ def grooved_cylinder(span: float = 12.0, radius: float = 0.5, grooves: int = 4,
 
 
 def _with_cutters(surface, front, span, radius, grooves, turns, phase, segments):
-    """Add field data ``cutters`` (where each groove meets the carving front) while the
-    front is on the span and there are grooves."""
+    """Add field data ``cutters`` (where each groove the front is cutting meets it) while
+    the front is on the span and on some groove's segment."""
     if front is not None and 0 <= front <= span and int(grooves) > 0:
+        cutting = [k for k in range(int(grooves)) if segments["gap"] == 0
+                   or bool(on_segment(front, k, **segments))]
         a = np.array([groove_angle(front, k, span=span, grooves=grooves, turns=turns,
-                                   phase=phase) for k in range(int(grooves))])
-        surface.field_data["cutters"] = np.c_[np.full(len(a), front), radius * np.sin(a),
-                                              radius * np.cos(a)]
+                                   phase=phase) for k in cutting])
+        if len(a):
+            surface.field_data["cutters"] = np.c_[np.full(len(a), front),
+                                                  radius * np.sin(a), radius * np.cos(a)]
     return surface
 
 

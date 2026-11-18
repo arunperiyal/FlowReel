@@ -63,6 +63,19 @@ def test_whole_grooves_are_unchanged():
     assert np.array_equal(grooved_cylinder(**base, length=3.0, gap=0.0).points, whole.points)
 
 
+def test_cutters_only_on_segments_the_front_is_cutting():
+    at = {**BRICKS, "samples": (49, 37)}
+    assert grooved_cylinder(**at, cut_front=0.5).field_data["cutters"].shape == (2, 3)  # 0, 2
+    angles = np.degrees(np.arctan2(*grooved_cylinder(**at, cut_front=1.5)
+                                   .field_data["cutters"][:, 1:].T)) % 360
+    assert np.allclose(sorted(angles), [90, 270])                              # 1, 3
+    carved = grooved_cylinder(**at, cut_front=0.5)
+    x = carved.points[:, 0]
+    assert carved["groove"][x > 0.5].max() == 0                   # ahead of the front
+    whole = grooved_cylinder(samples=(49, 37), caps=False, cut_front=0.5)
+    assert whole.field_data["cutters"].shape == (4, 3)
+
+
 @pytest.mark.parametrize("params, msg", [
     ({"length": 0.0}, "length must be positive"),
     ({"length": 1.0, "gap": -1.0}, "gap must be at least 0"),

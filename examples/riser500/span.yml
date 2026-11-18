@@ -1,0 +1,22 @@
+# The whole riser over the run, from its 51 probes and not the flow files: the
+# centreline coloured by the displacement, its rest line and the envelope of its motion,
+# with the supports of flowreel.yml. The span is drawn at a fiftieth of its length so
+# it fits the frame, the frame says so, and a ruled box gives true stations.
+name: span
+source: {adapter: flexflow, path: case}
+time: {steps: [0, 7]}
+camera: {view: whole}
+size: [640, 360]
+stretch: {x: 0.02}
+layers:
+  - type: centreline
+    body: riser
+    from: probes
+    radius: 0.3
+    colour_by: dy
+    range: [-0.6, 0.6]
+    rest: true
+    envelope: [0, 7]
+  - {type: supports, body: riser, size: 1.0}
+  - {type: axes, style: ruled, bounds: {x: [0, 500], y: [-1, 1], z: [-1, 1]}, axes: [x, y],
+     unit: diameters, body: riser, font_size: 14, colour: "#8fa3b3", width: 1}

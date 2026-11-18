@@ -51,3 +51,16 @@ def test_the_project_declares_supports_tension_and_series(folder):
     assert row.dy.item() == pytest.approx(case.displacement(50, 1.0))
     swing = source.series("swing", body="pendulum")
     assert swing.pendDisp.abs().max() == pytest.approx(case.SWING, rel=0.01)
+
+
+def test_the_three_shots_read_the_case(folder):
+    from flowreel.scene.rendering import Scene
+    travel = Scene.make(folder / "travel.yml")
+    assert travel.plan.n_frames == case.STEPS
+    boxes = [travel.crop(i) for i in (0, case.STEPS - 1)]
+    assert [b.lo[0] + 10 for b in boxes] == pytest.approx([20, 480], abs=0.05)
+    span = Scene.make(folder / "span.yml")
+    assert span.shot.stretch.scale == (0.02, 1.0, 1.0) and span.shot.crop is None
+    pendulum = Scene.make(folder / "pendulum.yml")
+    assert pendulum.crop(3).lo[0] == pytest.approx(244, abs=0.05)
+    assert pendulum.source.is_virtual("pendulum")

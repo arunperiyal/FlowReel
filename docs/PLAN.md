@@ -1020,7 +1020,7 @@ and can be built at any time before branch 9.
 
 **Branch 9: `phase2b/bodies-check`** (needs branches 1 to 6)
 - [x] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum
-- [ ] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
+- [x] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
 - [x] Under `stretch`, support symbols, axes arrows and ticks keep their shape and labels go where the stretched model is drawn (found by the span shot)
 - [ ] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series
 - [ ] `examples/` project on generated data

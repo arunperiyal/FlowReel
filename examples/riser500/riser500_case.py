@@ -49,7 +49,7 @@ ACROSS = 8            # bricks across, in y and in z
 RINGS_PER_D = 4       # riser rings per diameter
 SIDES = 16
 VARS = ["X", "Y", "Z", "U", "V", "W", "Pressure"]
-FILES = ("flowreel.yml",)
+FILES = ("flowreel.yml", "cameras.yml", "travel.yml", "span.yml", "pendulum.yml")
 
 
 def displacement(x, t, length: float = LENGTH):

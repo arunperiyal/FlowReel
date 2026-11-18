@@ -79,7 +79,7 @@ def load(path: str | Path) -> Shot:
 def from_dict(data, file: str | None = None) -> Shot:
     """Check ``data`` (a parsed YAML mapping) and build the :class:`Shot`."""
     from flowreel.scene import layers as layer_mod
-    from flowreel.scene import centreline, flow_layers, marker_layers, supports  # noqa: F401  (register the layer types)
+    from flowreel.scene import axes, centreline, flow_layers, marker_layers, supports  # noqa: F401  (register the layer types)
     check = Checker(file)
     data = check.mapping(data, KEYS, REQUIRED)
     name = check.at("name").string(data["name"])

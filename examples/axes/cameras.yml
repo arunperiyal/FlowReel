@@ -1,0 +1,13 @@
+# Half a turn round the cylinder (12 long, along x), so the triad turns with the view.
+views:
+  - {name: front, position: [-4.0, 7.0, -14.0], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 30}
+  - {name: above, position: [6.0, 17.0, -2.0], focal: [6, 0, 0], up: [0, 0, 1], view_angle: 30}
+  - {name: back, position: [17.0, 7.0, 13.0], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 30}
+tracks:
+  orbit:
+    path: linear
+    ease: smooth
+    keys:
+      - {frame: 0, view: front}
+      - {frame: 48, view: above}
+      - {frame: 95, view: back}

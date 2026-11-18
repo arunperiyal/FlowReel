@@ -113,7 +113,7 @@ once `source` and `camera` name real things.
 | Option | Default | Meaning |
 |---|---|---|
 | `NAME` | `my_shot` | the shot's `name` |
-| `--layers TYPES` | `body` | comma list of layer types: `body`, `slice`, `iso`, `outline`, `glyphs`, `markers3d`, `geometry` |
+| `--layers TYPES` | `body` | comma list of layer types: `body`, `slice`, `iso`, `outline`, `glyphs`, `markers3d`, `geometry`, `supports`, `centreline`, `axes` |
 | `-o FILE` | print | write to FILE |
 | `--force` | off | overwrite FILE if it exists |
 

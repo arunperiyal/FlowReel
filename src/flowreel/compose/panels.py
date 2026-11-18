@@ -9,6 +9,10 @@ one panel differ only in time.
 
 :func:`panel` draws a panel's frames into ``out/<name>/frame_00000.png``, the frames
 split into ``jobs`` runs of consecutive frames, each run in its own process.
+
+Each frame has a key (plan Section 11) from the panel's type, size and settings, the
+style, the frame's time and the path, size and modification time of every file the
+panel reads; a frame drawn before with the same key is skipped unless ``force``.
 """
 from __future__ import annotations
 
@@ -20,7 +24,9 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from flowreel.compose.panel_file import PanelFile, frame_times, load
+from flowreel.compose.style import style_key
 from flowreel.scene.errors import Checker
+from flowreel.scene.keys import KeyStore, code_version, digest
 from flowreel.scene.rendering import FRAME_NAME
 
 REGISTRY: dict[str, type] = {}
@@ -95,7 +101,8 @@ class PanelReport:
 
 
 def panel(pf, out: str | Path = "frames", *, times: Iterable[float] | None = None,
-          frames: Iterable[int] | None = None, jobs: int = 1, processes: bool = True,
+          frames: Iterable[int] | None = None, jobs: int = 1, force: bool = False,
+          processes: bool = True,
           progress: Callable[[tuple[int, Path, str]], None] | None = None) -> PanelReport:
     """Draw the frames of ``pf`` (a :class:`PanelFile` or a panel file).
 
@@ -104,6 +111,8 @@ def panel(pf, out: str | Path = "frames", *, times: Iterable[float] | None = Non
     ``frames`` limits the frames drawn. Frames go to ``out/<name>/frame_00000.png``;
     ``jobs`` runs of consecutive frames are drawn at once, each in its own process,
     which builds the figure once (``processes=False`` draws here, for debugging).
+    A frame whose file exists with the same key (:func:`frame_key`) is skipped unless
+    ``force``.
     """
     if jobs < 1:
         raise ValueError(f"jobs must be at least 1, got {jobs}")
@@ -115,17 +124,28 @@ def panel(pf, out: str | Path = "frames", *, times: Iterable[float] | None = Non
     folder.mkdir(parents=True, exist_ok=True)
     report = PanelReport(folder)
     results = {}
+    store = KeyStore(folder)
+    base = key_parts(pf, kind)
+    keys = {i: frame_key(base, times[i]) for i in indices}
 
     def done(entry):
         results[entry[0]] = entry
+        if entry[2] == "drawn":
+            store.put(entry[1].name, keys[entry[0]])
         if progress:
             progress(entry)
 
-    work = [(i, times[i], str(folder / FRAME_NAME.format(i))) for i in indices]
-    if not processes or jobs == 1 or len(work) < 2:
+    work = []
+    for i in indices:
+        path = folder / FRAME_NAME.format(i)
+        if not force and store.fresh(path, keys[i]):
+            done((i, path, "skipped"))
+        else:
+            work.append((i, times[i], str(path)))
+    if work and (not processes or jobs == 1 or len(work) < 2):
         for entry in draw_run(pf, work, kind):
             done(entry)
-    else:
+    elif work:
         ctx = multiprocessing.get_context("spawn")
         runs = _runs(work, jobs)
         with ProcessPoolExecutor(max_workers=len(runs), mp_context=ctx) as pool:
@@ -134,6 +154,26 @@ def panel(pf, out: str | Path = "frames", *, times: Iterable[float] | None = Non
                     done(entry)
     report.frames = [results[i] for i in indices]
     return report
+
+
+def key_parts(pf: PanelFile, kind: PanelType) -> dict:
+    """What decides every frame of a panel but its time: the code, the type, size and
+    settings, the style, and each file read (resolved path, size, modification time)."""
+    stamps = []
+    for f in kind.files():
+        f = Path(f)
+        try:
+            st = f.stat()
+            stamps.append([str(f.resolve()), st.st_size, st.st_mtime_ns])
+        except OSError:
+            stamps.append([str(f), None, None])
+    return {"code": code_version("compose"), "type": pf.type, "size": list(pf.size),
+            "settings": kind.settings(), "style": style_key(pf.style), "files": stamps}
+
+
+def frame_key(parts: dict, time: float) -> str:
+    """The key of the frame drawn at ``time``; equal keys, equal pictures."""
+    return digest({**parts, "time": float(time)})
 
 
 def _frames(frames, n: int, pf: PanelFile) -> list[int]:

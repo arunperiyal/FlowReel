@@ -32,7 +32,8 @@ import yaml
 
 from flowreel.scene.errors import Checker, ConfigError
 
-KEYS = ("name", "size", "background", "grid", "gap", "tiles")
+KEYS = ("name", "size", "background", "grid", "gap", "missing", "tiles")
+MISSING = ("error", "hold")
 TILE_KEYS = ("frames", "at", "size", "fit", "label")
 LABEL_KEYS = ("text", "corner", "size", "colour")
 FITS = ("contain", "cover", "stretch")
@@ -72,12 +73,15 @@ class Tile:
 @dataclass
 class Layout:
     """A parsed layout file: the picture's ``name``, ``size`` ``(width, height)`` in
-    pixels, ``background`` colour and ``tiles``, drawn in order (later tiles on top)."""
+    pixels, ``background`` colour and ``tiles``, drawn in order (later tiles on top).
+    ``missing`` is what a tile without a frame at some index does: ``error`` or
+    ``hold`` (show its nearest earlier frame, or its first one)."""
 
     name: str
     size: tuple[int, int]
     tiles: list[Tile]
     background: str = "black"
+    missing: str = "error"
     file: str | None = None
 
 
@@ -103,6 +107,7 @@ def from_dict(data, file: str | None = None) -> Layout:
     size = _pair(data.get("size", DEFAULT_SIZE), check.at("size"), minimum=1)
     background = _colour(data.get("background", "black"), check.at("background"))
     folder = Path(file).parent if file else Path(".")
+    missing = check.at("missing").choice(data.get("missing", "error"), MISSING)
     gap = check.at("gap").integer(data.get("gap", 0), minimum=0)
     grid = None if data.get("grid") is None else _pair(data["grid"], check.at("grid"), minimum=1)
     if grid is None and "gap" in data:
@@ -121,7 +126,8 @@ def from_dict(data, file: str | None = None) -> Layout:
              for i, spec in enumerate(items)]
     for i, tile in enumerate(tiles):
         _inside(tile, size, check.at("tiles", i))
-    return Layout(name=name, size=size, tiles=tiles, background=background, file=file)
+    return Layout(name=name, size=size, tiles=tiles, background=background, missing=missing,
+                  file=file)
 
 
 def grid_cells(size: tuple[int, int], grid: tuple[int, int], gap: int = 0) -> list:

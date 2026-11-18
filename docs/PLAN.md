@@ -1007,7 +1007,7 @@ and can be built at any time before branch 9.
 - [x] Docs: long bodies page
 
 **Branch 7: `phase2b/geometry-grooves`** (geometry source; needs nothing of this phase)
-- [ ] `grooved_cylinder`: grooves in segments, `length`, `gap`, `stagger` (Section 5.3); segment ends rounded by `edge`
+- [x] `grooved_cylinder`: grooves in segments, `length`, `gap`, `stagger` (Section 5.3); segment ends rounded by `edge`
 - [ ] Carving and `cutters` with segments; the carving golden frame still matches
 - [ ] Tests on the surface (groove depth inside and outside segments, stagger between neighbours); docs and an example of staggered spanwise grooves
 

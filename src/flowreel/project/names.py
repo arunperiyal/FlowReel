@@ -38,14 +38,22 @@ class DeclaredSource:
         self.__dict__.update(state)
 
     def bodies(self) -> list[str]:
-        """Declared names, then the source's zones that no declaration claims."""
-        claimed = {b.zone for b in self.declared.values()}
+        """Declared names (virtual bodies too), then the source's zones that no
+        declaration claims."""
+        claimed = {b.zone for b in self.declared.values() if not b.virtual}
         return list(self.declared) + [z for z in self.source.bodies() if z not in claimed]
+
+    def is_virtual(self, name: str | None) -> bool:
+        """Whether ``name`` is a declared virtual body."""
+        return name in self.declared and self.declared[name].virtual
 
     def zone(self, name: str) -> str:
         """The source's zone that ``name`` means: a declared body's ``zone``, or a zone of
         the source by its own name. Raises ``KeyError`` naming the nearest valid name."""
         zones = self.source.bodies()
+        if self.is_virtual(name):
+            raise KeyError(f"body {name!r} is virtual: it has no surface zone in "
+                           f"{self.source.name}")
         if name in self.declared:
             zone = self.declared[name].zone
             if zone not in zones:
@@ -60,8 +68,42 @@ class DeclaredSource:
         raise KeyError(f"no body {name!r} (bodies: {', '.join(names)}){hint}")
 
     def body(self, step: int, name: str | None = None):
-        """The wall surface of body ``name`` at ``step``; every body without a name."""
+        """The surface of body ``name`` at ``step``; without a name, every body with a
+        surface in the files (virtual bodies are not walls: they do not touch the flow)."""
+        if self.is_virtual(name):
+            return self.virtual_surface(step, name)
         return self.source.body(step, None if name is None else self.zone(name))
+
+    def virtual_surface(self, step: int, name: str):
+        """Virtual body ``name`` at ``step``: its shape built from ``params`` and the
+        ``drive`` series at the step's time, its origin moved to the attachment."""
+        from flowreel.sources.bodies import get_body
+        from flowreel.tracks import SeriesTrack
+        body = self.declared[name]
+        time = self.source.time(step)
+        values = dict(body.params)
+        for param, spec in body.drive.items():
+            track = SeriesTrack.parse({"body": name, **spec}, f"{name}.drive.{param}")
+            values[param] = track.bind(self, [time]).at(0)
+        surface = get_body(body.shape)(**values)
+        return surface.translate(self.origin(step, name), inplace=False)
+
+    def origin(self, step: int, name: str):
+        """Where virtual body ``name``'s origin is at ``step``."""
+        import numpy as np
+        attach = self.declared[name].attach
+        if attach.point is not None:
+            at = np.asarray(attach.point, float)
+        else:
+            host = self.declared[attach.body]
+            surface = self.body(step, attach.body)
+            if attach.station is None:
+                at = np.asarray(surface.center, float)
+            else:
+                from flowreel.project.measure import centre
+                slab = 0.25 * host.diameter if host.diameter else None
+                at = np.asarray(centre(surface, attach.station, host.axis, slab))
+        return tuple(at + np.asarray(attach.offset, float))
 
     def series(self, name: str, body: str | None = None):
         """The time series ``name``: the CSV declared under ``body``
@@ -114,9 +156,10 @@ def declare(source, project) -> object:
 
 
 def one_body(source) -> str:
-    """The body meant when a name is left out: the only declared body, or else the
-    source's only zone. Raises ``LookupError`` asking for a name otherwise."""
-    declared = list(getattr(source, "declared", {})) if isinstance(source, DeclaredSource) else []
+    """The body meant when a name is left out: the only declared body with a surface,
+    or else the source's only zone. Raises ``LookupError`` asking for a name otherwise."""
+    declared = ([n for n, b in source.declared.items() if not b.virtual]
+                if isinstance(source, DeclaredSource) else [])
     if len(declared) == 1:
         return declared[0]
     names = declared or source.bodies()
@@ -125,6 +168,19 @@ def one_body(source) -> str:
     if not names:
         raise LookupError(f"{source.name}: the source has no body")
     raise LookupError(f"name the body: {source.name} has {', '.join(names)}")
+
+
+def require_wall(source, name: str | None, what: str) -> None:
+    """Raise ``ValueError`` when ``name`` is a virtual body: it has no wall in the flow, so
+    no wall field, wall gap or wall mask (``what`` names the asking option)."""
+    if isinstance(source, DeclaredSource) and source.is_virtual(name):
+        raise ValueError(f"{what}: {name!r} is a virtual body, modelled by equations and "
+                         "not in the flow: it has no wall")
+
+
+def is_virtual(source, name: str | None) -> bool:
+    """Whether ``name`` is a virtual body of ``source``."""
+    return isinstance(source, DeclaredSource) and source.is_virtual(name)
 
 
 def declaration(source, name: str) -> Body | None:

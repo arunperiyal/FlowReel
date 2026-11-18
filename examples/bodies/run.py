@@ -18,6 +18,9 @@ second shot has a time to follow. Then:
    on the bend, and the frames go to DIR/frames/riser_travel/.
 5. span.yml draws the whole riser from its probes: centreline, rest line, envelope,
    supports and an arrow driven by a series track, into DIR/frames/riser_span/.
+6. pendulum.yml draws the virtual pendulum hung from the riser at mid-span, swung by
+   data/pendulum.csv (``pendDisp``, radians), as a ghost; the bob's lowest point of
+   each frame is printed (the pivot's height less ``4 cos(angle) + 0.6``).
 """
 import shutil
 import sys
@@ -66,6 +69,9 @@ def write_data(folder: Path) -> None:
         dy = BEND * np.sin(np.pi * x / LENGTH) * np.sin(2 * np.pi * times)
         rows = "".join(f"{i + 1},{t:.12g},{d:.12g}\n" for i, (t, d) in enumerate(zip(times, dy)))
         (data / f"riser_disp_{node}.csv").write_text("tsId,time,aleDisp_y\n" + rows)
+    angle = 0.6 * np.sin(2 * np.pi * times)
+    (data / "pendulum.csv").write_text("time,pendDisp\n0,0\n" + "".join(
+        f"{t:.12g},{a:.12g}\n" for t, a in zip(times, angle)))
 
 
 def main(folder: Path) -> None:
@@ -76,7 +82,7 @@ def main(folder: Path) -> None:
                                   "ball": str(folder / "data/ball.vtp")})
     measured = init_project(folder / "init", source, label="vtk:data/flow_*.vti", force=True)
     print(measured.read_text())
-    for name in ("flowreel.yml", "shot.yml", "span.yml", "cameras.yml"):
+    for name in ("flowreel.yml", "shot.yml", "span.yml", "pendulum.yml", "cameras.yml"):
         shutil.copy(HERE / name, folder / name)
     print("declared:", ", ".join(f"{b.name} (zone {b.zone})"
                                  for b in load_project(folder).bodies.values()))
@@ -90,13 +96,16 @@ def main(folder: Path) -> None:
         x, y, z = scene.camera.view(i, scene.data(i)).focal
         print(f"frame {i:2d}: focal ({x:.2f}, {y:.3f}, {z:.3f}); "
               f"bend there {BEND * np.sin(np.pi * x / LENGTH):.3f}")
-    for shot in ("shot.yml", "span.yml"):
+    for shot in ("shot.yml", "span.yml", "pendulum.yml"):
         report = render(folder / shot, out=folder / "frames", jobs=2)
         print(f"{report.folder}: {report.count('rendered')} drawn, "
               f"{report.count('skipped')} skipped (backend {report.backend})")
     span = Scene.make(folder / "span.yml")
     arrow = [span.values(i)[2]["length"] for i in range(span.plan.n_frames)]
     print("arrow length by frame: " + ", ".join(f"{a:.3f}" for a in arrow))
+    pend = Scene.make(folder / "pendulum.yml")
+    low = [float(pend.data(i).body("pendulum").points[:, 1].min()) for i in range(pend.plan.n_frames)]
+    print("bob's lowest point by frame: " + ", ".join(f"{y:.3f}" for y in low))
 
 
 if __name__ == "__main__":

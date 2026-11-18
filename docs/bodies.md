@@ -75,6 +75,61 @@ From Python, `Scene.make`, `render` and `render_frame` find the project themselv
 the shot file. For a shot built in code, pass the source wrapped:
 `flowreel.project.names.declare(source, load_project("films/afms"))`.
 
+## Virtual bodies
+
+Some structures are solved as equations coupled to the flow and never meshed: a pendulum
+hung from a cylinder, a tuned mass, a spring to ground. The files have no surface for
+them; their motion is in the solver's time series. A virtual body is drawn from a
+**shape** whose parameters are fixed in `params` or **driven** by series:
+
+```yaml
+bodies:
+  riser: {zone: cyl, axis: x, diameter: 1.0}
+  pendulum:
+    virtual: true
+    shape: pendulum                          # rod and bob
+    params: {length: 2.0, bob: 0.3, swing: [1, 0, 0]}
+    attach: {body: riser, station: 250.0}    # its origin follows the riser there
+    drive:
+      angle: {series: swing, column: pendDisp}
+    series:
+      swing: data/pendulum.csv               # FlexFlow Analyzer's export of pendDisp
+```
+
+| Key | Meaning | Default |
+|---|---|---|
+| `virtual` | `true` | required |
+| `shape` | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | required |
+| `params` | the shape's parameters, fixed | the shape's defaults |
+| `attach` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | `{point: [0, 0, 0]}` |
+| `drive` | the shape's parameters as [series tracks](tracks.md#series-as-a-track); `body` defaults to this virtual body | none |
+| `series` | its CSV series, as for any body | none |
+
+- **Nothing is computed.** FlowReel draws the solver's result at each step's time: it
+  does not integrate the pendulum's equation. What the numbers mean (an angle or a
+  length, the pivot, the plane of swing) is stated in `params` and `attach`; FlowReel
+  does not guess it from the file.
+- **It moves with its host.** The origin is the host body's centre at the station in
+  that step, so a pendulum hangs from a vibrating riser.
+- **Drawn to look modelled, not meshed.** A `body` layer of virtual bodies draws them as
+  a `ghost` (see-through, outlined) unless it gives `style`, so the film does not
+  suggest the pendulum disturbed the flow as a solid would.
+- **No wall.** A virtual body is not in the flow: a `field` on it, an `iso` `gap_body`
+  or a `slice` `mask_body` naming it is an error. Without a name, "every body" means
+  the bodies with a surface, so wall gaps never count a pendulum.
+- `follow` may follow a virtual body by name; `follow: true` means the one body with a
+  surface.
+
+| Shape | Parameters (lengths in the source's unit, angles in radians) |
+|---|---|
+| `pendulum` | `length` (pivot to the bob's centre), `bob` (its radius), `rod` (radius), `angle` (from hanging along `down`, about the `swing` axis), `down`, `swing` |
+| `spring` | `length` (drive it to stretch), `radius` (of the coil), `turns`, `wire` (radius), `direction` |
+| `mass` | `size` (edge), `x`, `y`, `z` (the centre from the origin; drive one with a displacement) |
+
+A shape is a registered body function (`flowreel.sources.bodies.register_body`), so a
+new mechanism is a small plugin. `examples/bodies/pendulum.yml` hangs a pendulum from
+the riser at mid-span and swings it from a generated `pendDisp` series.
+
 ## Stations, centre and diameter
 
 Where a body has an `axis`, its **centre at a station** is the mean of the surface

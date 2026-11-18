@@ -186,6 +186,10 @@ def smooth_cylinder(span=12.0, radius=0.5):
 
 `available_bodies()` lists the names and `get_body(name)` returns the function.
 
+Registered with FlowReel: `grooved_cylinder` (below), and `pendulum`, `spring` and
+`mass`, the shapes of virtual bodies ([bodies](bodies.md#virtual-bodies)), which are
+drawn from their origin and can be used here too.
+
 ### Body `grooved_cylinder`
 
 A cylinder along **x**, from `x = 0` to `x = span`, with helical grooves. Angles around

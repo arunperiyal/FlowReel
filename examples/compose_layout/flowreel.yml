@@ -1,0 +1,3 @@
+# The channel's floor, a wall 200 long: a beam body along x.
+bodies:
+  floor: {zone: floor, axis: x}

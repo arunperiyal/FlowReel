@@ -30,7 +30,8 @@ from flowreel.scene.keys import KeyStore, code_version, digest
 from flowreel.scene.rendering import FRAME_NAME
 
 REGISTRY: dict[str, type] = {}
-TYPE_MODULES: tuple[str, ...] = ("flowreel.compose.series_panel",)      # modules that register the built-in types
+# Modules that register the built-in types.
+TYPE_MODULES: tuple[str, ...] = ("flowreel.compose.series_panel", "flowreel.compose.phase_panel")
 DPI = 100
 
 

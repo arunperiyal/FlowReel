@@ -1052,7 +1052,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Panel registry and the drawing loop: the figure is built once and moved along in time; drawn in parallel chunks, `jobs`
 - [x] Panel cache (Section 11): key from the panel's settings, its times, the style and the files it reads
 - [x] `series` panel: one or several series from `flowreel.yml` by body, lines to the current time ending at a dot at the interpolated value, shared time axis, labels and colours per entry
-- [ ] `phase` panel: one series against another, the trace to the current time and a dot
+- [x] `phase` panel: one series against another, the trace to the current time and a dot
 - [ ] Tests with exact values (line ends, dot positions, times between samples); docs: panels page
 
 **Branch 3: `phase3/panels-span`** (panels of a long body; needs branch 2)

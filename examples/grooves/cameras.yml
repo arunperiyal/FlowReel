@@ -1,0 +1,12 @@
+# A view of the 12-diameter cylinder from the side and a little above, and a close one.
+views:
+  - {name: side, position: [6.0, 5.2, -14.5], focal: [6, 0, 0], up: [0, 1, 0], view_angle: 30}
+  - {name: close, position: [3.2, 1.6, -3.0], focal: [5, 0, 0], up: [0, 1, 0], view_angle: 34}
+tracks:
+  carve:
+    path: linear
+    ease: smooth
+    keys:
+      - {frame: 0, view: side}
+      - {frame: 150, view: side}
+      - {frame: 191, view: close}

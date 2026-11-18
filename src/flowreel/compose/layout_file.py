@@ -202,3 +202,21 @@ def _inside(tile: Tile, size: tuple[int, int], check: Checker) -> None:
         raise check.error(f"the tile ({w} x {h} at [{x}, {y}]) runs past the picture's "
                           f"{size[0]} x {size[1]}")
 
+
+
+def scaled(layout: Layout, size: tuple[int, int]) -> Layout:
+    """``layout`` drawn at ``size`` (a draft): positions and tile sizes scaled by the
+    ratios of the widths and of the heights, label sizes by that of the heights, all
+    rounded to whole pixels."""
+    from dataclasses import replace
+    sx, sy = size[0] / layout.size[0], size[1] / layout.size[1]
+    if (sx, sy) == (1, 1):
+        return layout
+    tiles = []
+    for t in layout.tiles:
+        x0, y0 = round(t.at[0] * sx), round(t.at[1] * sy)
+        x1, y1 = round((t.at[0] + t.size[0]) * sx), round((t.at[1] + t.size[1]) * sy)
+        label = None if t.label is None else replace(t.label, size=t.label.size * sy)
+        tiles.append(replace(t, at=(x0, y0), size=(max(1, x1 - x0), max(1, y1 - y0)),
+                             label=label))
+    return replace(layout, size=tuple(size), tiles=tiles)

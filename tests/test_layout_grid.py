@@ -2,7 +2,7 @@
 import pytest
 
 from flowreel.compose import from_dict
-from flowreel.compose.layout import grid_cells
+from flowreel.compose.layout_file import grid_cells
 from flowreel.scene.errors import ConfigError
 
 

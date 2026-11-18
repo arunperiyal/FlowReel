@@ -3,13 +3,17 @@
 Usage: python run.py [DIR]   (default ./bodies_example)
 
 Needs no data. It writes into DIR a riser 40 diameters long, bent to
-y = 1.5 sin(pi x / 40), a ball beside it and a small flow box, all in data/. Then:
+y = 1.5 sin(pi x / 40), a ball beside it, a small flow box, and the riser's
+displacement at five probe nodes as FlexFlow Analyzer exports it (one CSV per node,
+``tsId, time, aleDisp_y``), all in data/. Then:
 
 1. ``project init`` (here its library function) measures every surface zone and writes
    init/flowreel.yml: axis and diameter measured, supports left to fill.
 2. The hand-edited flowreel.yml of this folder names the zones ``riser`` and ``ball``
    and fills in the riser's supports. It is copied to DIR with shot.yml and cameras.yml.
-3. The shot follows ``riser`` along its span; the focal point of each frame is printed,
+3. The riser's declared displacement series is read by body name, the five nodes as
+   one history with their stations.
+4. The shot follows ``riser`` along its span; the focal point of each frame is printed,
    on the bend, and the frames go to DIR/frames/riser_travel/.
 """
 import shutil
@@ -53,6 +57,11 @@ def write_data(folder: Path) -> None:
         box.point_data[name] = np.zeros(box.n_points, dtype=np.float32)
     box["U"][:] = 1.0
     box.save(data / "flow.vti")
+    times = np.arange(1, 11) * 0.1
+    for node, x in enumerate(np.linspace(0, LENGTH, 5)):
+        dy = BEND * np.sin(np.pi * x / LENGTH) * np.sin(2 * np.pi * times)
+        rows = "".join(f"{i + 1},{t:.12g},{d:.12g}\n" for i, (t, d) in enumerate(zip(times, dy)))
+        (data / f"riser_disp_{node}.csv").write_text("tsId,time,aleDisp_y\n" + rows)
 
 
 def main(folder: Path) -> None:
@@ -68,6 +77,11 @@ def main(folder: Path) -> None:
     print("declared:", ", ".join(f"{b.name} (zone {b.zone})"
                                  for b in load_project(folder).bodies.values()))
     scene = Scene.make(folder / "shot.yml")
+    disp = scene.source.series("displacement", body="riser")
+    at = disp[np.isclose(disp.time, 0.3)]
+    print(f"displacement: {len(disp)} rows, nodes {sorted(int(n) for n in disp.node.unique())}; "
+          "dy at t = 0.3 by station: " + ", ".join(f"{s:g}: {d:.3f}" for s, d in
+                                                     zip(at.station, at.dy)))
     for i in (0, 6, 11):
         x, y, z = scene.camera.view(i, scene.data(i)).focal
         print(f"frame {i:2d}: focal ({x:.2f}, {y:.3f}, {z:.3f}); "

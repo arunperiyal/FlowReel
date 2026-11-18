@@ -9,5 +9,11 @@ bodies:
     ends:
       - {at: 0.0, support: pinned}
       - {at: 40.0, support: roller, free_along: x, tension: true}
+    series:
+      displacement:              # one CSV per probe node, as FlexFlow Analyzer writes them
+        file: data/riser_disp_{node}.csv
+        by: node
+        stations: [0.0, 10.0, 20.0, 30.0, 40.0]
+        columns: {dy: aleDisp_y}
   ball:
     zone: ball                   # not slender: no axis, no ends

@@ -60,7 +60,11 @@ class Source(Protocol):
         ...
 
     def series(self, name: str) -> pd.DataFrame:
-        """A time series: a ``time`` column plus value columns."""
+        """A time series: a ``time`` column plus value columns.
+
+        A source seen through a project (:class:`flowreel.project.names.DeclaredSource`)
+        also takes ``body=``, for the CSV series declared under a body.
+        """
         ...
 
     def memory_per_step(self, crop: Box | None) -> float:

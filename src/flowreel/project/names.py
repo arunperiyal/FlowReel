@@ -27,12 +27,12 @@ class DeclaredSource:
         self.declared = dict(bodies)
 
     def __getattr__(self, name):
-        if name in ("source", "declared"):          # not yet set (while unpickling)
+        if name in ("source", "declared", "_series"):   # not yet set (while unpickling)
             raise AttributeError(name)
         return getattr(self.source, name)
 
     def __getstate__(self):
-        return self.__dict__
+        return {k: v for k, v in self.__dict__.items() if k != "_series"}
 
     def __setstate__(self, state):
         self.__dict__.update(state)
@@ -62,6 +62,37 @@ class DeclaredSource:
     def body(self, step: int, name: str | None = None):
         """The wall surface of body ``name`` at ``step``; every body without a name."""
         return self.source.body(step, None if name is None else self.zone(name))
+
+    def series(self, name: str, body: str | None = None):
+        """The time series ``name``: the CSV declared under ``body``
+        (:func:`flowreel.project.series.read_series`), read once per process.
+
+        Without ``body``: the one declared body with a series ``name``, or else the
+        source's own series (flexflow's OTHD and OISD). Raises ``KeyError`` naming what
+        there is.
+        """
+        if body is None:
+            owners = [b for b in self.declared.values() if name in b.series]
+            if len(owners) > 1:
+                raise KeyError(f"series {name!r} is declared for {', '.join(b.name for b in owners)}: "
+                               "say which with body=")
+            if not owners:
+                return self.source.series(name)
+            decl = owners[0]
+        else:
+            decl = self.declaration(body)
+            if decl is None:
+                self.zone(body)                             # KeyError for an unknown name
+                raise KeyError(f"body {body!r} is not declared, so it has no series; "
+                               "declare its series in flowreel.yml")
+            if name not in decl.series:
+                have = ", ".join(decl.series) or "none"
+                raise KeyError(f"body {decl.name!r} has no series {name!r} (series: {have})")
+        cache = self.__dict__.setdefault("_series", {})
+        if (decl.name, name) not in cache:
+            from flowreel.project.series import read_series
+            cache[(decl.name, name)] = read_series(decl.series[name])
+        return cache[(decl.name, name)].copy()
 
     def declaration(self, name: str) -> Body | None:
         """The :class:`Body` of ``name`` (a body name or a declared zone), or ``None``."""

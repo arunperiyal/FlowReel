@@ -1,0 +1,10 @@
+# Four tiles on a 2 x 2 grid. The title card is one frame, held through the others.
+size: [960, 540]
+grid: [2, 2]
+gap: 6
+missing: hold
+tiles:
+  - {frames: frames/title}
+  - {frames: frames/bare, label: bare}
+  - {frames: frames/helical, label: helical}
+  - {frames: frames/bare, fit: cover, label: 'bare, cover'}

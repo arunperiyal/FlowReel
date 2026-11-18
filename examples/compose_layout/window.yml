@@ -1,0 +1,12 @@
+# A window 12 long round the floor of a generated channel; the camera follows it.
+name: window
+source: {adapter: flexflow, path: case, margin: 0.5}
+time: {steps: [0, 3]}
+crop:
+  around: {body: floor, station: 100}
+  half: [6, 3, 3]
+camera: {view: close, follow: true}
+size: [480, 270]
+layers:
+  - {type: slice, normal: z, position: 0, field: U, range: [0, 2], colormap: viridis}
+  - {type: outline, bounds: crop, colour: "#8fa3b3", width: 2}

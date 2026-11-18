@@ -1045,7 +1045,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Frames matched by index across tiles; a missing frame is an error unless `missing: hold`
 - [x] `stations: {shot, at}`: one shot rendered at several stations of a long body (its crop and its camera's `follow`), each tile labelled with its station
 - [x] `compose.layout(...)`: frames skipped unless their key changed (the tiles' files, sizes and modification times, the layout's settings); `force`
-- [ ] Docs: layouts page, with an example on generated frames
+- [x] Docs: layouts page, with an example on generated frames
 
 **Branch 2: `phase3/panels-core`** (panel interface and time plots)
 - [ ] Panel file: `type`, `size`, `times` (a shot's frame times, or a list), and one `style` block shared by all panels (Lato, maths font, colours, line widths)

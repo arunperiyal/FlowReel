@@ -1,0 +1,7 @@
+# Two frame folders side by side, each labelled.
+size: [960, 270]
+background: '#101418'
+tiles:
+  - {frames: frames/bare, at: [0, 0], size: [480, 270], label: bare}
+  - {frames: frames/helical, at: [480, 0], size: [480, 270],
+     label: {text: helical, corner: upper_right, colour: '#ffcc66'}}

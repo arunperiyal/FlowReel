@@ -1023,10 +1023,13 @@ and can be built at any time before branch 9.
 - [x] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
 - [x] Under `stretch`, support symbols, axes arrows and ticks keep their shape and labels go where the stretched model is drawn (found by the span shot)
 - [x] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series
-- [ ] `examples/` project on generated data
+- [x] `examples/` project on generated data
 
 **Phase 2B is done when** those three shots render from the generated case and the
-window shot's memory does not grow with the span.
+window shot's memory does not grow with the span. **Done 2026-11-18:** the travel, span
+and pendulum shots render from the generated case (`tests/test_riser500.py`); a step
+through the window costs 0.61 MB against 15.6 MB whole, and 0.61 MB in a case half as
+long. Section 24 question 1 (a real run's file) stays open.
 
 ## 20. From the prototype
 

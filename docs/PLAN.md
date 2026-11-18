@@ -1016,7 +1016,7 @@ and can be built at any time before branch 9.
 - [x] `axes` layer, `style: triad`: a corner triad in its own viewport, turning with the camera
 - [x] `style: arrows`: labelled arrows at a point or a body end, sized in model units or diameters
 - [x] `style: ruled`: a box (`domain`, `crop` or numbers) with ticks and numbers, in the source unit or in diameters
-- [ ] Tests (projection of the triad and ticks, draft scaling); docs and an example
+- [x] Tests (projection of the triad and ticks, draft scaling); docs and an example
 
 **Branch 9: `phase2b/bodies-check`** (needs branches 1 to 6)
 - [ ] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum

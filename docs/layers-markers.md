@@ -1,4 +1,4 @@
-# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`, `supports`, `centreline`
+# Layers without flow data: `outline`, `glyphs`, `markers3d`, `geometry`, `supports`, `centreline`, `axes`
 
 Code: `flowreel.scene.marker_layers` (`supports`: `flowreel.scene.supports`;
 `centreline`: `flowreel.scene.centreline`). Entries of a shot's `layers:` list
@@ -211,6 +211,74 @@ layer).
 
 `examples/bodies/span.yml` draws a riser this way, with its supports and an arrow whose
 length follows the mid-span displacement (a series track).
+
+## `axes`
+
+The solver's directions and the size of the domain, in one of three styles; a shot may
+draw several `axes` layers, one per style.
+
+- **`triad`** (the default): three arrows in a small square in a corner of the frame,
+  turning with the camera. It is drawn by a renderer of its own over the scene, so it
+  never hides the flow and never grows or shrinks with the zoom.
+- **`arrows`**: labelled arrows in the scene, starting at `origin`, a point or a body's
+  end, to show the directions next to the body. Their `length` is in model units or in
+  diameters.
+- **`ruled`**: a box with ticks and numbers on one edge in each direction, for the size
+  of the domain. Each direction is ruled on the edge that the camera sees on the outside
+  of the box (of its four edges, the one whose middle falls furthest from the box's in
+  the frame), so the numbers sit outside and move round as the camera does.
+
+Labels and numbers are Lato through VTK's font-file option, so they match the film's
+captions, and their size is in pixels, so a draft shrinks them with the picture. They
+are drawn over the model, never hidden by it.
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `style` | `triad`, `arrows` or `ruled` | `triad` | `ruled` |
+| `axes` | list of `x`, `y`, `z` | `[x, y, z]` | `[x, y]` |
+| `labels` | list of text, one per axis | the axes' names | `[streamwise, lift, span]` |
+| `colours` | list of colours, one per axis (arrows of `triad` and `arrows`) | `["#e8604c", "#7bc96f", "#5b9bd5"]` | `["#ffffff", "#ffffff", "#ffffff"]` |
+| `colour` | track, colour of text and lines | `#d0d4d8` | `"#9aa3ab"` |
+| `opacity` | track | `1` | `{from: 0, to: 1, frames: [0, 24]}` |
+| `font_size` | track, pixels | `18` | `24` |
+| `width` | track, pixels: lines of `ruled` | `1.5` | `1` |
+| `corner` | `triad` only: `lower_left`, `lower_right`, `upper_left`, `upper_right` | `lower_left` | `upper_right` |
+| `size` | track, pixels: the side of the `triad`'s square | `110` | `150` |
+| `origin` | `arrows` only, required: `[x, y, z]`, or `{body: NAME, end: 0 \| 1}` for the centre of the body's low (0) or high (1) end along its axis | | `{body: riser, end: 0}` |
+| `length` | track, `arrows`: length of an arrow, in `unit` | `1` | `3` |
+| `unit` | `model` or `diameters` (`arrows` and `ruled`) | `model` | `diameters` |
+| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the `origin`'s body or the one body | | `riser` |
+| `bounds` | `ruled` only: a box ([boxes](#boxes-bounds-and-in)) | `domain` | `{x: [0, 12], y: [-1.5, 1.5], z: [-1.5, 1.5]}` |
+| `ticks` | `ruled` only: spacing in `unit`, or `auto` | `auto` | `0.5` |
+
+An option of one style given to another (`corner` with `ruled`, `origin` with `triad`)
+is an error, as is `unit: diameters` on a triad, which shows directions, not lengths.
+
+**Ticks.** `auto` picks a round spacing, 1, 2 or 5 times a power of ten, for about five
+intervals along the edge, then widens it until the numbers are at least two labels
+apart in the frame. A direction whose edge is shorter in the frame than two labels (it
+points at the camera), or which would carry fewer than two numbers, is not ruled; the
+box's edges are still drawn. With `unit: diameters` the numbers are lengths over D and
+each direction's title reads `x / D`.
+
+```yaml
+- type: axes                          # the size of the domain, in diameters
+  style: ruled
+  bounds: crop
+  unit: diameters
+- type: axes                          # directions beside the riser's low end
+  style: arrows
+  origin: {body: riser, end: 0}
+  length: 3
+  unit: diameters
+- {type: axes, corner: upper_right}   # and a triad
+```
+
+![The three styles: a ruled box, arrows beyond the body, a triad; from the front and from above](images/axes.png)
+
+`examples/axes/` draws all three round the generated grooved cylinder while the camera
+goes half way round; from above, `y` points at the camera and is not ruled.
+`python examples/axes/run.py axes.png` draws the two frames above.
 
 ## Example
 

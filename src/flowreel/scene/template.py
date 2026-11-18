@@ -13,6 +13,7 @@ from flowreel.scene import flow_layers as _flow_layers  # noqa: F401  (registers
 from flowreel.scene import marker_layers as _marker_layers  # noqa: F401
 from flowreel.scene import supports as _supports  # noqa: F401
 from flowreel.scene import centreline as _centreline  # noqa: F401
+from flowreel.scene import axes as _axes  # noqa: F401
 from flowreel.scene.layers import available, layer_type
 
 HEADER = """\

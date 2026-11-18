@@ -6,7 +6,7 @@ import pytest
 import pyvista as pv
 
 from flowreel.project import PROJECT_FILE
-from flowreel.scene.axes import triad_viewport
+from flowreel.scene.axes import nice_step, outer_edges, tick_text, ticks, triad_viewport
 from flowreel.scene.errors import ConfigError
 from flowreel.scene.layers import Frame
 from flowreel.scene.rendering import Scene
@@ -18,6 +18,8 @@ from test_layer_supports import Riser
 
 PROJECT = "bodies: {riser: {zone: cyl, axis: x, diameter: 2.0}}\n"
 VIEWS = {"side": parse_view({"name": "side", "position": [8, 14, 60], "focal": [20, 0, 0]}),
+         "top": parse_view({"name": "top", "position": [20, 80, 0.5], "focal": [20, 0, 0],
+                            "up": [0, 0, -1]}),
          "oblique": parse_view({"name": "oblique", "position": [-20, 25, 40],
                                 "focal": [20, 0, 0], "up": [0, 1, 0]})}
 
@@ -100,10 +102,85 @@ def test_arrows_start_at_a_body_end_sized_in_diameters(tmp_path):
     assert actors == 2 and labels == ["lift", "span"]
 
 
+def test_nice_ticks():
+    assert nice_step(40) == 10 and nice_step(7) == 1 and nice_step(0.3) == 0.05
+    assert nice_step(13) == 2
+    assert list(ticks(-1.0, 13.0)) == [0, 2, 4, 6, 8, 10, 12]
+    assert list(ticks(0.0, 1.0, 0.25)) == [0, 0.25, 0.5, 0.75, 1.0]
+    assert [tick_text(v) for v in (-0.0, 2.5, 10.0)] == ["0", "2.5", "10"]
+
+
+def test_ruled_rules_the_outer_edges(tmp_path):
+    box = {"x": [0, 40], "y": [-3, 3], "z": [-3, 3]}
+
+    def check(plotter, frame):
+        ren = plotter.renderer
+        rules = sc.shot.layers[0].rulings(plotter, frame)
+        mid = np.array([20.0, 0, 0])
+        cx, cy, _ = to_display(ren, mid)
+        for rule in rules:
+            k = rule["axis"]
+            fixed, outward = rule["edge"]
+            p = fixed.copy()
+            p[k] = mid[k]
+            x, y, _ = to_display(ren, p)
+            others = []
+            for si in (-1, 1):
+                for sj in (-1, 1):
+                    q = mid.copy()
+                    i, j = [a for a in range(3) if a != k]
+                    q[i] += si * 3 if i else si * 20
+                    q[j] += sj * 3 if j else sj * 20
+                    others.append(math.hypot(*(np.subtract(to_display(ren, q)[:2], (cx, cy)))))
+            assert math.hypot(x - cx, y - cy) == pytest.approx(max(others), abs=1e-6)
+            assert np.allclose(np.linalg.norm(outward), 1)
+        return rules, [a.GetInput() for a in ren.GetActors2D()]
+    sc = scene(tmp_path, {"style": "ruled", "bounds": box, "unit": "diameters", "font_size": 8},
+               "oblique")
+    rules, labels = drawn(sc, check)
+    assert rules[0]["text"] == ["0", "5", "10", "15", "20"]          # 40 long, D = 2
+    assert np.allclose(rules[0]["ticks"], [0, 10, 20, 30, 40])
+    assert "x / D" in labels and "20" in labels
+    sc = scene(tmp_path, {"style": "ruled", "bounds": box, "ticks": 0.5, "font_size": 8},
+               "oblique")
+    assert drawn(sc, check)[0][1]["text"] == ["-3", "-2.5", "-2", "-1.5", "-1", "-0.5",
+                                              "0", "0.5", "1", "1.5", "2", "2.5", "3"]
+
+
+def test_numbers_do_not_run_into_each_other(tmp_path):
+    box = {"x": [0, 40], "y": [-3, 3], "z": [-10, 10]}
+
+    def rules(plotter, frame):
+        return {r["axis"]: r for r in sc.shot.layers[0].rulings(plotter, frame)}
+    sc = scene(tmp_path, {"style": "ruled", "bounds": box}, "top")
+    got = drawn(sc, rules)
+    assert sorted(got) == [0, 2]                         # y points at the camera
+    assert got[0]["text"] == ["0", "10", "20", "30", "40"]
+    assert got[2]["text"] == ["-10", "0", "10"]          # thinned from 5 to 10 apart
+    big = scene(tmp_path, {"style": "ruled", "bounds": box, "font_size": 40}, "top")
+    assert drawn(big, lambda p, f: [len(r["ticks"]) for r in
+                                    big.shot.layers[0].rulings(p, f)]) == [3]   # 0, 20, 40
+
+
+def test_outer_edges_pick_the_lower_edge_on_a_tie():
+    plotter = pv.Plotter(off_screen=True, window_size=[200, 200])
+    try:
+        plotter.camera.position, plotter.camera.focal_point = (0, 0, 10), (0, 0, 0)
+        plotter.camera.up = (0, 1, 0)
+        from flowreel.box import Box
+        fixed, outward = outer_edges(plotter.renderer, Box((-1, -1, -1), (1, 1, 1)))[0]
+        assert fixed[1] == -1 and outward[1] < 0                     # x ruled below
+    finally:
+        plotter.close()
+
+
 @pytest.mark.parametrize("layer, msg", [
     ({"style": "triad", "origin": [0, 0, 0]}, "option of style arrows"),
     ({"style": "arrows"}, "missing key 'origin'"),
     ({"style": "arrows", "origin": {"end": 2}}, "expected 0"),
+    ({"style": "ruled", "corner": "lower_left"}, "option of style triad"),
+    ({"style": "ruled", "ticks": -1}, "must be positive"),
+    ({"style": "ruled", "bounds": "box"}, "not allowed"),
     ({"axes": ["x", "x"]}, "twice"),
     ({"axes": ["x", "y"], "labels": ["a"]}, "expected 2 labels"),
     ({"colours": ["#ff0000"]}, "expected 3 colours"),

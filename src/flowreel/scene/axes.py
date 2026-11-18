@@ -1,30 +1,91 @@
 """The ``axes`` layer (plan Section 7.2): the solver's directions and the domain's size.
 
-Styles, one per layer:
+Three styles, one per layer; a shot may use any of them:
 
 - ``triad``: three arrows in a small square viewport in a corner of the frame, turning
   with the camera, so it never hides the flow.
 - ``arrows``: labelled arrows in the scene at ``origin``, a point or a body's end,
   ``length`` long in model units or in diameters.
+- ``ruled``: a box (``domain``, ``crop`` or numbers) with ticks and numbers along one
+  edge in each direction, the edge the camera sees on the outside of the box, in the
+  source's unit or in diameters.
 
 Labels are Lato, ``font_size`` pixels high (:func:`flowreel.scene.text.label_at`); like
 every size in pixels they shrink with a draft.
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pyvista as pv
 
+from flowreel.box import Box
 from flowreel.scene.layers import Layer, Option, register
-from flowreel.scene.text import MARGIN, label_at
+from flowreel.scene.marker_layers import _check_region, region
+from flowreel.scene.text import MARGIN, label_at, to_display
 
-STYLES = ("triad", "arrows")
+STYLES = ("triad", "arrows", "ruled")
 CORNERS = ("lower_left", "lower_right", "upper_left", "upper_right")
 NAMES = ("x", "y", "z")
 COLOURS = ("#e8604c", "#7bc96f", "#5b9bd5")
 UNITS = ("model", "diameters")
 # Options that belong to one style only; giving one to another style is an error.
-ONLY = {"corner": "triad", "origin": "arrows"}
+ONLY = {"corner": "triad", "origin": "arrows", "bounds": "ruled", "ticks": "ruled"}
+
+
+def nice_step(span: float, count: int = 5) -> float:
+    """A round tick spacing (1, 2 or 5 times a power of ten) giving about ``count``
+    intervals over ``span``."""
+    if not span > 0:
+        raise ValueError(f"span must be positive, got {span:g}")
+    raw = span / count
+    power = 10 ** math.floor(math.log10(raw))
+    return min((m * power for m in (1, 2, 5, 10)), key=lambda s: abs(math.log(s / raw)))
+
+
+def ticks(lo: float, hi: float, step: float | None = None) -> np.ndarray:
+    """Multiples of ``step`` (default :func:`nice_step`) from ``lo`` to ``hi``,
+    both ends included when they fall on one."""
+    step = step or nice_step(hi - lo)
+    first = math.ceil(lo / step - 1e-9)
+    last = math.floor(hi / step + 1e-9)
+    return np.round(np.arange(first, last + 1) * step, 12)
+
+
+def tick_text(value: float) -> str:
+    """A tick's number: no trailing zeros, ``-0`` written ``0``."""
+    return f"{value:g}" if value != 0 else "0"
+
+
+def outer_edges(renderer, box: Box) -> list[tuple[np.ndarray, np.ndarray]]:
+    """For each axis, the edge of ``box`` to rule: of its four edges along that axis, the
+    one whose middle falls furthest from the box's middle in ``renderer``'s view (the
+    lower one on a tie). Returns ``(fixed, outward)`` per axis: the edge's two other
+    coordinates as a point with the axis' coordinate 0, and the unit vector from the
+    box's middle out to the edge, across the axis."""
+    lo, hi = np.asarray(box.lo, float), np.asarray(box.hi, float)
+    mid = (lo + hi) / 2
+    cx, cy, _ = to_display(renderer, mid)
+    out = []
+    for k in range(3):
+        i, j = [a for a in range(3) if a != k]
+        best = None
+        for si in (lo[i], hi[i]):
+            for sj in (lo[j], hi[j]):
+                p = mid.copy()
+                p[i], p[j] = si, sj
+                x, y, _ = to_display(renderer, p)
+                score = (round(math.hypot(x - cx, y - cy), 3), -y)
+                if best is None or score > best[0]:
+                    fixed = np.zeros(3)
+                    fixed[i], fixed[j] = si, sj
+                    outward = np.zeros(3)
+                    outward[i] = np.sign(si - mid[i]) / math.sqrt(2)
+                    outward[j] = np.sign(sj - mid[j]) / math.sqrt(2)
+                    best = (score, fixed, outward)
+        out.append((best[1], best[2]))
+    return out
 
 
 def triad_viewport(corner: str, side: float, picture: tuple[int, int]) -> tuple:
@@ -89,20 +150,21 @@ def _arrow(start, direction, length: float, bold: float = 1.0) -> pv.PolyData:
 
 @register
 class Axes(Layer):
-    """Axes in a shot: ``style`` ``triad`` or ``arrows`` (see the module).
+    """Axes in a shot: ``style`` ``triad``, ``arrows`` or ``ruled`` (see the module).
 
     Options for every style: ``axes`` (which, default ``[x, y, z]``), ``labels`` (their
     names, default the axes'), ``colours`` (one per axis, for the arrows), ``colour``
     (text and lines), ``opacity``, ``font_size`` (pixels) and ``width`` (lines, pixels).
     ``triad``: ``corner`` and ``size`` (the square's side, pixels). ``arrows``:
     ``origin`` (``[x, y, z]`` or ``{body: NAME, end: 0 | 1}``, the low or high end
-    along the body's axis), ``length`` and ``unit``. ``unit: diameters`` divides
+    along the body's axis), ``length`` and ``unit``. ``ruled``: ``bounds``, ``ticks``
+    (spacing in the unit shown, or ``auto``) and ``unit``. ``unit: diameters`` divides
     lengths by ``body``'s diameter (declared, else measured).
     """
 
     name = "axes"
     options = (
-        Option("style", track=False, default="triad", doc="triad or arrows"),
+        Option("style", track=False, default="triad", doc="triad, arrows or ruled"),
         Option("axes", track=False, default=None, doc="which axes; default [x, y, z]"),
         Option("labels", track=False, default=None, doc="names of the axes; default x, y, z"),
         Option("colours", track=False, default=None, doc="arrow colour per axis"),
@@ -117,6 +179,8 @@ class Axes(Layer):
         Option("length", "number", default=1.0, doc="arrows: length, in unit"),
         Option("unit", track=False, default="model", doc="model or diameters"),
         Option("body", track=False, default=None, doc="the body whose diameter is the unit"),
+        Option("bounds", track=False, default=None, doc="ruled: domain, crop or numbers"),
+        Option("ticks", track=False, default=None, doc="ruled: spacing in unit, or auto"),
     )
 
     @classmethod
@@ -164,6 +228,13 @@ class Axes(Layer):
             if raw.get("origin") is None:
                 raise check.error("missing key 'origin' (a point [x, y, z] or {body: NAME, end: 0})")
             _check_origin(raw["origin"], check.at("origin"))
+        if style == "ruled":
+            raw["bounds"] = raw.get("bounds") or "domain"
+            _check_region(raw["bounds"], check.at("bounds"))
+            t = raw.get("ticks") or "auto"
+            if t != "auto" and check.at("ticks").number(t) <= 0:
+                raise check.at("ticks").error(f"must be positive, got {t}")
+            raw["ticks"] = t
 
     # -- what each style draws, for the layer and its tests -------------------------
 
@@ -226,6 +297,66 @@ class Axes(Layer):
             label_at(plotter.renderer, label, start + 1.15 * length * e, v["font_size"],
                      v["colour"], v["opacity"])
 
+    def rulings(self, plotter, frame, v=None) -> list[dict]:
+        """What the ``ruled`` style draws along each axis: ``axis`` (index), ``edge``
+        (``fixed``, ``outward`` from :func:`outer_edges`), ``ticks`` (model positions
+        along the axis) and ``text`` (their numbers, in the unit shown).
+
+        Numbers must not run into each other: an axis whose edge is shorter in the
+        frame than two labels (one that points at the camera) is not ruled, ``auto``
+        ticks are spaced at least two labels apart in the frame, and an axis left with
+        fewer than two ticks is not ruled.
+        """
+        v = v or frame.values
+        box = region(v["bounds"], frame.data)
+        unit = self.diameter(frame.data)
+        edges = outer_edges(plotter.renderer, box)
+        room = 2 * v["font_size"]
+        out = []
+        for k, label, _ in self._axes(v):
+            fixed = edges[k][0]
+            a, b = fixed.copy(), fixed.copy()
+            a[k], b[k] = box.lo[k], box.hi[k]
+            pixels = float(np.hypot(*np.subtract(to_display(plotter.renderer, b)[:2],
+                                                 to_display(plotter.renderer, a)[:2])))
+            if pixels < room:
+                continue
+            lo, hi = box.lo[k] / unit, box.hi[k] / unit
+            if v["ticks"] == "auto":
+                step = nice_step(hi - lo)
+                while step * pixels / (hi - lo) < room:
+                    step = nice_step(2.2 * step, 1)          # the next round step up
+            else:
+                step = float(v["ticks"])
+            values = ticks(lo, hi, step)
+            if len(values) < 2:                       # one number is no scale
+                continue
+            out.append({"axis": k, "label": label, "edge": edges[k],
+                        "ticks": values * unit, "text": [tick_text(t) for t in values]})
+        return out
+
+    def _ruled(self, plotter, frame, v) -> None:
+        box = region(v["bounds"], frame.data)
+        lo, hi = np.asarray(box.lo, float), np.asarray(box.hi, float)
+        reach = 0.025 * float(np.max(hi - lo))
+        lines = [pv.Box(bounds=box.to_bounds()).extract_all_edges()]
+        diameters = self.raw.get("unit") == "diameters"
+        for rule in self.rulings(plotter, frame, v):
+            k = rule["axis"]
+            fixed, outward = rule["edge"]
+            for t, text in zip(rule["ticks"], rule["text"]):
+                p = fixed.copy()
+                p[k] = t
+                lines.append(pv.Line(p, p + reach * outward))
+                label_at(plotter.renderer, text, p + 2.6 * reach * outward,
+                         v["font_size"], v["colour"], v["opacity"])
+            middle = fixed.copy()
+            middle[k] = (lo[k] + hi[k]) / 2
+            title = rule["label"] + (" / D" if diameters else "")
+            label_at(plotter.renderer, title, middle + 5.5 * reach * outward,
+                     v["font_size"], v["colour"], v["opacity"])
+        plotter.add_mesh(pv.merge(lines), color=v["colour"], line_width=v["width"],
+                         opacity=v["opacity"], lighting=False)
 
 
 def _check_origin(spec, check) -> None:

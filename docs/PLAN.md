@@ -1043,7 +1043,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Layout schema (Section 9.1): `size`, `background`, `tiles` with `frames`, `at` and `size`; errors name the file and key path
 - [x] `grid: [rows, cols]` places tiles automatically, with a gap
 - [x] Frames matched by index across tiles; a missing frame is an error unless `missing: hold`
-- [ ] `stations: {shot, at}`: one shot rendered at several stations of a long body (its crop and its camera's `follow`), each tile labelled with its station
+- [x] `stations: {shot, at}`: one shot rendered at several stations of a long body (its crop and its camera's `follow`), each tile labelled with its station
 - [x] `compose.layout(...)`: frames skipped unless their key changed (the tiles' files, sizes and modification times, the layout's settings); `force`
 - [ ] Docs: layouts page, with an example on generated frames
 

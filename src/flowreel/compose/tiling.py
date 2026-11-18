@@ -4,11 +4,15 @@
 (plan Section 11) from the layout's settings and the path, size and modification time
 of every tile frame it shows, so it is drawn again only when a tile's frame was
 re-rendered or the layout changed; ``force`` draws every frame again.
+
+Tiles of a ``stations`` entry are rendered first, each station's shot at its tile's
+size into ``out/<shot>_station<value>@<W>x<H>/``, through
+:func:`flowreel.scene.render`, which skips its own fresh frames.
 """
 from __future__ import annotations
 
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -38,7 +42,8 @@ class ComposeReport:
 def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = None,
            force: bool = False, scale: float | None = None,
            size: tuple[int, int] | None = None,
-           progress: Callable[[tuple[int, Path, str]], None] | None = None) -> ComposeReport:
+           progress: Callable[[tuple[int, Path, str]], None] | None = None,
+           render: dict | None = None) -> ComposeReport:
     """Compose the frames of ``lay`` (a :class:`~flowreel.compose.Layout` or a layout
     file) into ``out/<name>/frame_00000.png`` ...
 
@@ -47,11 +52,14 @@ def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = No
     draft into ``out/<name>@<W>x<H>/`` (sizes as for shots,
     :func:`~flowreel.scene.rendering.draft_size`). A frame drawn before with the same
     key is skipped unless ``force``. ``progress`` is called with each frame's entry.
+    ``render`` holds options for :func:`flowreel.scene.render` of the ``stations``
+    tiles (``jobs``, ``backend``, ``processes`` ...); ``force`` applies to them too.
     """
     lay = load(lay) if not isinstance(lay, Layout) else lay
     pic = draft_size(lay.size, scale, size)
     drawn = scaled(lay, pic)
-    m = match(lay)
+    drawn = render_stations(drawn, out, force=force, **(render or {}))
+    m = match(drawn)
     indices = m.indices if frames is None else _chosen(frames, m, lay)
     name = lay.name if pic == tuple(lay.size) else f"{lay.name}@{pic[0]}x{pic[1]}"
     folder = Path(out) / name
@@ -86,6 +94,19 @@ def _chosen(frames, m: FrameMatch, lay: Layout) -> list[int]:
     return out
 
 
+def render_stations(lay: Layout, out: str | Path, force: bool = False, **options) -> Layout:
+    """Render the shots of ``lay``'s ``stations`` tiles at their tiles' sizes into
+    ``out`` and return the layout with those tiles' ``frames`` set to the folders."""
+    from flowreel.scene.rendering import render
+    tiles = []
+    for tile in lay.tiles:
+        if tile.shot is not None:
+            report = render(tile.shot, out=out, size=tile.size, force=force, **options)
+            tile = replace(tile, frames=report.folder)
+        tiles.append(tile)
+    return replace(lay, tiles=tiles)
+
+
 def frame_parts(lay: Layout, files: list[Path]) -> dict:
     """What decides a composed frame: the layout's drawn settings and each tile file's
     resolved path, size and modification time."""
@@ -95,7 +116,8 @@ def frame_parts(lay: Layout, files: list[Path]) -> dict:
         stamps.append([str(Path(f).resolve()), st.st_size, st.st_mtime_ns])
     return {"code": code_version("compose"), "size": list(lay.size),
             "background": lay.background,
-            "tiles": [{k: v for k, v in asdict(t).items() if k != "frames"} for t in lay.tiles],
+            "tiles": [{"at": t.at, "size": t.size, "fit": t.fit, "label": t.label,
+                       "station": t.station} for t in lay.tiles],
             "files": stamps}
 
 

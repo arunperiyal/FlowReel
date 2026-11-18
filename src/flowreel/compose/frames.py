@@ -54,10 +54,14 @@ def match(layout, frames: dict | None = None) -> FrameMatch:
     key path when a tile has no frames, or lacks one and the layout does not hold."""
     check = Checker(layout.file)
     per_tile = []
+    def at(t):
+        entry = layout.tiles[t].entry
+        return check.at("tiles", t if entry is None else entry, "frames")
+
     for t, tile in enumerate(layout.tiles):
         found = frames[t] if frames is not None else frame_files(tile.frames)
         if not found:
-            raise check.at("tiles", t, "frames").error(f"no frame_NNNNN.png files in {tile.frames}")
+            raise at(t).error(f"no frame_NNNNN.png files in {tile.frames}")
         per_tile.append(found)
     indices = sorted(set().union(*per_tile))
     files: dict[int, list[Path]] = {}
@@ -69,7 +73,7 @@ def match(layout, frames: dict | None = None) -> FrameMatch:
                 files.setdefault(i, []).append(found[i])
                 continue
             if layout.missing != "hold":
-                raise check.at("tiles", t, "frames").error(
+                raise at(t).error(
                     f"{layout.tiles[t].frames} has no frame {i} (it has {_ranges(have)}); "
                     "render it, or set 'missing: hold' to show the nearest earlier frame")
             k = bisect.bisect_right(have, i) - 1

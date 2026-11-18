@@ -1014,7 +1014,7 @@ and can be built at any time before branch 9.
 **Branch 8: `phase2b/layers-axes`** (layers; needs nothing of this phase)
 - [x] Axis labels in Lato through VTK's font file, sized in pixels
 - [x] `axes` layer, `style: triad`: a corner triad in its own viewport, turning with the camera
-- [ ] `style: arrows`: labelled arrows at a point or a body end, sized in model units or diameters
+- [x] `style: arrows`: labelled arrows at a point or a body end, sized in model units or diameters
 - [ ] `style: ruled`: a box (`domain`, `crop` or numbers) with ticks and numbers, in the source unit or in diameters
 - [ ] Tests (projection of the triad and ticks, draft scaling); docs and an example
 

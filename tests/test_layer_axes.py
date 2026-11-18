@@ -85,10 +85,29 @@ def test_triad_draws_its_arrows_in_the_corner(tmp_path):
     assert rows.min() > 180 - 4 - 110 and cols.max() < 4 + 110          # lower left only
 
 
+def test_arrows_start_at_a_body_end_sized_in_diameters(tmp_path):
+    layer = {"style": "arrows", "origin": {"body": "riser", "end": 1}, "unit": "diameters",
+             "length": 3, "axes": ["y", "z"], "labels": ["lift", "span"]}
+    sc = scene(tmp_path, layer)
+    start, body = sc.shot.layers[0].origin(sc.data(0))
+    assert body == "riser" and np.allclose(start, [40, 0, 0], atol=0.05)
+    assert sc.shot.layers[0].diameter(sc.data(0), body) == 2.0
+
+    def count(plotter, frame):
+        return (len(list(plotter.renderer.GetActors())),
+                [a.GetInput() for a in plotter.renderer.GetActors2D()])
+    actors, labels = drawn(sc, count)
+    assert actors == 2 and labels == ["lift", "span"]
+
+
 @pytest.mark.parametrize("layer, msg", [
+    ({"style": "triad", "origin": [0, 0, 0]}, "option of style arrows"),
+    ({"style": "arrows"}, "missing key 'origin'"),
+    ({"style": "arrows", "origin": {"end": 2}}, "expected 0"),
     ({"axes": ["x", "x"]}, "twice"),
     ({"axes": ["x", "y"], "labels": ["a"]}, "expected 2 labels"),
     ({"colours": ["#ff0000"]}, "expected 3 colours"),
+    ({"unit": "diameters"}, "a triad shows directions"),
     ({"style": "pie"}, "pie"),
 ])
 def test_errors(tmp_path, layer, msg):

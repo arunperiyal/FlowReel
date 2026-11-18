@@ -4,6 +4,8 @@ Styles, one per layer:
 
 - ``triad``: three arrows in a small square viewport in a corner of the frame, turning
   with the camera, so it never hides the flow.
+- ``arrows``: labelled arrows in the scene at ``origin``, a point or a body's end,
+  ``length`` long in model units or in diameters.
 
 Labels are Lato, ``font_size`` pixels high (:func:`flowreel.scene.text.label_at`); like
 every size in pixels they shrink with a draft.
@@ -16,12 +18,13 @@ import pyvista as pv
 from flowreel.scene.layers import Layer, Option, register
 from flowreel.scene.text import MARGIN, label_at
 
-STYLES = ("triad",)
+STYLES = ("triad", "arrows")
 CORNERS = ("lower_left", "lower_right", "upper_left", "upper_right")
 NAMES = ("x", "y", "z")
 COLOURS = ("#e8604c", "#7bc96f", "#5b9bd5")
+UNITS = ("model", "diameters")
 # Options that belong to one style only; giving one to another style is an error.
-ONLY = {"corner": "triad"}
+ONLY = {"corner": "triad", "origin": "arrows"}
 
 
 def triad_viewport(corner: str, side: float, picture: tuple[int, int]) -> tuple:
@@ -86,17 +89,20 @@ def _arrow(start, direction, length: float, bold: float = 1.0) -> pv.PolyData:
 
 @register
 class Axes(Layer):
-    """Axes in a shot: ``style`` ``triad`` (see the module).
+    """Axes in a shot: ``style`` ``triad`` or ``arrows`` (see the module).
 
     Options for every style: ``axes`` (which, default ``[x, y, z]``), ``labels`` (their
     names, default the axes'), ``colours`` (one per axis, for the arrows), ``colour``
     (text and lines), ``opacity``, ``font_size`` (pixels) and ``width`` (lines, pixels).
-    ``triad``: ``corner`` and ``size`` (the square's side, pixels).
+    ``triad``: ``corner`` and ``size`` (the square's side, pixels). ``arrows``:
+    ``origin`` (``[x, y, z]`` or ``{body: NAME, end: 0 | 1}``, the low or high end
+    along the body's axis), ``length`` and ``unit``. ``unit: diameters`` divides
+    lengths by ``body``'s diameter (declared, else measured).
     """
 
     name = "axes"
     options = (
-        Option("style", track=False, default="triad", doc="triad"),
+        Option("style", track=False, default="triad", doc="triad or arrows"),
         Option("axes", track=False, default=None, doc="which axes; default [x, y, z]"),
         Option("labels", track=False, default=None, doc="names of the axes; default x, y, z"),
         Option("colours", track=False, default=None, doc="arrow colour per axis"),
@@ -106,6 +112,11 @@ class Axes(Layer):
         Option("width", "number", default=1.5, pixels=True, doc="line width, pixels"),
         Option("corner", track=False, default=None, doc="triad: lower_left ..."),
         Option("size", "number", default=110.0, pixels=True, doc="triad: side, pixels"),
+        Option("origin", track=False, default=None,
+               doc="arrows: [x, y, z] or {body: NAME, end: 0 | 1}", example=[0, 0, 0]),
+        Option("length", "number", default=1.0, doc="arrows: length, in unit"),
+        Option("unit", track=False, default="model", doc="model or diameters"),
+        Option("body", track=False, default=None, doc="the body whose diameter is the unit"),
     )
 
     @classmethod
@@ -142,8 +153,17 @@ class Axes(Layer):
                     parse_colour(c)
                 except ValueError as exc:
                     raise check.at("colours", i).wrap(exc) from None
+        check.at("unit").choice(raw.get("unit", "model"), UNITS)
+        if raw.get("body") is not None:
+            check.at("body").string(raw["body"])
         if style == "triad":
             raw["corner"] = check.at("corner").choice(raw.get("corner") or "lower_left", CORNERS)
+            if raw.get("unit", "model") != "model":
+                raise check.at("unit").error("a triad shows directions, not lengths")
+        if style == "arrows":
+            if raw.get("origin") is None:
+                raise check.error("missing key 'origin' (a point [x, y, z] or {body: NAME, end: 0})")
+            _check_origin(raw["origin"], check.at("origin"))
 
     # -- what each style draws, for the layer and its tests -------------------------
 
@@ -153,6 +173,38 @@ class Axes(Layer):
         labels = v.get("labels") or names
         colours = v.get("colours") or [COLOURS[NAMES.index(a)] for a in names]
         return [(NAMES.index(a), str(lab), c) for a, lab, c in zip(names, labels, colours)]
+
+    def diameter(self, data, origin_body: str | None = None) -> float:
+        """The unit length: 1, or the diameter of ``body`` (``origin_body`` for arrows
+        at a body's end; the one body when neither is given)."""
+        if self.raw.get("unit", "model") == "model":
+            return 1.0
+        from flowreel.project.measure import diameter
+        from flowreel.project.names import declaration, one_body
+        name = self.raw.get("body") or origin_body or one_body(data.source)
+        decl = declaration(data.source, name)
+        if decl is not None and decl.diameter:
+            return float(decl.diameter)
+        return float(diameter(data.body(name), decl.axis if decl else None))
+
+    def origin(self, data) -> tuple[np.ndarray, str | None]:
+        """The arrows' start and the body it is on (``None`` for a point)."""
+        spec = self.raw["origin"]
+        if not isinstance(spec, dict):
+            return np.asarray(spec, float), None
+        from flowreel.project.measure import AXES, centre, long_axis
+        from flowreel.project.names import declaration, one_body
+        name = spec.get("body") or one_body(data.source)
+        surface = data.body(name)
+        decl = declaration(data.source, name)
+        axis = (decl.axis if decl else None) or long_axis(surface)
+        if axis is None:
+            raise ValueError(f"axes: body {name!r} is not slender; declare its 'axis' or "
+                             "give origin as a point")
+        span = np.asarray(surface.points)[:, AXES[axis]]
+        station = span.max() if spec.get("end", 0) else span.min()
+        slab = 0.25 * decl.diameter if decl and decl.diameter else None
+        return np.asarray(centre(surface, station, axis, slab), float), name
 
     def draw(self, plotter, frame) -> None:
         v = frame.values
@@ -165,4 +217,23 @@ class Axes(Layer):
             ren.AddActor(_actor(_arrow((0, 0, 0), e, 1.0, bold=1.6), colour, v["opacity"]))
             label_at(ren, label, 1.22 * e, v["font_size"], v["colour"], v["opacity"])
 
+    def _arrows(self, plotter, frame, v) -> None:
+        start, body = self.origin(frame.data)
+        length = v["length"] * self.diameter(frame.data, body)
+        for k, label, colour in self._axes(v):
+            e = np.eye(3)[k]
+            plotter.renderer.AddActor(_actor(_arrow(start, e, length), colour, v["opacity"]))
+            label_at(plotter.renderer, label, start + 1.15 * length * e, v["font_size"],
+                     v["colour"], v["opacity"])
 
+
+
+def _check_origin(spec, check) -> None:
+    if isinstance(spec, dict):
+        m = check.mapping(spec, ("body", "end"))
+        if m.get("body") is not None:
+            check.at("body").string(m["body"])
+        if m.get("end", 0) not in (0, 1):
+            raise check.at("end").error(f"expected 0 (the low end) or 1 (the high end), got {m['end']!r}")
+        return
+    check.numbers(spec, 3)

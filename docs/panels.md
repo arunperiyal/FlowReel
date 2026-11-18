@@ -19,7 +19,7 @@ style: styles/film.yml
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `type` | `series`, `phase` | required | the kind of panel (more come with the next branches) |
+| `type` | `series`, `phase`, `map`, `locator` | required | the kind of panel |
 | `name` | string | the file's name without `.yml` | the output folder |
 | `size` | `[width, height]` | `[640, 360]` | pixels (the figure is drawn at 100 dots per inch) |
 | `times` | list of numbers, or `{shot: FILE}` | required | the time of each frame |
@@ -70,8 +70,8 @@ of that name, its body:
 | `label` | string | none | the line's name in the legend |
 | `colour` | colour | the style's colours in turn | |
 
-A series at many points (`by: node`) is not a line; the `map` panel (next branch) draws
-those.
+A series at many points (`by: node`) is not a line; the `map` and `locator` panels
+draw those.
 
 ## `series`
 
@@ -133,6 +133,97 @@ pair up correctly.
 | `colour` | colour | the style's first | |
 | `margins` | `{left, right, top, bottom}` | as for `series` | |
 
+## Histories along a long body: `map` and `locator`
+
+![The locator over the map, frame 5 of the riser example](images/span_panels.png)
+
+These two read a history at many points along a body: a series declared with `by` (the
+column that numbers the points) and `stations` (where each point is along the body),
+such as the riser's probes ([bodies](bodies.md), [long bodies](long-bodies.md)). A
+runnable example on the generated riser case is `examples/riser500/panels.py`, which
+drew the picture above.
+
+### `map`
+
+```yaml
+type: map
+size: [1920, 1080]
+times: [0, 0.05, 0.1]
+x: {label: '$tU/D$'}
+y: {label: 'Span $x/D$', ticks: [3, 6, 9]}
+rows:
+  - {body: bare, series: lift, column: cl, title: bare}
+  - {body: helical, series: lift, column: cl, title: helical}
+colormap: fire_ice
+range: [-1.5, 1.5]
+colorbar: {label: 'Sectional $C_L$'}
+```
+
+The history against time (across) and station (up), one cell per sample, coloured. At
+each frame the samples up to that time are shown and the later ones are left out, so
+the map fills in from the left. It moves from sample to sample; unlike the lines of a
+`series` panel, it does not interpolate between them. Several bodies stack as rows on
+one time axis, under one colour bar.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `rows` | list | required | one per body: `body`, `series`, `column`, `scale`, `offset`, `title`, `colour` |
+| `rows[].title` | string | none | over the row, on the left, in the row's `colour` |
+| `rows[].colour` | colour | the style's colours in turn | the title's colour |
+| `x` | `{label, range}` | the samples' first to last time | the time axis |
+| `y` | `{label, range, ticks}` | the stations | the span axis; `ticks` a list of stations |
+| `colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name |
+| `range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range |
+| `colorbar` | `{label, fraction, pad}` or `false` | `{fraction: 0.025, pad: 0.02}` | matplotlib's colour bar settings |
+| `title_size` | number | 1.3 times the style's `font_size` | points |
+| `margins` | as for `series` | as for `series` | |
+
+The default range is symmetric about zero, so a diverging map such as `fire_ice` has
+its middle colour at zero: a sign change of lift reads as a change of hue. Without
+declared `stations`, the point numbers stand in for them.
+
+### `locator`
+
+```yaml
+type: locator
+size: [1920, 200]
+times: {shot: travel.yml}
+body: riser
+shape: {series: displacement, column: dy, amplify: 100}
+windows: [{shot: travel.yml, label: window}]
+x: {label: 'Span $x/D$'}
+```
+
+Where we are along a long body. The span is a grey bar from the first to the last
+declared end. Over it are the body's shape at the frame's time, the supports, and the
+window each named shot shows. A film that travels along a riser 500 diameters long
+needs this to say where the window is.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `body` | string | required | a declared body with an `axis` |
+| `shape` | `{series, column, scale, offset, amplify, colour}` | none | the body's displacement history at many points |
+| `shape.amplify` | number | `1` | the displacement is drawn this many times larger |
+| `supports` | bool | `true` | the declared ends: pinned ▲, roller ●, clamped ■, spring ✕, prescribed ◆, free only with `mark`; `tension` adds an arrow |
+| `windows` | list of `{shot, colour, label}` | none | shots whose crops are marked |
+| `colour` | colour | the body's grey | the shape's line |
+| `x` | `{label, range}` | the ends, plus 3% each side | |
+| `y` | `{range}` | 1.4 times the largest amplified displacement | the displacement axis (no ticks) |
+| `margins` | as for `series` | `left 0.04, right 0.98, top 0.85, bottom 0.3` | |
+
+- **Shape.** At each frame, the value at each station is interpolated in time,
+  then multiplied by `amplify`. A displacement of a diameter along 500 diameters
+  cannot be seen otherwise. The y axis has no ticks because its numbers would be the
+  amplified ones.
+- **Windows.** Frame *i* marks the window of frame *i* of each shot: the crop's
+  extent along the body's axis. A `crop: {around: ...}` travels with its station
+  track; a crop box stays where it is. Frames are matched by index, as in a layout,
+  because a frozen shot's frames all have one time. Past a shot's last frame, the
+  window stays where the shot ends. The windows are worked out from the shot files
+  alone; no flow data is read.
+- The body needs declared `ends`, or a `shape` (its stations), or an `x` `range`, so
+  that its span is known.
+
 ## Drawing: `compose.panel`
 
 ```python
@@ -158,6 +249,7 @@ consecutive frames, one process each.
 
 **Keys.** Each frame has a key (plan Section 11): the panel's type, size and settings,
 the style, the frame's time, and the path, size and modification time of each series
-file the panel reads. A frame drawn before with the same key is skipped. Moving one
+file the panel reads (and, for a locator, each window's shot file). A frame drawn
+before with the same key is skipped. Moving one
 time redraws one frame. Rewriting a series file, or changing the style, redraws them
 all.

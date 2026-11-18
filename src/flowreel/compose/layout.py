@@ -8,6 +8,15 @@
       - {frames: frames/bare_panel, at: [0, 0], size: [1280, 540], label: bare}
       - {frames: frames/helical_panel, at: [0, 540], size: [1280, 540]}
 
+or, placed automatically in rows and columns with a gap between them:
+
+.. code-block:: yaml
+
+    size: [1920, 1080]
+    grid: [2, 2]
+    gap: 8
+    tiles: [{frames: frames/a}, {frames: frames/b}, {frames: frames/c}]
+
 Positions and sizes are in pixels of the composed picture, ``at`` being a tile's upper
 left corner, x to the right and y down (as image files count). Tile ``frames`` folders
 are taken from the layout file's folder when relative. :func:`load` reads a file,
@@ -23,7 +32,7 @@ import yaml
 
 from flowreel.scene.errors import Checker, ConfigError
 
-KEYS = ("name", "size", "background", "tiles")
+KEYS = ("name", "size", "background", "grid", "gap", "tiles")
 TILE_KEYS = ("frames", "at", "size", "fit", "label")
 LABEL_KEYS = ("text", "corner", "size", "colour")
 FITS = ("contain", "cover", "stretch")
@@ -94,18 +103,55 @@ def from_dict(data, file: str | None = None) -> Layout:
     size = _pair(data.get("size", DEFAULT_SIZE), check.at("size"), minimum=1)
     background = _colour(data.get("background", "black"), check.at("background"))
     folder = Path(file).parent if file else Path(".")
+    gap = check.at("gap").integer(data.get("gap", 0), minimum=0)
+    grid = None if data.get("grid") is None else _pair(data["grid"], check.at("grid"), minimum=1)
+    if grid is None and "gap" in data:
+        raise check.at("gap").error("is used only with 'grid'")
     items = check.at("tiles").sequence(data["tiles"], minimum=1)
-    tiles = [_tile(spec, check.at("tiles", i), folder) for i, spec in enumerate(items)]
+    cells = None
+    if grid is not None:
+        if len(items) > grid[0] * grid[1]:
+            raise check.at("tiles").error(f"{len(items)} tiles do not fit a grid of "
+                                          f"{grid[0]} x {grid[1]}")
+        try:
+            cells = grid_cells(size, grid, gap)
+        except ValueError as exc:
+            raise check.at("gap").wrap(exc) from None
+    tiles = [_tile(spec, check.at("tiles", i), folder, None if cells is None else cells[i])
+             for i, spec in enumerate(items)]
     for i, tile in enumerate(tiles):
         _inside(tile, size, check.at("tiles", i))
     return Layout(name=name, size=size, tiles=tiles, background=background, file=file)
 
 
-def _tile(spec, check: Checker, folder: Path) -> Tile:
-    spec = check.mapping(spec, TILE_KEYS, required=("frames", "at", "size"))
+def grid_cells(size: tuple[int, int], grid: tuple[int, int], gap: int = 0) -> list:
+    """The cells of a ``grid`` (rows, columns) over a picture of ``size`` with ``gap``
+    pixels between cells, row by row, as ``(at, size)`` pairs. Cell edges are rounded
+    to whole pixels, so cells differ by at most one pixel and the last ones end at the
+    picture's edge."""
+    rows, cols = grid
+    xs, ys = _edges(size[0], cols, gap), _edges(size[1], rows, gap)
+    if any(b - a < 1 for a, b in xs + ys):
+        raise ValueError(f"a gap of {gap} leaves no room for {rows} x {cols} cells")
+    return [((x0, y0), (x1 - x0, y1 - y0)) for (y0, y1) in ys for (x0, x1) in xs]
+
+
+def _edges(length: int, n: int, gap: int) -> list[tuple[int, int]]:
+    cell = (length - (n - 1) * gap) / n
+    return [(round(i * (cell + gap)), round(i * (cell + gap) + cell)) for i in range(n)]
+
+
+def _tile(spec, check: Checker, folder: Path, cell=None) -> Tile:
+    spec = check.mapping(spec, TILE_KEYS, required=("frames",) if cell else ("frames", "at", "size"))
     frames = folder / check.at("frames").string(spec["frames"])
-    at = _pair(spec["at"], check.at("at"), minimum=0)
-    size = _pair(spec["size"], check.at("size"), minimum=1)
+    if cell is not None:
+        for key in ("at", "size"):
+            if key in spec:
+                raise check.at(key).error("is set by 'grid'; leave it out, or drop the grid")
+        at, size = cell
+    else:
+        at = _pair(spec["at"], check.at("at"), minimum=0)
+        size = _pair(spec["size"], check.at("size"), minimum=1)
     fit = check.at("fit").choice(spec.get("fit", "contain"), FITS)
     label = _label(spec.get("label"), check.at("label"))
     return Tile(frames=frames, at=at, size=size, fit=fit, label=label)

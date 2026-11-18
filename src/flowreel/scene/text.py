@@ -56,8 +56,12 @@ def lato(prop, size: float, colour, opacity: float = 1.0, bold: bool = False):
 def to_display(renderer, point) -> tuple[float, float, float]:
     """Where model ``point`` falls in the window, in pixels from the lower left, and its
     depth (0 near .. 1 far; outside that range it is not in view), through
-    ``renderer``'s camera and viewport."""
+    ``renderer``'s camera and viewport, where a shot's stretch draws it
+    (:mod:`flowreel.scene.drawn`)."""
     from vtkmodules.vtkRenderingCore import vtkCoordinate
+
+    from flowreel.scene.drawn import to_drawn
+    point = to_drawn(renderer, point)
     c = vtkCoordinate()
     c.SetCoordinateSystemToWorld()
     c.SetValue(*(float(v) for v in point))

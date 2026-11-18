@@ -1,0 +1,31 @@
+# The generated riser case (riser500_case.py): a riser 500 diameters long, pinned at
+# one end and on a roller under tension at the other, a short cylinder beside it, and a
+# pendulum hung from the riser at mid-span, modelled by the solver and not meshed.
+bodies:
+  riser:
+    zone: cyl
+    axis: x
+    diameter: 1.0
+    ends:
+      - {at: 0.0, support: pinned}
+      - {at: 500.0, support: roller, free_along: x, tension: true}
+    series:
+      displacement:                       # 51 probes, one CSV each, as the Analyzer writes them
+        file: data/riser_disp_{node}.csv
+        by: node
+        stations: data/riser_nodes.csv    # node, station
+        columns: {dy: aleDisp_y}
+  downstream:
+    zone: cyl2
+    axis: x
+    diameter: 1.0
+    ends: [{at: 100.0, support: clamped}, {at: 112.0, support: clamped}]
+  pendulum:
+    virtual: true
+    shape: pendulum
+    params: {length: 2.5, bob: 0.5, rod: 0.06, swing: [0, 0, 1]}   # turns about z: swings along the span
+    attach: {body: riser, station: 250}
+    drive:
+      angle: {series: swing, column: pendDisp}                     # radians
+    series:
+      swing: data/pendulum.csv

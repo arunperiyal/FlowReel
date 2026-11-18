@@ -89,6 +89,53 @@ in the drawn coordinates, as you see the stretched scene. `fit` and `follow`, wh
 start from model positions, use the drawn ones. The frame carries the note because a
 stretched wake is not the wake's true shape. It is written in the bundled Lato.
 
+Not everything is compressed. A support's symbol, the `axes` layer's arrows and ticks,
+and a tension arrow keep their true shape and size where the stretched body puts them:
+a pinned end drawn a fiftieth as long would no longer read as a pin. Labels (the axes'
+numbers and names) go where the stretched model is drawn. A ruled box still gives true
+lengths, so a span drawn at 1/50 reads 0 to 500 along its edge.
+
+## The check: a riser 500 diameters long
+
+Phase 2B ends on a case of the kind it was made for. No such run exists yet, so the
+case is generated: `examples/riser500/riser500_case.py` writes, at test time or when
+asked, eight steps of a channel 500 long round a riser of diameter 1 that vibrates in
+its third mode, a second cylinder 12 long beside it, the riser's displacement at 51
+probes (one CSV per probe, as FlexFlow Analyzer exports them) and a pendulum's swing.
+The folder's `flowreel.yml` declares the riser pinned at 0 and on a roller under
+tension at 500, the second cylinder clamped at both ends, and the pendulum hung from
+the riser at mid-span. Nothing of it is checked in (about 45 MB).
+
+Three shots read it:
+
+- `travel.yml`: a window 20 long travels from station 20 to 480, the camera with it.
+  Each step reads about 2500 of the 64 000 cells, 0.6 MB instead of 15.6.
+- `span.yml`: the whole riser over the run from its probes, not the flow files: the
+  centreline coloured by displacement, the rest line, the envelope, the supports, a
+  ruled box in diameters, the span drawn at 1/50 of its length.
+- `pendulum.yml`: the pendulum, a ghost because it is modelled and not meshed, swinging
+  from the riser's centre at station 250 as its series says; a step reads 12 of the
+  500.
+
+![The travelling window, the whole span from the probes, the pendulum](images/riser500.png)
+
+**The window does not grow with the span.** The same window in a case half as long
+costs the same, 0.61 MB, while reading the whole step costs half as much. A window's
+cost is that of its own cells: what the travelling shot needs per job is the same for a
+riser 500 or 5000 diameters long. `tests/test_riser500.py` checks that, and that the
+frames render, the window reads a small part of the file and the pendulum follows its
+series.
+
+```bash
+python examples/riser500/run.py riser500 --draft     # half size, first and last frames
+python examples/riser500/run.py riser500             # every frame at full size
+```
+
+What the generated case cannot tell is how a real run's file compares: its node count,
+its size and whether it saves the whole domain (plan Section 24, question 1). With the
+first real file, `shot memory` on a windowed shot and the time the span index takes to
+build once are the two numbers to look at.
+
 ## Memory
 
 `memory_per_step` of a cropped flexflow source counts the window's nodes and cells, not

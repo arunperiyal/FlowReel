@@ -1,0 +1,16 @@
+# The pendulum hung from the riser at mid-span (a virtual body, drawn as a ghost), its
+# angle from data/pendulum.csv, its pivot on the riser's centre at station 250. The
+# window and the camera stay with that station, so a step reads 12 of the 500.
+name: pendulum
+source: {adapter: flexflow, path: case, margin: 1.0}
+time: {steps: [0, 7]}
+crop:
+  around: {body: riser, station: 250}
+  half: [6, 4, 4]
+camera: {view: near, follow: riser, station: 250}
+size: [640, 360]
+lights: raking
+layers:
+  - {type: slice, normal: z, position: 0, field: U, range: [0, 1], colormap: viridis, opacity: 0.6}
+  - {type: body, body: riser, colour: "#c8ccd0"}
+  - {type: body, body: pendulum, colour: "#e0a030"}

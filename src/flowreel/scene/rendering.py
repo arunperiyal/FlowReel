@@ -191,8 +191,10 @@ class Scene:
                 apply_lights(plotter, shot.lights, view)
             if shot.antialias != "none":
                 plotter.enable_anti_aliasing(shot.antialias)
-            for layer, values in zip(shot.layers, self.values(index)):
-                layer.draw(plotter, Frame(index, step, time, data, values))
+            from flowreel.scene.drawn import drawing
+            with drawing(plotter.renderer, shot.stretch.scale if shot.stretch else None):
+                for layer, values in zip(shot.layers, self.values(index)):
+                    layer.draw(plotter, Frame(index, step, time, data, values))
             if shot.stretch is not None:
                 self._stretch(plotter)
             return np.asarray(plotter.screenshot(return_img=True))[:, :, :3]

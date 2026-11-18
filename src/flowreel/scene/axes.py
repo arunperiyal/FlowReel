@@ -21,6 +21,7 @@ import numpy as np
 import pyvista as pv
 
 from flowreel.box import Box
+from flowreel.scene.drawn import keep_shape, scale_of
 from flowreel.scene.layers import Layer, Option, register
 from flowreel.scene.marker_layers import _check_region, region
 from flowreel.scene.text import MARGIN, label_at, to_display
@@ -291,10 +292,13 @@ class Axes(Layer):
     def _arrows(self, plotter, frame, v) -> None:
         start, body = self.origin(frame.data)
         length = v["length"] * self.diameter(frame.data, body)
+        ren = plotter.renderer
+        scale = scale_of(ren)                 # a stretch must not bend the arrows
         for k, label, colour in self._axes(v):
             e = np.eye(3)[k]
-            plotter.renderer.AddActor(_actor(_arrow(start, e, length), colour, v["opacity"]))
-            label_at(plotter.renderer, label, start + 1.15 * length * e, v["font_size"],
+            arrow = keep_shape(ren, _arrow(start, e, length), start)
+            ren.AddActor(_actor(arrow, colour, v["opacity"]))
+            label_at(ren, label, start + 1.15 * length * e / scale, v["font_size"],
                      v["colour"], v["opacity"])
 
     def rulings(self, plotter, frame, v=None) -> list[dict]:
@@ -338,7 +342,9 @@ class Axes(Layer):
     def _ruled(self, plotter, frame, v) -> None:
         box = region(v["bounds"], frame.data)
         lo, hi = np.asarray(box.lo, float), np.asarray(box.hi, float)
-        reach = 0.025 * float(np.max(hi - lo))
+        ren = plotter.renderer
+        scale = scale_of(ren)         # ticks and offsets are lengths as drawn
+        reach = 0.025 * float(np.max((hi - lo) * scale))
         lines = [pv.Box(bounds=box.to_bounds()).extract_all_edges()]
         diameters = self.raw.get("unit") == "diameters"
         for rule in self.rulings(plotter, frame, v):
@@ -347,13 +353,13 @@ class Axes(Layer):
             for t, text in zip(rule["ticks"], rule["text"]):
                 p = fixed.copy()
                 p[k] = t
-                lines.append(pv.Line(p, p + reach * outward))
-                label_at(plotter.renderer, text, p + 2.6 * reach * outward,
+                lines.append(keep_shape(ren, pv.Line(p, p + reach * outward), p))
+                label_at(ren, text, p + 2.6 * reach * outward / scale,
                          v["font_size"], v["colour"], v["opacity"])
             middle = fixed.copy()
             middle[k] = (lo[k] + hi[k]) / 2
             title = rule["label"] + (" / D" if diameters else "")
-            label_at(plotter.renderer, title, middle + 5.5 * reach * outward,
+            label_at(ren, title, middle + 5.5 * reach * outward / scale,
                      v["font_size"], v["colour"], v["opacity"])
         plotter.add_mesh(pv.merge(lines), color=v["colour"], line_width=v["width"],
                          opacity=v["opacity"], lighting=False)

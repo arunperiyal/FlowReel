@@ -977,11 +977,11 @@ and can be built at any time before branch 9.
 - [x] Tests on generated CSV files; docs, with the Analyzer commands that export them
 
 **Branch 3: `phase2b/layers-supports`** (needs branch 1)
-- [ ] Support registry; `clamped` and `pinned`
-- [ ] `roller`, `spring`, `free`, `prescribed`; `tension`
-- [ ] `supports` layer: at the body's position per frame, sized in diameters, `min_pixels`
-- [ ] The domain shot's clamps drawn by `supports`; its golden frame still matches
-- [ ] Docs, with a picture of each symbol
+- [x] Support registry; `clamped` and `pinned`
+- [x] `roller`, `spring`, `free`, `prescribed`; `tension`
+- [x] `supports` layer: at the body's position per frame, sized in diameters, `min_pixels`
+- [x] The domain shot's clamps drawn by `supports`; its golden frame still matches
+- [x] Docs, with a picture of each symbol
 
 **Branch 4: `phase2b/tracks-series`** (needs branch 1)
 - [ ] Series track: value at the frame's time, `column`, `scale`, `offset`

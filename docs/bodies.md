@@ -114,8 +114,13 @@ How the solver holds the structure is not in its files. It is written under the 
 | `prescribed` | moved by the solver along `direction` | `direction: y` or `[0, 1, 0]` (required) |
 
 Any support takes `tension: true`, for a riser held by top tension. Two supports cannot
-share a station. The `supports` layer that draws them is the next part of this phase;
-the declarations are read and checked now.
+share a station. The `supports` layer draws them ([layers](layers-markers.md#supports)):
+
+![Every support symbol on a short beam](images/supports.png)
+
+A new kind is a symbol function registered with
+`flowreel.scene.supports.register_support(name, keys=..., required=...)`, which also
+lets `flowreel.yml` accept it with its own keys.
 
 ## Series
 

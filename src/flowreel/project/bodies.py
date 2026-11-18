@@ -42,7 +42,8 @@ SUPPORTS: dict[str, tuple[str, ...]] = {
     "free": ("mark",),
     "prescribed": ("direction",),
 }
-_REQUIRED = {"roller": ("free_along",), "spring": ("stiffness",), "prescribed": ("direction",)}
+#: Keys each support kind must be given.
+REQUIRED = {"roller": ("free_along",), "spring": ("stiffness",), "prescribed": ("direction",)}
 END_KEYS = ("at", "support", "tension")
 BODY_KEYS = ("zone", "axis", "diameter", "ends", "series")
 SERIES_KEYS = ("file", "time", "columns", "by", "stations")
@@ -154,7 +155,7 @@ def _end(spec, check: Checker) -> End:
     if not isinstance(spec, dict) or "support" not in spec:
         raise check.error("expected {at: STATION, support: KIND}")
     kind = check.at("support").choice(spec["support"], list(SUPPORTS))
-    spec = check.mapping(spec, END_KEYS + SUPPORTS[kind], required=("at",) + _REQUIRED.get(kind, ()))
+    spec = check.mapping(spec, END_KEYS + SUPPORTS[kind], required=("at",) + REQUIRED.get(kind, ()))
     at = check.at("at").number(spec["at"])
     tension = spec.get("tension", False)
     if not isinstance(tension, bool):

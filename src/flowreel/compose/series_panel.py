@@ -238,7 +238,7 @@ class SeriesPanel(PanelType):
                            frameon=False, labelcolor="linecolor", handlelength=1.2,
                            fontsize=st.font_size)
 
-    def update(self, time):
+    def update(self, time, index=None):
         for trace, dot, t, v in self.artists:
             trace.set_data(*to_time(t, v, time))
             dot.set_data([time], [np.interp(time, t, v)])

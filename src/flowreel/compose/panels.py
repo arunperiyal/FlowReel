@@ -3,7 +3,7 @@
 A panel type is a class registered under its ``type`` name. It reads its keys from the
 panel file's ``options`` when made, then draws in two steps: :meth:`PanelType.build`
 makes the axes and artists once, reading its data, and :meth:`PanelType.update` moves
-them to a time. The loop builds the figure once per process and calls ``update`` for
+them to a frame's time (and index). The loop builds the figure once per process and calls ``update`` for
 each frame: building a figure costs far more than moving its lines, and the frames of
 one panel differ only in time.
 
@@ -67,8 +67,9 @@ class PanelType:
         """Make the axes and artists on ``figure`` (style applied), reading the data."""
         raise NotImplementedError
 
-    def update(self, time: float) -> None:
-        """Move the artists to ``time``."""
+    def update(self, time: float, index: int | None = None) -> None:
+        """Move the artists to ``time``, the time of the panel's frame ``index`` (for
+        panels that follow a shot frame by frame, such as the windows of a locator)."""
         raise NotImplementedError
 
 
@@ -209,7 +210,7 @@ def draw_run(pf: PanelFile, work: list, kind: PanelType | None = None) -> list:
         figure.patch.set_facecolor(pf.style.background)
         kind.build(figure)
         for index, time, path in work:
-            kind.update(time)
+            kind.update(time, index)
             canvas.draw()
             picture = Image.frombuffer("RGBA", canvas.get_width_height(),
                                        canvas.buffer_rgba(), "raw", "RGBA", 0, 1).convert("RGB")

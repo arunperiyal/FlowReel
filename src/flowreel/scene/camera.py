@@ -10,7 +10,8 @@
              axis: x, motion: false}
 
 Exactly one of ``view``, ``track`` and ``fit`` gives the base view; ``follow`` then moves
-it onto a body. Views and tracks come from ``cameras.yml`` beside the shot file.
+it onto a body: a body name (declared in ``flowreel.yml`` or a zone of the source), or
+``true`` for the one body there is. Views and tracks come from ``cameras.yml`` beside the shot file.
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ from flowreel import tracks as tracks_mod
 from flowreel.scene.camera_path import CameraTrack, load_tracks
 from flowreel.scene.errors import Checker
 from flowreel.scene.framing import AXES, body_centre, fit, follow
+from flowreel.project.names import declaration, one_body
 from flowreel.scene.views import View, load_views
 
 BASES = ("view", "track", "fit")
@@ -61,19 +63,24 @@ class ShotCamera:
         for key in ("direction_of", "margin"):
             if key in spec and self.base != "fit":
                 raise check.at(key).error("is used only with 'fit'")
-        self.body = spec.get("follow")
+        follow_spec = spec.get("follow")
+        self.follows = follow_spec is not None and follow_spec is not False
         for key in ("station", "axis", "motion"):
-            if key in spec and self.body is None:
+            if key in spec and not self.follows:
                 raise check.at(key).error("is used only with 'follow'")
-        if self.body is not None:
-            check.at("follow").string(self.body)
+        # follow: NAME, or follow: true for the one body (None: chosen per frame)
+        self.body = None if follow_spec is True else follow_spec
+        if self.follows:
+            if self.body is not None:
+                check.at("follow").string(self.body)
             if "station" not in spec:
                 raise check.error("'follow' needs 'station' (where along the body)")
             try:
                 self.station = tracks_mod.parse(spec["station"], kind="number", name="station")
             except ValueError as exc:
                 raise check.at("station").wrap(exc) from None
-            self.axis = check.at("axis").choice(spec.get("axis", "z"), list(AXES))
+            self.axis = (None if "axis" not in spec
+                         else check.at("axis").choice(spec["axis"], list(AXES)))
             self.motion = spec.get("motion", True)
             if not isinstance(self.motion, bool):
                 raise check.at("motion").error(f"expected true or false, got {self.motion!r}")
@@ -87,10 +94,14 @@ class ShotCamera:
             view = fit(self.view_, region(self.fit, data), self.margin)
         else:
             view = self.view_
-        if self.body is not None:
+        if self.follows:
             step = data.step if self.motion or self.rest_step is None else self.rest_step
-            surface = data.source.body(step, self.body)
-            view = follow(view, body_centre(surface, self.station.at(frame), self.axis))
+            name = self.body if self.body is not None else one_body(data.source)
+            surface = data.source.body(step, name)
+            body = declaration(data.source, name)
+            axis = self.axis or (body.axis if body else None) or "z"
+            slab = 0.25 * body.diameter if body and body.diameter else None
+            view = follow(view, body_centre(surface, self.station.at(frame), axis, slab))
         return view
 
     def key(self, frame: int, data) -> dict:

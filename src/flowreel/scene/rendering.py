@@ -102,12 +102,23 @@ class Scene:
              cache: str | Path | None = None) -> "Scene":
         """Load ``shot`` (a :class:`Shot` or a path), open its source (unless given) and
         plan it. ``views``/``tracks`` default to the shot's ``cameras.yml``. ``cache`` is
-        the surface cache folder, used only when the shot is frozen."""
+        the surface cache folder, used only when the shot is frozen.
+
+        The source is seen through the bodies of the shot's project (the nearest
+        ``flowreel.yml``, :func:`flowreel.project.find_project`), so body names in the
+        shot are the declared ones. A source given already wrapped
+        (:func:`flowreel.project.names.declare`) is used as it is."""
+        from flowreel.project import project_for
+        from flowreel.project.names import bodies_key, declare, DeclaredSource
         shot = _as_shot(shot)
         source = source if source is not None else open_source(shot)
+        if not isinstance(source, DeclaredSource):
+            source = declare(source, project_for(shot.file))
         fp = plan(shot, source)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
-        surfaces = SurfaceCache(cache, source_id(shot)) if cache is not None and fp.frozen else None
+        declared = bodies_key(source)
+        key_source = source_id(shot) + ([{"bodies": declared}] if declared else [])
+        surfaces = SurfaceCache(cache, key_source) if cache is not None and fp.frozen else None
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces)
 
     @property

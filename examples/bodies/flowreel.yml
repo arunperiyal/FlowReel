@@ -1,0 +1,13 @@
+# The project of examples/bodies, as a person writes it after `project init`: the zones
+# get names a shot can use, the measured axis and diameter are checked, and the supports
+# are filled in. run.py writes the data this refers to into data/.
+bodies:
+  riser:
+    zone: cyl                    # the surface zone in data/; shots say riser
+    axis: x
+    diameter: 1.0
+    ends:
+      - {at: 0.0, support: pinned}
+      - {at: 40.0, support: roller, free_along: x, tension: true}
+  ball:
+    zone: ball                   # not slender: no axis, no ends

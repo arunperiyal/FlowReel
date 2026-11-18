@@ -73,23 +73,29 @@ uses (`frames:`, `step:`, `seconds:` or `at:`), and the build converts once.
 
 ## 4. Architecture
 
+As built to the end of Phase 2; folders marked *(later)* come with their phases.
+
 ```text
 flowreel/
   sources/        adapters: base.py (the interface), flexflow/ (PLT, OTHD, OISD),
-                  vtk.py, geometry.py, registry.py
-  fields/         derived fields: registry.py, kinematics.py (gradient, vorticity, Q,
-                  lambda2), wall.py (wall shear, skin friction, sectional forces)
-  scene/          layers/ (iso, slice, body, outline, glyphs, markers, geometry,
-                  pathlines), tracks.py, views.py, lights.py, render.py, backend.py
-  cameras/        schema.py (cameras.yml), paths.py (keys, orbit, fit), project.py,
-                  editor.py (the window), states.py (ParaView .pvsm and .py)
-  compose/        layout.py, panels/ (section, cuts, map, series, strip), timing.py
-  film/           schema.py (film.yml), text.py (captions, maths), shapes.py,
+                  vtk.py, geometry.py, bodies.py (parametric bodies), registry.py
+  fields/         derived fields: registry.py, basic.py, kinematics.py (gradient,
+                  vorticity, Q, lambda2), wall.py (wall shear, skin friction, forces)
+  tracks.py       tracks: keys, easing, clamping
+  scene/          shot.py (shot file), timing.py, plan.py (frame plan), layers.py (the
+                  interface), flow_layers.py (iso, slice, body), marker_layers.py
+                  (outline, glyphs, markers3d, geometry); views.py, camera_path.py,
+                  camera.py, framing.py (fit, follow), projection.py, lights.py;
+                  rendering.py, backend.py, keys.py (frame keys), cache.py (frozen
+                  surfaces), memory.py (one frame measured), template.py
+  cli/            the commands, on shellkit: __init__.py (app, contexts), shot.py
+  cameras/        (later) editor.py (the window), states.py (ParaView .pvsm and .py),
+                  orbit and project commands; the camera code of Phase 2 stays in scene/
+  compose/        (later) layout.py, panels/ (section, cuts, map, series, strip)
+  film/           (later) schema.py (film.yml), text.py (captions, maths), shapes.py,
                   cards.py, timeline.py (rates, freezes, holds), audio.py, build.py,
                   check.py
-  jobs/           slurm.py, partitions.py, memory.py
-  cache.py        content keys
-  cli.py          the commands
+  jobs/           (later) slurm.py, partitions.py
 tests/            unit, fields against analytic flows, golden frames
 ```
 
@@ -157,8 +163,17 @@ lets the tests use small files, the second because the carving shot needs it.
 Parametric bodies for shots that need no data. A body is a function from parameters to a
 surface, with parameters as tracks. First body: `grooved_cylinder` (span, radius, groove
 count, depth, width, turns, phase, `cut_front` for carving, glow behind the cutters),
-which is `render_carve.py` today. Later: `straight_grooved_cylinder`, `smooth_cylinder`,
-`box`.
+which is `render_carve.py` today. Straight grooves are `turns: 0`.
+
+**Grooves in segments** (added 2026-11-18): grooves need not run the whole span. Three
+more parameters of `grooved_cylinder` cut each groove into segments along the span:
+`length` (of a segment; default the whole span), `gap` (between segments of one groove)
+and `stagger` (the shift along the span from one groove to the next, as a fraction of
+`length + gap`; 0.5 puts neighbours half a period apart, like bricks). With `turns: 0`
+these are staggered spanwise grooves: `grooves` evenly spaced round the body, each of
+`width`, `depth` and segment `length`. The ends of a segment are rounded by `edge` as
+its sides are, carving (`cut_front`) works as before, and `cutters` are placed only on
+segments that the front is cutting. Later bodies: `smooth_cylinder`, `box`.
 
 ### 5.4 Bodies
 
@@ -330,15 +345,19 @@ integrating the traction: within 4% of the solver's forces on the bare case.
 
 ```yaml
 name: bare_reveal
-source: flexflow:bare/BR0SG0U1P0
+source: flexflow:bare/BR0SG0U1P0             # or {adapter: vtk, path: flow.pvd, body: body.vtp}
 time: {steps: [5000, 5600], every: 5}        # or {frozen: 5000}, or {keys: ...}
-camera: {view: main}                         # or {track: domain}
+camera: {view: main}                         # or {track: domain}, {fit: ...}, with follow
 size: [1920, 1080]
 crop: {x: [-1, 13], y: [-6, 6], z: [-2, 25]}
 background: black
 antialias: ssaa
+lights: raking                               # optional; without it, VTK's light kit
 layers: [...]
 ```
+
+`source` is `adapter:location`, or a mapping with the adapter's options when it needs
+more than a location. Relative paths are taken from the shot file's folder.
 
 ### 7.2 Layers
 
@@ -354,8 +373,17 @@ Every property below may be a track.
 | `outline` | bounds (`domain`, `crop` or numbers), colour, width, opacity |
 | `glyphs` | where (a face of the domain with a grid, or points), direction, size, colour, opacity |
 | `markers3d` | `arrow3d`, `block`, `sphere`, `dimension3d`, `label3d`, each at model positions |
+| `axes` | `style`: `triad` (a corner triad that turns with the camera), `arrows` (labelled arrows at a model point, sized in diameters or model units), `ruled` (a box, the domain, the crop or numbers, with ticks and numbers on its edges); labels, colour, opacity |
 | `geometry` | a body from the geometry source, with its parameters |
 | `pathlines` | seeds, length in steps, colour by, width (needs every step saved) |
+
+**Axes** (added 2026-11-18). Three styles, any of them in one shot: a corner `triad`
+for orientation, drawn in its own small viewport so it never hides the flow; `arrows`
+in the scene at `origin` (a point, or a body end), showing the solver's directions next
+to the body; a `ruled` box, for the size of the domain, with tick spacing chosen from
+the box (or given) and numbers in the source's unit or in diameters. Labels are drawn
+with the bundled Lato through VTK's font-file option, so they match the captions; their
+size is in pixels, scaled in drafts like other pixel options.
 
 ### 7.3 Tracks
 
@@ -385,10 +413,12 @@ level: {keys: [[0, -0.1], [120, -1.0]], ease: out}
   height in model units), as flexflow's camera frames already store.
 - **Fit:** `{fit: domain, direction_of: main, margin: 1.1}` places the camera along a
   view's direction far enough to show a box: used for the wide domain view.
-- **Follow:** `{follow: riser, station: 6.0}` keeps the focal point on a named body's
-  centre at a station, for close views of a moving body. `station` may be a track, so the
-  camera travels along a long span; `motion: false` follows the station but not the
-  body's vibration, so the vibration stays visible.
+- **Follow:** `{view: close, follow: riser, station: 6.0, axis: z}` keeps the focal
+  point on a named body's centre at a station along `axis`, for close views of a moving
+  body. `station` may be a track, so the camera travels along a long span; `motion:
+  false` follows the station but not the body's vibration (it uses the body at the
+  shot's first step), so the vibration stays visible. Built in Phase 2; Phase 2B takes
+  `axis` from the body's declaration.
 - **Stretch:** `stretch: {x: 0.05}` on a shot scales the drawn model along an axis, after
   contouring, to fit a long body in the frame. The frame carries a note of the scale,
   because a stretched wake is not the wake's true shape.
@@ -567,7 +597,18 @@ competition's layout is a different file.
   differed by a second); a fade ends with the shorter of picture and track.
 - Later: ducking under narration, and a `--mute` build.
 
-### 10.7 Build
+### 10.7 Watermark
+
+A signature, logo or watermark, added 2026-11-18. **Film level** by default: a
+`watermark:` in `film.yml` is an image file or a line of text, with `corner` (or
+`place`), `size` (pixels of the film), `opacity`, and when it shows (`shots`, or
+`seconds: [start, end]`, default all, cards included or not). It is drawn at the build
+with the text and shapes, so changing it never re-renders a frame, and the image file
+stays outside the repository (no logos in it). **Shot level** for frames used outside a
+film: the same keys under a shot's `watermark:`, drawn into the PNG frames after the
+screenshot (Pillow), part of the frame key, scaled in drafts.
+
+### 10.8 Build
 
 1. Read and check every file; unknown keys are errors, with the nearest valid key
    suggested.
@@ -594,14 +635,19 @@ Every cached thing has a key from everything that changes it.
 
 | Cached | Key |
 |---|---|
-| frozen surfaces | source, step, field, level, crop, field code version |
-| frames | shot file section for that frame, track values, view, source step, code version |
+| frozen surfaces | source (paths resolved), step, crop, field, level, colour_by, wall_gap, gap_body, code version |
+| frames | every layer's values at that frame, view, source (paths resolved), step, crop, size, background, antialias, lights, code version |
 | base clips | frame names and modification times, rate mode, freezes, filter chain, overlay settings |
 | held frames | the held frame's modification time and its overlay settings |
 | panels | panel settings, times, style |
 
 `flowreel clean` removes caches; `--force` on any command ignores them. The prototype's
 bugs were stale clips keyed by names only; content keys prevent that class of bug.
+
+The source's paths are resolved against the shot file, so the same relative path in two
+folders is two sources (a bug of Phase 2, found by the golden tests). The keys of Phase 2
+do not cover the data files themselves: a step's file rewritten in place needs `--force`
+(Section 24, question 3).
 
 ## 12. Annotations
 
@@ -634,7 +680,8 @@ shell when started with no arguments. The shell's contexts suit iterative film w
 ╰─❯ shot preview; film check --at caption
 ```
 
-Contexts: `project` (a folder with `flowreel.yml`), `shot`, `source`, `view`. Commands
+Contexts: `project` (a folder with `flowreel.yml`), `shot`, `source`, `view`; Phase 2
+built `shot`, and the others come with the phases that use them. Commands
 keep their work in plain functions (`flowreel.film.build(...)`), so the library is usable
 from Python without the shell, and the shell stays a thin layer.
 
@@ -650,9 +697,10 @@ flowreel jobs     write | submit
 
 | Command | Options | Does |
 |---|---|---|
-| `shot render SHOT.yml` | `-j N`, `--frames A:B`, `--scale S`, `--size W H`, `--backend`, `--force`, `--slurm FILE`, `--submit` | renders a shot's frames, at a draft size when asked |
+| `shot render SHOT.yml` | `-j N`, `--threads T`, `--frames A:B`, `--scale S`, `--size W H`, `--backend`, `--force`, `-o DIR`; `--slurm FILE`, `--submit` (Phase 5) | renders a shot's frames, at a draft size when asked |
 | `shot preview SHOT.yml` | `--every 10`, `--scale 0.25` | small frames to check timing |
-| `shot memory SHOT.yml` | | estimated GB per frame and a safe `-j` for this machine |
+| `shot memory SHOT.yml` | `--frame N`, `--threads T` | measured peak GB of one frame and a safe `-j` for this machine |
+| `shot template [NAME]` | `--layers TYPES`, `-o FILE` | a commented shot file with every default |
 | `compose layout LAYOUT.yml` | `-o DIR` | tiles frame folders |
 | `compose panel PANEL.yml` | `-j N`, `-o DIR` | draws a 2D panel per frame |
 | `film build` | `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N` | builds the film, or a small copy of it to share |
@@ -716,7 +764,9 @@ the shot list.
   vortex.
 - **Golden frames:** a handful of AFMS frames (a reveal frame, a frozen domain frame, a
   carving frame, a composed comparison frame) re-rendered and compared with a tolerance;
-  the prototype's frames are the reference.
+  the prototype's frames are the reference. Goldens are drawn by the prototype's own
+  functions with OSMesa pinned, at 640x360, on data small enough to check in; each test
+  also renders a nearby frame that must fail the same limits.
 - **Film build on a tiny project** (three shots of 10 frames, two captions, a freeze,
   audio): checks lengths, caption timing and that caches rebuild when they should.
 - **flexflow adapter:** a two-step cut-down case checked into the test data.
@@ -763,7 +813,7 @@ Each phase ends with something checkable.
 | 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
 | 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
-| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`; a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
+| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
@@ -910,14 +960,15 @@ Added 2026-11-13 for the studies after the film: long cylinders, pinned ends, cy
 in tandem and bodies modelled by equations. It follows Phase 2 because it builds on
 layers, views and rendering, and before Phase 3 because the panels there take bodies by
 name. Branches 2, 3, 4 and 6 need only branch 1, so they can be built in parallel;
-branch 5 needs branch 4.
+branch 5 needs branch 4. Branches 7 and 8, added 2026-11-18, need nothing of this phase
+and can be built at any time before branch 9.
 
 **Branch 1: `phase2b/bodies-declared`** (data model)
-- [ ] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
-- [ ] Layers, `follow` and wall fields take a body by name; one body may go unnamed
-- [ ] Centre of a body at a station, its centreline and its diameter, from the surface
-- [ ] `project init` writes `bodies:` from the source's surface zones, supports left to fill
-- [ ] Docs: bodies page
+- [x] `Body` record (zone, axis, diameter, ends, series) and the `bodies:` schema of `flowreel.yml`
+- [x] Body names resolved through `bodies:` (`zone`, default the name) for layers, `follow` and wall fields; one declared body may go unnamed (layers already take the source's zone names)
+- [x] A body's centreline and diameter from the surface; `follow` takes `axis` from the declaration (the centre at a station is `framing.body_centre`, from Phase 2)
+- [x] `project init` writes `bodies:` from the source's surface zones, supports left to fill
+- [x] Docs: bodies page
 
 **Branch 2: `phase2b/series-csv`** (time histories; needs branch 1)
 - [ ] CSV series: `file`, `time`, `columns`; `series(name, body=...)`
@@ -948,12 +999,24 @@ branch 5 needs branch 4.
 **Branch 6: `phase2b/long-span`** (needs branch 1)
 - [ ] Windowed PLT reading: nodes and cells of a box, only the asked variables, memory-mapped
 - [ ] Cached window index, with a margin for the body's motion
-- [ ] `crop: {around: ...}` and `follow` with `station` as a track, `motion: false`
+- [ ] `crop: {around: ...}`, its station a track shared with the camera's `follow` (`follow` with a station track and `motion: false` is built in Phase 2)
 - [ ] `stretch` on a shot, with its note in the frame
-- [ ] `memory_per_step` and `shot memory` from the window; refusal of a shot that cannot fit
+- [ ] `memory_per_step` of a windowed source (`shot memory` already prints it beside the measured peak); refusal of a shot that cannot fit, counting about 0.7 GB per job before any data
 - [ ] Docs: long bodies page
 
-**Branch 7: `phase2b/bodies-check`** (needs all the others)
+**Branch 7: `phase2b/geometry-grooves`** (geometry source; needs nothing of this phase)
+- [ ] `grooved_cylinder`: grooves in segments, `length`, `gap`, `stagger` (Section 5.3); segment ends rounded by `edge`
+- [ ] Carving and `cutters` with segments; the carving golden frame still matches
+- [ ] Tests on the surface (groove depth inside and outside segments, stagger between neighbours); docs and an example of staggered spanwise grooves
+
+**Branch 8: `phase2b/layers-axes`** (layers; needs nothing of this phase)
+- [ ] Axis labels in Lato through VTK's font file, sized in pixels
+- [ ] `axes` layer, `style: triad`: a corner triad in its own viewport, turning with the camera
+- [ ] `style: arrows`: labelled arrows at a point or a body end, sized in model units or diameters
+- [ ] `style: ruled`: a box (`domain`, `crop` or numbers) with ticks and numbers, in the source unit or in diameters
+- [ ] Tests (projection of the triad and ticks, draft scaling); docs and an example
+
+**Branch 9: `phase2b/bodies-check`** (needs branches 1 to 6)
 - [ ] Generated case, written at test time: a PLT with a cylinder 500 diameters long and a second body, a `flowreel.yml` with pin-roll supports and tension, CSV histories of the probes and of a pendulum
 - [ ] Shots of it: a travelling window, the whole span by `centreline`, the pendulum
 - [ ] Tests: the frames render, the window reads a small part of the file, the pendulum follows its series
@@ -981,7 +1044,9 @@ window shot's memory does not grow with the span.
 
 | Risk | Answer |
 |---|---|
-| Golden-image tests break on VTK or driver updates | compare with a tolerance; pin versions in the render environments |
+| Golden-image tests break on VTK or driver updates | compare with a tolerance; pin versions in the render environments; draw goldens with OSMesa, which gives the same pixels wherever the same Mesa is installed (under X the domain outline was half as bright) |
+| A machine with only EGL fails the goldens | it passes today at a mean of 0.39 against a limit of 0.5; if a driver pushes it over, the tests take `backend: osmesa` and skip where it is missing |
+| Test data grows | `tests/data` is about 2.7 MB after Phase 2; Phase 2B's large cases are generated at test time, not checked in |
 | Configs grow into a programming language | no expressions; parametric bodies and new panels are Python plugins instead |
 | Two copies of the PLT reader drift apart | the adapter's tests read a small PLT written by the solver; a shared reader package later if needed |
 | Motion interpolation artefacts on fast flow | per-shot `to_output`; `film check` shows them before the final build |
@@ -1022,6 +1087,7 @@ New ones are added here as the work raises them.
 |---|---|---|
 | 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
 | 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
+| 3 | Should frame keys (and Phase 2B's window index) include each data file's size and modification time? Cheap, and it removes the need for `--force` when a step is rewritten in place, the class of stale-cache bug Section 11 is about. Phase 2 keys do not. | Phase 2B, branch 6 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

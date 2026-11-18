@@ -21,7 +21,8 @@ from flowreel.scene.keys import code_version, digest
 class SurfaceCache:
     """Meshes stored under content keys in ``folder``.
 
-    ``source`` is the shot's ``(adapter, location)``, added to every key.
+    ``source`` is the shot's source as keys take it (the adapter, its resolved options
+    and, in a project, the declared bodies), added to every key.
     :meth:`get` returns the stored mesh or builds, stores and returns it. ``hits`` and
     ``misses`` count what happened in this process.
     """

@@ -116,6 +116,31 @@ once `source` and `camera` name real things.
 | `-o FILE` | print | write to FILE |
 | `--force` | off | overwrite FILE if it exists |
 
+## `project init`
+
+```text
+flowreel project init SOURCE [--body FILE] [--step N] [-o DIR] [--force]
+```
+
+Writes `DIR/flowreel.yml` with one body per surface zone of `SOURCE`, each under its
+zone's name. A zone at least 3 times longer in one direction than across becomes a beam
+body, with its `axis` and `diameter` measured from the surface; other zones get neither. The supports
+and series are written commented out, to fill in: the files do not say how a body is
+held, and a guess would be drawn as if it were known. See [bodies](bodies.md).
+
+| Option | Default | Meaning |
+|---|---|---|
+| `SOURCE` | | `adapter:location`: `flexflow:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
+| `--body FILE` | none | body file or pattern, for a source that reads it separately (`vtk`) |
+| `--step N` | the first | step whose surfaces are measured |
+| `-o DIR`, `--out DIR` | `.` | project folder |
+| `--force` | off | overwrite an existing `flowreel.yml` |
+
+```text
+$ flowreel project init geometry:grooved_cylinder -o carve
+wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
+```
+
 ## Errors and exit status
 
 A problem in a shot file is reported with the file and key path, and the nearest valid

@@ -44,7 +44,9 @@ folder, so a shot and its data can move together.
 
 `crop` is passed to the source, which applies it while reading where the format allows, so
 a small box also means less memory. `camera` takes a view, a camera track or a fit, and
-may follow a body; its keys are in [cameras](cameras.md#a-shots-camera). Without
+may follow a body; its keys are in [cameras](cameras.md#a-shots-camera). Body names in
+layers and in `follow` are those declared in the project's `flowreel.yml`, or the
+source's own zone names ([bodies](bodies.md)). Without
 `lights` the shot keeps VTK's own light kit, which the reveal's golden frame was drawn
 with. To render a shot, see [rendering](rendering.md).
 

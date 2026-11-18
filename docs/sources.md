@@ -43,6 +43,10 @@ An unknown name raises `KeyError` listing the names; a source without a body rai
 `LookupError`. Nothing in FlowReel assumes the body is a cylinder or has a span: only
 `sectional_force` asks for an axis, and `wall_force` needs none (see `docs/fields.md`).
 
+These are the source's own zone names. A project's `flowreel.yml` can give them other
+names and add what the files cannot say (axis, diameter, supports, series); shots then
+use the declared names ([bodies](bodies.md)).
+
 ## Cropping
 
 `Box(lo, hi)` is an axis-aligned box. Adapters apply the crop while reading where the format

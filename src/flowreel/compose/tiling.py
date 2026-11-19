@@ -7,7 +7,9 @@ re-rendered or the layout changed; ``force`` draws every frame again.
 
 Tiles of a ``stations`` entry are rendered first, each station's shot at its tile's
 size into ``out/<shot>_station<value>@<W>x<H>/``, through
-:func:`flowreel.scene.render`, which skips its own fresh frames.
+:func:`flowreel.scene.render`, which skips its own fresh frames. ``panel`` tiles are
+drawn next, each panel into ``out/<panel>/`` by :func:`flowreel.compose.panel`, which
+skips its fresh frames too.
 """
 from __future__ import annotations
 
@@ -43,7 +45,7 @@ def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = No
            force: bool = False, scale: float | None = None,
            size: tuple[int, int] | None = None,
            progress: Callable[[tuple[int, Path, str]], None] | None = None,
-           render: dict | None = None) -> ComposeReport:
+           render: dict | None = None, panels: dict | None = None) -> ComposeReport:
     """Compose the frames of ``lay`` (a :class:`~flowreel.compose.Layout` or a layout
     file) into ``out/<name>/frame_00000.png`` ...
 
@@ -53,12 +55,15 @@ def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = No
     :func:`~flowreel.scene.rendering.draft_size`). A frame drawn before with the same
     key is skipped unless ``force``. ``progress`` is called with each frame's entry.
     ``render`` holds options for :func:`flowreel.scene.render` of the ``stations``
-    tiles (``jobs``, ``backend``, ``processes`` ...); ``force`` applies to them too.
+    tiles (``jobs``, ``backend``, ``processes`` ...), ``panels`` options for
+    :func:`flowreel.compose.panel` of the ``panel`` tiles (``jobs``, ``processes``);
+    ``force`` applies to both.
     """
     lay = load(lay) if not isinstance(lay, Layout) else lay
     pic = draft_size(lay.size, scale, size)
     drawn = scaled(lay, pic)
     drawn = render_stations(drawn, out, force=force, **(render or {}))
+    drawn = draw_panels(drawn, out, force=force, **(panels or {}))
     m = match(drawn)
     indices = m.indices if frames is None else _chosen(frames, m, lay)
     name = lay.name if pic == tuple(lay.size) else f"{lay.name}@{pic[0]}x{pic[1]}"
@@ -102,6 +107,22 @@ def render_stations(lay: Layout, out: str | Path, force: bool = False, **options
     for tile in lay.tiles:
         if tile.shot is not None:
             report = render(tile.shot, out=out, size=tile.size, force=force, **options)
+            tile = replace(tile, frames=report.folder)
+        tiles.append(tile)
+    return replace(lay, tiles=tiles)
+
+
+def draw_panels(lay: Layout, out: str | Path, force: bool = False, **options) -> Layout:
+    """Draw the panels of ``lay``'s ``panel`` tiles into ``out``, each at its own times
+    and size, and return the layout with those tiles' ``frames`` set to the panels'
+    folders. Every frame of a panel is drawn (fresh ones are skipped), so its frames
+    match the other tiles' by index whichever frames are composed."""
+    from flowreel.compose.panel_file import load as load_panel
+    from flowreel.compose.panels import panel
+    tiles = []
+    for tile in lay.tiles:
+        if tile.panel is not None:
+            report = panel(load_panel(tile.panel), out, force=force, **options)
             tile = replace(tile, frames=report.folder)
         tiles.append(tile)
     return replace(lay, tiles=tiles)

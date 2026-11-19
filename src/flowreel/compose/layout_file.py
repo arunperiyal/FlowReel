@@ -7,6 +7,11 @@
     tiles:
       - {frames: frames/bare_panel, at: [0, 0], size: [1280, 540], label: bare}
       - {frames: frames/helical_panel, at: [0, 540], size: [1280, 540]}
+      - {panel: panels/lift.yml, at: [1280, 0], size: [640, 1080]}
+
+A ``panel`` tile names a panel file; :func:`flowreel.compose.layout` draws the panel
+first and tiles its frames like any other folder of frames. ``rate: output`` marks a
+panel the film draws at its output rate (plan Section 9.3).
 
 or, placed automatically in rows and columns with a gap between them:
 
@@ -34,7 +39,8 @@ from flowreel.scene.errors import Checker, ConfigError
 
 KEYS = ("name", "size", "background", "grid", "gap", "missing", "tiles")
 MISSING = ("error", "hold")
-TILE_KEYS = ("frames", "stations", "at", "size", "along", "fit", "label")
+TILE_KEYS = ("frames", "stations", "panel", "rate", "at", "size", "along", "fit", "label")
+RATES = ("flow", "output")
 STATIONS_KEYS = ("shot", "at")
 ALONG = ("row", "column")
 LABEL_KEYS = ("text", "corner", "size", "colour")
@@ -67,7 +73,10 @@ class Tile:
     A tile of a ``stations`` entry has ``shot``, the shot rendered at ``station`` (a
     :class:`~flowreel.scene.shot.Shot` with its crop and camera moved there, see
     :func:`flowreel.compose.stations.at_station`), and ``frames`` ``None`` until
-    :func:`flowreel.compose.layout` renders it. ``entry`` is the index in the file's
+    :func:`flowreel.compose.layout` renders it. A ``panel`` tile has ``panel``, the
+    panel file (resolved), and ``frames`` ``None`` until the layout draws it; ``rate``
+    is ``flow`` (drawn at the layout's frames) or ``output`` (drawn at the film's
+    output frames when the layout is given them). ``entry`` is the index in the file's
     ``tiles`` of the entry that made the tile, for error messages.
     """
 
@@ -79,6 +88,8 @@ class Tile:
     shot: object = None
     station: float | None = None
     entry: int | None = None
+    panel: Path | None = None
+    rate: str = "flow"
 
 
 @dataclass
@@ -173,13 +184,16 @@ def _count(spec, check: Checker) -> int:
 
 
 def _tiles(spec, check: Checker, folder: Path, cells, gap: int) -> list[Tile]:
-    """The tiles of one entry: ``{frames: ...}`` makes one, ``{stations: ...}`` one
-    per station, in the entry's grid cells or along its own ``at`` and ``size``."""
+    """The tiles of one entry: ``{frames: ...}`` and ``{panel: ...}`` make one,
+    ``{stations: ...}`` one per station, in the entry's grid cells or along its own
+    ``at`` and ``size``."""
     spec = check.mapping(spec, TILE_KEYS)
-    given = [k for k in ("frames", "stations") if k in spec]
+    given = [k for k in ("frames", "stations", "panel") if k in spec]
     if len(given) != 1:
-        raise check.error("give one of 'frames' (a folder of frames) or 'stations' "
-                          "(a shot and its stations)")
+        raise check.error("give one of 'frames' (a folder of frames), 'stations' "
+                          "(a shot and its stations) or 'panel' (a panel file)")
+    if "rate" in spec and "panel" not in spec:
+        raise check.at("rate").error("is used only with 'panel'")
     if cells is not None:
         for key in ("at", "size"):
             if key in spec:
@@ -189,6 +203,17 @@ def _tiles(spec, check: Checker, folder: Path, cells, gap: int) -> list[Tile]:
             if key not in spec:
                 raise check.error(f"missing key {key!r} (or place the tiles with 'grid')")
     fit = check.at("fit").choice(spec.get("fit", "contain"), FITS)
+    if "panel" in spec:
+        if "along" in spec:
+            raise check.at("along").error("is used only with 'stations'")
+        path = (folder / check.at("panel").string(spec["panel"])).resolve()
+        if not path.is_file():
+            raise check.at("panel").error(f"no panel file {path}")
+        at, size = cells[0] if cells else (_pair(spec["at"], check.at("at"), minimum=0),
+                                           _pair(spec["size"], check.at("size"), minimum=1))
+        return [Tile(frames=None, at=at, size=size, fit=fit, panel=path,
+                     rate=check.at("rate").choice(spec.get("rate", "flow"), RATES),
+                     label=_label(spec.get("label"), check.at("label")))]
     if "frames" in spec:
         if "along" in spec:
             raise check.at("along").error("is used only with 'stations'")

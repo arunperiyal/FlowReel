@@ -1124,7 +1124,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [ ] A golden opening card drawn by the prototype's `make_film.opening_card` (its logo replaced by a generated image), matched by a card file; docs: cards page
 
 **Branch 4: `phase4/film-clips`** (base and finished clips; needs branches 1 to 3)
-- [ ] ffmpeg found through `FFMPEG` or the path, its version and filters checked once (the workstation's `ffmpeg` on the path is Tecplot's own copy)
+- [ ] ffmpeg: a standard build from conda-forge in `flexflow_env`, declared in a new `environment.yml` (pip cannot install ffmpeg, so not in `pyproject.toml`), with install notes in the README; found through `FFMPEG` or the path, its version and filters (`minterpolate`, `xfade`) checked once, with a clear error naming the binary found (the workstation's `ffmpeg` on the path is Tecplot's own copy)
 - [ ] Base clip of a frames shot: the frame order with freezes, `rate: {fps, to_output}` with `interpolate` (motion-compensated, scene cuts off), `repeat` and `blend`; encoded once, keyed by content (frame names and times, rate, freezes, filters; Section 11)
 - [ ] Base clip of a layout shot: its composed frames interpolated and its `rate: output` panels laid on at the output rate (Section 9.3), through `compose.layout(output=...)`
 - [ ] Base clips of cards and holds (`hold_last_of`: a shot's last frame, with or without its overlays)
@@ -1225,8 +1225,9 @@ New ones are added here as the work raises them.
 | 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
 | 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
 | 3 | ~~Should frame keys (and Phase 2B's window index) include each data file's size and modification time?~~ **Decided 2026-11-18: yes**, done in Phase 2B branch 6; the span index is keyed by its file's the same way. | Phase 2B, branch 6 |
-| 4 | Where do the AFMS film's own FlowReel files live (`film.yml`, text, the card naming the logo, the audio entry)? They name a logo and a licensed track, so not in this repository; the research repository beside `prototype/afms/`'s original is the likely place. | Phase 4, branch 7 |
-| 5 | Are the AFMS film's rendered frames (and its `film.mp4`) still on the workstation, so the rebuild can be measured against them without rendering again? | Phase 4, branch 7 |
+| 4 | ~~Where do the AFMS film's own FlowReel files live?~~ **Answered 2026-11-19:** in a FlowReel project folder of their own, outside this repository (they name a logo and a licensed track). How a project folder is made and laid out is question 6. | Phase 4, branch 7 |
+| 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
+| 6 | **Project rules, to discuss once the backend is done.** Arun's proposal: FlowReel is always run from an initialised project folder; an init command writes a hidden file holding what the project needs, and empty folders such as `data/`, `assets/`, `clips/`. To settle then: the hidden file against today's `flowreel.yml` (written by `project init`, found by walking up from a shot or panel file), the folder names, and what a command does outside a project. Until then the code keeps finding `flowreel.yml` as it does. | after Phase 4's backend, before Phase 7 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

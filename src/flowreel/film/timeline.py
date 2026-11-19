@@ -60,6 +60,24 @@ class TimedShot:
         """When the shot ends, in film seconds."""
         return self.start + self.length
 
+    def positions(self, film_fps: int) -> list[float]:
+        """The shot's output frames as positions among its own frames, for
+        :func:`flowreel.compose.layout` (``output=``) to draw ``rate: output`` panels at.
+
+        Each frame of ``order`` lasts ``film_fps / fps`` output frames; output frame
+        ``j`` lies that share of the way from one shown frame to the next, and stays put
+        through a freeze, where both are the same frame (the AFMS film's
+        ``plots_for``). There are ``length * film_fps`` of them, one per output frame of
+        the finished shot."""
+        if self.fps is None:
+            raise ValueError(f"shot {self.shot.name!r} is a {self.shot.kind}; it has no frames")
+        ratio = round(film_fps / self.fps)
+        out = []
+        for k, a in enumerate(self.order):
+            b = self.order[min(k + 1, len(self.order) - 1)]
+            out += [a + (b - a) * part / ratio for part in range(ratio)]
+        return out
+
 
 @dataclass(frozen=True)
 class TimedCaption:

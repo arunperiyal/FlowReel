@@ -102,3 +102,26 @@ def test_counts_from_frames_and_layouts(tmp_path):
     empty = from_dict({"shots": [{"name": "e", "frames": "nothing"}]}, file=str(tmp_path / "x.yml"))
     with pytest.raises(ConfigError, match=r"shots\[0\].*no frame_NNNNN"):
         timeline(empty)
+
+
+def test_output_positions_between_frames_and_still_through_freezes(tmp_path):
+    shots = [{"name": "s", "frames": "f", "rate": {"fps": 8},
+              "freezes": [{"at": 0.125, "hold": 0.25}]}]
+    t = timeline(make(tmp_path, shots), {"s": 3})
+    s = t.shot("s")
+    assert s.order == [0, 1, 1, 1, 2]
+    p = s.positions(24)
+    assert p == pytest.approx([0, 1 / 3, 2 / 3, 1, 1, 1, 1, 1, 1, 1, 4 / 3, 5 / 3, 2, 2, 2])
+    assert len(p) == round(s.length * 24)
+
+
+def test_output_positions_agree_with_compose_inside_the_shot(tmp_path):
+    from flowreel.compose import output_positions
+    t = timeline(make(tmp_path, [{"name": "s", "frames": "f", "rate": {"fps": 8}}]), {"s": 16})
+    p = t.shot("s").positions(24)
+    inside = output_positions(16, per_frame=3)
+    assert p[:len(inside)] == pytest.approx(inside) and p[len(inside):] == [15, 15]
+    full = timeline(make(tmp_path, [{"name": "s", "frames": "f"}]), {"s": 5}).shot("s")
+    assert full.positions(24) == [0, 1, 2, 3, 4]
+    with pytest.raises(ValueError, match="no frames"):
+        timeline(make(tmp_path, SHOTS), COUNTS).shot("opening").positions(24)

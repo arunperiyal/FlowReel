@@ -5,7 +5,8 @@ lift moving along with the film, a dot at the current value (plan Section 9.2). 
 panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`, so a
 [layout](layouts.md) tiles them beside the flow.
 
-A runnable example on generated histories is `examples/panels/run.py`.
+A runnable example on generated histories is `examples/panels/run.py`; one on a
+generated flow is `examples/flow_panels/run.py`.
 
 ## A panel file
 
@@ -19,7 +20,7 @@ style: styles/film.yml
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `type` | `series`, `phase`, `map`, `locator` | required | the kind of panel |
+| `type` | `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` | required | the kind of panel |
 | `name` | string | the file's name without `.yml` | the output folder |
 | `size` | `[width, height]` | `[640, 360]` | pixels (the figure is drawn at 100 dots per inch) |
 | `times` | list of numbers, or `{shot: FILE}` | required | the time of each frame |
@@ -56,7 +57,7 @@ Lato has no maths glyphs; DejaVu Sans sits well beside it.
 
 ## Where the data comes from
 
-Both panels read time histories declared for bodies in the project's `flowreel.yml`
+The `series`, `phase`, `map` and `locator` panels read time histories declared for bodies in the project's `flowreel.yml`
 (the nearest one at or above the panel file), under the body's `series`
 ([bodies](bodies.md)). A line names its series and, unless one body declares a series
 of that name, its body:
@@ -224,6 +225,165 @@ needs this to say where the window is.
 - The body needs declared `ends`, or a `shape` (its stations), or an `x` `range`, so
   that its span is known.
 
+## Panels from flow data: `section`, `cuts` and `strip`
+
+![A section, cuts at three stations and a strip, frame 2 of the flow example](images/flow_panels.png)
+
+These three read the flow itself, not histories. A runnable example on a generated case
+(a cylinder moving across a ring of flow whose fields are known exactly) is
+`examples/flow_panels/run.py`, which drew the picture above.
+
+### Where the flow comes from
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder |
+| `body` | string | the one body | the body, by its name in `flowreel.yml` or its zone |
+| `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](fields.md)) |
+| `params` | mapping of numbers | none | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear` |
+| `range` | `[low, high]` | required | the colours' range; values outside it take the end colours |
+| `colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name |
+| `levels` | integer | `41` | contour levels from `low` to `high` |
+| `view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure |
+
+- **Steps, not times.** Frame *i* shows the saved step whose time is nearest `times[i]`
+  (the earlier one at a tie). Flow is never interpolated between steps: two frames
+  between the same pair of steps show the same flow, and are drawn once.
+- **A range must be given.** A range found from each frame's data would change from
+  frame to frame, and a colour would not mean one value through the film.
+- **Derived fields are computed before the cut,** on the volume read round it, so a
+  gradient across the plane is a true one. Velocity and pressure are all that is read
+  (plan Section 6); pressure only when the field needs it.
+
+### Cuts across a body
+
+`section` and `cuts` cut the flow across a body: the plane normal to the body's axis
+(declared in `flowreel.yml`, or its long axis), at a station along it. Only a slab of
+the step round the cut is read: `depth` each side of the plane, and the view plus
+`depth` in the plane. The slab is the source's crop, so a PLT file is read through a
+window ([long bodies](long-bodies.md)), and a cut of a riser 500 diameters long reads
+a few diameters of it. A cell is read when it lies wholly in the slab, so `depth` must
+be larger than a cell; a cut that finds no cell says so.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `axes` | two of `x`, `y`, `z` | the other two axes, in the order x, y, z | the plane's axes across and up the picture: `[z, y]` puts a flow along z to the right |
+| `half` | number or `[across, up]` | 1.5 diameters | half-size of the view, length unit |
+| `centre` | `[across, up]` | the body's centre at the station, in each frame | a view that stays put, in the source's coordinates |
+| `depth` | number | 1 diameter | half-thickness of the slab read, length unit |
+| `body_colour` | colour | `'#c8ccd0'` | the bodies' fill |
+
+Every wall body that crosses the plane is drawn, filled; the view follows the named
+one.
+
+### `section`
+
+```yaml
+type: section
+size: [1920, 1080]
+times: {shot: travel.yml}
+body: riser
+station: 250
+field: vorticity_x
+range: [-30, 30]
+half: 1.4
+inset: {offset: [0.2, 0.45], half: 0.3}
+```
+
+One cut: the field as filled contours, streamlines of the flow seen from the body, the
+body's outline, and an inset, a close view that follows the body, with its box drawn
+on the main view (the prototype's groove section).
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `station` | number or track | required | where along the body to cut; a track (keyed on frames) travels |
+| `streamlines` | mapping or `false` | on, as below | |
+| `streamlines.relative` | bool | `true` | take away the body's velocity |
+| `streamlines.density` | number | `1.6` | matplotlib's `streamplot` density in the main view |
+| `streamlines.colour`, `.opacity`, `.width`, `.arrow` | | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size |
+| `streamlines.resolution` | integer | `200` | points each way of the grid the velocity is taken to |
+| `inset` | mapping or none | none | the close view |
+| `inset.offset` | `[across, up]` | `[0, 0]` | its centre, from the body's centre, length unit |
+| `inset.half` | number or pair | 0.2 diameters | its half-size |
+| `inset.at` | `[left, bottom, width, height]` | `[0.58, 0.2, 0.38, 0.6]` | where it is in the figure; the main view moves to `[0.04, 0.08, 0.5, 0.84]` |
+| `inset.density` | number | `2.4` | streamline density in the inset |
+| `inset.box` | colour | `'#f2f2f2'` | its box on the main view |
+
+**Flow seen from the body.** A vibrating cylinder carries the flow next to it, so
+streamlines in the frame of the mesh show the body's motion more than the flow round
+it. With `relative: true` the body's velocity at the station is taken away first. It
+is found from the body's centre at the station at the saved steps either side, divided
+by their time apart (one-sided at the first and last step), so no solver output beyond
+the flow files is needed. Inside the bodies the streamlines are masked.
+
+### `cuts`
+
+```yaml
+type: cuts
+size: [1920, 540]
+times: {shot: travel.yml}
+body: riser
+stations: [125, 250, 375]
+field: vorticity_x
+range: [-2.5, 2.5]
+centre: [3.5, 0]
+half: [5, 4.2]
+label: 'x = {station:g} D'
+```
+
+The same cut at several stations, side by side and labelled, so the phase of shedding
+can be read along the span (the prototype's span slices). Each view follows the body
+at its own station, or every view stays at `centre`.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `stations` | list of numbers | required | one cut each, left to right |
+| `label` | string or `false` | `'station {station:g}'` | under each cut; `{station}` is replaced by the station |
+| `gap` | number | `0.008` | space between cuts, share of the figure's width |
+
+Each station is read on its own, through its own window. A source that cannot read a
+window (a VTU file) is read whole once per station, so keep such panels to few
+stations.
+
+### `strip`
+
+```yaml
+type: strip
+size: [1920, 540]
+times: {shot: travel.yml}
+body: riser
+side: y
+field: skin_friction
+component: z
+params: {rho: 1, u_inf: 1, mu: 0.0001}
+range: [-0.03, 0.03]
+```
+
+The body seen from one side, its span across, coloured by a field on the wall, with
+the line where the field is zero (the prototype's separation line: streamwise skin
+friction changes sign where the flow leaves the wall).
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `side` | `x`, `-x`, `y`, `-y`, `z`, `-z` | required | the side the eye is on; not the body's axis |
+| `component` | `x`, `y`, `z` | none | the part of a vector field drawn; required for one |
+| `span` | `[low, high]` | the whole body | the part of the span shown, along the body's axis |
+| `zero` | `{colour, width}` or `false` | `{colour: '#f2f2f2', width: 2.5}` | the zero line; width in points |
+| `margin` | number | half a diameter | the flow read round the body, length unit |
+| `aspect` | `auto` or `equal` | `auto` | `equal` keeps lengths true; `auto` fills the panel, which a long body needs |
+
+- **The field** is an array the source gives on the wall (`p`), a wall field
+  (`wall_shear`, `skin_friction`, `wall_pressure`, `wall_traction`; per wall cell,
+  averaged to the points), or a flow field sampled on the wall (`speed`). Wall fields
+  are computed from the flow inside the body's box grown by `margin`, which must hold
+  the cells next to the wall. Their sign convention is in [fields](fields.md): wall
+  shear points the way the fluid next to the wall moves relative to it.
+- **One side.** Only the half of the body facing the eye is drawn: the triangles whose
+  centre lies on the eye's side of the body's centre at their station.
+- **A true view.** The span runs left to right and the picture is not mirrored, so the
+  up direction follows from the side: seen from `+y` with the span along x, up is
+  `-z`; seen from `-y`, up is `+z`.
+
 ## Drawing: `compose.panel`
 
 ```python
@@ -249,7 +409,8 @@ consecutive frames, one process each.
 
 **Keys.** Each frame has a key (plan Section 11): the panel's type, size and settings,
 the style, the frame's time, and the path, size and modification time of each series
-file the panel reads (and, for a locator, each window's shot file). A frame drawn
+file the panel reads (for a locator, also each window's shot file; for a flow panel,
+the source's files for every step and `flowreel.yml`). A frame drawn
 before with the same key is skipped. Moving one
 time redraws one frame. Rewriting a series file, or changing the style, redraws them
 all.

@@ -1061,11 +1061,11 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Tests on generated histories; docs, with an example on the riser case
 
 **Branch 4: `phase3/panels-flow`** (panels from flow data; needs branch 2)
-- [ ] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
-- [ ] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
-- [ ] `cuts` panel: the same cut at several stations side by side, labelled
-- [ ] `strip` panel: a body from one side coloured by a wall field, with its zero contour
-- [ ] Tests on generated data; docs
+- [x] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
+- [x] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
+- [x] `cuts` panel: the same cut at several stations side by side, labelled
+- [x] `strip` panel: a body from one side coloured by a wall field, with its zero contour
+- [x] Tests on generated data; docs
 
 **Branch 5: `phase3/compose-rate`** (panels in a layout; needs branches 1 and 2)
 - [ ] Panel tiles in a layout: `panel: FILE`, drawn at the layout's frames

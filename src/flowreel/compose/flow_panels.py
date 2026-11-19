@@ -37,6 +37,22 @@ stays at ``centre``.
     centre: [3.5, 0]
     half: [5, 4.2]
     label: 'x = {station:g} D'
+
+**strip.** A body seen from one side (``side``: the axis the eye is on, signed), its
+span across, coloured by a wall field, with the line where the field is zero, such as
+where the flow leaves the wall. The picture is a true view, not mirrored.
+
+.. code-block:: yaml
+
+    type: strip
+    size: [1920, 540]
+    times: {shot: travel.yml}
+    body: riser
+    side: y
+    field: skin_friction
+    component: z
+    params: {rho: 1, u_inf: 1, mu: 0.0001}
+    range: [-0.03, 0.03]
 """
 from __future__ import annotations
 
@@ -45,6 +61,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from flowreel.box import Box
 from flowreel.compose import flow_cut as fc
 from flowreel.compose.panels import PanelType, register
 from flowreel.compose.style import colour
@@ -464,3 +481,172 @@ class CutsPanel(CutPanel):
                 ax.text(0.5, -0.02, self.label.format(station=station), transform=ax.transAxes,
                         ha="center", va="top", color=self.style.text)
         self.shown = step
+
+
+SIDES = ("x", "-x", "y", "-y", "z", "-z")
+
+
+@register
+class StripPanel(FlowPanel):
+    """A body seen from one side, coloured by a wall field, with the line where the
+    field is zero."""
+
+    name = "strip"
+    KEYS = FlowPanel.COMMON + ("side", "component", "span", "zero", "margin", "aspect")
+    ZERO_KEYS = ("colour", "width")
+
+    def parse(self, options, check):
+        from flowreel.project.measure import diameter, long_axis
+        from flowreel.project.names import require_wall
+        super().parse(options, check)
+        try:
+            require_wall(self.source, self.body, "strip")
+        except ValueError as exc:
+            raise check.at("body").wrap(exc) from None
+        decl = self.declared()
+        surface = self.source.body(self.source.steps()[0], self.body)
+        axis = (decl.axis if decl else None) or long_axis(surface)
+        if axis is None:
+            raise check.at("body").error(f"body {self.body!r} is not slender, so it has no "
+                                         "span to lay across the strip; declare its 'axis'")
+        self.axis = fc.AXES.index(axis)
+        if options.get("side") is None:
+            raise check.error("missing key 'side' (the side the body is seen from: x, -x, y, "
+                              "-y, z or -z)")
+        side = check.at("side").choice(str(options["side"]), SIDES)
+        self.side = fc.AXES.index(side[-1])
+        if self.side == self.axis:
+            raise check.at("side").error(f"{side} is the body's axis; see the body from across it")
+        sign = -1.0 if side.startswith("-") else 1.0
+        look = np.zeros(3)
+        look[self.side] = sign                         # from the body towards the eye
+        along = np.zeros(3)
+        along[self.axis] = 1.0
+        self.look = look
+        self.up = np.cross(along, -look)              # span to the right, not mirrored
+        comp = options.get("component")
+        self.component = None if comp is None else fc.AXES.index(
+            check.at("component").choice(comp, tuple(fc.AXES)))
+        self.span = None
+        if options.get("span") is not None:
+            lo, hi = check.at("span").numbers(options["span"], 2)
+            if lo >= hi:
+                raise check.at("span").error(f"expected [low, high] with low < high, got "
+                                             f"[{lo:g}, {hi:g}]")
+            self.span = (lo, hi)
+        zero = options.get("zero", {})
+        if zero is False or zero is None:
+            self.zero = None
+        else:
+            spec = check.at("zero").mapping(zero, self.ZERO_KEYS)
+            self.zero = {"colour": colour(spec.get("colour", "#f2f2f2"), check.at("zero", "colour")),
+                         "width": check.at("zero", "width").number(spec.get("width", 2.5))}
+        size = (decl.diameter if decl and decl.diameter else None) or diameter(surface, axis)
+        self.margin = check.at("margin").number(options.get("margin", 0.5 * size))
+        if self.margin <= 0:
+            raise check.at("margin").error(f"must be positive, got {self.margin:g}")
+        self.aspect = check.at("aspect").choice(options.get("aspect", "auto"), ("auto", "equal"))
+
+    def build(self, figure):
+        self.ax = figure.add_axes(self.view)
+        self.shown = None
+
+    def surface(self, step: int):
+        """The body at ``step``, cut to ``span``, as triangles."""
+        surf = self.source.body(step, self.body)
+        if self.span is not None:
+            pts = np.asarray(surf.points)
+            keep = (pts[:, self.axis] >= self.span[0]) & (pts[:, self.axis] <= self.span[1])
+            cells = surf.extract_points(keep, adjacent_cells=False, include_cells=True)
+            surf = cells.extract_surface()
+            if not surf.n_cells:
+                raise ValueError(f"the body has no surface between {self.span[0]:g} and "
+                                 f"{self.span[1]:g} along its axis")
+        return surf.triangulate().clean()
+
+    def values(self, step: int, surf) -> np.ndarray:
+        """The field at each point of ``surf``: an array the source gives on the wall, a
+        wall field (computed from the flow next to it, per cell, then averaged to the
+        points) or a flow field sampled there; one component of a vector."""
+        from flowreel import fields
+        from flowreel.fields.registry import resolve
+        name = self.field
+        if name in surf.point_data:
+            value = np.asarray(surf.point_data[name], dtype=float)
+        else:
+            lo = np.asarray(surf.bounds[0::2]) - self.margin
+            hi = np.asarray(surf.bounds[1::2]) + self.margin
+            flow = self.source.flow(step, fc.source_fields(self.source, [name]), Box(lo, hi))
+            if not flow.n_cells:
+                raise ValueError("no flow cells round the body; make 'margin' larger than a cell")
+            if "wall_frame" in resolve([name]):
+                value = fields.compute(flow, [name], wall=surf, **self.params)[name]
+                if np.ndim(value) == 0 or len(value) != surf.n_cells:
+                    raise ValueError(f"{name!r} is not a field on the wall's cells")
+                held = surf.copy()
+                held.cell_data["_v"] = np.asarray(value, dtype=float)
+                value = np.asarray(held.cell_data_to_point_data().point_data["_v"])
+            else:
+                if name not in flow.point_data:
+                    flow.point_data[name] = fields.compute(flow, [name], **self.params)[name]
+                value = np.asarray(surf.sample(flow, pass_point_data=False).point_data[name])
+        if value.ndim == 2:
+            if self.component is None:
+                raise ValueError(f"{name!r} is a vector; say which part with 'component'")
+            value = value[:, self.component]
+        elif self.component is not None:
+            raise ValueError(f"{name!r} is not a vector, so it has no 'component'")
+        return value
+
+    def state(self, time: float) -> dict:
+        """What the frame at ``time`` shows: its ``step``, the points' ``across`` (along
+        the span) and ``up`` coordinates, the visible ``triangles`` and the ``values``."""
+        step = self.step_at(time)
+        surf = self.surface(step)
+        pts = np.asarray(surf.points, dtype=float)
+        tris = np.asarray(surf.faces).reshape(-1, 4)[:, 1:]
+        middle = pts[tris].mean(axis=1)
+        facing = (middle - axis_points(pts, self.axis, middle[:, self.axis])) @ self.look > 0
+        return {"step": step, "across": pts[:, self.axis], "up": pts @ self.up,
+                "triangles": tris[facing], "values": self.values(step, surf)}
+
+    def update(self, time, index=None):
+        from matplotlib.tri import Triangulation
+        step = self.step_at(time)
+        if step == self.shown:
+            return
+        try:
+            s = self.state(time)
+        except (ValueError, TypeError) as exc:
+            raise self.failed(time, exc) from None
+        ax = self.ax
+        ax.cla()
+        bare(ax, self.style)
+        tri = Triangulation(s["across"], s["up"], s["triangles"])
+        self.contours(ax, tri, s["values"])
+        used = np.unique(s["triangles"])
+        self.zero_line = None
+        if self.zero and s["values"][used].min() < 0 < s["values"][used].max():
+            self.zero_line = ax.tricontour(tri, s["values"], levels=[0.0], colors=[self.zero["colour"]],
+                          linewidths=self.zero["width"])
+        a, u = s["across"][used], s["up"][used]
+        ax.set_xlim(*(self.span or (a.min(), a.max())))
+        pad = 0.04 * (u.max() - u.min())
+        ax.set_ylim(u.min() - pad, u.max() + pad)
+        ax.set_aspect(self.aspect)
+        self.shown = step
+
+
+def axis_points(points: np.ndarray, axis: int, at: np.ndarray, bins: int = 64) -> np.ndarray:
+    """``(len(at), 3)``: the body's centre at the stations ``at``, from its surface
+    ``points``: the mean of the points in each of ``bins`` slices along ``axis``,
+    interpolated between slices (slices with no point are skipped, so a coarse mesh
+    works)."""
+    s = points[:, axis]
+    edges = np.linspace(s.min(), s.max(), bins + 1)
+    which = np.clip(np.searchsorted(edges, s, side="right") - 1, 0, bins - 1)
+    count = np.bincount(which, minlength=bins)
+    full = count > 0
+    sums = np.stack([np.bincount(which, weights=points[:, k], minlength=bins) for k in range(3)], 1)
+    centres = sums[full] / count[full, None]
+    return np.column_stack([np.interp(at, centres[:, axis], centres[:, k]) for k in range(3)])

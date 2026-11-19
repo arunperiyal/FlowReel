@@ -1069,7 +1069,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 
 **Branch 5: `phase3/compose-rate`** (panels in a layout; needs branches 1 and 2)
 - [x] Panel tiles in a layout: `panel: FILE`, drawn at the layout's frames
-- [ ] `rate: output` (Section 9.3): such a panel is drawn at given output times, between flow frames and held through given holds; `compose.layout` takes those times so the film build (Phase 4) can pass its freezes
+- [x] `rate: output` (Section 9.3): such a panel is drawn at given output times, between flow frames and held through given holds; `compose.layout` takes those times so the film build (Phase 4) can pass its freezes
 - [ ] Tests (a dot drawn between two flow frames lies between their values); docs
 
 **Branch 6: `phase3/cli-compose`** (commands; needs branches 1 to 5)

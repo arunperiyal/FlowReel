@@ -1062,7 +1062,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 
 **Branch 4: `phase3/panels-flow`** (panels from flow data; needs branch 2)
 - [x] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
-- [ ] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
+- [x] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
 - [ ] `cuts` panel: the same cut at several stations side by side, labelled
 - [ ] `strip` panel: a body from one side coloured by a wall field, with its zero contour
 - [ ] Tests on generated data; docs

@@ -1108,7 +1108,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 **Branch 1: `phase4/film-schema`** (data model and timeline)
 - [x] `film.yml` schema (Section 10.1): `output`, `fps`, `size`, `style`, `audio`, `watermark`, `shots`; each shot one of `frames`, `layout`, `card` or `hold_last_of`, with `seconds`, `rate`, `freezes`, `fade`, `fade_out_at`, `text`; errors name the file and key path
 - [x] Text files (Section 10.4): captions as lists of blocks (`lines`, `at`, `place`, `size`, `align`, `colour`, `box`, `shadow`, `shapes`, `id`), in the shot or in `text/` files; `include:` for any file (Section 15)
-- [ ] Timeline: each shot's planned length from its frame count and rate, its freezes and holds; caption times in the finished shot (freezes shift what follows); `end: {shot: NAME, at: S}` across a cut; frames, steps and seconds kept apart (Section 3)
+- [x] Timeline: each shot's planned length from its frame count and rate, its freezes and holds; caption times in the finished shot (freezes shift what follows); `end: {shot: NAME, at: S}` across a cut; frames, steps and seconds kept apart (Section 3)
 - [ ] Output positions of a shot (`compose.output_positions`) from its rate and freezes, for layouts with `rate: output` panels
 - [ ] Tests with exact values (lengths, caption times across freezes and cuts, positions); docs: film file page
 

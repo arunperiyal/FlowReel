@@ -29,8 +29,9 @@ style: styles/film.yml
 **Times.** Frame *i* is drawn at `times[i]`, in the source's time unit. With
 `{shot: FILE}` the times are those of the shot's frames, the time of the step each
 frame shows. A panel and a shot with the same times then line up frame by frame in a
-layout. A list must not decrease. Branch 5 of Phase 3 adds panels drawn at the film's
-output rate, between flow frames.
+layout. A list must not decrease. A layout can also tile a panel itself (`panel:
+FILE`), and draw it at the film's output rate, between flow frames
+([layouts](layouts.md#panels-at-the-output-rate-rate-output)).
 
 ## Style
 

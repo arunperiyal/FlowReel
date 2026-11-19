@@ -32,7 +32,7 @@ taken from the layout file's folder.
 | `grid` | `[rows, cols]` | none | place the tiles automatically (below) |
 | `gap` | whole number | `0` | pixels between grid cells; only with `grid` |
 | `missing` | `error` or `hold` | `error` | what a tile without frame *i* does (below) |
-| `tiles` | list | required | the tiles: `frames` entries and `stations` entries |
+| `tiles` | list | required | the tiles: `frames`, `stations` and `panel` entries |
 
 A `frames` entry:
 
@@ -122,6 +122,72 @@ its `at` and `size` evenly, with the layout's `gap`.
 own fresh frames), then composes. Options for that render (`jobs`, `backend` ...) go in
 `render={...}`.
 
+## Panel tiles: `panel`
+
+```yaml
+size: [1920, 1080]
+tiles:
+  - {frames: frames/bare_wake, at: [0, 0], size: [1280, 1080]}
+  - {panel: panels/lift.yml, at: [1280, 0], size: [640, 1080]}
+```
+
+A `panel` entry names a [panel file](panels.md). `compose.layout` draws the panel first,
+into `OUT/<panel>/` (through `compose.panel`, which skips its own fresh frames), then
+tiles its frames by index like any folder of frames: composed frame *i* shows the
+panel's frame *i*, drawn at the panel's `times[i]`. Give the panel the times of the
+shot beside it (`times: {shot: ...}`) and the two line up frame by frame.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `panel` | path | required | the panel file, from the layout file's folder |
+| `rate` | `flow` or `output` | `flow` | `output`: drawn at the film's output frames (below) |
+| `at`, `size`, `fit`, `label` | | | as for a `frames` entry |
+
+The panel is drawn at its own `size` and fitted into the tile, so give it the tile's
+size for a picture drawn pixel for pixel. Every frame of the panel is drawn, even when
+only some composed `frames` are asked for, so its frames always match the other tiles'.
+Options for drawing (`jobs`, `processes`) go in `panels={...}`.
+
+## Panels at the output rate: `rate: output`
+
+The film shows flow frames at a lower rate than it plays, 8 frames of flow a second in
+a 24 frames a second film, and makes the frames between them by interpolation (plan
+Section 10.2). A plot laid over such frames must not be interpolated too, or its dot
+and line end smear between two places. A panel tile marked `rate: output` is instead
+drawn for every output frame, at a time between the two flow frames around it, and held
+through the film's freezes (plan Section 9.3).
+
+The film describes its output frames as **positions**: one number per output frame,
+the composed frame it shows, fractional between two of them, and repeated through a
+hold. `compose.output_positions` makes them:
+
+```python
+from flowreel import compose
+
+# 16 flow frames played at three times their rate, frozen for 12 frames at frame 5
+output = compose.output_positions(16, per_frame=3, holds=[(5, 12)])
+report = compose.layout("compare.yml", "frames", output=output)
+for tile, panel in report.overlays:               # one rate: output tile each
+    print(tile.at, tile.size, panel.folder)       # frames/lift_output/frame_00000.png ...
+```
+
+With `output`:
+
+- the composed frames leave out the `rate: output` tiles; they hold the flow, at its
+  own rate, for the film to interpolate;
+- each such panel is drawn once per output frame into `OUT/<panel>_output/`. Output
+  frame *j* is drawn at the time of position `output[j]`: the panel's `times[i]` at a
+  whole position *i*, and linearly between `times[i]` and `times[i + 1]` between
+  them. A position outside the panel's frames takes its first or last time;
+- `report.overlays` lists each tile, with its place in the composed picture, and its
+  panel's report, so the film can lay the frames over its own.
+
+A `series` panel interpolates its values in time, so the dot of an output frame between
+two flow frames lies between their values, where the flow is at that moment. Without
+`output`, as in a preview of the layout, a `rate: output` tile is drawn and composed
+like any panel tile. The film build (Phase 4) passes `output` once it knows its rates
+and freezes.
+
 ## Composing: `compose.layout`
 
 ```python
@@ -140,6 +206,8 @@ print(report.count("composed"), report.count("skipped"))
 | `force` | compose every frame again, and render the stations' frames again |
 | `scale`, `size` | a draft: positions, tiles and labels scaled, into `OUT/<name>@<W>x<H>/` |
 | `render` | options for the stations' renders |
+| `panels` | options for drawing the `panel` tiles (`jobs`, `processes`) |
+| `output` | the film's output frames as positions; `rate: output` tiles are then drawn at them (`report.overlays`) |
 
 **Keys.** Each composed frame has a key (plan Section 11) from the layout's settings
 (size, background, each tile's place, fit, label and station) and the resolved path,

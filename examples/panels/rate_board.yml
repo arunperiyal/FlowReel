@@ -1,0 +1,8 @@
+# The two panels again, tiled by the layout itself. The plots stand in for flow frames
+# shown at the flow's rate; the phase panel is drawn at the film's output rate, so its
+# dot moves smoothly between flow frames and stops through a freeze.
+size: [960, 720]
+background: black
+tiles:
+  - {panel: compare.yml, at: [0, 0], size: [480, 720]}
+  - {panel: phase.yml, rate: output, at: [480, 180], size: [480, 360]}

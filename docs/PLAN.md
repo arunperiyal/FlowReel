@@ -1074,7 +1074,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 
 **Branch 6: `phase3/cli-compose`** (commands; needs branches 1 to 5)
 - [x] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
-- [ ] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
+- [x] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
 - [ ] Help text; docs: commands page
 
 **Branch 7: `phase3/golden-compose`** (the check; needs all the others)

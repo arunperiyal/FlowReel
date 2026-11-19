@@ -1,4 +1,4 @@
-"""flowreel compose layout, on generated data."""
+"""flowreel compose layout and compose panel, on generated data."""
 import numpy as np
 import pytest
 import yaml
@@ -24,6 +24,16 @@ def sh(tmp_path, monkeypatch):
     return Shell(tmp_path / "store")
 
 
+def test_panel_draws_then_skips(sh):
+    status, out, err = sh.run("compose panel lift.yml -j 2")
+    assert status == 0, err
+    assert "3 drawn, 0 skipped" in out and "frame_00002.png drawn" in out
+    status, out, _ = sh.run("compose panel lift.yml --frames 1")
+    assert "0 drawn, 1 skipped" in out
+    status, out, _ = sh.run("compose panel lift.yml --frames 1 --force -o other")
+    assert "1 drawn" in out and "other/lift" in out
+
+
 def test_layout_composes_with_its_panel(sh, tmp_path):
     status, out, err = sh.run("compose layout board.yml")
     assert status == 0, err
@@ -41,15 +51,17 @@ def test_layout_composes_with_its_panel(sh, tmp_path):
 def test_errors(sh):
     status, _, err = sh.run("compose layout board.yml --scale 0.5 --size 10 10")
     assert status != 0 and "not both" in err
-    status, _, err = sh.run("compose layout nothing.yml")
+    status, _, err = sh.run("compose panel nothing.yml")
     assert status != 0 and "nothing.yml" in err
-    status, _, err = sh.run("compose layout board.yml -j 0")
+    status, _, err = sh.run("compose panel lift.yml -j 0")
     assert status != 0 and "-j" in err
+    status, _, err = sh.run("compose panel lift.yml --frames 7")
+    assert status != 0 and "frame 7" in err
     status, _, err = sh.run("compose")
     assert status != 0
 
 
-@pytest.mark.parametrize("action", ["layout"])
+@pytest.mark.parametrize("action", ["layout", "panel"])
 def test_every_action_has_help_with_examples(action, capsys):
     from flowreel.cli import main
     assert main(["compose", action, "--help"]) == 0

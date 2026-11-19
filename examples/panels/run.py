@@ -9,6 +9,10 @@ and motion, and a pendulum's swing, sampled every 0.2), then:
 2. phase.yml: a phase panel, the pendulum's angle against the motion (DIR/frames/phase/).
 3. board.yml: both tiled into one picture (DIR/frames/board/).
 4. The panels again: nothing changed, so every frame is skipped.
+5. rate_board.yml: the layout draws the panels itself, as the film will, at three
+   output frames per flow frame with a freeze of six frames at flow frame 5. The
+   compare panel is composed at the flow's rate (DIR/frames/rate_board/); the phase
+   panel, marked rate: output, is drawn once per output frame (DIR/frames/phase_output/).
 
 The panels' times fall between the samples (every 0.5 against 0.2), so the dots sit on
 values interpolated between saved samples.
@@ -22,7 +26,7 @@ import numpy as np
 from flowreel import compose
 
 HERE = Path(__file__).parent
-FILES = ("flowreel.yml", "style.yml", "compare.yml", "phase.yml", "board.yml")
+FILES = ("flowreel.yml", "style.yml", "compare.yml", "phase.yml", "board.yml", "rate_board.yml")
 
 
 def write_data(folder: Path) -> None:
@@ -57,6 +61,11 @@ def main(folder: Path) -> None:
     for name in ("compare.yml", "phase.yml"):
         report = compose.panel(folder / name, frames, jobs=2)
         print(f"{report.folder.name}: {report.count('skipped')} skipped")
+    output = compose.output_positions(16, per_frame=3, holds=[(5, 6)])
+    report = compose.layout(folder / "rate_board.yml", frames, output=output)
+    print(f"{report.folder.name}: {report.count('composed')} composed")
+    for tile, panel in report.overlays:
+        print(f"{panel.folder.name}: {panel.count('drawn')} drawn at {tile.at}")
 
 
 if __name__ == "__main__":

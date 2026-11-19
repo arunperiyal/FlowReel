@@ -53,3 +53,35 @@ def test_a_layout_of_output_panels_only_composes_nothing(tmp_path):
     lay = replace(lay, tiles=lay.tiles[1:])
     rep = compose.layout(lay, folder / "out", output=[0, 0.5, 1], panels={"processes": False})
     assert rep.frames == [] and rep.overlays[0][1].count("drawn") == 3
+
+
+def dot_row(path, colour=(255, 0, 0)):
+    """Row of the series' dot: the mean row of the line's colour at its right end."""
+    p = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    mask = (np.abs(p - colour).sum(axis=2) < 60)
+    rows, cols = np.nonzero(mask)
+    end = cols >= cols.max() - 3
+    return rows[end].mean(), cols.max()
+
+
+def test_a_dot_drawn_between_two_flow_frames_lies_between_their_values(tmp_path):
+    import yaml
+    folder, _ = setup(tmp_path)
+    (folder / "motion.yml").write_text(yaml.safe_dump(
+        {"type": "series", "size": [200, 150], "times": [0.0, 1.0, 2.0],
+         "x": {"range": [0, 2]}, "y": {"range": [0, 4]}, "legend": False,
+         "lines": [{"body": "bare", "series": "motion", "column": "y", "colour": "#ff0000"}]}))
+    lay = compose.from_dict({"size": [240, 150], "tiles": [
+        {"frames": "flow", "at": [0, 0], "size": [40, 30]},
+        {"panel": "motion.yml", "rate": "output", "at": [40, 0], "size": [200, 150]}]},
+        file=str(folder / "board.yml"))
+    rep = compose.layout(lay, folder / "out", output=output_positions(3, 2),
+                         panels={"processes": False})
+    folder_out = rep.overlays[0][1].folder
+    (r0, c0), (r_half, c_half), (r1, c1) = (dot_row(folder_out / f"frame_{j:05d}.png")
+                                            for j in (0, 1, 2))
+    # y = t^2: 0 at the first flow frame, 1 at the second, 0.25 between them (t = 0.5)
+    assert r1 < r_half < r0                                       # higher value, higher up
+    assert c0 < c_half < c1                                       # and between in time
+    expected = r0 + (r1 - r0) * 0.25                              # the value, not the mean
+    assert abs(r_half - expected) < 2

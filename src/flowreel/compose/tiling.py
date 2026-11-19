@@ -13,9 +13,10 @@ skips its fresh frames too.
 
 Given the film's output frames (``output``, positions as
 :func:`flowreel.compose.rate.output_positions` makes them), ``rate: output`` panel
-tiles are left out of the composed frames and drawn instead at the output frames'
-times into ``out/<panel>_output/``; the report lists them as ``overlays`` for the film
-to lay over its interpolated frames (plan Section 9.3).
+tiles are left out of the composed frames, which go to ``out/<layout>_flow/`` (so they
+never replace the preview's frames, which show those panels), and drawn instead at the
+output frames' times into ``out/<panel>_output/``; the report lists them as
+``overlays`` for the film to lay over its interpolated frames (plan Section 9.3).
 """
 from __future__ import annotations
 
@@ -73,7 +74,8 @@ def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = No
     ``output`` are the film's output frames as positions (one per output frame, in
     composed frames, fractional between them, repeated through a hold;
     :mod:`flowreel.compose.rate`). With it, ``rate: output`` panel tiles are drawn at
-    those frames' times instead of being composed (``report.overlays``).
+    those frames' times instead of being composed (``report.overlays``), and the
+    composed frames go to ``out/<name>_flow/``.
     """
     lay = load(lay) if not isinstance(lay, Layout) else lay
     pic = draft_size(lay.size, scale, size)
@@ -87,7 +89,8 @@ def layout(lay, out: str | Path = "frames", *, frames: Iterable[int] | None = No
         drawn = replace(drawn, tiles=[t for t in drawn.tiles
                                       if not (t.panel is not None and t.rate == "output")])
     drawn = draw_panels(drawn, out, force=force, **(panels or {}))
-    name = lay.name if pic == tuple(lay.size) else f"{lay.name}@{pic[0]}x{pic[1]}"
+    name = lay.name if output is None else f"{lay.name}_flow"     # not the preview's frames
+    name = name if pic == tuple(lay.size) else f"{name}@{pic[0]}x{pic[1]}"
     folder = Path(out) / name
     folder.mkdir(parents=True, exist_ok=True)
     report = ComposeReport(folder, pic, overlays=overlays)

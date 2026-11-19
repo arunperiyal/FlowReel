@@ -1,0 +1,11 @@
+# The two generated cases of the comparison (case_data.py): a bare cylinder and a
+# helically grooved one, 12 diameters long, with their histories as CSV.
+bodies:
+  bare:
+    series:
+      motion: {file: data/bare_series.csv, time: t, columns: {y: y_over_D, cl: CL, cd: CD}}
+      lift: {file: data/bare_lift.csv, by: strip, stations: data/strips.csv}
+  helical:
+    series:
+      motion: {file: data/helical_series.csv, time: t, columns: {y: y_over_D, cl: CL, cd: CD}}
+      lift: {file: data/helical_lift.csv, by: strip, stations: data/strips.csv}

@@ -13,5 +13,5 @@ def test_example_draws_panels(tmp_path):
     assert done.returncode == 0, done.stderr[-2000:]
     assert done.stdout.splitlines() == ["compare: 16 drawn", "phase: 16 drawn",
                                         "board: 16 composed", "compare: 16 skipped",
-                                        "phase: 16 skipped", "rate_board: 16 composed",
+                                        "phase: 16 skipped", "rate_board_flow: 16 composed",
                                         "phase_output: 52 drawn at (480, 180)"]

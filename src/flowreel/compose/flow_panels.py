@@ -20,6 +20,23 @@ close view that follows the body, with its box drawn on the main view.
     range: [-3, 3]
     half: 1.5
     inset: {offset: [0.3, 0.4], half: 0.3}
+
+**cuts.** The same cut at several stations side by side, each labelled, so the phase of
+shedding can be read along the span. Each view follows the body at its station, or
+stays at ``centre``.
+
+.. code-block:: yaml
+
+    type: cuts
+    size: [1920, 540]
+    times: {shot: travel.yml}
+    body: riser
+    stations: [125, 250, 375]
+    field: vorticity_x
+    range: [-2.5, 2.5]
+    centre: [3.5, 0]
+    half: [5, 4.2]
+    label: 'x = {station:g} D'
 """
 from __future__ import annotations
 
@@ -377,3 +394,73 @@ class SectionPanel(CutPanel):
         s = self.streamlines
         ax.streamplot(A[0], B[:, 0], va, vb, color=to_rgba(s["colour"], s["opacity"]),
                       density=density, linewidth=s["width"], arrowsize=s["arrow"], zorder=2)
+
+
+@register
+class CutsPanel(CutPanel):
+    """The same cut at several stations of a body, side by side, each labelled."""
+
+    name = "cuts"
+    KEYS = FlowPanel.COMMON + CutPanel.CUT + ("stations", "label", "gap")
+    LABEL = "station {station:g}"
+
+    def parse(self, options, check):
+        super().parse(options, check)
+        if options.get("stations") is None:
+            raise check.error("missing key 'stations' (where along the body to cut)")
+        items = check.at("stations").sequence(options["stations"], minimum=1)
+        self.stations = [check.at("stations", i).number(v) for i, v in enumerate(items)]
+        label = options.get("label", self.LABEL)
+        if label is False or label is None:
+            self.label = None
+        else:
+            self.label = check.at("label").string(label)
+            try:
+                self.label.format(station=0.0)
+            except (KeyError, IndexError, ValueError) as exc:
+                raise check.at("label").error(f"the label takes only {{station}}: {exc}") from None
+        self.gap = check.at("gap").number(options.get("gap", 0.008))
+        if options.get("view") is None:
+            self.view = (0.0, 0.09 if self.label else 0.0, 1.0, 0.91 if self.label else 1.0)
+        if not 0 <= self.gap * (len(self.stations) - 1) < self.view[2]:
+            raise check.at("gap").error(f"a gap of {self.gap:g} leaves no room for "
+                                        f"{len(self.stations)} cuts; make it smaller")
+
+    def rects(self) -> list[tuple[float, float, float, float]]:
+        """Each station's axes, side by side across the view, ``gap`` apart."""
+        left, bottom, width, height = self.view
+        n = len(self.stations)
+        each = (width - (n - 1) * self.gap) / n
+        return [(left + k * (each + self.gap), bottom, each, height) for k in range(n)]
+
+    def build(self, figure):
+        self.axes_list = [figure.add_axes(r) for r in self.rects()]
+        self.shown = None
+
+    def state(self, time: float) -> dict:
+        """What the frame at ``time`` shows: its ``step`` and, per station, its view
+        (``(station, centre, cut, curves, crop)``)."""
+        step = self.step_at(time)
+        views = []
+        for station in self.stations:
+            centre = self.body_centre(step, station) if self.centre is None else self.centre
+            cut, curves, crop = self.read(step, station, [(centre - self.half, centre + self.half)])
+            views.append((station, centre, cut, curves, crop))
+        return {"step": step, "views": views}
+
+    def update(self, time, index=None):
+        step = self.step_at(time)
+        if step == self.shown:
+            return
+        try:
+            state = self.state(time)
+        except ValueError as exc:
+            raise self.failed(time, exc) from None
+        for ax, (station, centre, cut, curves, _) in zip(self.axes_list, state["views"]):
+            ax.cla()
+            bare(ax, self.style)
+            self.draw_cut(ax, cut, curves, centre, self.half)
+            if self.label:
+                ax.text(0.5, -0.02, self.label.format(station=station), transform=ax.transAxes,
+                        ha="center", va="top", color=self.style.text)
+        self.shown = step

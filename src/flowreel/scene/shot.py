@@ -20,11 +20,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
 
 from flowreel import tracks as tracks_mod
 from flowreel.box import Box
-from flowreel.scene.errors import Checker, ConfigError
+from flowreel.scene.errors import Checker
 
 KEYS = ("name", "source", "time", "camera", "size", "crop", "background", "antialias",
         "lights", "stretch", "layers")
@@ -66,13 +65,9 @@ class Shot:
 
 def load(path: str | Path) -> Shot:
     """Read the shot file at ``path``. Errors name the file."""
+    from flowreel.yamlfile import read_yaml
     path = Path(path)
-    try:
-        data = yaml.safe_load(path.read_text())
-    except yaml.YAMLError as exc:
-        mark = getattr(exc, "problem_mark", None)
-        where = f"line {mark.line + 1}" if mark else "syntax"
-        raise ConfigError(f"{where}: {getattr(exc, 'problem', None) or exc}", path) from None
+    data = read_yaml(path)
     return from_dict(data, file=str(path))
 
 

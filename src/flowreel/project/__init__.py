@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
 
 from flowreel.project.bodies import Body, End, Series, parse_bodies
 from flowreel.scene.errors import Checker
@@ -42,10 +41,8 @@ def load_project(path: str | Path) -> Project:
     if path.is_dir():
         path = path / PROJECT_FILE
     check = Checker(path)
-    try:
-        data = yaml.safe_load(path.read_text())
-    except yaml.YAMLError as exc:
-        raise check.error(f"not valid YAML: {exc}") from None
+    from flowreel.yamlfile import read_yaml
+    data = read_yaml(path)
     data = check.mapping({} if data is None else data, KEYS)
     path = path.resolve()
     return Project(path, parse_bodies(data.get("bodies"), check.at("bodies"), path.parent))

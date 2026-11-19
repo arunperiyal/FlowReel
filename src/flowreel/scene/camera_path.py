@@ -24,9 +24,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import yaml
 
-from flowreel.scene.errors import Checker, ConfigError
+from flowreel.scene.errors import Checker
 from flowreel.scene.views import View
 from flowreel.tracks import EASE_NAMES, EASINGS
 
@@ -107,10 +106,8 @@ def parse_track(spec, views: dict[str, View], check: Checker | None = None) -> C
 def load_tracks(path: str | Path, views: dict[str, View]) -> dict[str, CameraTrack]:
     """Read the ``tracks`` mapping of a ``cameras.yml`` (empty if it has none)."""
     path = Path(path)
-    try:
-        data = yaml.safe_load(path.read_text()) or {}
-    except yaml.YAMLError as exc:
-        raise ConfigError(f"invalid YAML: {getattr(exc, 'problem', exc)}", path) from None
+    from flowreel.yamlfile import read_yaml
+    data = read_yaml(path) or {}
     check = Checker(path)
     raw = data.get("tracks", {}) if isinstance(data, dict) else {}
     raw = check.at("tracks").mapping(raw, list(raw))

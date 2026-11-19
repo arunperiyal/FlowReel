@@ -17,9 +17,8 @@ import contextlib
 from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 
-import yaml
 
-from flowreel.scene.errors import Checker, ConfigError
+from flowreel.scene.errors import Checker
 
 MATHS = ("dejavusans", "dejavuserif", "cm", "stix", "stixsans")
 
@@ -99,10 +98,8 @@ def parse_style(value, check: Checker, folder: Path, _seen: tuple = ()) -> Style
             raise check.at("from").error(f"{path} includes itself")
         if not path.is_file():
             raise check.at("from").error(f"no style file {path}")
-        try:
-            data = yaml.safe_load(path.read_text())
-        except yaml.YAMLError as exc:
-            raise ConfigError(f"not valid YAML: {exc}", path) from None
+        from flowreel.yamlfile import read_yaml
+        data = read_yaml(path)
         base = parse_style(data or {}, Checker(path), path.parent, _seen + (path,))
     out = {}
     for key, v in spec.items():

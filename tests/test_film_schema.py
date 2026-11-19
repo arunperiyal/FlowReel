@@ -12,7 +12,7 @@ def film(tmp_path, shots=None, **keys):
     (tmp_path / "cards" / "opening.yml").write_text("blocks: []\n")
     (tmp_path / "compare.yml").write_text("tiles: []\n")
     (tmp_path / "text").mkdir(exist_ok=True)
-    (tmp_path / "text" / "domain.yml").write_text("[]\n")
+    (tmp_path / "text" / "domain.yml").write_text("- {lines: [Inlet], at: [1, 4]}\n")
     shots = shots or [
         {"name": "opening", "card": "cards/opening.yml", "seconds": 7, "fade": [1.5, 1.5]},
         {"name": "domain", "frames": "frames/domain", "fade": [1.5, 0], "text": "text/domain.yml"},
@@ -30,11 +30,12 @@ def test_shots_of_every_kind(tmp_path):
     assert (opening.kind, opening.source, opening.seconds) == \
         ("card", tmp_path / "cards" / "opening.yml", 7)
     assert domain.kind == "frames" and domain.source == tmp_path / "frames" / "domain"
-    assert domain.rate.fps == 24 and domain.text == tmp_path / "text" / "domain.yml"
+    assert domain.rate.fps == 24 and [c.lines for c in domain.text] == [("Inlet",)]
     assert compare.kind == "layout" and compare.rate.fps == 8
     assert compare.rate.to_output == "interpolate"
     assert compare.freezes[0].at == 5 and compare.freezes[0].hold == 6
-    assert compare.freezes[0].text == [{"lines": ["Frozen"]}]
+    (frozen,) = compare.freezes[0].text
+    assert frozen.lines == ("Frozen",) and (frozen.start, frozen.end) == (0.3, 5.8)
     assert end.kind == "hold" and end.source == "compare" and end.overlays
     assert end.fade == (0, 2) and end.fade_out_at == 0.5
     assert f.shot("domain") is domain

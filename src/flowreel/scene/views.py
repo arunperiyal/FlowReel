@@ -18,9 +18,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
-import yaml
 
-from flowreel.scene.errors import Checker, ConfigError
+from flowreel.scene.errors import Checker
 
 VIEW_KEYS = ("name", "position", "focal", "up", "view_angle", "parallel", "parallel_scale")
 DEFAULT_ANGLE = 30.0
@@ -98,10 +97,8 @@ def load_views(path: str | Path) -> dict[str, View]:
     same file are read by :func:`flowreel.scene.camera_path.load_tracks`.
     """
     path = Path(path)
-    try:
-        data = yaml.safe_load(path.read_text())
-    except yaml.YAMLError as exc:
-        raise ConfigError(f"invalid YAML: {getattr(exc, 'problem', exc)}", path) from None
+    from flowreel.yamlfile import read_yaml
+    data = read_yaml(path)
     check = Checker(path)
     if isinstance(data, dict) and "position" in data:
         return {"main": parse_view({**data, "name": data.get("name", "main")}, check)}

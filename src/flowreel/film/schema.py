@@ -129,11 +129,12 @@ class Rate:
 @dataclass(frozen=True)
 class Freeze:
     """Stop the shot at ``at`` seconds of its own frames for ``hold`` seconds, with its
-    own ``text`` (a text file's path, or captions written in place; ``None``)."""
+    own captions ``text`` (:class:`~flowreel.film.text.Caption`, timed from the start
+    of the freeze)."""
 
     at: float
     hold: float
-    text: object = None
+    text: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -145,8 +146,9 @@ class Shot:
     whose last frame it holds (with its ``rate: output`` panels when ``overlays``).
     ``seconds`` is the length of a card or a hold. ``rate``, ``freezes`` belong to frames
     and layout shots. ``fade`` is ``(in, out)`` in seconds, the fade out starting at
-    ``fade_out_at`` seconds (default: so that it ends with the shot). ``text`` is a text
-    file's path or captions written in place, ``None`` without."""
+    ``fade_out_at`` seconds (default: so that it ends with the shot). ``text`` are its
+    captions (:class:`~flowreel.film.text.Caption`), from a text file or written in
+    place."""
 
     name: str
     kind: str
@@ -156,7 +158,7 @@ class Shot:
     freezes: tuple[Freeze, ...] = ()
     fade: tuple[float, float] = (0.0, 0.0)
     fade_out_at: float | None = None
-    text: object = None
+    text: tuple = ()
     overlays: bool = True
 
 
@@ -381,17 +383,18 @@ def _shot(spec, check: Checker, folder: Path, film_fps: int) -> Shot:
                 _bool(spec.get("overlays", True), check.at("overlays")))
 
 
-def _text(value, check: Checker, folder: Path):
-    """A text file's path (resolved), captions written in place (kept as written), or
-    ``None``."""
+def _text(value, check: Checker, folder: Path, freeze: float | None = None) -> tuple:
+    """The captions of a ``text``: a text file (from ``folder``), a list written in
+    place, or none. ``freeze`` is a freeze's hold, for its captions' default times."""
+    from flowreel.film.text import captions_of
     if value is None:
-        return None
+        return ()
     if isinstance(value, str):
         path = folder / value
         if not path.is_file():
             raise check.error(f"no text file {path}")
-        return path
-    return check.sequence(value)
+        value = path
+    return tuple(captions_of(value, check, freeze))
 
 
 def _rate(value, check: Checker, film_fps: int) -> Rate:
@@ -414,9 +417,9 @@ def _freezes(value, check: Checker, folder: Path) -> tuple[Freeze, ...]:
     for i, spec in enumerate(items):
         at = check.at(i)
         spec = at.mapping(spec, FREEZE_KEYS, required=("at", "hold"))
-        out.append(Freeze(_positive(spec["at"], at.at("at")),
-                          _positive(spec["hold"], at.at("hold"), zero=False),
-                          _text(spec.get("text"), at.at("text"), folder)))
+        hold = _positive(spec["hold"], at.at("hold"), zero=False)
+        out.append(Freeze(_positive(spec["at"], at.at("at")), hold,
+                          _text(spec.get("text"), at.at("text"), folder, freeze=hold)))
     ats = [f.at for f in out]
     if ats != sorted(ats):
         raise check.error("freezes must be in order of 'at'")

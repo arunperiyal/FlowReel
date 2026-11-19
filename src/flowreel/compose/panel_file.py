@@ -22,7 +22,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
 
 from flowreel.compose.style import Style, parse_style
 from flowreel.scene.errors import Checker, ConfigError
@@ -58,13 +57,9 @@ class PanelFile:
 
 def load(path: str | Path) -> PanelFile:
     """Read the panel file at ``path``. Errors name the file."""
+    from flowreel.yamlfile import read_yaml
     path = Path(path)
-    try:
-        data = yaml.safe_load(path.read_text())
-    except yaml.YAMLError as exc:
-        mark = getattr(exc, "problem_mark", None)
-        where = f"line {mark.line + 1}" if mark else "syntax"
-        raise ConfigError(f"{where}: {getattr(exc, 'problem', None) or exc}", path) from None
+    data = read_yaml(path)
     return from_dict(data, file=str(path))
 
 

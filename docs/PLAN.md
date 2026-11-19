@@ -1110,7 +1110,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Text files (Section 10.4): captions as lists of blocks (`lines`, `at`, `place`, `size`, `align`, `colour`, `box`, `shadow`, `shapes`, `id`), in the shot or in `text/` files; `include:` for any file (Section 15)
 - [x] Timeline: each shot's planned length from its frame count and rate, its freezes and holds; caption times in the finished shot (freezes shift what follows); `end: {shot: NAME, at: S}` across a cut; frames, steps and seconds kept apart (Section 3)
 - [x] Output positions of a shot (`compose.output_positions`) from its rate and freezes, for layouts with `rate: output` panels
-- [ ] Tests with exact values (lengths, caption times across freezes and cuts, positions); docs: film file page
+- [x] Tests with exact values (lengths, caption times across freezes and cuts, positions); docs: film file page
 
 **Branch 2: `phase4/film-text`** (captions, shapes and watermark, drawn; needs branch 1)
 - [ ] Caption drawing (Section 10.4): matplotlib with Lato and Lato maths, measured extents; places `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]`; `align`; a soft shadow or a box; one transparent picture per caption

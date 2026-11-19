@@ -11,7 +11,7 @@ and motion, and a pendulum's swing, sampled every 0.2), then:
 4. The panels again: nothing changed, so every frame is skipped.
 5. rate_board.yml: the layout draws the panels itself, as the film will, at three
    output frames per flow frame with a freeze of six frames at flow frame 5. The
-   compare panel is composed at the flow's rate (DIR/frames/rate_board/); the phase
+   compare panel is composed at the flow's rate (DIR/frames/rate_board_flow/); the phase
    panel, marked rate: output, is drawn once per output frame (DIR/frames/phase_output/).
 
 The panels' times fall between the samples (every 0.5 against 0.2), so the dots sit on

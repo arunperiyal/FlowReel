@@ -174,7 +174,8 @@ for tile, panel in report.overlays:               # one rate: output tile each
 With `output`:
 
 - the composed frames leave out the `rate: output` tiles; they hold the flow, at its
-  own rate, for the film to interpolate;
+  own rate, for the film to interpolate. They go to `OUT/<layout>_flow/`, so they never
+  replace the preview's frames in `OUT/<layout>/`, which show those panels;
 - each such panel is drawn once per output frame into `OUT/<panel>_output/`. Output
   frame *j* is drawn at the time of position `output[j]`: the panel's `times[i]` at a
   whole position *i*, and linearly between `times[i]` and `times[i + 1]` between

@@ -35,6 +35,7 @@ def test_with_output_the_panel_is_drawn_per_output_frame(tmp_path):
     output = output_positions(3, 3, holds=[(1, 2)])               # 7 + 2 output frames
     rep = compose.layout(lay, folder / "out", output=output, panels={"processes": False})
     assert rep.count("composed") == 3                              # the flow, at its rate
+    assert rep.folder == folder / "out" / "board_flow"            # not the preview's folder
     composed = np.asarray(Image.open(rep.folder / "frame_00000.png"))
     assert (composed[:, 40:] == 0).all()                           # the panel left out
     (tile, panel), = rep.overlays

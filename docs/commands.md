@@ -10,9 +10,11 @@
 `python -m flowreel ...` is the same, where the `flowreel` script is not on the path.
 
 The commands are a thin layer over library functions (`flowreel.scene.render`,
-`flowreel.scene.memory.measure`, `flowreel.scene.template.template`), so everything here
-can also be done from Python; [rendering](rendering.md) explains what those do. A runnable
-example on a shot that needs no data is `examples/shot_commands/run.sh`. The
+`flowreel.scene.memory.measure`, `flowreel.scene.template.template`,
+`flowreel.compose.layout`, `flowreel.compose.panel`), so everything here can also be
+done from Python; [rendering](rendering.md), [layouts](layouts.md) and
+[panels](panels.md) explain what those do. Runnable examples that need no data are
+`examples/shot_commands/run.sh` and `examples/compose_commands/run.sh`. The
 command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 
 ## The shell
@@ -117,6 +119,65 @@ once `source` and `camera` name real things.
 | `-o FILE` | print | write to FILE |
 | `--force` | off | overwrite FILE if it exists |
 
+## `compose layout`
+
+```text
+flowreel compose layout LAYOUT [--frames SPEC] [--scale S | --size W H] [--force]
+                        [-j N] [-o DIR]
+```
+
+Composes the frames of a [layout file](layouts.md) into `DIR/<layout>/frame_00000.png`.
+The shots of its `stations` tiles are rendered and its `panel` tiles drawn first, each
+skipping its own fresh frames; then each composed frame whose key did not change is
+skipped. A draft goes to `DIR/<layout>@<W>x<H>/`, with positions, tiles and labels
+scaled.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `LAYOUT` | | the layout file |
+| `--frames SPEC` | every frame | composed frames, as for `shot render` |
+| `--scale S` | `1` | a draft at the layout's size times S |
+| `--size W H` | | a draft at W x H pixels |
+| `--force` | off | compose again, and render and draw the tiles again |
+| `-j N`, `--jobs N` | `1` | processes for the stations' renders and the panels' frames |
+| `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
+
+```text
+$ flowreel compose layout compare.yml --scale 0.5
+  frame_00000.png composed
+  ...
+16 composed, 0 skipped in 1.2 s -> frames/compare@960x540
+```
+
+`rate: output` tiles are composed like any panel tile here; the film build draws them
+at its output frames ([layouts](layouts.md#panels-at-the-output-rate-rate-output)).
+
+## `compose panel`
+
+```text
+flowreel compose panel PANEL [--frames SPEC] [--force] [-j N] [-o DIR]
+```
+
+Draws the frames of a [panel file](panels.md) into `DIR/<panel>/frame_00000.png`,
+frame *i* at the panel's time *i*. Frames whose key did not change are skipped. With
+`-j N` the frames are cut into N runs of consecutive frames, each drawn by its own
+process, which builds the figure once and moves it along in time.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `PANEL` | | the panel file |
+| `--frames SPEC` | every frame | frames, as for `shot render` |
+| `--force` | off | draw every frame again |
+| `-j N`, `--jobs N` | `1` | processes, one run of frames each |
+| `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
+
+```text
+$ flowreel compose panel lift.yml -j 4
+  frame_00000.png drawn
+  ...
+120 drawn, 0 skipped in 9.8 s -> frames/lift
+```
+
 ## `project init`
 
 ```text
@@ -144,7 +205,7 @@ wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
 
 ## Errors and exit status
 
-A problem in a shot file is reported with the file and key path, and the nearest valid
+A problem in a shot, layout or panel file is reported with the file and key path, and the nearest valid
 key when there is a typo; no traceback:
 
 ```text

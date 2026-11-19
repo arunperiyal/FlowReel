@@ -1,0 +1,8 @@
+# The generated cylinder case (cylinder_case.py): one cylinder 4 diameters long along x,
+# held at both ends, moving across the flow.
+bodies:
+  cylinder:
+    zone: cyl
+    axis: x
+    diameter: 1.0
+    ends: [{at: 0.0, support: clamped}, {at: 4.0, support: clamped}]

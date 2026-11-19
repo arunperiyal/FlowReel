@@ -3,11 +3,13 @@
 A layout file names the picture's size and its tiles, each a folder of frames
 (``frame_00000.png`` ...) placed at a position and size. :func:`load` reads one; :func:`layout` composes its
 frames into a folder of frames of its own. A panel file describes a matplotlib figure
-drawn at each frame's time; :func:`panel` draws its frames.
+drawn at each frame's time; :func:`panel` draws its frames. :func:`output_positions`
+describes a film's output frames, at which ``rate: output`` panels are drawn.
 """
 from flowreel.compose.layout_file import Label, Layout, Tile, from_dict, load
 from flowreel.compose.panels import PanelReport, panel
+from flowreel.compose.rate import output_positions
 from flowreel.compose.tiling import ComposeReport, layout
 
 __all__ = ["ComposeReport", "Label", "Layout", "PanelReport", "Tile", "from_dict", "layout",
-           "load", "panel"]
+           "load", "output_positions", "panel"]

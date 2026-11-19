@@ -1061,27 +1061,27 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Tests on generated histories; docs, with an example on the riser case
 
 **Branch 4: `phase3/panels-flow`** (panels from flow data; needs branch 2)
-- [ ] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
-- [ ] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
-- [ ] `cuts` panel: the same cut at several stations side by side, labelled
-- [ ] `strip` panel: a body from one side coloured by a wall field, with its zero contour
-- [ ] Tests on generated data; docs
+- [x] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long
+- [x] `section` panel: a cut's field as contours, streamlines relative to the moving body, the body's outline, an inset that follows the body
+- [x] `cuts` panel: the same cut at several stations side by side, labelled
+- [x] `strip` panel: a body from one side coloured by a wall field, with its zero contour
+- [x] Tests on generated data; docs
 
 **Branch 5: `phase3/compose-rate`** (panels in a layout; needs branches 1 and 2)
-- [ ] Panel tiles in a layout: `panel: FILE`, drawn at the layout's frames
-- [ ] `rate: output` (Section 9.3): such a panel is drawn at given output times, between flow frames and held through given holds; `compose.layout` takes those times so the film build (Phase 4) can pass its freezes
-- [ ] Tests (a dot drawn between two flow frames lies between their values); docs
+- [x] Panel tiles in a layout: `panel: FILE`, drawn at the layout's frames
+- [x] `rate: output` (Section 9.3): such a panel is drawn at given output times, between flow frames and held through given holds; `compose.layout` takes those times so the film build (Phase 4) can pass its freezes
+- [x] Tests (a dot drawn between two flow frames lies between their values); docs
 
 **Branch 6: `phase3/cli-compose`** (commands; needs branches 1 to 5)
-- [ ] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
-- [ ] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
-- [ ] Help text; docs: commands page
+- [x] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
+- [x] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase3/golden-compose`** (the check; needs all the others)
-- [ ] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
-- [ ] Generated sectional lift of two cases and a golden lift-map frame drawn by the prototype's `render_extras.py liftmap`
-- [ ] Layout and panel files for both; image-difference tests through `compose layout` and `compose panel`, each with a nearby frame that must fail the same limits
-- [ ] `examples/` project on generated data
+- [x] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
+- [x] Generated sectional lift of two cases and a golden lift-map frame drawn by the prototype's `render_extras.py liftmap`
+- [x] Layout and panel files for both; image-difference tests through `compose layout` and `compose panel`, each with a nearby frame that must fail the same limits
+- [x] `examples/` project on generated data
 
 Left out of Phase 3: `compose plot` (Section 13 lists it, but nothing defines it beyond
 `compose panel`), and the `data surface` and `data series` commands. The lift map's
@@ -1090,7 +1090,10 @@ golden test reads sectional lift as a CSV history at many points, so it does not
 phase; Phase 4's rebuilt AFMS film checks them.
 
 **Phase 3 is done when** the comparison and lift-map frames, composed from files by
-`flowreel compose`, match golden frames drawn by the prototype's own code.
+`flowreel compose`, match golden frames drawn by the prototype's own code. **Done
+2026-11-19:** both match (`tests/test_golden_compose.py`, `docs/compose.md`): the
+comparison pixel for pixel, the lift map within 0.001 grey levels on average, and a
+nearby frame of each fails the same limits.
 
 ## 20. From the prototype
 

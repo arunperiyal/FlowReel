@@ -1,0 +1,12 @@
+# The same cut at a quarter, half and three quarters of the span, side by side: the
+# pressure, which grows with z, the same at every station of this generated flow.
+type: cuts
+size: [960, 270]
+times: [0, 0.5, 1.0, 1.5]
+source: {adapter: flexflow, path: case}
+body: cylinder
+stations: [1, 2, 3]
+field: p
+range: [-2.5, 2.5]
+half: 2
+label: 'x = {station:g} D'

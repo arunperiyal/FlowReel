@@ -1081,7 +1081,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
 - [x] Generated sectional lift of two cases and a golden lift-map frame drawn by the prototype's `render_extras.py liftmap`
 - [x] Layout and panel files for both; image-difference tests through `compose layout` and `compose panel`, each with a nearby frame that must fail the same limits
-- [ ] `examples/` project on generated data
+- [x] `examples/` project on generated data
 
 Left out of Phase 3: `compose plot` (Section 13 lists it, but nothing defines it beyond
 `compose panel`), and the `data surface` and `data series` commands. The lift map's
@@ -1090,7 +1090,10 @@ golden test reads sectional lift as a CSV history at many points, so it does not
 phase; Phase 4's rebuilt AFMS film checks them.
 
 **Phase 3 is done when** the comparison and lift-map frames, composed from files by
-`flowreel compose`, match golden frames drawn by the prototype's own code.
+`flowreel compose`, match golden frames drawn by the prototype's own code. **Done
+2026-11-19:** both match (`tests/test_golden_compose.py`, `docs/compose.md`): the
+comparison pixel for pixel, the lift map within 0.001 grey levels on average, and a
+nearby frame of each fails the same limits.
 
 ## 20. From the prototype
 

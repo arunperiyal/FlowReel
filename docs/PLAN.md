@@ -1078,7 +1078,7 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Help text; docs: commands page
 
 **Branch 7: `phase3/golden-compose`** (the check; needs all the others)
-- [ ] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
+- [x] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)
 - [ ] Generated sectional lift of two cases and a golden lift-map frame drawn by the prototype's `render_extras.py liftmap`
 - [ ] Layout and panel files for both; image-difference tests through `compose layout` and `compose panel`, each with a nearby frame that must fail the same limits
 - [ ] `examples/` project on generated data

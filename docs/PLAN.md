@@ -1073,9 +1073,9 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Tests (a dot drawn between two flow frames lies between their values); docs
 
 **Branch 6: `phase3/cli-compose`** (commands; needs branches 1 to 5)
-- [ ] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
-- [ ] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
-- [ ] Help text; docs: commands page
+- [x] `compose layout LAYOUT.yml` with `-o DIR`, `--force`, `--scale`
+- [x] `compose panel PANEL.yml` with `-j N`, `-o DIR`, `--force`
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase3/golden-compose`** (the check; needs all the others)
 - [ ] Small generated series of two cases and a golden comparison frame drawn by the prototype's `compose_compare.py` (two wake tiles and its plots)

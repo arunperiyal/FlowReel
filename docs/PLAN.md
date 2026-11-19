@@ -1056,9 +1056,9 @@ can also be built in parallel. Branch 5 needs branches 1 and 2, branch 6 needs b
 - [x] Tests with exact values (line ends, dot positions, times between samples); docs: panels page
 
 **Branch 3: `phase3/panels-span`** (panels of a long body; needs branch 2)
-- [ ] `map` panel: a history at many points (`by`, `stations`) against span and time, filling in to the current time; colormap, range, colorbar, one or several bodies stacked
-- [ ] `locator` panel: a body's span as a bar, its shape now (amplified), its supports, and the windows on show (from the shots' crops at that frame)
-- [ ] Tests on generated histories; docs, with an example on the riser case
+- [x] `map` panel: a history at many points (`by`, `stations`) against span and time, filling in to the current time; colormap, range, colorbar, one or several bodies stacked
+- [x] `locator` panel: a body's span as a bar, its shape now (amplified), its supports, and the windows on show (from the shots' crops at that frame)
+- [x] Tests on generated histories; docs, with an example on the riser case
 
 **Branch 4: `phase3/panels-flow`** (panels from flow data; needs branch 2)
 - [ ] Planar cut of a source's step: a triangulation and its fields (cut by a plane, at a body's station), read through the window when the source is long

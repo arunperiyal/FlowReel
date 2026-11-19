@@ -27,7 +27,7 @@ class Bar(panels.PanelType):
         ax.set_axis_off()
         (self.bar,) = ax.fill([0, 0, 0, 0], [0, 0, 1, 1], color=self.colour, antialiased=False, linewidth=0)
 
-    def update(self, time):
+    def update(self, time, index=None):
         self.bar.set_xy([[0, 0], [time, 0], [time, 1], [0, 1]])
 
 

@@ -63,7 +63,7 @@ class PhasePanel(PanelType):
         (self.trace,) = ax.plot([], [], color=self.colour, linewidth=self.style.line_width)
         (self.dot,) = ax.plot([], [], "o", color=self.colour, markersize=self.style.dot_size)
 
-    def update(self, time):
+    def update(self, time, index=None):
         xs, ys = phase_to_time(*self.data, time)
         self.trace.set_data(xs, ys)
         self.dot.set_data(xs[-1:], ys[-1:])

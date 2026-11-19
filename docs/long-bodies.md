@@ -12,6 +12,8 @@ large to load whole. This page gathers what FlowReel does about it (plan Section
 | See the shape of the whole span | the [`centreline`](layers-markers.md#centreline) layer, from the surface or the probes, with `amplify` |
 | Fit the whole span in a frame | `stretch` draws the model compressed along one axis, and says so in the frame |
 | Files too large to load | windowed reading of PLT files, and a memory check before rendering |
+| Several stations at once | a [`stations`](layouts.md#one-shot-at-several-stations-stations) layout tiles one shot at several stations |
+| Span against time, and where the window is | the [`map` and `locator`](panels.md#histories-along-a-long-body-map-and-locator) panels |
 
 A runnable example on a generated case is `examples/long_span/run.py`: a channel 200
 long whose floor is the body, read through a window that travels along it, and the

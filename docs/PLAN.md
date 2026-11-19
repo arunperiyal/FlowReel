@@ -1095,6 +1095,73 @@ phase; Phase 4's rebuilt AFMS film checks them.
 comparison pixel for pixel, the lift map within 0.001 grey levels on average, and a
 nearby frame of each fails the same limits.
 
+### 19.5 Phase 4 tasks
+
+Added 2026-11-19. Phase 4 builds `film`: one `film.yml` turned into `film.mp4` (Section
+10), with captions and 2D shapes (Section 12, the 2D part; 3D and anchored shapes are
+Phase 6), cards, rates, freezes, holds, audio, a watermark and a preview copy, and the
+`film` commands of Section 13. It replaces the prototype's `make_film.py` and
+`film_text.toml`. Branch 1 comes first. Branches 2 and 3 need only branch 1 and not each
+other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 5 needs
+4, branch 6 needs 5, and branch 7 needs all of them.
+
+**Branch 1: `phase4/film-schema`** (data model and timeline)
+- [ ] `film.yml` schema (Section 10.1): `output`, `fps`, `size`, `style`, `audio`, `watermark`, `shots`; each shot one of `frames`, `layout`, `card` or `hold_last_of`, with `seconds`, `rate`, `freezes`, `fade`, `fade_out_at`, `text`; errors name the file and key path
+- [ ] Text files (Section 10.4): captions as lists of blocks (`lines`, `at`, `place`, `size`, `align`, `colour`, `box`, `shadow`, `shapes`, `id`), in the shot or in `text/` files; `include:` for any file (Section 15)
+- [ ] Timeline: each shot's planned length from its frame count and rate, its freezes and holds; caption times in the finished shot (freezes shift what follows); `end: {shot: NAME, at: S}` across a cut; frames, steps and seconds kept apart (Section 3)
+- [ ] Output positions of a shot (`compose.output_positions`) from its rate and freezes, for layouts with `rate: output` panels
+- [ ] Tests with exact values (lengths, caption times across freezes and cuts, positions); docs: film file page
+
+**Branch 2: `phase4/film-text`** (captions, shapes and watermark, drawn; needs branch 1)
+- [ ] Caption drawing (Section 10.4): matplotlib with Lato and Lato maths, measured extents; places `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]`; `align`; a soft shadow or a box; one transparent picture per caption
+- [ ] 2D shapes (Section 12): `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight`, in pixels, in the caption's colour unless given
+- [ ] Watermark (Section 10.7): an image file or a line of text, `corner` or `place`, `size`, `opacity`; film level (drawn with the text, when `shots` or `seconds` say) and shot level (drawn into a shot's PNG frames, part of the frame key, scaled in drafts)
+- [ ] A golden caption picture drawn by the prototype's `make_film.caption_image` (a box, a shadow, arrows, maths), matched by FlowReel's, with a nearby caption that must fail; docs: captions and shapes page
+
+**Branch 3: `phase4/film-cards`** (cards; needs branch 1)
+- [ ] Card file (Section 10.5): a background and blocks placed down the card: `image` (a file outside the repository), `title`, `divider`, `names` (a heading and a list), `text` (small print); sizes, colours and spacing in pixels
+- [ ] Card drawing with Pillow and the bundled Lato, centred by measured widths
+- [ ] A golden opening card drawn by the prototype's `make_film.opening_card` (its logo replaced by a generated image), matched by a card file; docs: cards page
+
+**Branch 4: `phase4/film-clips`** (base and finished clips; needs branches 1 to 3)
+- [ ] ffmpeg: a standard build from conda-forge in `flexflow_env`, declared in a new `environment.yml` (pip cannot install ffmpeg, so not in `pyproject.toml`), with install notes in the README; found through `FFMPEG` or the path, its version and filters (`minterpolate`, `xfade`) checked once, with a clear error naming the binary found (the workstation's `ffmpeg` on the path is Tecplot's own copy)
+- [ ] Base clip of a frames shot: the frame order with freezes, `rate: {fps, to_output}` with `interpolate` (motion-compensated, scene cuts off), `repeat` and `blend`; encoded once, keyed by content (frame names and times, rate, freezes, filters; Section 11)
+- [ ] Base clip of a layout shot: its composed frames interpolated and its `rate: output` panels laid on at the output rate (Section 9.3), through `compose.layout(output=...)`
+- [ ] Base clips of cards and holds (`hold_last_of`: a shot's last frame, with or without its overlays)
+- [ ] Finished clip: fades on the picture, then captions, shapes and the film's watermark on top with their own fades, so text can sit on black; keyed by content
+- [ ] Tests on generated frames (lengths measured with ffprobe, a freeze's frames identical, caption times, keys that rebuild when a frame, a caption or a rate changes)
+
+**Branch 5: `phase4/film-build`** (the film; needs branch 4)
+- [ ] Join the finished clips without re-encoding; planned and measured length per shot printed (Section 10.8)
+- [ ] Audio (Section 10.6): one or more tracks, each with `file`, `offset`, `start`, `volume`, `fade`; lengths measured from the files, a fade ending with the shorter of picture and track; `mute`
+- [ ] Preview copy: `preview: HEIGHT` writes `film_<H>p.mp4` from the same clips, scaled and encoded once, `crf`
+- [ ] `only`: one shot's finished clip, for checking its text
+- [ ] `film.srt` from the captions; `contact.png`: stills at captions, freezes or every few seconds, with text in place (`film check`)
+- [ ] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, caches that rebuild when they should
+
+**Branch 6: `phase4/cli-film`** (commands; needs branch 5)
+- [ ] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
+- [ ] `film check` with `--at caption|freeze|every:S`; `film lengths`; `film srt`
+- [ ] `film template`: a commented `film.yml` with every key at its default
+- [ ] `project` context in the shell (Section 13), so film commands find `film.yml`
+- [ ] Help text; docs: commands page
+
+**Branch 7: `phase4/golden-film`** (the check; needs all the others)
+- [ ] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)
+- [ ] A test that the film's planned shot lengths equal the prototype's `duration()` for the same shot list and frame counts, on generated frame folders of those counts
+- [ ] `examples/` film project on generated data, silent, with a card, a freeze, a layout shot with live plots and a watermark of text
+- [ ] The rebuild on the workstation from the real frames: lengths per shot measured against the prototype's film, and a contact sheet at every caption compared with the prototype's film at the same times; results written here
+
+Left out of Phase 4: 3D and anchored shapes (`arrow3d` ..., `{model: ..., view: ...}`
+points; Phase 6 with the camera editor), ducking audio under narration (Section 10.6,
+"later"), `compose plot`, and the `data` commands.
+
+**Phase 4 is done when** the AFMS film is rebuilt from files, the same length, with its
+captions in place. In this repository that is checked on generated frames of the same
+counts (lengths against the prototype's own `duration()`, captions and the card against
+pictures drawn by its own functions); the rebuild from the real frames is run on the
+workstation and its result recorded under this line.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |
@@ -1158,6 +1225,9 @@ New ones are added here as the work raises them.
 | 1 | For a 500 diameter case: nodes and size of one PLT file, and whether the whole domain is saved. Not known until the runs start; until then windowed reading is tested on a generated file. | Phase 2B, branch 6 |
 | 2 | `data table --output` writes one node per file. A history along the whole span (49 probes and more) needs one export of all nodes in long form. Asked of FlexFlow Analyzer in its `docs/FLOWREEL.md`; until then, a loop over nodes. | Phase 2B, branch 2 |
 | 3 | ~~Should frame keys (and Phase 2B's window index) include each data file's size and modification time?~~ **Decided 2026-11-18: yes**, done in Phase 2B branch 6; the span index is keyed by its file's the same way. | Phase 2B, branch 6 |
+| 4 | ~~Where do the AFMS film's own FlowReel files live?~~ **Answered 2026-11-19:** in a FlowReel project folder of their own, outside this repository (they name a logo and a licensed track). How a project folder is made and laid out is question 6. | Phase 4, branch 7 |
+| 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
+| 6 | **Project rules, to discuss once the backend is done.** Arun's proposal: FlowReel is always run from an initialised project folder; an init command writes a hidden file holding what the project needs, and empty folders such as `data/`, `assets/`, `clips/`. To settle then: the hidden file against today's `flowreel.yml` (written by `project init`, found by walking up from a shot or panel file), the folder names, and what a command does outside a project. Until then the code keeps finding `flowreel.yml` as it does. | after Phase 4's backend, before Phase 7 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

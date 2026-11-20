@@ -1241,7 +1241,7 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 
 **Branch 2: `phase5/jobs-resources`** (what a job has; independent of branch 1)
 - [x] Cores and memory of the running process: in a Slurm job its allocation (`SLURM_CPUS_PER_TASK`, `SLURM_MEM_PER_NODE`, the cgroup's limit, the CPU affinity), elsewhere the machine's free memory and cores; used by `default_threads`, `check_fits` and `shot memory`'s suggested `-j`
-- [ ] Off-screen check: draw a tiny scene with each backend and report which work and how fast (`flowreel jobs check`), run first in every job script so a node without OpenGL fails in seconds, not after loading data
+- [x] Off-screen check: draw a tiny scene with each backend and report which work and how fast (`flowreel jobs check`), run first in every job script so a node without OpenGL fails in seconds, not after loading data
 - [ ] Tests with a faked environment and cgroup files; docs
 
 **Branch 3: `phase5/jobs-plan`** (splitting a render; needs branches 1 and 2)

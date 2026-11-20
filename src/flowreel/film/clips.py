@@ -22,6 +22,12 @@ as :meth:`~flowreel.film.timeline.TimedShot.positions` tells the live plots.
 motion then reaches it. (The prototype's interpolated shots stopped one flow frame short
 and ended early; their planned lengths are unchanged.)
 
+**Layouts.** A layout shot is composed for its output frames
+(:func:`flowreel.compose.layout` with ``output``): its flow frames, without the
+``rate: output`` panels, are brought to the film's rate like a frames shot, and each
+such panel, drawn once per output frame at the time between the flow frames around it,
+is laid on top where its tile sits. Interpolation never smears a plot's dot or line.
+
 **Size and colour.** Pictures are scaled to fit the film's size and centred on black
 (none is cropped), and converted to BT.709, the colours a player expects of HD video.
 Every clip is encoded alike (H.264, yuv420p, the film's rate and time base), so the
@@ -119,6 +125,7 @@ class Clips:
         self.folder = Path(self.folder) if self.folder is not None else self.film.folder / "clips"
         self.folder.mkdir(parents=True, exist_ok=True)
         self._base: dict[str, Clip] = {}
+        self._layouts: dict[str, object] = {}
 
     # -- shared ------------------------------------------------------------------------
 
@@ -186,3 +193,44 @@ class Clips:
         inputs = ["-framerate", ts.fps, "-i", seq / "frame_%05d.png"]
         return self._encode("base", shot.name, parts, inputs, chain, self._frames(ts),
                             BASE_QUALITY)
+
+    def layout(self, name: str):
+        """The :class:`~flowreel.compose.tiling.ComposeReport` of layout shot ``name``,
+        composed for its output frames: its flow frames without the ``rate: output``
+        panels, and those panels drawn once per output frame (``overlays``). Kept in
+        ``<folder>/layouts/``."""
+        if name not in self._layouts:
+            from flowreel import compose
+            ts = self.line.shot(name)
+            self._layouts[name] = compose.layout(
+                ts.shot.source, self.folder / "layouts", output=ts.positions(self.film.fps),
+                force=self.force, panels=self.panels)
+        return self._layouts[name]
+
+    def _base_layout(self, ts) -> Clip:
+        shot = ts.shot
+        report = self.layout(shot.name)
+        if not report.frames:
+            raise ValueError(f"shot {shot.name!r}: layout {shot.source} has only rate: output "
+                             "panels; it needs a tile of flow frames to time them by")
+        files = self._order_files(ts, report.folder)
+        seq = self._sequence(shot.name, files)
+        n = self._frames(ts)
+        inputs = ["-framerate", ts.fps, "-i", seq / "frame_%05d.png"]
+        rate = rate_filter(ts.fps, self.film.fps, shot.rate.to_output)
+        graph, last = [f"[0:v]{rate}[f0]"], "f0"
+        panels = []
+        for k, (tile, drawn) in enumerate(report.overlays, start=1):
+            folder = Path(drawn.folder)
+            found = [folder / FRAME_NAME.format(j) for j in range(n)]
+            if not all(f.is_file() for f in found):
+                raise FileNotFoundError(f"shot {shot.name!r}: panel frames missing in {folder}")
+            inputs += ["-framerate", self.film.fps, "-i", folder / "frame_%05d.png"]
+            x, y = (round(v) for v in tile.at)
+            graph.append(f"[{last}][{k}:v]overlay={x}:{y}:eof_action=repeat[f{k}]")
+            last = f"f{k}"
+            panels.append([str(folder), [stamp(f) for f in found]])
+        graph.append(f"[{last}]{fit(self.film.size)}[out]")
+        parts = {"kind": "layout", "order": ts.order, "fps": ts.fps,
+                 "files": [stamp(f) for f in sorted(set(files))], "panels": panels}
+        return self._encode("base", shot.name, parts, inputs, ";".join(graph), n, BASE_QUALITY)

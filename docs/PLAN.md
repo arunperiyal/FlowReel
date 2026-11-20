@@ -1246,7 +1246,7 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 
 **Branch 3: `phase5/jobs-plan`** (splitting a render; needs branches 1 and 2)
 - [x] Sizing: from `shot memory`'s measured peak (kept in the output folder) choose CPUs, memory, `-j` and threads per task within the partition and the memory asked for; without a measurement, a first task measures, then the rest run
-- [ ] Split a shot's frames into array tasks of consecutive frames (a frozen shot's surfaces are cached, Section 11), with `--max-running N` so a render takes part of the node; time per task estimated from the measured seconds per frame, with a warning when it nears the walltime
+- [x] Split a shot's frames into array tasks of consecutive frames (a frozen shot's surfaces are cached, Section 11), with `--max-running N` so a render takes part of the node; time per task estimated from the measured seconds per frame, with a warning when it nears the walltime
 - [ ] Resume: frames already drawn with their key are skipped, so a cancelled or timed-out render is submitted again as it is; `--missing` submits only tasks with frames still to draw
 - [ ] Tests on generated shots (task ranges, sizes, resume); docs
 

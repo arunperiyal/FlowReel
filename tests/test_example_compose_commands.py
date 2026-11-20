@@ -12,7 +12,7 @@ RUN = Path(__file__).parent.parent / "examples" / "compose_commands" / "run.sh"
 
 @pytest.mark.skipif(shutil.which("sh") is None, reason="needs a POSIX shell")
 def test_example_runs_the_compose_commands(tmp_path):
-    env = {**os.environ, "FLOWREEL": f"{sys.executable} -m flowreel"}
+    env = {**os.environ, "FLOWREEL": f"{sys.executable} -m flowreel", "PYTHON": sys.executable}
     done = subprocess.run(["sh", str(RUN), str(tmp_path / "ex")], capture_output=True,
                           text=True, timeout=600, env=env, cwd=tmp_path)
     assert done.returncode == 0, done.stderr[-2000:]

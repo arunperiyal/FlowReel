@@ -103,3 +103,51 @@ no join is needed.
 
 ![A contact sheet every 0.25 s of a small film: the freeze holds one frame, the caption
 runs across the cut](images/contact.png)
+
+## Chapters
+
+Chapters let a viewer jump between the parts of a long film, as between the slides of
+an hour's talk. A shot starts one with `chapter:`; it runs until the next chapter, or
+the film's end.
+
+```yaml
+shots:
+  - {name: opening, card: cards/opening.yml, seconds: 7, chapter: Opening}
+  - {name: domain, frames: frames/bare_domain, chapter: The set-up}
+  - {name: bare_reveal, frames: frames/bare_reveal}          # still "The set-up"
+  - name: compare
+    layout: compare.yml
+    chapter: {title: Smooth against grooved, at: 2.5}        # 2.5 s into the shot
+```
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `chapter` | text, or `{title, at}` | none | a one-line title |
+| `chapter.at` | seconds | `0` | where in the finished shot (freezes included) it starts; must be inside the shot |
+
+Times come from the timeline (`timeline(f).chapters`), so moving or adding shots moves
+the chapters with them.
+
+**In the film.** The build hands ffmpeg a metadata file of the chapters at the join
+(`-map_chapters`), so they cost no encoding; changing a title rebuilds no clip. The
+preview copy keeps them. Desktop players (VLC, mpv, IINA, QuickTime) show a chapter
+menu and next and previous keys; mp4 stores them twice, as a chapter list and as a
+QuickTime chapter track, which `ffprobe` lists as a `data` stream. YouTube, browsers and,
+as far as known, video in PowerPoint ignore them.
+
+**For YouTube: `chapters.txt`.** YouTube reads chapters from timestamps in a video's
+description, so the build writes them beside the film, ready to paste:
+
+```text
+0:00 Opening
+0:07 The set-up
+1:12 Smooth against grooved
+```
+
+Times are whole seconds, rounded down so a chapter never starts late. YouTube shows
+chapters only when the first is at `0:00`, there are at least three, and each lasts at
+least ten seconds; the build's report notes any of these a film misses, without
+stopping (a talk's film may never go there).
+
+**Not a pause.** A player does not stop at a chapter's end. For a talk, end a chapter on
+a hold (`hold_last_of`) or a freeze, and pause the player there.

@@ -62,6 +62,7 @@ Each shot has a `name` (unique) and is one of four kinds:
 | `fade_out_at` | number | so the fade ends with the shot | start the fade out early; what follows is black, so a caption can sit on it |
 | `text` | a text file, or captions written in place | none | the shot's captions |
 | `overlays` | bool | `true` | a hold of a layout shot: with its `rate: output` panels |
+| `chapter` | `TITLE` or `{title, at}` | none | the shot starts a chapter, `at` seconds into the finished shot (`0`); see [chapters](build.md#chapters) |
 
 **A shot's rate divides the film's.** `fps: 8` in a 24 frames a second film shows each
 frame for three output frames (`to_output` says how they are made). The rate must

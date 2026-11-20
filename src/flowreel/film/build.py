@@ -30,6 +30,11 @@ rest of the film is laid out (captions may run across cuts) but not built or joi
 
 **Subtitles.** A whole build also writes the captions as ``film.srt`` beside the film
 (:func:`flowreel.film.check.srt`), when it has any.
+
+**Chapters** (plan Section 10.9). The timeline's chapters are given to the join as an
+ffmpeg metadata file (``-map_chapters``), so they cost no encoding and the preview copy
+keeps them; ``chapters.txt`` beside the film holds them as YouTube timestamps
+(:mod:`flowreel.film.chapters`), and the report notes what YouTube would refuse.
 """
 from __future__ import annotations
 
@@ -56,7 +61,8 @@ class ShotLength:
 class Built:
     """What a build wrote: the ``output`` film, the ``shots`` with their lengths, the
     film's ``planned`` and ``measured`` seconds, ``notes`` to print (audio, warnings)
-    the ``preview`` copy and the ``srt`` subtitles (each ``None`` when not written)."""
+    the ``preview`` copy, the ``srt`` subtitles and the YouTube ``chapters`` (each
+    ``None`` when not written)."""
 
     output: Path
     shots: list[ShotLength]
@@ -65,6 +71,7 @@ class Built:
     notes: list[str] = field(default_factory=list)
     preview: Path | None = None
     srt: Path | None = None
+    chapters: Path | None = None
 
     def table(self) -> list[str]:
         """The report as lines: one per shot (planned, measured, built or kept), then
@@ -76,7 +83,7 @@ class Built:
                        f"{'built' if s.built else 'kept'}")
         out.append(f"{'film':{width}s}  {self.planned:6.2f} s  {self.measured:6.2f} s  "
                    f"{self.output}")
-        for what in ("preview", "srt"):
+        for what in ("preview", "srt", "chapters"):
             if getattr(self, what) is not None:
                 out.append(f"{what} {getattr(self, what)}")
         return out + self.notes
@@ -210,10 +217,19 @@ def build(film, *, folder=None, force: bool = False, mute: bool = False,
     listing = concat_list([c.path for c in finished], clips.folder / "film_list.txt")
     args = ["-f", "concat", "-safe", 0, "-i", listing]
     maps = ["-map", "0:v", "-c:v", "copy"]
-    notes = []
+    notes, youtube = [], None
+    chapters = clips.line.chapters
+    if chapters:
+        from flowreel.film import chapters as ch
+        meta = clips.folder / "film_chapters.txt"
+        meta.write_text(ch.metadata_text(chapters, measured), encoding="utf-8")
+        args += ["-f", "ffmetadata", "-i", meta]
+        maps += ["-map_chapters", 1]
+        youtube = ch.chapters_path(out)
+        notes += ch.youtube_notes(chapters)
     if film.audio and not mute:
         plans = plan_tracks(film.audio, measured)
-        inputs, graph = audio_graph(plans, 1, measured)
+        inputs, graph = audio_graph(plans, 2 if chapters else 1, measured)
         args += inputs
         maps += ["-filter_complex", graph, "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
         for t in plans:
@@ -229,7 +245,9 @@ def build(film, *, folder=None, force: bool = False, mute: bool = False,
     if clips.line.captions:
         from flowreel.film.check import srt
         subtitles = srt(clips.line)
-    return Built(out, shots, clips.line.length, measured, notes, copy, subtitles)
+    if youtube is not None:
+        youtube.write_text(ch.youtube_text(chapters), encoding="utf-8")
+    return Built(out, shots, clips.line.length, measured, notes, copy, subtitles, youtube)
 
 
 def only_path(output: Path, name: str) -> Path:

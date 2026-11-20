@@ -36,7 +36,8 @@ from flowreel.scene.errors import Checker
 KEYS = ("output", "fps", "size", "style", "audio", "watermark", "shots")
 KINDS = ("frames", "layout", "card", "hold_last_of")
 SHOT_KEYS = KINDS + ("name", "seconds", "rate", "freezes", "fade", "fade_out_at", "text",
-                     "overlays")
+                     "overlays", "chapter")
+CHAPTER_KEYS = ("title", "at")
 RATE_KEYS = ("fps", "to_output")
 TO_OUTPUT = ("interpolate", "repeat", "blend")
 FREEZE_KEYS = ("at", "hold", "text")
@@ -138,6 +139,15 @@ class Freeze:
 
 
 @dataclass(frozen=True)
+class Chapter:
+    """A chapter (plan Section 10.9): ``title``, starting ``at`` seconds into the
+    finished shot that names it; it runs until the next chapter or the film's end."""
+
+    title: str
+    at: float = 0.0
+
+
+@dataclass(frozen=True)
 class Shot:
     """One shot of the film.
 
@@ -148,7 +158,7 @@ class Shot:
     and layout shots. ``fade`` is ``(in, out)`` in seconds, the fade out starting at
     ``fade_out_at`` seconds (default: so that it ends with the shot). ``text`` are its
     captions (:class:`~flowreel.film.text.Caption`), from a text file or written in
-    place."""
+    place. ``chapter`` is the :class:`Chapter` the shot starts, or ``None``."""
 
     name: str
     kind: str
@@ -160,6 +170,7 @@ class Shot:
     fade_out_at: float | None = None
     text: tuple = ()
     overlays: bool = True
+    chapter: Chapter | None = None
 
 
 @dataclass
@@ -391,7 +402,24 @@ def _shot(spec, check: Checker, folder: Path, film_fps: int) -> Shot:
     seconds = None if not still else _positive(spec["seconds"], check.at("seconds"), zero=False)
     return Shot(name, "hold" if kind == "hold_last_of" else kind, source, seconds, rate, freezes,
                 fade, fade_out_at, _text(spec.get("text"), check.at("text"), folder),
-                _bool(spec.get("overlays", True), check.at("overlays")))
+                _bool(spec.get("overlays", True), check.at("overlays")),
+                _chapter(spec.get("chapter"), check.at("chapter")))
+
+
+def _chapter(value, check: Checker) -> Chapter | None:
+    """``chapter: TITLE`` or ``{title: TITLE, at: S}``."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        title, at, where = value, 0.0, check
+    else:
+        spec = check.mapping(value, CHAPTER_KEYS, required=("title",))
+        where = check.at("title")
+        title, at = where.string(spec["title"]), _positive(spec.get("at", 0.0), check.at("at"))
+    title = title.strip()
+    if not title or "\n" in title:
+        raise where.error("a chapter's title is one line of text")
+    return Chapter(title, at)
 
 
 def _text(value, check: Checker, folder: Path, freeze: float | None = None) -> tuple:

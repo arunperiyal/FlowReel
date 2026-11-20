@@ -173,3 +173,64 @@ python examples/film_build/run.py /tmp/film_build_example
 ```bash
 sh examples/film_commands/run.sh /tmp/film_commands_example
 ```
+
+## A film project
+
+`examples/film_project/run.py` builds a silent film from a project folder of generated
+data, with what a real film uses: an opening card, the comparison of two cases as a
+[layout](layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
+text, the last frame held with its plots under a closing line, and a watermark of text.
+The cases and their wake frames come from the [comparison example](compose.md)
+(`examples/compare/case_data.py`).
+
+```bash
+python examples/film_project/run.py /tmp/film_project_example
+```
+
+```text
+shot     planned  measured
+opening    2.00 s    2.00 s  built
+compare    4.50 s    4.50 s  built
+end        2.00 s    2.00 s  built
+film       8.50 s    8.50 s  film.mp4
+srt film.srt
+```
+
+The wakes are interpolated from 8 to 24 frames a second, but the plots are not: they are
+drawn once per output frame (108 here: 24 wake frames and a 1.5 s freeze, three output
+frames each) and laid on top, so their dots stay sharp and stop during the freeze.
+
+## The AFMS film
+
+The AFMS film, the film FlowReel was written to rebuild, has its own FlowReel files.
+`tools/afms_film.py OUT` writes them from the prototype's `make_film.py` (the shot list)
+and `film_text.toml` (every word, the freezes, the card, the music): `film.yml`, a text
+file per shot and per freeze, `cards/opening.yml`, and the comparison as a layout
+(`compare.yml`) with its live plots (`plots.yml`, from the cases' series in
+`flowreel.yml`). The project folder lives with the research data, not in this
+repository, since its files name the logo and the licensed track. The prototype's
+frame folders, series CSV, logo and track are copied into it under the names it gives.
+
+`tests/test_golden_film.py` writes the files into a temporary folder with generated
+frame folders of the film's own counts and checks them against the prototype's own
+functions:
+
+| Check | Against |
+|---|---|
+| each shot's planned length, and the film's (131.875 s) | `make_film.duration` |
+| each caption's start and end in its shot, freeze text included | `make_film.shot_captions` |
+| all 32 captions drawn, with their shadows, boxes and arrows | `make_film.caption_image`, same limits as the golden frames; a caption moved by 4 by 3 pixels fails |
+| the opening card, with a generated logo | `make_film.opening_card` |
+
+The rebuild from the real frames is run on the workstation:
+
+```bash
+python tools/afms_film.py ~/path/to/afms_project      # then copy frames/, series/, assets/
+cd ~/path/to/afms_project
+flowreel film build --preview 480
+flowreel film check --at caption
+```
+
+Its lengths per shot are compared with the prototype's film and its contact sheet with
+the prototype's film at the same times; the results are written in `docs/PLAN.md`
+under Phase 4's done line.

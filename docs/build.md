@@ -60,3 +60,10 @@ the built film scaled, so no frame or caption is drawn again; the text was laid 
 the film's pixels and shrinks with the picture. It keeps the sound and the chapters.
 The height must be even (H.264 in yuv420p needs it) and no taller than the film, and is
 checked before any clip is built.
+
+## One shot
+
+`only: compare` builds that shot's finished clip alone and copies it to
+`film_compare.mp4` beside the film, without sound, to check its captions without
+building or joining the rest. The whole film is still laid out, since a caption can run
+across a cut. The clip is the one the full build will use, so it is kept for it.

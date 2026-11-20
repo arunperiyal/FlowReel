@@ -23,10 +23,15 @@ beside the film: the joined film scaled to 480 pixels high (the width follows th
 aspect ratio) and encoded once at ``crf`` (default 28, strongly compressed), with the
 film's sound and chapters. No frame is drawn again; text, laid out in the film's own
 pixels, shrinks with the picture and stays in place.
+
+**One shot** (``only``). ``only="compare"`` builds that shot's finished clip alone and
+copies it to ``film_compare.mp4`` beside the film, silent, for checking its text; the
+rest of the film is laid out (captions may run across cuts) but not built or joined.
 """
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -167,21 +172,28 @@ def write_preview(film, source: Path, height: int, crf: int = PREVIEW_CRF) -> Pa
 
 
 def build(film, *, folder=None, force: bool = False, mute: bool = False,
-          preview: int | None = None, crf: int = PREVIEW_CRF,
+          preview: int | None = None, crf: int = PREVIEW_CRF, only: str | None = None,
           panels: dict | None = None) -> Built:
     """Build ``film`` (a :class:`~flowreel.film.Film` or a film file's path) into its
     ``output``.
 
     ``folder`` keeps the clips (default ``clips/`` beside the film file); ``force``
     rebuilds every clip; ``mute`` leaves the sound out; ``preview`` is the height of
-    a preview copy to write too, at ``crf``; ``panels`` are options for
+    a preview copy to write too, at ``crf``; ``only`` names one shot to build alone
+    (see the module); ``panels`` are options for
     drawing a layout's ``rate: output`` panels (such as ``jobs``). Returns a
     :class:`Built`."""
     from flowreel.film.clips import Clips
     film = _film(film)
+    if only is not None:
+        film.shot(only)          # an unknown name, with the film's shots, before any work
+        if preview is not None:
+            raise ValueError("preview: a preview copy is of the whole film, not one shot")
     if preview is not None:      # checked before minutes of clips are built
         _check_preview(film, preview, crf)
     clips = Clips(film, folder=folder, force=force, panels=dict(panels or {}))
+    if only is not None:
+        return _only(film, clips, only)
     finished, shots = [], []
     for ts in clips.line.shots:
         clip = clips.finished(ts.shot.name)
@@ -209,6 +221,21 @@ def build(film, *, folder=None, force: bool = False, mute: bool = False,
     os.replace(tmp, out)
     copy = write_preview(film, out, preview, crf) if preview is not None else None
     return Built(out, shots, clips.line.length, measured, notes, copy)
+
+
+def only_path(output: Path, name: str) -> Path:
+    """Where shot ``name`` built alone goes: ``film_<name>.mp4`` beside ``output``."""
+    return output.with_name(f"{output.stem}_{name}{output.suffix}")
+
+
+def _only(film, clips, name: str) -> Built:
+    ts = clips.line.shot(name)
+    clip = clips.finished(name)
+    out = only_path(Path(film.output), name)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(clip.path, out)
+    measured = ff.length(out)
+    return Built(out, [ShotLength(name, ts.length, measured, clip.built)], ts.length, measured)
 
 
 def _check_preview(film, height, crf) -> None:

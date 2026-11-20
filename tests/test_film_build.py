@@ -162,3 +162,23 @@ def test_a_preview_height_is_checked_before_building(tmp_path):
     with pytest.raises(ValueError, match="crf must be"):
         build(path, preview=46, crf=60)
     assert not (tmp_path / "clips").exists()
+
+
+# -- one shot ------------------------------------------------------------------------
+
+def test_only_builds_one_shots_finished_clip(tmp_path):
+    path = two_shots(tmp_path)
+    built = build(path, only="b")
+    assert built.output == tmp_path / "film_b.mp4"
+    assert [(s.name, s.planned, s.built) for s in built.shots] == [("b", 0.5, True)]
+    assert ff.frame_count(built.output) == 12
+    assert not (tmp_path / "film.mp4").exists()
+    assert len(list((tmp_path / "clips").glob("shot_a_*.mp4"))) == 0
+    assert not build(path).shots[1].built           # the whole film then keeps b's clip
+
+
+def test_only_names_a_shot_of_the_film(tmp_path):
+    with pytest.raises(KeyError, match="no shot 'c' \\(shots: a, b\\)"):
+        build(two_shots(tmp_path), only="c")
+    with pytest.raises(ValueError, match="whole film"):
+        build(two_shots(tmp_path), only="a", preview=46)

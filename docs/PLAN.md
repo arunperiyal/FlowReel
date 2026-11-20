@@ -1165,7 +1165,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Join the finished clips without re-encoding; planned and measured length per shot printed (Section 10.8)
 - [x] Audio (Section 10.6): one or more tracks, each with `file`, `offset`, `start`, `volume`, `fade`; lengths measured from the files, a fade ending with the shorter of picture and track; `mute`
 - [x] Preview copy: `preview: HEIGHT` writes `film_<H>p.mp4` from the same clips, scaled and encoded once, `crf`
-- [ ] `only`: one shot's finished clip, for checking its text
+- [x] `only`: one shot's finished clip, for checking its text
 - [ ] `film.srt` from the captions; `contact.png`: stills at captions, freezes or every few seconds, with text in place (`film check`)
 - [ ] Chapters (Section 10.9, added 2026-11-20): a shot's `chapter: TITLE` or `{title, at}`, checked against the shot's length; chapter times from the timeline; an ffmpeg metadata file given at the join (`-map_chapters`), in the film and its preview copy; `chapters.txt` with YouTube timestamps (`0:00 Title`)
 - [ ] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should

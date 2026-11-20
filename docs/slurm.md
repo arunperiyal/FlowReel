@@ -110,6 +110,47 @@ echo "done $(date)"
 - **A chain**: `--dependency=afterok:1301:1302` starts a job only when those ended well,
   so composes and the film build can wait for the renders.
 
+## Splitting a render
+
+A render becomes a job array, sized from what one frame of the shot costs.
+
+**Measured, not guessed.** Every render that draws frames keeps the largest peak memory
+and the middle time of its frames in `.measured.json` in the shot's frame folder
+(`frames/reveal/`; a draft has its own, since it costs less), and `shot memory SHOT -o
+OUT` keeps the frame it draws. So the next render, on any machine that shares the
+folder, is sized from the last one. A shot with no measurement yet gets a small first
+job: it measures one frame on the node (4 cores, 16 GB, 30 minutes), then plans and
+submits the render.
+
+**Per task.** 16 cores unless asked; as many frames drawn at once (`-j`) as the cores
+take at `--threads` each (1 by default: Mesa's renderer draws one frame per core), and
+no more than the memory holds, each frame getting its measured peak with 20% to spare.
+Memory left out is asked for to fit those jobs, in whole GB, and jobs are cut down when
+a node would not hold them.
+
+**Tasks.** Consecutive runs of frames, about eight frames per job: a task loads Python,
+VTK and the data once for many frames, and one cut short loses little. `--max-running
+N` lets at most N tasks run at once, so a render takes part of a shared node and leaves
+the rest to simulations.
+
+**Time.** The measured seconds a frame, times the rounds a task draws, half as much
+again, and ten minutes for starting and opening the data; the job goes to the shortest
+partition that takes it. A task that would outrun the longest partition is cut into
+smaller ones. A time given with `--time` is used as it is, with a warning when the
+estimate does not fit.
+
+```text
+121 frames in 1 task of up to 121 frames
+each task: 16 cores, 14G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
+one frame: 0.70 GB and 6.0 s a frame (12 frames, 1 thread, node1, 2026-11-21 04:00)
+```
+
+**Resume.** Frames drawn with their key are skipped, so a render that was cancelled or
+ran out of time is submitted again as it is. `--missing` goes further and plans tasks
+for the missing frames only (`flowreel.scene.rendering.missing` works out the keys
+without drawing).
+
 From Python, `flowreel.jobs.partitions` (`load`, `find`, `parse_time`, `parse_memory`),
-`flowreel.jobs.spec.JobSpec` and `flowreel.jobs.script` (`job_script`, `write`) do the
-same.
+`flowreel.jobs.spec.JobSpec`, `flowreel.jobs.script` (`job_script`, `write`),
+`flowreel.jobs.measured` and `flowreel.jobs.split` (`plan_render`, `render_job`,
+`render_commands`, `measure_job`) do the same.

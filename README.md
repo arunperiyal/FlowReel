@@ -30,8 +30,23 @@ conda activate flexflow_env
 pip install -e /media/arunperiyal/Works/projects/FlowReel
 ```
 
-ffmpeg must be on the path (`conda install -c conda-forge ffmpeg` where the system has
-none).
+### ffmpeg
+
+The film is encoded by ffmpeg, which pip cannot install. Install the conda-forge build
+into the same environment:
+
+```bash
+conda install -n flexflow_env -c conda-forge ffmpeg
+```
+
+`environment.yml` lists the whole environment, ffmpeg included, for a new machine
+(`conda env create -f environment.yml`).
+
+FlowReel uses, in this order: the file named by `FFMPEG`, the `ffmpeg` beside the
+environment's Python, then the one on the path. It checks the version (5.1 or later)
+and the filters it needs once, and an error names the file it found. Other programs
+install their own copies, which can come first on the path; Tecplot 360's
+`bin/ffmpeg` (4.3) is one, and is too old.
 
 ## Licence
 

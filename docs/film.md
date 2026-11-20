@@ -4,9 +4,10 @@ One YAML file, `film.yml`, describes the whole film: its shots in order, their r
 freezes and fades, the words on them, the music and a watermark (plan Section 10). It
 replaces the AFMS prototype's shot list in `make_film.py` and its `film_text.toml`.
 
-This page covers what Phase 4's first branch built: the file, the captions and the
-timeline worked out from them. Drawing the text, cards and the film itself come in the
-next branches. A runnable example on generated frames, which prints a short film's
+This page covers the file, the captions and the timeline worked out from them. How
+captions, shapes and the watermark are drawn is [captions](captions.md); cards are
+[cards](cards.md); how each shot becomes a clip, at the film's rate with its text on
+top, is [clips](clips.md). Joining the clips into the film comes with branch 5. A runnable example on generated frames, which prints a short film's
 timeline, is `examples/film_timeline/run.py`.
 
 ```yaml

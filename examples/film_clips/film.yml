@@ -1,0 +1,26 @@
+# A small film, built into clips by run.py from generated frames.
+fps: 24
+size: [640, 360]
+style: {caption: {size: 28, margin: 30}}
+watermark: {text: 'FlowReel example', size: 16, opacity: 0.6}
+shots:
+  - {name: opening, card: card.yml, seconds: 2, fade: [0.5, 0.5]}
+  - name: wake
+    frames: frames/wake
+    rate: {fps: 8, to_output: interpolate}
+    fade: [0.5, 0]
+    freezes:
+      - at: 1.0
+        hold: 1.5
+        text: [{lines: ['Frozen: one vortex leaving the top'], place: top}]
+    text:
+      - {lines: ['A wake of $Re = 100$'], at: [0.3, 1.0]}
+      - lines: ['Shedding again']
+        at: [2.8, 3.6]
+        shapes: [{arrow: {from: [200, 300], to: [300, 190], width: 3}}]
+  - name: end
+    hold_last_of: wake
+    seconds: 2
+    fade: [0, 1]
+    fade_out_at: 0.3
+    text: [{lines: ['Thank you'], at: [0.8, 2], place: centre}]

@@ -1219,6 +1219,57 @@ workstation and its result recorded under this line.
   labels and watermarks wherever Pillow has raqm, as the prototype's card was. Rebuilt
   so, the opening card is identical to the prototype's film (mean difference 0.00).
 
+### 19.6 Phase 5 tasks
+
+Added 2026-11-21. Phase 5 renders on a Slurm cluster: `shot render --slurm FILE` writes a
+job script and `--submit` hands it to `sbatch`, so a long render runs on a compute node
+without hand-written scripts (it replaces the prototype's `render_airavata.slurm`). The
+first cluster is airavata's `node1` (128 cores, 125 GB, no GPU; off-screen drawing is
+Mesa EGL on the CPU, as the prototype's renders were), which is shared with simulation
+jobs. So a render asks for part of the node, sizes itself from what Slurm gave it, and
+can be stopped and submitted again without redrawing a finished frame (frame keys,
+Section 11).
+
+Branch 1 comes first. Branch 2 needs nothing from branch 1, so the two can be built in
+parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs all.
+
+**Branch 1: `phase5/jobs-partitions`** (data model and job scripts)
+- [ ] Partition table (Section 14): `jobs/partitions.yml` in the package with airavata's `part1` (3 h), `part2` (24 h), `part3` (72 h) on `node1` (128 CPUs, 125 GB), and Param Shakti's from flexflow's `hpc_partition.py`; a user file (`~/.flowreel/partitions.yml`) adds or overrides clusters; the cluster from `--cluster`, `FLOWREEL_CLUSTER`, or the host name
+- [ ] Job spec: partition, CPUs, memory, time, array and its concurrency (`%N`), dependencies, output log; checked against the partition (CPUs, memory, walltime), errors naming the limit
+- [ ] Job script writer: `#SBATCH` lines, the environment (the `flowreel` of the environment it was written from, `unset DISPLAY`, the backend), the command; plain text that reads as a person would write it
+- [ ] Tests with exact script text; docs: Slurm page (partitions and scripts)
+
+**Branch 2: `phase5/jobs-resources`** (what a job has; independent of branch 1)
+- [ ] Cores and memory of the running process: in a Slurm job its allocation (`SLURM_CPUS_PER_TASK`, `SLURM_MEM_PER_NODE`, the cgroup's limit, the CPU affinity), elsewhere the machine's free memory and cores; used by `default_threads`, `check_fits` and `shot memory`'s suggested `-j`
+- [ ] Off-screen check: draw a tiny scene with each backend and report which work and how fast (`flowreel jobs check`), run first in every job script so a node without OpenGL fails in seconds, not after loading data
+- [ ] Tests with a faked environment and cgroup files; docs
+
+**Branch 3: `phase5/jobs-plan`** (splitting a render; needs branches 1 and 2)
+- [ ] Sizing: from `shot memory`'s measured peak (kept in the output folder) choose CPUs, memory, `-j` and threads per task within the partition and the memory asked for; without a measurement, a first task measures, then the rest run
+- [ ] Split a shot's frames into array tasks of consecutive frames (a frozen shot's surfaces are cached, Section 11), with `--max-running N` so a render takes part of the node; time per task estimated from the measured seconds per frame, with a warning when it nears the walltime
+- [ ] Resume: frames already drawn with their key are skipped, so a cancelled or timed-out render is submitted again as it is; `--missing` submits only tasks with frames still to draw
+- [ ] Tests on generated shots (task ranges, sizes, resume); docs
+
+**Branch 4: `phase5/cli-slurm`** (commands; needs branch 3)
+- [ ] `shot render --slurm FILE` and `--submit`, with `--cluster`, `--partition`, `--time`, `--mem`, `--cpus`, `--max-running N`, `--after JOBID`, `--missing`; prints the job id and the log path
+- [ ] `compose layout`, `compose panel` and `film build` take `--slurm FILE`, `--submit` and `--after JOBID`, so a film is a chain of jobs: renders, then composes, then the build
+- [ ] `jobs partitions` (the table), `jobs check` (branch 2), `jobs status [JOBID]` (Slurm's state of FlowReel's jobs and the frames drawn so far)
+- [ ] Help text; docs: commands page
+
+**Branch 5: `phase5/golden-slurm`** (the check; needs all the others)
+- [ ] A fake `sbatch` and `squeue` on the path in tests (they record the call and run the script, array tasks one by one): a generated shot submitted, rendered, cancelled half way and resubmitted with nothing redrawn
+- [ ] The AFMS reveal written as a FlowReel shot for the real bare case (in the AFMS project folder on airavata, outside this repository)
+- [ ] `examples/` Slurm project on generated data, with the fake `sbatch` so it runs anywhere
+- [ ] On airavata: `flowreel shot render reveal.yml --submit` on `node1`, its frames compared with the prototype's `frames/bare_reveal` by image difference, time and memory per frame recorded here
+
+Left out of Phase 5: GPU rendering (airavata has no GPU), MPI or multi-node renders (one
+frame is one process), and queue systems other than Slurm.
+
+**Phase 5 is done when** `flowreel shot render --submit` renders the AFMS reveal on
+airavata, matching the prototype's frames. In this repository that is checked with a fake
+`sbatch`; the run on `node1` waits for a time it is free of simulation jobs, and its
+result is recorded under this line.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |

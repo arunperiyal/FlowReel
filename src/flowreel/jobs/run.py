@@ -47,7 +47,8 @@ class Submitted:
         """What happened, for the terminal."""
         lines = list(self.notes)
         what = "measuring job" if self.measuring else (
-            f"job array of {self.spec.tasks} tasks" if self.spec.tasks else "job")
+            f"job array of {self.spec.tasks} task{'s' * (self.spec.tasks != 1)}"
+            if self.spec.tasks else "job")
         lines.append(f"wrote {self.script} ({what})")
         if self.job:
             lines.append(f"submitted job {self.job}; log {self.log}")

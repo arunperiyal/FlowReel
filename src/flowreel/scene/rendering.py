@@ -19,6 +19,7 @@ from typing import Callable, Iterable
 
 import numpy as np
 
+from flowreel.jobs.resources import resources
 from flowreel.scene import backend as backend_mod
 from flowreel.scene.cache import SurfaceCache
 from flowreel.scene.camera import shot_camera
@@ -293,8 +294,9 @@ class RenderReport:
 
 
 def default_threads(jobs: int) -> int:
-    """Threads per job when not given: a few, and no more than the cores allow."""
-    return max(1, min(4, (os.cpu_count() or 1) // max(jobs, 1)))
+    """Threads per job when not given: a few, and no more than the cores allow (the
+    job's cores in a Slurm job, :func:`flowreel.jobs.resources.resources`)."""
+    return max(1, min(4, resources().cores // max(jobs, 1)))
 
 
 def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None,

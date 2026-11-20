@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import math
 import multiprocessing
-import os
 import time as _time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 
 import numpy as np
 
+from flowreel.jobs.resources import resources
 from flowreel.scene import backend as backend_mod
 from flowreel.scene.rendering import (Scene, _as_shot, _environment, _Job, default_threads,
                                       draft_size, peak_memory)
@@ -32,9 +32,10 @@ class MemoryReport:
     ``peak_bytes`` is the peak of the process that drew frame ``frame``, ``seconds``
     the time it took (opening the source included), ``estimate_bytes`` the source's own
     estimate for one step (``Source.memory_per_step``; ``None`` if it gives none),
-    ``available_bytes`` the memory free on this machine, ``cpus`` its cores, ``threads``
-    the threads the measured frame used, and ``jobs`` the suggested ``-j``
-    (:func:`safe_jobs`).
+    ``available_bytes`` the memory free to use, ``cpus`` the cores (both of the Slurm job
+    when run in one, :func:`flowreel.jobs.resources.resources`), ``threads`` the threads
+    the measured frame used, ``jobs`` the suggested ``-j`` (:func:`safe_jobs`), and
+    ``where`` where the memory and cores came from (``this machine, MemAvailable``).
     """
 
     frame: int
@@ -45,28 +46,24 @@ class MemoryReport:
     cpus: int
     threads: int
     jobs: int
+    where: str = "this machine"
 
     def text(self) -> str:
         """A short report for the terminal."""
         lines = [f"frame {self.frame}: peak {self.peak_bytes / GB:.2f} GB in {self.seconds:.1f} s"]
         if self.estimate_bytes is not None:
             lines.append(f"source estimate for one step: {self.estimate_bytes / GB:.2f} GB")
-        lines.append(f"free memory {self.available_bytes / GB:.1f} GB, {self.cpus} cores; "
+        lines.append(f"free memory {self.available_bytes / GB:.1f} GB, {self.cpus} cores "
+                     f"({self.where}); "
                      f"measured with {self.threads} threads")
         lines.append(f"suggested jobs: -j {self.jobs}")
         return "\n".join(lines)
 
 
 def available_memory() -> int:
-    """Memory free for new processes, in bytes (``MemAvailable`` on Linux)."""
-    try:
-        with open("/proc/meminfo") as f:
-            for line in f:
-                if line.startswith("MemAvailable:"):
-                    return int(line.split()[1]) * 1024
-    except OSError:
-        pass
-    return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_AVPHYS_PAGES")
+    """Memory free for new processes, in bytes: ``MemAvailable``, or less under a Slurm
+    job's or a cgroup's limit (:func:`flowreel.jobs.resources.resources`)."""
+    return resources().memory_bytes
 
 
 #: Memory of a render job before any data: Python, VTK and the reader (measured).
@@ -100,7 +97,7 @@ def estimate_job(scene, frames=None, samples: int = 5) -> int | None:
 def check_fits(scene, frames, jobs: int, available: int | None = None,
                headroom: float = HEADROOM) -> int | None:
     """Raise :class:`NotEnoughMemory` when ``jobs`` jobs of :func:`estimate_job` do not
-    fit in ``headroom`` of the ``available`` memory (default the machine's free memory),
+    fit in ``headroom`` of the ``available`` memory (default :func:`available_memory`),
     saying what does. Returns the estimate per job (``None``: no estimate, no check)."""
     per_job = estimate_job(scene, frames)
     if per_job is None:
@@ -155,10 +152,10 @@ def measure(shot, frame: int = 0, source=None, *, views=None, tracks=None,
             1, mp_context=multiprocessing.get_context("spawn")) as pool:
         peak, seconds = pool.submit(_measure_worker, _Job(shot, source, views, tracks, size),
                                     frame).result()
-    cpus = os.cpu_count() or 1
-    free = available_memory()
-    return MemoryReport(frame, peak, seconds, estimate, free, cpus, threads,
-                        safe_jobs(peak, free, cpus, cap_threads))
+    have = resources()
+    return MemoryReport(frame, peak, seconds, estimate, have.memory_bytes, have.cores,
+                        threads, safe_jobs(peak, have.memory_bytes, have.cores, cap_threads),
+                        f"{have.where}, {have.memory_from}")
 
 
 def _measure_worker(job: _Job, index: int) -> tuple[int, float]:

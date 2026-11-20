@@ -132,7 +132,7 @@ print(measure("shots/reveal.yml", frame=0).text())
 ```
 frame 0: peak 0.98 GB in 1.1 s
 source estimate for one step: 0.01 GB
-free memory 22.5 GB, 16 cores; measured with 4 threads
+free memory 22.5 GB, 16 cores (this machine, MemAvailable); measured with 4 threads
 suggested jobs: -j 16
 ```
 
@@ -143,3 +143,58 @@ suggested `jobs` is as many as fit in 80% of the free memory, and no more than t
 (at `threads` per job when `threads` is given, else one each). Frame 0 is the default
 because in a frozen shot it is the frame that contours. The reference film needed about
 0.7 GB per bare frame and 2.2 GB per helical frame.
+
+### Inside a Slurm job
+
+The cores and memory a render sizes itself from (`shot memory`'s suggested `-j`, the
+memory check before a render, and the default threads per job) come from
+`flowreel.jobs.resources.resources()`. On a shared node these must be the job's, not the
+node's: a job given 16 of node1's 128 cores and 32 GB would otherwise start 128 jobs
+because the node looks idle, and be killed by Slurm when it passes its memory.
+
+| | outside Slurm | in a Slurm job (`SLURM_JOB_ID` set) |
+|---|---|---|
+| cores | the CPU affinity (else `os.cpu_count()`) | the CPU affinity, capped by `SLURM_CPUS_PER_TASK` (else `SLURM_CPUS_ON_NODE`) |
+| memory | `MemAvailable`, or less under a cgroup limit | the smallest of `SLURM_MEM_PER_NODE`, `SLURM_MEM_PER_CPU` x cores, the room under the cgroup limit and `MemAvailable` |
+
+The room under a cgroup limit is the limit minus what the cgroup already uses (cgroup v2
+`memory.max` minus `memory.current`, v1 `memory.limit_in_bytes` minus
+`memory.usage_in_bytes`), at the tightest level from the process's own cgroup up. It is
+read outside Slurm too, so a container's limit counts. Memory is never more than
+`MemAvailable`: a job's allocation does not help if the node's other jobs have used the
+memory.
+
+```python
+from flowreel.jobs.resources import resources
+print(resources().text())
+```
+
+```
+Slurm job 1301: 16 cores, 32.0 GB (cores from SLURM_CPUS_PER_TASK, memory from cgroup memory.max)
+```
+
+`shot memory` says where its numbers came from in brackets, e.g. `free memory 32.0 GB, 16
+cores (Slurm job 1301, cgroup memory.max)`.
+
+### Off-screen check
+
+```text
+python -m flowreel.jobs.check [--backend B] [--timeout S]
+```
+
+Draws a 64x64 sphere with each installed backend (`osmesa`, `egl`, and `x` when
+`DISPLAY` is set), each in a fresh process with that backend's environment and a
+timeout (60 s by default), so a backend that crashes or hangs is reported instead of
+taking the check with it:
+
+```text
+osmesa   not installed
+egl      works in 1.9 s
+auto -> egl: works
+```
+
+A failing backend shows the last line of its error. The exit code is 0 when the backend
+the render will use (`--backend`, default `auto`) works, else 1. Every job script runs
+it first, so a node without working off-screen OpenGL fails in seconds, not after the
+data is loaded. In Python: `flowreel.jobs.check.check(backend="auto")` returns a
+`CheckReport` with `results`, `chosen`, `ok`, `exit_code` and `text()`.

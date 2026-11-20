@@ -74,3 +74,16 @@ def test_another_size_scales_the_whole_card(tmp_path):
 def test_without_a_style_the_film_defaults(tmp_path):
     a = np.asarray(card_image(card(tmp_path, {"title": "T", "size": 60, "y": 50})))
     assert tuple(a.reshape(-1, 3).max(axis=0)) == (0xf2, 0xf2, 0xf2)
+
+
+def test_a_card_in_another_installed_font():
+    """style.font reaches the card: DejaVu Serif (matplotlib's own) draws other pixels than
+    Lato, and a font that is not installed is an error naming it."""
+    from dataclasses import replace as _replace
+    card = card_from_dict({"blocks": [{"title": ["Flow past a cylinder"], "y": 100},
+                                      {"heading": "BY", "names": ["A. Author"], "gap": 20}]})
+    lato = np.asarray(card_image(card, FilmStyle()))
+    serif = np.asarray(card_image(card, _replace(FilmStyle(), font="DejaVu Serif")))
+    assert (lato != serif).any() and serif.max() > 200
+    with pytest.raises(ValueError, match="'No Such Font' is not installed"):
+        card_image(card, _replace(FilmStyle(), font="No Such Font"))

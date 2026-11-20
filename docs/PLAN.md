@@ -1185,6 +1185,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 
 **Branch 8: `phase4/install-script`** (installing on a new machine; added 2026-11-21)
 - [x] `install.sh`: finds conda, creates `flexflow_env` from `environment.yml` or adds only what an existing one lacks, installs shellkit if missing (`SHELLKIT_DIR` for a local checkout), FlowReel editable, checks ffmpeg, adds a `flowreel` alias; `--uninstall`, `-y`, `--no-alias`
+- [x] Cards drawn in the film's `style.font` (any installed family, nearest weight), as captions and panels already are: the AFMS film's final version is in Times New Roman
 - [ ] Tried on airavata from a fresh clone, and the AFMS film built there from its files
 
 Left out of Phase 4: 3D and anchored shapes (`arrow3d` ..., `{model: ..., view: ...}`

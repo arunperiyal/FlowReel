@@ -70,6 +70,10 @@ Each block is one of `image`, `title`, `divider`, `names` or `text`.
 
 - `size` is the font's size in pixels.
 - `weight` is `regular`, `light`, `bold` or `italic`, all of the bundled Lato.
+- The font is the film's `style.font`, as for captions: Lato by default, or any family
+  installed on the machine that builds the film, such as `Times New Roman`, at its
+  nearest weight (Times New Roman has no light weight, so its names are regular). A
+  family that is not installed is an error naming it.
 - The film's colours are `style.colours.text` and `style.colours.muted` in `film.yml`
   (`'#f2f2f2'` and `'#96a5b2'`), so a film's cards follow its style unless a block sets
   `colour`.

@@ -1178,7 +1178,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Help text; docs: commands page
 
 **Branch 7: `phase4/golden-film`** (the check; needs all the others)
-- [ ] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)
+- [x] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)
 - [ ] A test that the film's planned shot lengths equal the prototype's `duration()` for the same shot list and frame counts, on generated frame folders of those counts
 - [ ] `examples/` film project on generated data, silent, with a card, a freeze, a layout shot with live plots and a watermark of text
 - [ ] The rebuild on the workstation from the real frames: lengths per shot measured against the prototype's film, and a contact sheet at every caption compared with the prototype's film at the same times; results written here

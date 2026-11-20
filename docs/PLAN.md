@@ -1171,7 +1171,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should
 
 **Branch 6: `phase4/cli-film`** (commands; needs branch 5)
-- [ ] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
+- [x] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
 - [ ] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
 - [ ] `film template`: a commented `film.yml` with every key at its default
 - [ ] `project` context in the shell (Section 13), so film commands find `film.yml`

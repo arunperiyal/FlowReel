@@ -152,6 +152,19 @@ ran out of time is submitted again as it is. `--missing` goes further and plans 
 for the missing frames only (`flowreel.scene.rendering.missing` works out the keys
 without drawing).
 
+## Trying it without a cluster
+
+`examples/slurm_project/run.py` renders a generated shot through `--submit` on any
+machine: `examples/slurm_project/fake_sbatch.py` stands in for `sbatch` (named by
+`FLOWREEL_SBATCH`) and runs each job here at once, array tasks one after another, with
+Slurm's variables set and each task's log where the script says. The example shows the
+measuring job submitting the render, a render cut short (`FAKE_SBATCH_TASKS=0` runs only
+task 0), and `--missing` drawing only the frames left.
+
+```bash
+python examples/slurm_project/run.py /tmp/slurm_project_example
+```
+
 From Python, `flowreel.jobs.partitions` (`load`, `find`, `parse_time`, `parse_memory`),
 `flowreel.jobs.spec.JobSpec`, `flowreel.jobs.script` (`job_script`, `write`),
 `flowreel.jobs.measured` and `flowreel.jobs.split` (`plan_render`, `render_job`,

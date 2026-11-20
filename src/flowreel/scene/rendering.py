@@ -372,6 +372,13 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
                     for fut in as_completed(futures):
                         done(fut.result())
     report.frames = [results[i] for i in indices]
+    drawn = [r for r in report.frames if r.status == "rendered"]
+    if processes and drawn:          # for sizing the next render (flowreel.jobs.measured)
+        from flowreel.jobs import measured
+        record = measured.from_frames([r.peak_bytes for r in drawn],
+                                      [r.seconds for r in drawn], threads)
+        if record is not None:
+            measured.save(folder, record)
     return report
 
 

@@ -129,8 +129,13 @@ def safe_jobs(peak_bytes: int, available_bytes: int, cpus: int, threads: int = 1
 
 def measure(shot, frame: int = 0, source=None, *, views=None, tracks=None,
             scale: float | None = None, size: tuple[int, int] | None = None,
-            threads: int | None = None, backend: str = "auto") -> MemoryReport:
+            threads: int | None = None, backend: str = "auto",
+            out: str | None = None) -> MemoryReport:
     """Draw ``frame`` of ``shot`` in a fresh process and report its memory.
+
+    With ``out`` (the folder of the frame folders, as for ``render``), the result is
+    also kept beside the shot's frames (:mod:`flowreel.jobs.measured`), so a job array
+    is sized from it.
 
     The options are those of :func:`~flowreel.scene.rendering.render`. Frame 0 is the
     default: in a frozen shot it is the one that contours. The picture is not saved.
@@ -153,6 +158,11 @@ def measure(shot, frame: int = 0, source=None, *, views=None, tracks=None,
         peak, seconds = pool.submit(_measure_worker, _Job(shot, source, views, tracks, size),
                                     frame).result()
     have = resources()
+    if out is not None:
+        from flowreel.jobs import measured
+        from flowreel.scene.rendering import frame_folder
+        measured.save(frame_folder(out, shot, size),
+                      measured.from_frames([peak], [seconds], threads))
     return MemoryReport(frame, peak, seconds, estimate, have.memory_bytes, have.cores,
                         threads, safe_jobs(peak, have.memory_bytes, have.cores, cap_threads),
                         f"{have.where}, {have.memory_from}")

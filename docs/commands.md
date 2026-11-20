@@ -95,13 +95,14 @@ flowreel shot memory [SHOT] [--frame N] [--scale S | --size W H] [--threads T] [
 ```
 
 Draws one frame in a fresh process, as `render` does, and reports its peak memory, the
-free memory and cores of this machine, and the number of jobs that fit (80% of the free
-memory, at most one per core, or cores / T with `--threads T`):
+free memory and cores (this machine's, or in a Slurm job the job's; the brackets say
+which, see [rendering](rendering.md#inside-a-slurm-job)), and the number of jobs that
+fit (80% of the free memory, at most one per core, or cores / T with `--threads T`):
 
 ```text
 frame 0: peak 0.98 GB in 1.1 s
 source estimate for one step: 0.01 GB
-free memory 22.5 GB, 16 cores; measured with 4 threads
+free memory 22.5 GB, 16 cores (this machine, MemAvailable); measured with 4 threads
 suggested jobs: -j 16
 ```
 

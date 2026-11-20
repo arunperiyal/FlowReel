@@ -11,10 +11,12 @@
 
 The commands are a thin layer over library functions (`flowreel.scene.render`,
 `flowreel.scene.memory.measure`, `flowreel.scene.template.template`,
-`flowreel.compose.layout`, `flowreel.compose.panel`), so everything here can also be
-done from Python; [rendering](rendering.md), [layouts](layouts.md) and
-[panels](panels.md) explain what those do. Runnable examples that need no data are
-`examples/shot_commands/run.sh` and `examples/compose_commands/run.sh`. The
+`flowreel.compose.layout`, `flowreel.compose.panel`, `flowreel.film.build.build`,
+`flowreel.film.check.contact`), so everything here can also be done from Python;
+[rendering](rendering.md), [layouts](layouts.md), [panels](panels.md) and
+[building the film](build.md) explain what those do. Runnable examples that need no
+data are `examples/shot_commands/run.sh`, `examples/compose_commands/run.sh` and
+`examples/film_commands/run.sh` (that one needs ffmpeg). The
 command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 
 ## The shell
@@ -25,7 +27,13 @@ command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 ```
 
 `use shot:carve.yml` sets the shot; commands that take a shot then use it when you leave
-it out, and print `Using shot: ...`. `unuse shot` clears it. `help`, `help shot`, and
+it out, and print `Using shot: ...`. `unuse shot` clears it.
+
+`use project:~/films/afms` sets the project: a folder holding `flowreel.yml` or
+`film.yml`. The `film` commands then use its `film.yml` when no film file is given, from
+any folder; without a project they use `./film.yml`. How a project folder is made and
+laid out is still open (plan Section 24, question 6); for now the context only finds
+the film file. `help`, `help shot`, and
 `shot render --help` show the help. Commands can be chained with `;`, and the output of
 one piped to the system's commands with `|`. `-d` (or `set debug on`) shows the full
 traceback when a command fails.
@@ -178,6 +186,119 @@ $ flowreel compose panel lift.yml -j 4
 120 drawn, 0 skipped in 9.8 s -> frames/lift
 ```
 
+## `film build`
+
+```text
+flowreel film build [FILM] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
+                    [--crf N] [--clips DIR] [-j N]
+```
+
+Builds the [film](film.md): every shot's [finished clip](clips.md), kept when its key
+did not change, joined into the film's `output` with its sound and chapters; then
+`film.srt` and `chapters.txt` beside it ([building the film](build.md)). Prints each
+shot's planned and measured length and whether its clip was built or kept.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `FILM` | the project's `film.yml`, else `./film.yml` | the film file |
+| `--only SHOT` | none | build that shot's finished clip alone, copied to `film_SHOT.mp4`, silent, for checking its text |
+| `--mute` | off | build the film without its sound |
+| `--force` | off | build every clip again, even when its key did not change |
+| `--preview HEIGHT` | none | also write `film_<HEIGHT>p.mp4`, scaled to HEIGHT pixels (even, at most the film's) |
+| `--crf N` | `28` | quality of the preview copy, 0 to 51, lower is better and larger; needs `--preview` |
+| `--clips DIR` | `clips/` beside the film file | folder of the clips |
+| `-j N`, `--jobs N` | `1` | processes drawing a layout's `rate: output` panels |
+
+```text
+$ flowreel film build --preview 180
+shot     planned  measured
+opening    2.00 s    2.00 s  built
+wake       4.50 s    4.50 s  built
+end        2.00 s    2.00 s  built
+film       8.50 s    8.50 s  film.mp4
+preview film_180p.mp4
+srt film.srt
+chapters chapters.txt
+audio tone.wav: 0.00 to 8.50 s of the film (file 20.00 s)
+built in 6.1 s
+```
+
+## `film check`
+
+```text
+flowreel film check [FILM] [--at WHEN] [--columns N] [--width PX] [-o FILE] [--force]
+                    [--clips DIR] [-j N]
+```
+
+Draws a [contact sheet](build.md#contact-sheet-contactpng): stills of the finished film,
+each labelled with its time and shot, the captions drawn as they show. Missing finished
+clips are built; the film is not joined, so the sheet comes before the build.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--at WHEN` | `caption` | `caption` (the middle of each caption), `freeze` (the middle of each freeze) or `every:S` (every S seconds) |
+| `--columns N` | `4` | stills across the sheet |
+| `--width PX` | `480` | width of a still, at most the film's |
+| `-o FILE`, `--output FILE` | `contact.png` beside the film | the sheet |
+
+`--force`, `--clips` and `-j` are those of `film build`.
+
+## `film lengths`
+
+```text
+flowreel film lengths [FILM] [--clips DIR]
+```
+
+Prints each shot's planned length, from the [timeline](film.md#the-timeline-filmtimeline),
+and its measured length, from its finished clip of the last build (`-` when it has
+none), then each chapter's start and length. Nothing is drawn or built, so it answers
+at once; a clip may be older than the film file, and `film build` reports the lengths
+of what it builds.
+
+```text
+$ flowreel film lengths
+shot     planned  measured
+opening    2.00 s    2.00 s
+wake       4.50 s    4.50 s
+end        2.00 s    2.00 s
+film       8.50 s    8.50 s
+chapter   start             length
+Opening      0:00     0.00 s    2.00 s
+The wake     0:02     2.00 s    5.00 s
+Thanks       0:07     7.00 s    1.50 s
+```
+
+## `film srt`
+
+```text
+flowreel film srt [FILM] [-o FILE]
+```
+
+Writes the captions as [SubRip subtitles](build.md#subtitles-filmsrt) at their film
+times (default `film.srt` beside the film), maths as plain text. Nothing is built.
+
+## `film chapters`
+
+```text
+flowreel film chapters [FILM] [-o FILE]
+```
+
+Prints the [chapters](build.md#chapters) as `chapters.txt` holds them, `0:00 Title` per
+line, ready for a YouTube description, or writes them to FILE. What YouTube would
+refuse (no chapter at 0:00, fewer than three, one shorter than 10 s) is noted on
+stderr, so the printed list can be piped. Nothing is built.
+
+## `film template`
+
+```text
+flowreel film template [NAME] [--fps N] [-o FILE] [--force]
+```
+
+Prints a film file with every key at its default, each with a comment, and one frames
+shot `NAME` (default `my_shot`) reading `frames/NAME`. The defaults are taken from the
+code, so the file is always current; audio, a watermark, a card and a hold are written
+commented out.
+
 ## `project init`
 
 ```text
@@ -205,7 +326,7 @@ wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
 
 ## Errors and exit status
 
-A problem in a shot, layout or panel file is reported with the file and key path, and the nearest valid
+A problem in a shot, layout, panel or film file is reported with the file and key path, and the nearest valid
 key when there is a typo; no traceback:
 
 ```text

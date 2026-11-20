@@ -1175,7 +1175,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
 - [x] `film template`: a commented `film.yml` with every key at its default
 - [x] `project` context in the shell (Section 13), so film commands find `film.yml`
-- [ ] Help text; docs: commands page
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase4/golden-film`** (the check; needs all the others)
 - [ ] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)

@@ -1183,6 +1183,10 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] `examples/` film project on generated data, silent, with a card, a freeze, a layout shot with live plots and a watermark of text
 - [ ] The rebuild on the workstation from the real frames: lengths per shot measured against the prototype's film, and a contact sheet at every caption compared with the prototype's film at the same times; results written here
 
+**Branch 8: `phase4/install-script`** (installing on a new machine; added 2026-11-21)
+- [x] `install.sh`: finds conda, creates `flexflow_env` from `environment.yml` or adds only what an existing one lacks, installs shellkit if missing (`SHELLKIT_DIR` for a local checkout), FlowReel editable, checks ffmpeg, adds a `flowreel` alias; `--uninstall`, `-y`, `--no-alias`
+- [ ] Tried on airavata from a fresh clone, and the AFMS film built there from its files
+
 Left out of Phase 4: 3D and anchored shapes (`arrow3d` ..., `{model: ..., view: ...}`
 points; Phase 6 with the camera editor), ducking audio under narration (Section 10.6,
 "later"), `compose plot`, and the `data` commands.

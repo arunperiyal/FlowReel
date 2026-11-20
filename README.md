@@ -23,11 +23,34 @@ AFMS 2026 video competition, is in [prototype/afms/](prototype/afms/); the packa
 
 ## Install
 
-FlowReel runs in the `flexflow_env` conda environment (Python 3.12) used for rendering:
+FlowReel runs in a conda environment, `flexflow_env` (Python 3.12) by default, the one
+FlexFlow uses. Clone the repository and run the installer:
+
+```bash
+git clone https://github.com/arunperiyal/FlowReel.git
+cd FlowReel
+./install.sh
+```
+
+It finds conda, creates the environment from `environment.yml` (or, when it exists,
+installs only the packages it lacks, so other tools in it keep their versions),
+installs shellkit if missing, installs FlowReel editable (so `git pull` updates it),
+checks ffmpeg, and adds a `flowreel` alias to `~/.bashrc` or `~/.zshrc` that runs it
+without activating the environment.
+
+| Option | Does |
+|---|---|
+| `-y`, `--yes` | answer yes to every question |
+| `--no-alias` | leave the shell's start-up file alone |
+| `--uninstall` | remove FlowReel and the alias; the environment stays |
+| `CONDA_ENV_NAME=NAME ./install.sh` | use another environment |
+| `SHELLKIT_DIR=DIR ./install.sh` | install shellkit from a local checkout, on a machine that cannot reach GitHub |
+
+By hand, the same is:
 
 ```bash
 conda activate flexflow_env
-pip install -e /media/arunperiyal/Works/projects/FlowReel
+pip install --no-deps -e .
 ```
 
 ### ffmpeg

@@ -27,6 +27,9 @@ pixels, shrinks with the picture and stays in place.
 **One shot** (``only``). ``only="compare"`` builds that shot's finished clip alone and
 copies it to ``film_compare.mp4`` beside the film, silent, for checking its text; the
 rest of the film is laid out (captions may run across cuts) but not built or joined.
+
+**Subtitles.** A whole build also writes the captions as ``film.srt`` beside the film
+(:func:`flowreel.film.check.srt`), when it has any.
 """
 from __future__ import annotations
 
@@ -53,7 +56,7 @@ class ShotLength:
 class Built:
     """What a build wrote: the ``output`` film, the ``shots`` with their lengths, the
     film's ``planned`` and ``measured`` seconds, ``notes`` to print (audio, warnings)
-    and the ``preview`` copy (or ``None``)."""
+    the ``preview`` copy and the ``srt`` subtitles (each ``None`` when not written)."""
 
     output: Path
     shots: list[ShotLength]
@@ -61,6 +64,7 @@ class Built:
     measured: float
     notes: list[str] = field(default_factory=list)
     preview: Path | None = None
+    srt: Path | None = None
 
     def table(self) -> list[str]:
         """The report as lines: one per shot (planned, measured, built or kept), then
@@ -72,8 +76,9 @@ class Built:
                        f"{'built' if s.built else 'kept'}")
         out.append(f"{'film':{width}s}  {self.planned:6.2f} s  {self.measured:6.2f} s  "
                    f"{self.output}")
-        if self.preview is not None:
-            out.append(f"preview {self.preview}")
+        for what in ("preview", "srt"):
+            if getattr(self, what) is not None:
+                out.append(f"{what} {getattr(self, what)}")
         return out + self.notes
 
 
@@ -220,7 +225,11 @@ def build(film, *, folder=None, force: bool = False, mute: bool = False,
     ff.run(*args, *maps, "-t", f"{measured:.6f}", "-movflags", "+faststart", tmp)
     os.replace(tmp, out)
     copy = write_preview(film, out, preview, crf) if preview is not None else None
-    return Built(out, shots, clips.line.length, measured, notes, copy)
+    subtitles = None
+    if clips.line.captions:
+        from flowreel.film.check import srt
+        subtitles = srt(clips.line)
+    return Built(out, shots, clips.line.length, measured, notes, copy, subtitles)
 
 
 def only_path(output: Path, name: str) -> Path:

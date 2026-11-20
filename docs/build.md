@@ -67,3 +67,39 @@ checked before any clip is built.
 `film_compare.mp4` beside the film, without sound, to check its captions without
 building or joining the rest. The whole film is still laid out, since a caption can run
 across a cut. The clip is the one the full build will use, so it is kept for it.
+
+## Subtitles: `film.srt`
+
+A whole build also writes the captions as SubRip subtitles, `film.srt` beside the film
+(when there are captions), with their film times from the timeline: for a player's
+subtitle track, a transcript, or a site that takes captions. One block per caption, its
+lines kept. Subtitles have no maths font, so `$...$` becomes plain text: `$U = 1$` is
+`U = 1`, `\times` is `×`, `\alpha` and `\Delta` are `α` and `Δ`, `\mathrm{Re}` is
+`Re`; sub- and superscripts stay as written (`C_D`). `film.check.srt(timeline)` writes
+it without building.
+
+## Contact sheet: `contact.png`
+
+`film.check.contact` draws stills of the finished film on one picture, `contact.png`
+beside the film, to check the words and their places without playing the film. Each
+still is labelled with its film time, its shot and why it was taken; the captions are
+drawn in place, as they show.
+
+```python
+from flowreel.film.check import contact
+
+contact("film.yml", at="caption")          # or "freeze", or "every:5"
+```
+
+| `at` | A still |
+|---|---|
+| `caption` (default) | at the middle of each caption, when it is fully faded in |
+| `freeze` | at the middle of each freeze |
+| `every:S` | every `S` seconds from the start |
+
+`columns` (default 4) and `width` (pixels of a still, default 480, at most the film's)
+set the sheet's layout. The stills come from the finished clips, built when missing, so
+no join is needed.
+
+![A contact sheet every 0.25 s of a small film: the freeze holds one frame, the caption
+runs across the cut](images/contact.png)

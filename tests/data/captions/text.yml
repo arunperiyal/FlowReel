@@ -1,0 +1,16 @@
+# The golden captions of tools/make_caption_golden.py, written for FlowReel.
+- id: boxed
+  lines: ['Each groove $0.08D$ deep and $0.2D$ wide,', 'rms $C_L$ falls by $60\%$']
+  place: [700, 120]
+  size: 40
+  align: left
+  box: true
+  shapes:
+    - {arrow: {from: [1250, 230], to: [1420, 420]}}
+- id: shadow
+  lines: ['Lift along the span, $C_L(x/D, tU/D)$', 'the cells of the smooth cylinder break up']
+  place: bottom
+  colour: '#f5a142'
+  shapes:
+    - {arrow: {from: [640, 850], to: [480, 640], width: 6}}
+    - {arrow: {from: [1280, 850], to: [1440, 640], width: 6}}

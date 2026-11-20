@@ -26,7 +26,7 @@ from flowreel.box import Box
 from flowreel.scene.errors import Checker
 
 KEYS = ("name", "source", "time", "camera", "size", "crop", "background", "antialias",
-        "lights", "stretch", "layers")
+        "lights", "stretch", "watermark", "layers")
 REQUIRED = ("name", "source", "time", "layers")
 ANTIALIAS = ("none", "fxaa", "ssaa")
 DEFAULT_SIZE = (1920, 1080)
@@ -45,7 +45,9 @@ class Shot:
     source, a :class:`CropAround` that travels with a body, or ``None`` for the whole
     domain. ``layers`` are built layer objects, bottom
     first. ``lights`` is a tuple of :class:`~flowreel.scene.lights.Light`, or ``None``
-    for VTK's own light kit. Lengths are in the source's unit.
+    for VTK's own light kit. ``watermark`` (a
+    :class:`~flowreel.film.schema.Watermark`, or ``None``) is drawn into every frame
+    after the screenshot (plan Section 10.7). Lengths are in the source's unit.
     """
 
     name: str
@@ -61,6 +63,7 @@ class Shot:
     source_options: dict = field(default_factory=dict)
     file: str | None = None
     stretch: "Stretch | None" = None
+    watermark: object = None
 
 
 def load(path: str | Path) -> Shot:
@@ -90,12 +93,18 @@ def from_dict(data, file: str | None = None) -> Shot:
         from flowreel.scene.lights import parse_lights
         lights = parse_lights(data["lights"], check.at("lights"))
     stretch = _stretch(data.get("stretch"), check.at("stretch"))
+    watermark = None
+    if data.get("watermark") is not None:
+        from flowreel.film.schema import parse_watermark
+        folder = Path(file).parent if file else Path(".")
+        watermark = parse_watermark(data["watermark"], check.at("watermark"), folder, shot=True)
     items = check.at("layers").sequence(data["layers"], minimum=1)
     layers = [layer_mod.build(spec, check.at("layers", i)) for i, spec in enumerate(items)]
     _check_amplify(layers, check)
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
                 size=size, crop=crop, background=background, antialias=antialias,
-                lights=lights, source_options=source_options, file=file, stretch=stretch)
+                lights=lights, source_options=source_options, file=file, stretch=stretch,
+                watermark=watermark)
 
 
 def _check_amplify(layers, check: Checker) -> None:

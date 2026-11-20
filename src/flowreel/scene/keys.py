@@ -113,7 +113,12 @@ def frame_parts(scene, index: int) -> dict:
 
 def frame_key(scene, index: int) -> str:
     """The key of frame ``index``; equal keys mean equal pictures."""
-    return digest(frame_parts(scene, index))
+    parts = frame_parts(scene, index)
+    watermark = getattr(scene.shot, "watermark", None)
+    if watermark is not None:          # left out when absent, so older keys still hold
+        from flowreel.film.watermark import key_fields
+        parts["watermark"] = key_fields(watermark)
+    return digest(parts)
 
 
 class KeyStore:

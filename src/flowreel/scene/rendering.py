@@ -197,9 +197,13 @@ class Scene:
                     layer.draw(plotter, Frame(index, step, time, data, values))
             if shot.stretch is not None:
                 self._stretch(plotter)
-            return np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
+            picture = np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
         finally:
             plotter.close()
+        if shot.watermark is not None:
+            from flowreel.film.watermark import stamp
+            picture = stamp(picture, shot.watermark, self.pixel_scale)
+        return picture
 
 
     def _stretch(self, plotter) -> None:

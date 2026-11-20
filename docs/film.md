@@ -101,7 +101,7 @@ text file of its own, so the person writing the words never edits `film.yml`:
 | `box` | bool | the style's (`false`) | a dark panel behind the text |
 | `shadow` | bool | the style's (`true`) | a soft shadow behind the text |
 | `fade` | number | the style's (`0.8`) | seconds to fade in and out |
-| `shapes` | list | none | 2D shapes on the frame: `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight` (their keys come with branch 2) |
+| `shapes` | list | none | 2D shapes on the frame: `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight` ([their keys](captions.md#shapes)) |
 | `id` | string | none | a name for the caption, for other commands |
 
 - **Times across a cut.** `end: {shot: NAME, at: S}` ends the caption `S` seconds into
@@ -114,6 +114,9 @@ text file of its own, so the person writing the words never edits `film.yml`:
   as written.
 - Places in the model (`{model: [x, y, z], view: V}`) come with the camera editor in
   Phase 6.
+
+How captions are drawn (measured text, shadow or box, the shapes' keys) is on
+[captions, shapes and the watermark](captions.md).
 
 ## Style
 
@@ -140,7 +143,9 @@ A signature, logo or watermark (plan Section 10.7): `image` (a file, kept outsid
 repository) or `text`; `corner` (`lower_right` by default) or `place: [x, y]`; `size`
 in pixels; `opacity` (`0.7`); `colour` for text; when: `shots: [names]` or
 `seconds: [start, end]`, else throughout; `cards: true` to show it on cards too. It is
-drawn with the text at the build, so changing it never re-renders a frame (branch 2).
+drawn with the text at the build, so changing it never re-renders a frame. A shot file
+may have a watermark of its own, drawn into its frames. How both are drawn:
+[captions, shapes and the watermark](captions.md#the-watermark).
 
 ## Including files
 

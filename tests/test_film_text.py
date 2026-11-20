@@ -43,9 +43,10 @@ def test_places_and_look():
     assert cap(lines="One line").lines == ("One line",)
 
 
-def test_shapes_are_kept_as_written():
+def test_shapes_are_checked_when_read():
     c = cap(shapes=[{"arrow": {"from": [1, 2], "to": [3, 4], "width": 4}}])
-    assert c.shapes == ({"arrow": {"from": [1, 2], "to": [3, 4], "width": 4}},)
+    (s,) = c.shapes
+    assert s.kind == "arrow" and s.keys == {"from": (1.0, 2.0), "to": (3.0, 4.0), "width": 4}
 
 
 @pytest.mark.parametrize("spec, message", [

@@ -28,6 +28,7 @@ size: [1920, 1080]                    # width, height in pixels
 background: black                     # a colour name or '#rrggbb'
 antialias: ssaa                       # none, fxaa or ssaa
 # lights: raking                      # default, raking or a list; without it, VTK's light kit
+# watermark: {{text: 'A. Periyal', corner: lower_right, size: 32, opacity: 0.7}}   # or {{image: FILE, ...}}; drawn into every frame
 layers:                               # drawn bottom first
 """
 

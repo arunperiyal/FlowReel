@@ -35,8 +35,6 @@ KEYS = ("lines", "at", "place", "size", "align", "colour", "box", "shadow", "fad
         "shapes", "id")
 PLACES = ("top", "bottom", "centre")
 ALIGN = ("centre", "left", "right")
-#: The 2D shapes of plan Section 12; their keys are checked where they are drawn.
-SHAPES = ("arrow", "line", "box", "circle", "ellipse", "bracket", "dimension", "highlight")
 FREEZE_LEAD, FREEZE_TAIL = 0.3, 0.2
 
 
@@ -58,8 +56,8 @@ class Caption:
     corner) or ``("centre", y)`` (centred across, its top at ``y``). ``size`` is the
     letters' height in pixels, ``align`` the lines' alignment, ``colour``, ``box`` (a
     dark panel behind) or ``shadow`` (a soft shadow), ``fade`` in and out in seconds;
-    ``None`` takes the film's style. ``shapes`` are 2D shapes as written (one mapping
-    each, ``{arrow: {...}}``); ``id`` names it for other commands.
+    ``None`` takes the film's style. ``shapes`` are its 2D shapes
+    (:class:`~flowreel.film.shapes.Shape`); ``id`` names it for other commands.
     """
 
     lines: tuple[str, ...]
@@ -182,17 +180,7 @@ def _place(value, check: Checker):
 
 
 def _shapes(value, check: Checker) -> tuple:
+    from flowreel.film.shapes import parse_shape
     if value is None:
         return ()
-    out = []
-    for i, spec in enumerate(check.sequence(value)):
-        at = check.at(i)
-        if not isinstance(spec, dict) or len(spec) != 1:
-            raise at.error(f"expected one shape as {{name: {{...}}}}, such as "
-                           f"{{arrow: {{from: [x, y], to: [x, y]}}}}; shapes: {', '.join(SHAPES)}")
-        (name, keys), = spec.items()
-        at.mapping(spec, SHAPES)
-        if not isinstance(keys, dict):
-            raise at.at(name).error("expected a mapping of the shape's keys")
-        out.append(dict(spec))
-    return tuple(out)
+    return tuple(parse_shape(spec, check.at(i)) for i, spec in enumerate(check.sequence(value)))

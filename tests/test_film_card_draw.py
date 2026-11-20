@@ -87,3 +87,15 @@ def test_a_card_in_another_installed_font():
     assert (lato != serif).any() and serif.max() > 200
     with pytest.raises(ValueError, match="'No Such Font' is not installed"):
         card_image(card, _replace(FilmStyle(), font="No Such Font"))
+
+
+def test_card_text_is_kerned_where_pillow_can(monkeypatch):
+    """With raqm a card is laid out by it (kerned); without, by the basic engine."""
+    from PIL import ImageFont, features
+
+    from flowreel.scene.text import font_file, pillow_font
+    raqm = features.check("raqm")
+    assert pillow_font(font_file(), 20).layout_engine == (
+        ImageFont.Layout.RAQM if raqm else ImageFont.Layout.BASIC)
+    monkeypatch.setattr(features, "check", lambda name: False)
+    assert pillow_font(font_file(), 20).layout_engine == ImageFont.Layout.BASIC

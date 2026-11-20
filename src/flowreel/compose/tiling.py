@@ -226,12 +226,11 @@ def fitted(frame, tile: Tile, background: str = "black"):
 
 
 def _label(picture, tile: Tile) -> None:
-    from PIL import ImageDraw, ImageFont
+    from PIL import ImageDraw
 
-    from flowreel.scene.text import font_file
+    from flowreel.scene.text import font_file, pillow_font
     lab = tile.label
-    font = ImageFont.truetype(font_file(), max(1, round(lab.size)),
-                              layout_engine=ImageFont.Layout.BASIC)   # the same on every machine
+    font = pillow_font(font_file(), max(1, round(lab.size)))
     draw = ImageDraw.Draw(picture)
     pad = PAD * lab.size
     (x0, y0), (w, h) = tile.at, tile.size

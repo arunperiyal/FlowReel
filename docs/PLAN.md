@@ -1213,9 +1213,10 @@ workstation and its result recorded under this line.
   finished clip and from the prototype's `clips/shot_<name>.mp4` at the same time in
   the shot, differs by at most 0.5 grey levels on average, with no pixel clearly
   different (`flowreel_video/compare_captions.png`). The live plots match too.
-- **Card.** The opening card differs by 3.6 grey levels on average (1.9% of pixels):
-  airavata's Pillow kerned the prototype's text (raqm), and FlowReel now lays card text
-  out with Pillow's basic engine on every machine so a card is the same everywhere.
+- **Card.** Built first with Pillow's basic layout, the opening card differed by 3.6
+  grey levels on average (1.9% of pixels): airavata's Pillow kerned the prototype's
+  text (raqm). Kerning was kept (Arun, 2026-11-21): FlowReel kerns card text, tile
+  labels and watermarks wherever Pillow has raqm, as the prototype's card was.
 
 ## 20. From the prototype
 

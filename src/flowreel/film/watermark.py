@@ -49,15 +49,15 @@ def watermark_image(w: Watermark, picture: tuple[int, int], scale: float = 1.0):
 def _mark(w: Watermark, scale: float):
     """The watermark alone, cropped to its ink, with its opacity applied."""
     from matplotlib.colors import to_rgb
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
-    from flowreel.scene.text import font_file
+    from flowreel.scene.text import font_file, pillow_font
     size = max(1, round(w.size * scale))
     if w.image is not None:
         mark = Image.open(w.image).convert("RGBA")
         mark = mark.resize((max(1, round(mark.width * size / mark.height)), size), Image.LANCZOS)
     else:
-        font = ImageFont.truetype(font_file(), size, layout_engine=ImageFont.Layout.BASIC)
+        font = pillow_font(font_file(), size)
         left, top, right, bottom = font.getbbox(w.text)
         mark = Image.new("RGBA", (max(1, right - left), max(1, bottom - top)), (0, 0, 0, 0))
         r, g, b = (round(c * 255) for c in to_rgb(w.colour))

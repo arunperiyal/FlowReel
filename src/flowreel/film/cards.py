@@ -221,12 +221,17 @@ def font(weight: str, size: float, family: str = "Lato"):
     ``italic``) at ``size`` pixels, for Pillow. Lato is the bundled copy; another family
     is found among the machine's fonts through matplotlib, at the nearest weight (Times
     New Roman has no light weight, so its regular is used). A family that is not
-    installed is an error naming it."""
+    installed is an error naming it.
+
+    Text is laid out by Pillow's basic engine on every machine: a Pillow built with
+    raqm (conda-forge's) would otherwise kern it, and the same card would differ from
+    one machine to another."""
     from PIL import ImageFont
 
     from flowreel.scene.text import font_file
     if family == "Lato":
-        return ImageFont.truetype(font_file(weight.capitalize()), round(size))
+        return ImageFont.truetype(font_file(weight.capitalize()), round(size),
+                                  layout_engine=ImageFont.Layout.BASIC)
     from matplotlib import font_manager
     props = font_manager.FontProperties(
         family=family, style="italic" if weight == "italic" else "normal",
@@ -236,7 +241,7 @@ def font(weight: str, size: float, family: str = "Lato"):
     except ValueError:
         raise ValueError(f"font {family!r} is not installed on this machine (style: font in "
                          "the film file)") from None
-    return ImageFont.truetype(path, round(size))
+    return ImageFont.truetype(path, round(size), layout_engine=ImageFont.Layout.BASIC)
 
 
 def _rgb(value: str) -> tuple[int, int, int]:

@@ -57,7 +57,7 @@ def _mark(w: Watermark, scale: float):
         mark = Image.open(w.image).convert("RGBA")
         mark = mark.resize((max(1, round(mark.width * size / mark.height)), size), Image.LANCZOS)
     else:
-        font = ImageFont.truetype(font_file(), size)
+        font = ImageFont.truetype(font_file(), size, layout_engine=ImageFont.Layout.BASIC)
         left, top, right, bottom = font.getbbox(w.text)
         mark = Image.new("RGBA", (max(1, right - left), max(1, bottom - top)), (0, 0, 0, 0))
         r, g, b = (round(c * 255) for c in to_rgb(w.colour))

@@ -92,5 +92,5 @@ def label_at(renderer, text: str, point, size: float, colour, opacity: float = 1
     actor.GetPositionCoordinate().SetCoordinateSystemToDisplay()
     actor.SetPosition(x + offset[0], y + offset[1])
     lato(actor.GetTextProperty(), size, colour, opacity)
-    renderer.AddActor2D(actor)
+    renderer.AddViewProp(actor)       # AddActor2D is gone from VTK 9.7
     return actor

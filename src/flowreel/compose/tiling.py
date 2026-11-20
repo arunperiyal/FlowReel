@@ -230,7 +230,8 @@ def _label(picture, tile: Tile) -> None:
 
     from flowreel.scene.text import font_file
     lab = tile.label
-    font = ImageFont.truetype(font_file(), max(1, round(lab.size)))
+    font = ImageFont.truetype(font_file(), max(1, round(lab.size)),
+                              layout_engine=ImageFont.Layout.BASIC)   # the same on every machine
     draw = ImageDraw.Draw(picture)
     pad = PAD * lab.size
     (x0, y0), (w, h) = tile.at, tile.size

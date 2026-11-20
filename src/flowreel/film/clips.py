@@ -234,3 +234,44 @@ class Clips:
         parts = {"kind": "layout", "order": ts.order, "fps": ts.fps,
                  "files": [stamp(f) for f in sorted(set(files))], "panels": panels}
         return self._encode("base", shot.name, parts, inputs, ";".join(graph), n, BASE_QUALITY)
+
+    def _still(self, ts, image, parts: dict) -> Clip:
+        """A clip of ``image`` (Pillow) held for the whole of shot ``ts``, keyed by its
+        pixels."""
+        import hashlib
+        image = image.convert("RGB")
+        png = self.folder / f"still_{ts.shot.name}.png"
+        image.save(png)
+        pixels = hashlib.sha256(image.tobytes()).hexdigest()
+        inputs = ["-loop", 1, "-framerate", self.film.fps, "-i", png]
+        chain = f"[0:v]{fit(self.film.size)}[out]"
+        return self._encode("base", ts.shot.name, {**parts, "pixels": pixels,
+                                                   "picture": list(image.size)},
+                            inputs, chain, self._frames(ts), BASE_QUALITY)
+
+    def _base_card(self, ts) -> Clip:
+        from flowreel.film.cards import card_image, load_card
+        image = card_image(load_card(ts.shot.source), self.film.style, self.film.size)
+        return self._still(ts, image, {"kind": "card"})
+
+    def _base_hold(self, ts) -> Clip:
+        image = self.last_frame(ts.shot.source, overlays=ts.shot.overlays)
+        return self._still(ts, image, {"kind": "hold"})
+
+    def last_frame(self, name: str, overlays: bool = True):
+        """The last frame shot ``name`` shows, as a Pillow image: its last frame file,
+        or for a layout its last composed frame with, when ``overlays``, its
+        ``rate: output`` panels as drawn for its last output frame."""
+        from PIL import Image
+        ts = self.line.shot(name)
+        last = FRAME_NAME.format(ts.order[-1])
+        if ts.shot.kind == "frames":
+            return Image.open(Path(ts.shot.source) / last).convert("RGB")
+        report = self.layout(name)
+        image = Image.open(report.folder / last).convert("RGB")
+        if overlays:
+            final = FRAME_NAME.format(self._frames(ts) - 1)
+            for tile, drawn in report.overlays:
+                panel = Image.open(Path(drawn.folder) / final).convert("RGB")
+                image.paste(panel, tuple(round(v) for v in tile.at))
+        return image

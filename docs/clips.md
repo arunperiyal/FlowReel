@@ -1,6 +1,6 @@
 # Clips: each shot encoded once
 
-Phase 4, branch 4. Before the film is joined (branch 5), every shot becomes two clips in
+Phase 4, branch 4. Before the film is [joined](build.md), every shot becomes two clips in
 `clips/` beside the film file:
 
 - the **base clip**: the shot's picture alone, at the film's rate and size, exactly as
@@ -101,7 +101,7 @@ for s in c.line.shots:
 
 `Clips(..., panels={"jobs": 8})` passes options to the drawing of live panels.
 `c.last_frame(NAME)` is a shot's last frame as a picture. The `film build` command
-(branch 6) runs this for every shot, then joins the clips (branch 5).
+(branch 6) runs this for every shot, then joins the clips ([building the film](build.md)).
 
 ## Example
 

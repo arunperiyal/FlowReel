@@ -151,3 +151,15 @@ stopping (a talk's film may never go there).
 
 **Not a pause.** A player does not stop at a chapter's end. For a talk, end a chapter on
 a hold (`hold_last_of`) or a freeze, and pause the player there.
+
+## Example
+
+`examples/film_build/run.py` builds a small film from generated frames and a generated
+440 Hz tone, with no data, logo or music: an opening card, a wake with a freeze and
+captions, its last frame held under a closing line, and three chapters. It writes
+`film.mp4`, `film_180p.mp4`, `film.srt`, `chapters.txt` and `contact.png` and prints the
+report. Run it twice: the second run keeps every clip and only joins again.
+
+```bash
+python examples/film_build/run.py /tmp/film_build_example
+```

@@ -7,8 +7,10 @@ replaces the AFMS prototype's shot list in `make_film.py` and its `film_text.tom
 This page covers the file, the captions and the timeline worked out from them. How
 captions, shapes and the watermark are drawn is [captions](captions.md); cards are
 [cards](cards.md); how each shot becomes a clip, at the film's rate with its text on
-top, is [clips](clips.md). Joining the clips into the film comes with branch 5. A runnable example on generated frames, which prints a short film's
-timeline, is `examples/film_timeline/run.py`.
+top, is [clips](clips.md); joining them into the film, with sound, a preview copy,
+subtitles, chapters and a contact sheet, is [building the film](build.md). A runnable
+example on generated frames, which prints a short film's timeline, is
+`examples/film_timeline/run.py`.
 
 ```yaml
 output: film.mp4

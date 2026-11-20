@@ -1168,7 +1168,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] `only`: one shot's finished clip, for checking its text
 - [x] `film.srt` from the captions; `contact.png`: stills at captions, freezes or every few seconds, with text in place (`film check`)
 - [x] Chapters (Section 10.9, added 2026-11-20): a shot's `chapter: TITLE` or `{title, at}`, checked against the shot's length; chapter times from the timeline; an ffmpeg metadata file given at the join (`-map_chapters`), in the film and its preview copy; `chapters.txt` with YouTube timestamps (`0:00 Title`)
-- [ ] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should
+- [x] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should
 
 **Branch 6: `phase4/cli-film`** (commands; needs branch 5)
 - [ ] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`

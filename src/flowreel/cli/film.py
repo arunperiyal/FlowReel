@@ -2,7 +2,8 @@
 
 Each action is a thin layer over a library function (``flowreel.film.build.build``,
 ``flowreel.film.check.contact`` ...); the work and its checks live there. ``FILM`` is
-the film file; left out, it is ``film.yml`` in the current folder.
+the film file; left out, it is ``film.yml`` of the ``project`` context (``use
+project:DIR`` in the shell), else ``film.yml`` in the current folder.
 """
 from __future__ import annotations
 
@@ -10,7 +11,9 @@ import argparse
 import textwrap
 import time
 
-from shellkit import BaseCommand, CommandError, paths
+from pathlib import Path
+
+from shellkit import BaseCommand, CommandError, add_context_arg, paths
 
 from flowreel.scene.errors import ConfigError
 
@@ -54,10 +57,17 @@ def _parser(actions, name, help, description):
                               formatter_class=argparse.RawDescriptionHelpFormatter)
 
 
+def _project_film(store, namespace):
+    """``film.yml`` of the project context, when one is set."""
+    folder = store.get("project")
+    return None if folder is None else str(Path(folder) / "film.yml")
+
+
 def _film_arg(parser):
-    parser.add_argument("film", nargs="?", default="film.yml", metavar="FILM",
-                        help="the film file (default ./film.yml)"
-                        ).completer = paths((".yml", ".yaml"))
+    add_context_arg(parser, "project", "film", required=False, default="film.yml",
+                    resolve=_project_film, metavar="FILM",
+                    help="the film file (default: film.yml of the project set with "
+                         "use project:DIR, else ./film.yml)").completer = paths((".yml", ".yaml"))
 
 
 def _clips_arg(parser):
@@ -216,8 +226,6 @@ class FilmCommand(BaseCommand):
         return 0
 
     def do_chapters(self, args, ctx):
-        from pathlib import Path
-
         from flowreel.film import load, timeline
         from flowreel.film.chapters import youtube_notes, youtube_text
         chapters = timeline(load(args.film)).chapters
@@ -234,8 +242,6 @@ class FilmCommand(BaseCommand):
         return 0
 
     def do_template(self, args, ctx):
-        from pathlib import Path
-
         from flowreel.film.template import template
         if args.fps < 1:
             raise CommandError("--fps must be at least 1")

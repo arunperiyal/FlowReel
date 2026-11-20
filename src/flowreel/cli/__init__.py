@@ -2,7 +2,8 @@
 
 ``flowreel shot render reveal.yml -j 8`` runs one command and exits (as a Slurm job
 needs); ``flowreel`` alone starts FlowReel's interactive shell, where ``use shot:FILE``
-sets the shot that later commands use. Commands keep their work in library functions
+sets the shot that later commands use and ``use project:DIR`` the project folder, whose
+``film.yml`` the film commands use. Commands keep their work in library functions
 (``flowreel.scene.render`` ...), so the shell stays a thin layer.
 """
 from __future__ import annotations
@@ -23,7 +24,25 @@ def _shot_file(raw: str, runtime=None) -> str:
     return str(path)
 
 
+def _project_folder(raw: str, runtime=None) -> str:
+    """A project context value: a folder holding ``flowreel.yml`` or ``film.yml``, kept
+    as an absolute path."""
+    base = Path(getattr(runtime, "cwd", None) or Path.cwd())
+    path = (base / raw).expanduser().resolve()
+    if not path.is_dir():
+        raise ValueError(f"no such folder: {raw}")
+    if not any((path / name).is_file() for name in PROJECT_FILES):
+        raise ValueError(f"{raw} is not a project: it has no {' or '.join(PROJECT_FILES)}")
+    return str(path)
+
+
+#: Files that make a folder a project, for ``use project:DIR``.
+PROJECT_FILES = ("flowreel.yml", "film.yml")
+
 CONTEXTS = [
+    ContextKey("project", parse=_project_folder, path=True, label="project",
+               style="#50a0e0 bold", description="Project folder; film commands use its film.yml",
+               format=lambda v: Path(v).name),
     ContextKey("shot", parse=_shot_file, path=True, label="shot", style="#e0a030 bold",
                description="Shot file that shot commands use", format=lambda v: Path(v).name),
 ]

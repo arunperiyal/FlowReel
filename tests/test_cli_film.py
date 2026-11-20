@@ -102,3 +102,18 @@ def test_template(sh, tmp_path):
     status, _, err = sh.run(f"film template -o {target}")
     assert status != 0 and "--force" in err
     assert sh.run(f"film template -o {target} --force")[0] == 0
+
+
+def test_project_context_finds_film_yml(project, tmp_path, monkeypatch):
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    sh = Shell(tmp_path / "store")
+    status, _, err = sh.run("film lengths")
+    assert status != 0 and "film.yml" in err
+    assert sh.run(f"use project:{project}")[0] == 0
+    status, out, err = sh.run("film lengths")
+    assert status == 0, err
+    assert words(out)["b"][:2] == ["1.75", "s"] and str(project / "film.yml") in out + err
+    status, _, err = sh.run(f"use project:{elsewhere}")
+    assert status != 0 and "not a project" in err

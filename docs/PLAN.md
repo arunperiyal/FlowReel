@@ -1155,7 +1155,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 
 **Branch 4: `phase4/film-clips`** (base and finished clips; needs branches 1 to 3)
 - [x] ffmpeg: a standard build from conda-forge in `flexflow_env`, declared in a new `environment.yml` (pip cannot install ffmpeg, so not in `pyproject.toml`), with install notes in the README; found through `FFMPEG` or the path, its version and filters (`minterpolate`, `xfade`) checked once, with a clear error naming the binary found (the workstation's `ffmpeg` on the path is Tecplot's own copy)
-- [ ] Base clip of a frames shot: the frame order with freezes, `rate: {fps, to_output}` with `interpolate` (motion-compensated, scene cuts off), `repeat` and `blend`; encoded once, keyed by content (frame names and times, rate, freezes, filters; Section 11)
+- [x] Base clip of a frames shot: the frame order with freezes, `rate: {fps, to_output}` with `interpolate` (motion-compensated, scene cuts off), `repeat` and `blend`; encoded once, keyed by content (frame names and times, rate, freezes, filters; Section 11)
 - [ ] Base clip of a layout shot: its composed frames interpolated and its `rate: output` panels laid on at the output rate (Section 9.3), through `compose.layout(output=...)`
 - [ ] Base clips of cards and holds (`hold_last_of`: a shot's last frame, with or without its overlays)
 - [ ] Finished clip: fades on the picture, then captions, shapes and the film's watermark on top with their own fades, so text can sit on black; keyed by content

@@ -29,7 +29,7 @@ scaled. Text is the bundled Lato (``weight``: ``regular``, ``light``, ``bold`` o
 muted colour for headings, dividers and small print. Image files are taken from the
 card file's folder and stay outside the repository (no logos in it).
 
-:func:`load_card` reads a card file; :func:`layout` places its blocks.
+:func:`load_card` reads a card file, :func:`card_image` draws it.
 """
 from __future__ import annotations
 
@@ -211,3 +211,77 @@ def height(b: Block) -> float:
     if b.kind == "names":
         return (b["heading_gap"] if b.get("heading") else 0) + b["spacing"] * len(b["names"])
     return b["spacing"] * len(b[b.kind])
+
+
+# Drawing ------------------------------------------------------------------------------
+
+def font(weight: str, size: float):
+    """The bundled Lato of ``weight`` at ``size`` pixels, for Pillow."""
+    from PIL import ImageFont
+
+    from flowreel.scene.text import font_file
+    return ImageFont.truetype(font_file(weight.capitalize()), round(size))
+
+
+def _rgb(value: str) -> tuple[int, int, int]:
+    from matplotlib.colors import to_rgb
+    return tuple(round(c * 255) for c in to_rgb(value))
+
+
+def _centred(draw, width: int, y: float, text: str, fnt, fill) -> None:
+    """``text`` centred across a card ``width`` pixels wide, its top (ascender) at ``y``."""
+    draw.text(((width - draw.textlength(text, font=fnt)) / 2, y), text, font=fnt, fill=fill)
+
+
+def _background(card: Card):
+    from PIL import Image
+    image = Image.new("RGB", card.size, _rgb(card.background))
+    if card.background_image is not None:
+        back = Image.open(card.background_image).convert("RGB")
+        k = max(card.size[0] / back.width, card.size[1] / back.height)
+        back = back.resize((round(back.width * k), round(back.height * k)), Image.LANCZOS)
+        left, top = (back.width - card.size[0]) // 2, (back.height - card.size[1]) // 2
+        image.paste(back.crop((left, top, left + card.size[0], top + card.size[1])))
+    return image
+
+
+def card_image(card: Card, style=None, size: tuple[int, int] | None = None):
+    """Draw ``card``: a Pillow RGB image ``size`` (width, height) pixels, the card's own
+    size by default (another size scales the whole card). ``style`` is the film's
+    :class:`~flowreel.film.schema.FilmStyle`, for colours a block leaves out."""
+    from PIL import Image, ImageDraw
+
+    from flowreel.film.schema import FilmStyle
+    style = style or FilmStyle()
+    text, muted = _rgb(style.text), _rgb(style.muted)
+    image = _background(card)
+    draw = ImageDraw.Draw(image)
+    width = card.size[0]
+    for b, (top, _) in zip(card.blocks, layout(card)):
+        fill = _rgb(b["colour"]) if b.get("colour") else None
+        if b.kind == "image":
+            logo = Image.open(b["image"]).convert("RGBA")
+            h = height(b)
+            logo = logo.resize((round(logo.width * h / logo.height), round(h)), Image.LANCZOS)
+            image.paste(logo, ((width - logo.width) // 2, round(top)), logo)
+        elif b.kind == "divider":
+            half = b["divider"] / 2
+            draw.line((width / 2 - half, top, width / 2 + half, top), fill=fill or muted,
+                      width=round(b["thickness"]))
+        elif b.kind == "names":
+            y = top
+            if b.get("heading"):
+                hf = _rgb(b["heading_colour"]) if b.get("heading_colour") else muted
+                _centred(draw, width, y, b["heading"], font(b["heading_weight"], b["heading_size"]), hf)
+                y += b["heading_gap"]
+            fnt = font(b["weight"], b["size"])
+            for i, name in enumerate(b["names"]):
+                _centred(draw, width, y + i * b["spacing"], name, fnt, fill or text)
+        else:
+            fnt = font(b["weight"], b["size"])
+            default = text if b.kind == "title" else muted
+            for i, line in enumerate(b[b.kind]):
+                _centred(draw, width, top + i * b["spacing"], line, fnt, fill or default)
+    if size is not None and tuple(size) != card.size:
+        image = image.resize(tuple(size), Image.LANCZOS)
+    return image

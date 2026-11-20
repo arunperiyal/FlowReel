@@ -98,6 +98,17 @@ def test_compose_and_film_as_jobs_after_others(sh, tmp_path):
         (tmp_path / "jobs" / "film.sh").read_text()
 
 
+def test_jobs_status(sh, tmp_path):
+    run(sh, "shot memory g.yml -o frames")
+    sh.run("shot render g.yml --submit")
+    status, out, err = sh.run("jobs status")
+    assert status == 0, err
+    assert "1310  g (render), submitted 00:00:0" in out
+    assert "RUNNING 1, PENDING 1" in out and "frames drawn since: 0 of 6 (frames/g)" in out
+    status, out, _ = sh.run("jobs status 1311")
+    assert "1311  film" in out and "COMPLETED  [1311 COMPLETED 00:01:10 exit 0:0]" in out
+
+
 def test_errors(sh, tmp_path):
     for line, message in [
         ("shot render g.yml --missing", "--missing is for --slurm or --submit"),
@@ -114,3 +125,11 @@ def test_errors(sh, tmp_path):
                                              'echo "sbatch: error: invalid partition" >&2; exit 1\n'))
     status, _, err = sh.run("film build --submit")
     assert status != 0 and "sbatch refused" in err and "invalid partition" in err
+
+
+def test_jobs_partitions_and_check(sh):
+    status, out, _ = sh.run("jobs partitions --cluster airavata")
+    assert status == 0 and out.splitlines()[0] == "airavata  (this machine)"
+    assert "part3       3-00:00:00  128 cores, 125G" in out
+    status, out, _ = run(sh, "jobs check")
+    assert "auto ->" in out and status in (0, 1)

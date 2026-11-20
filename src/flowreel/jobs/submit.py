@@ -15,6 +15,7 @@ import os
 import shutil
 import subprocess
 import time as _time
+from dataclasses import dataclass
 from pathlib import Path
 
 RECORD = Path(".flowreel") / "jobs.json"
@@ -67,3 +68,60 @@ def notes(workdir: str | Path) -> list[dict]:
         return json.loads((Path(workdir) / RECORD).read_text())
     except (OSError, ValueError):
         return []
+
+
+@dataclass(frozen=True)
+class JobState:
+    """A job (or array task) as Slurm reports it: ``job`` id, ``name``, ``state``
+    (``PENDING``, ``RUNNING``, ``COMPLETED``, ``FAILED``, ``TIMEOUT``, ``CANCELLED`` ...),
+    ``elapsed`` time and ``reason`` (why pending, or the exit code)."""
+
+    job: str
+    name: str
+    state: str
+    elapsed: str
+    reason: str = ""
+
+
+def status(jobs: list[str]) -> list[JobState]:
+    """Slurm's state of each of ``jobs`` and their array tasks: ``squeue`` for those
+    queued or running, ``sacct`` for the rest (when it is there)."""
+    if not jobs:
+        return []
+    ids = ",".join(jobs)
+    out: dict[str, JobState] = {}
+    done = subprocess.run([tool("squeue"), "-h", "-j", ids, "-o", "%i|%j|%T|%M|%r"],
+                          capture_output=True, text=True)
+    for line in done.stdout.splitlines():
+        parts = line.strip().split("|")
+        if len(parts) == 5:
+            out[parts[0]] = JobState(*parts)
+    try:
+        sacct = tool("sacct")
+    except SlurmError:
+        sacct = None
+    if sacct:
+        done = subprocess.run([sacct, "-n", "-P", "-X", "-j", ids,
+                               "--format=JobID,JobName,State,Elapsed,ExitCode"],
+                              capture_output=True, text=True)
+        for line in done.stdout.splitlines():
+            parts = line.strip().split("|")
+            if len(parts) == 5 and parts[0] not in out and "[" not in parts[0]:
+                job, name, state, elapsed, code = parts
+                out[job] = JobState(job, name, state.split()[0], elapsed, f"exit {code}")
+    return sorted(out.values(), key=lambda s: [int(x) if x.isdigit() else 0
+                                               for x in s.job.replace("_", ".").split(".")])
+
+
+def frames_done(folder: str | Path, frames: list[int], since: float) -> int:
+    """How many of ``frames`` in ``folder`` were written after ``since`` (seconds since
+    the epoch): the frames a render drew since it was submitted."""
+    from flowreel.scene.rendering import FRAME_NAME
+    count = 0
+    for i in frames:
+        try:
+            if (Path(folder) / FRAME_NAME.format(i)).stat().st_mtime >= since:
+                count += 1
+        except OSError:
+            pass
+    return count

@@ -49,7 +49,7 @@ Each shot has a `name` (unique) and is one of four kinds:
 |---|---|---|
 | frames | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
 | layout | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
-| card | `card: FILE` (a still card, branch 3) | `seconds` |
+| card | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
 | hold | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
 
 | Key | Type | Default | Meaning |

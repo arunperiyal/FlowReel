@@ -1,0 +1,13 @@
+# The golden opening card of tools/make_card_golden.py, written for FlowReel: the AFMS
+# film's opening card, with a generated logo and placeholder names.
+background: black
+blocks:
+  - {image: logo.png, height: 190, y: 110}
+  - title: ['Effect of Helical Grooves on Suppression of',
+            'Vortex-Induced Vibration in Flexible Cylinders']
+    size: 60
+    spacing: 82
+    gap: 70
+  - {divider: 320, thickness: 2, gap: 38}
+  - {heading: CREATED BY, names: ['A. Author'], gap: 46}
+  - {heading: CO-AUTHORED BY, names: ['B. Author, C. Author,', 'D. Author and E. Author'], gap: 26}

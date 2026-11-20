@@ -1,6 +1,6 @@
 """Write the AFMS film's own FlowReel files, taken from the prototype's scripts.
 
-Usage: python tools/afms_film.py OUT [--prototype DIR] [--force]
+Usage: python tools/afms_film.py OUT [--prototype DIR] [--force] [--reveal CASE]
 
 The AFMS film was built by ``prototype/afms/make_film.py`` (its shot list, ``SHOTS``,
 and settings) and ``prototype/afms/film_text.toml`` (every word, its timing and place,
@@ -24,6 +24,12 @@ The folder then needs (paths as the prototype had them):
   ``slices``, ``helical_section``, ``wall``, ``liftmap``);
 - ``series/bare_series.csv`` and ``series/helical_series.csv`` (``extract_series.py``);
 - the logo and the track at the paths the prototype names (``assets/``).
+
+``--reveal CASE`` also writes ``OUT/reveal/``: the bare reveal as a FlowReel shot
+(``bare_reveal.yml`` and ``cameras.yml``, from the prototype's ``render_frames.py``:
+camera, crop, wake, colours and the sweep, timed by ``make_film.py``'s ``REVEAL``) and,
+when the case is there, its ``flowreel.yml`` (``project init``). Phase 5 renders it on
+airavata with ``flowreel shot render bare_reveal.yml --submit``.
 
 ``tests/test_golden_film.py`` runs this into a temporary folder with generated frame
 folders of the film's counts, and checks lengths and captions against the prototype.
@@ -228,6 +234,80 @@ def write(out: Path, force: bool = False, folder: Path = PROTOTYPE) -> list[Path
     return written
 
 
+def reveal_shot(case: str | Path, folder: Path = PROTOTYPE) -> tuple[str, str]:
+    """The bare reveal as a FlowReel shot file and its ``cameras.yml``, from the
+    prototype's ``render_frames.py`` (look) and ``make_film.py`` (steps, the sweep's
+    frames). The case is the bare case's folder."""
+    mf, _ = prototype(folder)
+    import render_frames as rf
+    first, last = mf.REVEAL                           # frames of the sweep, at 8 fps
+    span = last - first
+    (x0, x1), (y0, y1), (z0, z1) = rf.CROP
+    position, focal, up = rf.CAMERA
+    lo, hi = rf.COLOUR_RANGE
+    field = {"xVor_true": "vorticity_x", "zVor_true": "vorticity_z"}[rf.COLOUR_FIELD]
+    shot = f"""{HEADER.rstrip()}
+# The bare reveal: the coloured wake, then from frame {first} to {last} a cutting plane sweeps
+# along the span to mid-span, showing a live section, and the wake turns grey. One frame
+# per saved step, {mf.T1} to {mf.T2} ({rf.__file__.rsplit('/', 1)[-1]}, --look reveal).
+name: bare_reveal
+source: flexflow:{Path(case).resolve()}
+time: {{steps: [{mf.T1}, {mf.T2}], every: 1}}
+crop: {{x: [{x0}, {x1}], y: [{y0}, {y1}], z: [{z0}, {z1}]}}
+camera: {{view: main}}
+size: [{rf.SIZE[0]}, {rf.SIZE[1]}]
+background: black
+antialias: ssaa
+layers:
+  - {{type: body}}
+  - type: slice
+    normal: x
+    position: &sweep {{from: {rf.SWEEP_START}, to: {rf.MIDSPAN}, frames: [{first}, {last}]}}
+    field: {field}
+    range: [{lo}, {hi}]
+    opacity: {{from: 0.0, to: 1.0, frames: [{first}, {first + 0.1 * span:g}]}}
+    fade_weak: [0.05, 0.5]
+    near_wall: [0.03, 0.1]
+  - type: iso
+    field: {rf.WAKE_FIELD}
+    level: {rf.WAKE_LEVEL}
+    wall_gap: {rf.WALL_GAP}
+    colour_by: {field}
+    range: [{lo}, {hi}]
+    clip_axis: x
+    clip_position: *sweep
+    clip_keep: above
+    clip_active: {{keys: [[0, false], [{first + 0.01:g}, true]]}}
+    grey: {{from: 0.0, to: 1.0, frames: [{first + 0.4 * span:g}, {last}]}}
+    grey_colour: "{rf.MUTED}"
+"""
+    cameras = (f"{HEADER.rstrip()}\nviews:\n  - {{name: main, position: {list(position)}, "
+               f"focal: {list(focal)}, up: {list(up)}, view_angle: {rf.VIEW_ANGLE}}}\n")
+    return shot, cameras
+
+
+def write_reveal(out: Path, case: str | Path, force: bool = False,
+                 folder: Path = PROTOTYPE) -> list[Path]:
+    """Write ``out/reveal/``: the reveal shot, its cameras and, when ``case`` is there,
+    its ``flowreel.yml``; returns the files written."""
+    shot, cameras = reveal_shot(case, folder)
+    target = Path(out) / "reveal"
+    target.mkdir(parents=True, exist_ok=True)
+    written = []
+    for name, text in (("bare_reveal.yml", shot), ("cameras.yml", cameras)):
+        path = target / name
+        if path.exists() and not force:
+            raise FileExistsError(f"{path} exists (use --force to overwrite)")
+        path.write_text(text)
+        written.append(path)
+    if (Path(case) / "binary").is_dir():
+        from flowreel import sources
+        from flowreel.project.init import init_project
+        written.append(init_project(target, sources.create("flexflow", path=str(case)),
+                                    label=f"flexflow:{case}", force=force))
+    return written
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -236,9 +316,14 @@ def main():
                         help="the folder of make_film.py and film_text.toml "
                              "(default: prototype/afms in this repository)")
     parser.add_argument("--force", action="store_true", help="overwrite files that exist")
+    parser.add_argument("--reveal", metavar="CASE",
+                        help="also write reveal/: the bare reveal as a shot of the case CASE")
     args = parser.parse_args()
     for path in write(args.out, args.force, args.prototype):
         print(path)
+    if args.reveal:
+        for path in write_reveal(args.out, args.reveal, args.force, args.prototype):
+            print(path)
 
 
 if __name__ == "__main__":

@@ -1258,7 +1258,7 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 
 **Branch 5: `phase5/golden-slurm`** (the check; needs all the others)
 - [x] A fake `sbatch` and `squeue` on the path in tests (they record the call and run the script, array tasks one by one): a generated shot submitted, rendered, cancelled half way and resubmitted with nothing redrawn
-- [ ] The AFMS reveal written as a FlowReel shot for the real bare case (in the AFMS project folder on airavata, outside this repository)
+- [x] The AFMS reveal written as a FlowReel shot for the real bare case (in the AFMS project folder on airavata, outside this repository)
 - [ ] `examples/` Slurm project on generated data, with the fake `sbatch` so it runs anywhere
 - [ ] On airavata: `flowreel shot render reveal.yml --submit` on `node1`, its frames compared with the prototype's `frames/bare_reveal` by image difference, time and memory per frame recorded here
 

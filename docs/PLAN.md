@@ -844,7 +844,7 @@ Each phase ends with something checkable.
 | 2 | Scene: layers, views, rendering, caching; `shot render`, with a draft size (`--scale`, `--size`) | reveal, domain and carving shots match the golden frames |
 | 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
-| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place |
+| 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place (done 2026-11-21) |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
@@ -1181,12 +1181,12 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)
 - [x] A test that the film's planned shot lengths equal the prototype's `duration()` for the same shot list and frame counts, on generated frame folders of those counts
 - [x] `examples/` film project on generated data, silent, with a card, a freeze, a layout shot with live plots and a watermark of text
-- [ ] The rebuild on the workstation from the real frames: lengths per shot measured against the prototype's film, and a contact sheet at every caption compared with the prototype's film at the same times; results written here
+- [x] The rebuild on the workstation from the real frames: lengths per shot measured against the prototype's film, and a contact sheet at every caption compared with the prototype's film at the same times; results written here
 
 **Branch 8: `phase4/install-script`** (installing on a new machine; added 2026-11-21)
 - [x] `install.sh`: finds conda, creates `flexflow_env` from `environment.yml` or adds only what an existing one lacks, installs shellkit if missing (`SHELLKIT_DIR` for a local checkout), FlowReel editable, checks ffmpeg, adds a `flowreel` alias; `--uninstall`, `-y`, `--no-alias`
 - [x] Cards drawn in the film's `style.font` (any installed family, nearest weight), as captions and panels already are: the AFMS film's final version is in Times New Roman
-- [ ] Tried on airavata from a fresh clone, and the AFMS film built there from its files
+- [x] Tried on airavata from a fresh clone (991 passed with VTK 9.7 and a raqm Pillow, after the fixes above), and the AFMS film built there from its files
 
 Left out of Phase 4: 3D and anchored shapes (`arrow3d` ..., `{model: ..., view: ...}`
 points; Phase 6 with the camera editor), ducking audio under narration (Section 10.6,
@@ -1197,6 +1197,25 @@ captions in place. In this repository that is checked on generated frames of the
 counts (lengths against the prototype's own `duration()`, captions and the card against
 pictures drawn by its own functions); the rebuild from the real frames is run on the
 workstation and its result recorded under this line.
+
+**Done 2026-11-21**, rebuilt on airavata (not the workstation: the frames are there) in
+`studies/flowreel_video`, from files written by `tools/afms_film.py --prototype
+../afms_video` (the final version: Times New Roman, STIX maths, moved captions), with
+`afms_video`'s frames, series and assets linked in. `flowreel film build --preview 480
+-j 16` took 9.5 minutes on the login node, at low priority.
+
+- **Length.** Every shot's measured length equals its planned length and the
+  prototype's `duration()`; the film is 131.88 s. The prototype's own film measures
+  130.83 s: its five interpolated 8 fps shots each came out 0.21 s short (minterpolate
+  drops the last flow frame, fixed in FlowReel's clips) and its domain shot was cut
+  from 289 frames to 12.00 s. The music is 129.85 s, so both films end in silence.
+- **Captions.** A still at the middle of each of the 32 captions, taken from FlowReel's
+  finished clip and from the prototype's `clips/shot_<name>.mp4` at the same time in
+  the shot, differs by at most 0.5 grey levels on average, with no pixel clearly
+  different (`flowreel_video/compare_captions.png`). The live plots match too.
+- **Card.** The opening card differs by 3.6 grey levels on average (1.9% of pixels):
+  airavata's Pillow kerned the prototype's text (raqm), and FlowReel now lays card text
+  out with Pillow's basic engine on every machine so a card is the same everywhere.
 
 ## 20. From the prototype
 

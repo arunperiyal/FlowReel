@@ -53,7 +53,11 @@ Reference: docs/commands.md.""",
   flowreel shot render carve.yml -j 16            every frame, 16 at a time
   flowreel shot render carve.yml --frames 0:48:4  frames 0, 4, ... 48
   flowreel shot render carve.yml --scale 0.5      a half-size draft, in frames/carve@960x540/
-  flowreel shot render carve.yml --force          draw again even if nothing changed""",
+  flowreel shot render carve.yml --force          draw again even if nothing changed
+  flowreel shot render carve.yml --submit         as a Slurm job array, sized from a
+                                                  measured frame (docs/slurm.md)
+  flowreel shot render carve.yml --slurm carve.sh --max-running 2   write the script only
+  flowreel shot render carve.yml --submit --missing                 only frames not drawn""",
     "preview": """examples:
   flowreel shot preview carve.yml                 every 10th frame at a quarter size
   flowreel shot preview carve.yml --every 4 --scale 0.5""",
@@ -122,6 +126,8 @@ class ShotCommand(BaseCommand):
         r.add_argument("--force", action="store_true",
                        help="draw the frames even when their key did not change")
         _run_args(r)
+        from flowreel.cli.jobs import add_slurm_args
+        add_slurm_args(r, render=True)
 
         pv = _parser(
             actions, "preview", help="small frames, every N-th, to check timing",
@@ -145,6 +151,9 @@ class ShotCommand(BaseCommand):
                        help="threads per job; caps the suggested jobs at cores / T")
         m.add_argument("--backend", choices=BACKENDS, default="auto",
                        help="off-screen OpenGL: auto, osmesa, egl or x")
+        m.add_argument("-o", "--out", default="frames", metavar="DIR",
+                       help="folder of the frame folders, where the measurement is kept for "
+                            "sizing Slurm jobs (default ./frames)")
 
         t = _parser(
             actions, "template", help="write a commented shot file with the defaults",
@@ -172,7 +181,13 @@ class ShotCommand(BaseCommand):
     # -- render ----------------------------------------------------------------------
 
     def do_render(self, args, ctx):
+        from flowreel.cli.jobs import slurm_wanted
         frames = parse_frames(args.frames) if args.frames else None
+        if slurm_wanted(args):
+            return _render_on_slurm(args, ctx, frames)
+        if args.missing:
+            raise CommandError("--missing is for --slurm or --submit; a render here skips "
+                               "drawn frames anyway")
         return _render(args, ctx, frames, args.scale, args.size, args.force)
 
 
@@ -193,7 +208,7 @@ class ShotCommand(BaseCommand):
         try:
             report = measure(args.shot, args.frame, scale=args.scale,
                              size=tuple(args.size) if args.size else None,
-                             threads=args.threads, backend=args.backend)
+                             threads=args.threads, backend=args.backend, out=args.out)
         except (ValueError, IndexError) as exc:
             raise CommandError(str(exc)) from None
         ctx.out(report.text())
@@ -218,6 +233,26 @@ class ShotCommand(BaseCommand):
         path.write_text(text)
         ctx.out(f"wrote {path}")
         return 0
+
+
+def _render_on_slurm(args, ctx, frames) -> int:
+    from flowreel.cli.jobs import slurm_options
+    from flowreel.jobs import run
+    from flowreel.jobs.submit import SlurmError
+    if args.scale is not None and args.size is not None:
+        raise CommandError("give --scale or --size, not both")
+    if args.max_running is not None and args.max_running < 1:
+        raise CommandError("--max-running must be at least 1")
+    try:
+        done = run.render(args.shot, out=args.out, frames=frames, scale=args.scale,
+                          size=tuple(args.size) if args.size else None, backend=args.backend,
+                          force=args.force, missing=args.missing, threads=args.threads or 1,
+                          max_running=args.max_running, **slurm_options(args))
+    except (SlurmError, LookupError, ValueError, KeyError) as exc:
+        raise CommandError(str(exc.args[0]) if isinstance(exc, (LookupError, KeyError))
+                           and exc.args else str(exc)) from None
+    ctx.out(done.text())
+    return 0
 
 
 def _render(args, ctx, frames, scale, size, force) -> int:

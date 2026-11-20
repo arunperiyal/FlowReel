@@ -382,6 +382,21 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     return report
 
 
+def missing(shot, frames: Iterable[int] | None = None, source=None, *, views=None,
+            tracks=None, out: str | Path = "frames", scale: float | None = None,
+            size: tuple[int, int] | None = None) -> list[int]:
+    """The frames among ``frames`` (default all) of ``shot`` that :func:`render` would
+    draw: no file, or one drawn with another key. Nothing is drawn; the source is
+    opened to work out the keys."""
+    shot = _as_shot(shot)
+    size = draft_size(shot.size, scale, size)
+    scene = Scene.make(shot, source, views, tracks, size, cache=Path(out) / CACHE_FOLDER)
+    folder = frame_folder(out, shot, size)
+    store = KeyStore(folder)
+    return [i for i in _frames(frames, scene.plan.n_frames, shot)
+            if not store.fresh(folder / FRAME_NAME.format(i), frame_key(scene, i))]
+
+
 def _frames(frames, n: int, shot: Shot) -> list[int]:
     if frames is None:
         return list(range(n))

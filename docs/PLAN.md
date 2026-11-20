@@ -1171,11 +1171,11 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should
 
 **Branch 6: `phase4/cli-film`** (commands; needs branch 5)
-- [ ] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
-- [ ] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
-- [ ] `film template`: a commented `film.yml` with every key at its default
-- [ ] `project` context in the shell (Section 13), so film commands find `film.yml`
-- [ ] Help text; docs: commands page
+- [x] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
+- [x] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
+- [x] `film template`: a commented `film.yml` with every key at its default
+- [x] `project` context in the shell (Section 13), so film commands find `film.yml`
+- [x] Help text; docs: commands page
 
 **Branch 7: `phase4/golden-film`** (the check; needs all the others)
 - [ ] The AFMS film's own files written for FlowReel: `film.yml`, text and card files, its shot list and lengths taken from `make_film.py` and `film_text.toml` (no logo, music or data in this repository; the files that name them live with the research data)

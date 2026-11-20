@@ -53,7 +53,7 @@ class ShotLength:
 
     name: str
     planned: float
-    measured: float
+    measured: float | None
     built: bool
 
 
@@ -67,7 +67,7 @@ class Built:
     output: Path
     shots: list[ShotLength]
     planned: float
-    measured: float
+    measured: float | None
     notes: list[str] = field(default_factory=list)
     preview: Path | None = None
     srt: Path | None = None
@@ -272,3 +272,70 @@ def _check_preview(film, height, crf) -> None:
         raise ValueError(f"preview: {height} pixels is taller than the film's {film.size[1]}")
     if not isinstance(crf, int) or isinstance(crf, bool) or not 0 <= crf <= 51:
         raise ValueError(f"preview: crf must be a whole number from 0 to 51, got {crf!r}")
+
+
+@dataclass(frozen=True)
+class Lengths:
+    """A film's lengths without building it (``film lengths``): ``shots`` as
+    :class:`ShotLength` (``measured`` is ``None`` for a shot with no finished clip yet,
+    and ``built`` is always ``False``), the ``chapters``
+    (:class:`~flowreel.film.timeline.TimedChapter`) and the film's ``planned`` seconds."""
+
+    shots: list[ShotLength]
+    chapters: list
+    planned: float
+
+    @property
+    def measured(self) -> float | None:
+        """The sum of the shots' measured lengths, or ``None`` if one is missing."""
+        if any(s.measured is None for s in self.shots):
+            return None
+        return sum(s.measured for s in self.shots)
+
+    def table(self) -> list[str]:
+        """The lengths as lines: one per shot, the film, then each chapter's start (as
+        YouTube writes it, and in seconds) and length."""
+        from flowreel.film.chapters import timestamp
+
+        def seconds(v):
+            return "     -  " if v is None else f"{v:6.2f} s"
+        width = max([len(s.name) for s in self.shots] + [4])
+        out = [f"{'shot':{width}s}  planned  measured"]
+        out += [f"{s.name:{width}s}  {s.planned:6.2f} s  {seconds(s.measured)}"
+                for s in self.shots]
+        out.append(f"{'film':{width}s}  {self.planned:6.2f} s  {seconds(self.measured)}")
+        if any(s.measured is None for s in self.shots):
+            out.append("-: no finished clip yet (film build)")
+        if self.chapters:
+            width = max([len(c.title) for c in self.chapters] + [7])
+            out.append(f"{'chapter':{width}s}  start             length")
+            out += [f"{c.title:{width}s}  {timestamp(c.start):>7s} {c.start:8.2f} s  "
+                    f"{c.end - c.start:6.2f} s" for c in self.chapters]
+        return out
+
+
+def last_clip(folder: Path, name: str) -> Path | None:
+    """The finished clip of shot ``name`` in the clips ``folder`` from the last build,
+    or ``None``. A build keeps one finished clip per shot."""
+    import re
+    pattern = re.compile(rf"shot_{re.escape(name)}_[0-9a-f]{{16}}\.mp4")
+    found = [p for p in Path(folder).glob(f"shot_{name}_*.mp4") if pattern.fullmatch(p.name)]
+    return max(found, key=lambda p: p.stat().st_mtime_ns) if found else None
+
+
+def lengths(film, *, folder=None) -> Lengths:
+    """The planned length of each shot of ``film`` (a :class:`~flowreel.film.Film` or a
+    film file's path) and its chapters, from the timeline; the measured length from
+    each shot's finished clip of the last build in ``folder`` (default ``clips/`` beside
+    the film file). Nothing is drawn or built, so a clip may be older than the film file
+    (``film build`` reports the lengths of what it builds)."""
+    from flowreel.film.timeline import timeline
+    film = _film(film)
+    line = timeline(film)
+    folder = Path(folder) if folder is not None else film.folder / "clips"
+    shots = []
+    for ts in line.shots:
+        clip = last_clip(folder, ts.shot.name) if folder.is_dir() else None
+        shots.append(ShotLength(ts.shot.name, ts.length,
+                                None if clip is None else ff.length(clip), False))
+    return Lengths(shots, line.chapters, line.length)

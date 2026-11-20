@@ -2,6 +2,8 @@
 
 Phase 4, branch 5. `film.build` turns a [film file](film.md) into `film.mp4`: every
 shot's [finished clip](clips.md), joined in order, with the film's sound under it.
+From the command line it is `flowreel film build`, and the checks below are `film
+check`, `film lengths`, `film srt` and `film chapters` ([commands](commands.md#film-build)).
 
 ```python
 from flowreel.film.build import build
@@ -162,4 +164,12 @@ report. Run it twice: the second run keeps every clip and only joins again.
 
 ```bash
 python examples/film_build/run.py /tmp/film_build_example
+```
+
+`examples/film_commands/run.sh` does the same with the `film` commands: `film template`,
+`film lengths` before and after `film build --preview 180`, `film check`, `film srt` and
+`film chapters`.
+
+```bash
+sh examples/film_commands/run.sh /tmp/film_commands_example
 ```

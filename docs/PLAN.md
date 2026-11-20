@@ -845,7 +845,7 @@ Each phase ends with something checkable.
 | 2B | Bodies: declarations, supports, series tracks, virtual bodies, long spans (Sections 5.4 to 5.6) | a generated case renders: a pin-roll cylinder 500 diameters long with a second body and a driven pendulum |
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
 | 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place (done 2026-11-21) |
-| 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata |
+| 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata (done 2026-11-21) |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 
@@ -1260,7 +1260,7 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 - [x] A fake `sbatch` and `squeue` on the path in tests (they record the call and run the script, array tasks one by one): a generated shot submitted, rendered, cancelled half way and resubmitted with nothing redrawn
 - [x] The AFMS reveal written as a FlowReel shot for the real bare case (in the AFMS project folder on airavata, outside this repository)
 - [x] `examples/` Slurm project on generated data, with the fake `sbatch` so it runs anywhere
-- [ ] On airavata: `flowreel shot render reveal.yml --submit` on `node1`, its frames compared with the prototype's `frames/bare_reveal` by image difference, time and memory per frame recorded here
+- [x] On airavata: `flowreel shot render reveal.yml --submit` on `node1`, its frames compared with the prototype's `frames/bare_reveal` by image difference, time and memory per frame recorded here
 
 Left out of Phase 5: GPU rendering (airavata has no GPU), MPI or multi-node renders (one
 frame is one process), and queue systems other than Slurm.
@@ -1269,6 +1269,25 @@ frame is one process), and queue systems other than Slurm.
 airavata, matching the prototype's frames. In this repository that is checked with a fake
 `sbatch`; the run on `node1` waits for a time it is free of simulation jobs, and its
 result is recorded under this line.
+
+**Done 2026-11-21** on airavata. In `studies/flowreel_video/reveal/`, written by
+`tools/afms_film.py --reveal CASE` (the shot from the prototype's `render_frames.py`,
+`flowreel.yml` by `project init`), one command, `flowreel shot render bare_reveal.yml
+--submit --cpus 32`, from the login node:
+
+- **Job 1307, the measuring job** (4 cores, 16 GB, `part1`; 43 s): the off-screen check
+  (EGL works; OSMesa is not installed), frame 0 measured inside the job's allocation
+  (peak 1.27 GB, 25 s on 4 threads), then the render planned and submitted from
+  `node1`: 121 frames in one task of 32 cores, 51 GB, `-j 32`, 20 minutes.
+- **Job 1308, the render**: 121 frames drawn in 2 min 24 s (32 s a frame on one thread,
+  32 at once, peak 1.37 GB a frame).
+- **Against the prototype's `frames/bare_reveal`**: all 121 frames within the golden
+  limits; mean difference median 0.045 grey levels (worst 0.070, frame 58), clearly
+  different pixels at most 0.0023% (frame 84).
+- The first plan's time was generous (20 minutes asked, 2.4 used): one frame measured
+  on 4 threads was scaled to one thread as four times slower, and it was the frame that
+  also opens the data. The render's own record (32 s a frame over 121 frames, on one
+  thread) now sizes the next one.
 
 ## 20. From the prototype
 

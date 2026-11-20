@@ -1212,11 +1212,12 @@ workstation and its result recorded under this line.
 - **Captions.** A still at the middle of each of the 32 captions, taken from FlowReel's
   finished clip and from the prototype's `clips/shot_<name>.mp4` at the same time in
   the shot, differs by at most 0.5 grey levels on average, with no pixel clearly
-  different (`flowreel_video/compare_captions.png`). The live plots match too.
+  different. The live plots match too.
 - **Card.** Built first with Pillow's basic layout, the opening card differed by 3.6
   grey levels on average (1.9% of pixels): airavata's Pillow kerned the prototype's
   text (raqm). Kerning was kept (Arun, 2026-11-21): FlowReel kerns card text, tile
-  labels and watermarks wherever Pillow has raqm, as the prototype's card was.
+  labels and watermarks wherever Pillow has raqm, as the prototype's card was. Rebuilt
+  so, the opening card is identical to the prototype's film (mean difference 0.00).
 
 ## 20. From the prototype
 

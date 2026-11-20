@@ -1113,7 +1113,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Tests with exact values (lengths, caption times across freezes and cuts, positions); docs: film file page
 
 **Branch 2: `phase4/film-text`** (captions, shapes and watermark, drawn; needs branch 1)
-- [ ] Caption drawing (Section 10.4): matplotlib with Lato and Lato maths, measured extents; places `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]`; `align`; a soft shadow or a box; one transparent picture per caption
+- [x] Caption drawing (Section 10.4): matplotlib with Lato and Lato maths, measured extents; places `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]`; `align`; a soft shadow or a box; one transparent picture per caption
 - [x] 2D shapes (Section 12): `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight`, in pixels, in the caption's colour unless given
 - [ ] Watermark (Section 10.7): an image file or a line of text, `corner` or `place`, `size`, `opacity`; film level (drawn with the text, when `shots` or `seconds` say) and shot level (drawn into a shot's PNG frames, part of the frame key, scaled in drafts)
 - [ ] A golden caption picture drawn by the prototype's `make_film.caption_image` (a box, a shadow, arrows, maths), matched by FlowReel's, with a nearby caption that must fail; docs: captions and shapes page

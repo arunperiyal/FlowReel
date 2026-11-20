@@ -138,3 +138,27 @@ def test_a_track_that_cannot_play_is_an_error(tmp_path):
         build(two_shots(tmp_path, audio={"file": "tone.wav", "start": 1.5}))
     with pytest.raises(FileNotFoundError, match="no file"):
         build(two_shots(tmp_path, audio={"file": "missing.wav"}))
+
+
+# -- preview -------------------------------------------------------------------------
+
+def test_a_preview_copy_is_the_film_scaled_with_its_sound(tmp_path):
+    tone(tmp_path / "tone.wav", 3.0)
+    built = build(two_shots(tmp_path, audio={"file": "tone.wav"}), preview=46, crf=30)
+    assert built.preview == tmp_path / "film_46p.mp4"
+    assert ff.probe(built.preview, "stream=width,height").split() == ["82", "46"]
+    assert ff.frame_count(built.preview) == 24
+    assert abs(audio_length(built.preview) - 1.0) < 0.03
+    film_frames, small = decode(built.output), decode(built.preview)
+    assert abs(mean_colour(small[5]) - mean_colour(film_frames[5])).max() < 6
+    assert built.table()[-2] == f"preview {built.preview}"
+
+
+def test_a_preview_height_is_checked_before_building(tmp_path):
+    path = two_shots(tmp_path)
+    for height, message in [(45, "even number"), (180, "taller than the film's 90")]:
+        with pytest.raises(ValueError, match=message):
+            build(path, preview=height)
+    with pytest.raises(ValueError, match="crf must be"):
+        build(path, preview=46, crf=60)
+    assert not (tmp_path / "clips").exists()

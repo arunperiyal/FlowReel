@@ -1,6 +1,6 @@
 """Write the AFMS film's own FlowReel files, taken from the prototype's scripts.
 
-Usage: python tools/afms_film.py OUT [--force]
+Usage: python tools/afms_film.py OUT [--prototype DIR] [--force]
 
 The AFMS film was built by ``prototype/afms/make_film.py`` (its shot list, ``SHOTS``,
 and settings) and ``prototype/afms/film_text.toml`` (every word, its timing and place,
@@ -72,12 +72,16 @@ Dumper.add_representer(list, _list)
 Dumper.add_representer(dict, _dict)
 
 
-def prototype():
-    """The prototype's ``make_film`` module and its ``film_text.toml``."""
-    if str(PROTOTYPE) not in sys.path:
-        sys.path.insert(0, str(PROTOTYPE))
+def prototype(folder: Path = PROTOTYPE):
+    """The prototype's ``make_film`` module and its ``film_text.toml``, from ``folder``
+    (one folder per process: the module is imported once)."""
+    folder = Path(folder).resolve()
+    if str(folder) not in sys.path:
+        sys.path.insert(0, str(folder))
     import make_film
-    with open(PROTOTYPE / "film_text.toml", "rb") as f:
+    if Path(make_film.__file__).resolve().parent != folder:
+        raise RuntimeError(f"make_film was imported from {make_film.__file__}, not {folder}")
+    with open(folder / "film_text.toml", "rb") as f:
         return make_film, tomllib.load(f)
 
 
@@ -110,10 +114,11 @@ def flow_times(mf) -> list[float]:
             for i in range((mf.T2 - mf.T1) // mf.STEP + 1)]
 
 
-def write(out: Path, force: bool = False) -> list[Path]:
-    """Write the AFMS film's FlowReel files into ``out``; returns the files written.
-    Existing files are kept unless ``force``."""
-    mf, text = prototype()
+def write(out: Path, force: bool = False, folder: Path = PROTOTYPE) -> list[Path]:
+    """Write the AFMS film's FlowReel files, from the prototype in ``folder``, into
+    ``out``; returns the files written. Existing files are kept unless ``force``."""
+    mf, text = prototype(folder)
+    look = text.get("style", {})     # the final version's typeface: [style] font, maths
     files: dict[str, tuple[str, object]] = {}
 
     def put(name, data, note=""):
@@ -163,6 +168,8 @@ def write(out: Path, force: bool = False) -> list[Path]:
             "style": {"colours": {"text": mf.WHITE, "muted": mf.MUTED},
                       "caption": {"size": 50, "shadow": True, "fade": mf.CAPTION_FADE,
                                   "margin": mf.CAPTION_MARGIN}}}
+    if "font" in look:
+        film["style"] = {"font": look["font"], "maths": look.get("maths", "font"), **film["style"]}
     if audio:
         film["audio"] = [{"file": audio["file"], "offset": audio.get("start", 0),
                           "volume": audio.get("volume", 1.0),
@@ -199,7 +206,10 @@ def write(out: Path, force: bool = False) -> list[Path]:
         "rows": [{"label": labels["displacement"], "lines": lines("y")},
                  {"label": labels["lift"], "lines": lines("cl")},
                  {"label": labels["drag"], "lines": lines("cd")}],
-        "margins": {"left": 0.2, "right": 0.95, "top": 0.93, "bottom": 0.08, "space": 0.18}},
+        "margins": {"left": 0.2, "right": 0.95, "top": 0.93, "bottom": 0.08, "space": 0.18},
+        **({"style": {"font": look["font"],     # panels have no maths: font, so only a set
+                      **({"maths": look["maths"]} if look.get("maths", "font") != "font" else {})}}
+           if "font" in look else {})},
         "The live plots: mid-span displacement, lift and drag of both cases, to each time.")
     put("flowreel.yml", {"bodies": {case: {"series": {"motion": {
         "file": f"series/{case}_series.csv", "time": "t",
@@ -222,9 +232,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("out", type=Path, help="the AFMS project folder")
+    parser.add_argument("--prototype", type=Path, default=PROTOTYPE, metavar="DIR",
+                        help="the folder of make_film.py and film_text.toml "
+                             "(default: prototype/afms in this repository)")
     parser.add_argument("--force", action="store_true", help="overwrite files that exist")
     args = parser.parse_args()
-    for path in write(args.out, args.force):
+    for path in write(args.out, args.force, args.prototype):
         print(path)
 
 

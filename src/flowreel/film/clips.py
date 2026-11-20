@@ -47,6 +47,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from flowreel.film import ffmpeg as ff
+from flowreel.film.timeline import EPS
 from flowreel.scene.keys import digest
 from flowreel.scene.rendering import FRAME_NAME
 
@@ -133,9 +134,10 @@ class Clips:
         return round(ts.length * self.film.fps)
 
     def _encode(self, kind: str, name: str, parts: dict, inputs: list, chain: str,
-                frames: int, quality) -> Clip:
+                frames: int, quality, prepare=None) -> Clip:
         """Encode ``inputs`` through ``chain`` (a filter graph ending in ``[out]``) into
-        ``<kind>_<name>_<key>.mp4``, unless a clip with that key is there."""
+        ``<kind>_<name>_<key>.mp4``, unless a clip with that key is there. ``prepare``
+        is called first when the clip is built (to draw the pictures it reads)."""
         args = [*inputs, "-filter_complex", chain, "-map", "[out]", "-frames:v", frames,
                 *encode_args(self.film.fps), *quality]
         key = digest({**parts, "version": VERSION, "args": [str(a) for a in args],
@@ -145,6 +147,8 @@ class Clips:
             return Clip(path, name, key, frames, False)
         for old in self.folder.glob(f"{kind}_{name}_*.mp4"):
             old.unlink()
+        if prepare is not None:
+            prepare()
         tmp = path.with_name(path.stem + ".part.mp4")
         ff.run(*args, tmp)
         os.replace(tmp, path)
@@ -275,3 +279,83 @@ class Clips:
                 panel = Image.open(Path(drawn.folder) / final).convert("RGB")
                 image.paste(panel, tuple(round(v) for v in tile.at))
         return image
+
+    # -- finished clips ----------------------------------------------------------------
+
+    def captions(self, name: str) -> list[tuple]:
+        """The captions on shot ``name``: ``(caption, start, end, fade_in, fade_out)``
+        with ``start`` and ``end`` in seconds of the finished shot. A caption running
+        across a cut is cut there without a fade, and fades only where it begins and
+        ends."""
+        ts = self.line.shot(name)
+        out = []
+        for tc in self.line.captions_on(name):
+            start, end = tc.start - ts.start, tc.end - ts.start
+            out.append((tc.caption, max(0.0, start), min(ts.length, end), start > EPS,
+                        end < ts.length - EPS))
+        return out
+
+    def finished(self, name: str) -> Clip:
+        """The finished clip of shot ``name``: its base clip faded in and out, then its
+        captions (with their shapes) and the film's watermark laid on top, so text can
+        sit on black."""
+        from flowreel.film.watermark import key_fields, spans
+        ts = self.line.shot(name)
+        base = self.base(name)
+        n = self._frames(ts)
+        fade_in, fade_out = ts.shot.fade
+        picture = []
+        if fade_in:
+            picture.append(f"fade=in:st=0:d={fade_in:g}")
+        if fade_out:
+            at = ts.shot.fade_out_at if ts.shot.fade_out_at is not None else ts.length - fade_out
+            picture.append(f"fade=out:st={at:g}:d={fade_out:g}")
+        graph, last = [f"[0:v]{','.join(picture) or 'null'}[v0]"], "v0"
+        inputs = ["-i", base.path]
+        style = self.film.style
+        laid, drawn = [], []
+        for k, (c, start, end, fi, fo) in enumerate(self.captions(name)):
+            png = self.folder / f"caption_{name}_{k}.png"
+            fade = min(c.fade if c.fade is not None else style.caption.fade, (end - start) / 2)
+            alpha = []
+            if fi and fade > 0:
+                alpha.append(f"fade=in:st={start:g}:d={fade:g}:alpha=1")
+            if fo and fade > 0:
+                alpha.append(f"fade=out:st={end - fade:g}:d={fade:g}:alpha=1")
+            last = self._lay(graph, inputs, last, png, alpha, f"between(t,{start:g},{end:g})",
+                             ts.length)
+            laid.append([c, start, end, fi, fo, fade])
+            drawn.append((c, png))
+        mark = self.film.watermark
+        showing = [(a, b) for shot, a, b in spans(mark, self.line) if shot == name]
+        mark_png = self.folder / f"watermark_{name}.png"
+        if showing:
+            when = "+".join(f"between(t,{a:g},{b:g})" for a, b in showing)
+            last = self._lay(graph, inputs, last, mark_png, [], when, ts.length)
+        graph.append(f"[{last}]null[out]")
+        parts = {"kind": "finished", "base": base.key, "captions": laid, "style": style,
+                 "watermark": key_fields(mark) if showing else None, "showing": showing}
+
+        def prepare():
+            from flowreel.film.draw import save_caption
+            for c, png in drawn:
+                save_caption(c, style, self.film.size, png)
+            if showing:
+                from flowreel.film.watermark import watermark_image
+                watermark_image(mark, self.film.size).save(mark_png)
+
+        return self._encode("shot", name, parts, inputs, ";".join(graph), n,
+                            FINISHED_QUALITY, prepare)
+
+    def _lay(self, graph: list, inputs: list, last: str, png: Path, alpha: list, when: str,
+             length: float) -> str:
+        """Lay the transparent picture ``png`` over ``last`` while ``when`` holds,
+        through the ``alpha`` fades; returns the new last label."""
+        k = len([a for a in inputs if a == "-i"])
+        inputs += ["-loop", 1, "-framerate", self.film.fps, "-t", f"{length:g}", "-i", png]
+        # In BT.709, as the picture under it, so a caption keeps its colour.
+        chain = ",".join(["format=rgba", *alpha, "scale=out_color_matrix=bt709:out_range=tv",
+                          "format=yuva420p"])
+        graph.append(f"[{k}:v]{chain}[c{k}]")
+        graph.append(f"[{last}][c{k}]overlay=0:0:enable='{when}':eof_action=pass[v{k}]")
+        return f"v{k}"

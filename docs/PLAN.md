@@ -1159,7 +1159,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [x] Base clip of a layout shot: its composed frames interpolated and its `rate: output` panels laid on at the output rate (Section 9.3), through `compose.layout(output=...)`
 - [x] Base clips of cards and holds (`hold_last_of`: a shot's last frame, with or without its overlays)
 - [x] Finished clip: fades on the picture, then captions, shapes and the film's watermark on top with their own fades, so text can sit on black; keyed by content
-- [ ] Tests on generated frames (lengths measured with ffprobe, a freeze's frames identical, caption times, keys that rebuild when a frame, a caption or a rate changes)
+- [x] Tests on generated frames (lengths measured with ffprobe, a freeze's frames identical, caption times, keys that rebuild when a frame, a caption or a rate changes)
 
 **Branch 5: `phase4/film-build`** (the film; needs branch 4)
 - [ ] Join the finished clips without re-encoding; planned and measured length per shot printed (Section 10.8)

@@ -1,0 +1,31 @@
+# A small film project on generated data, built by run.py: silent, an opening card, the
+# comparison of two cases as a layout with live plots and a freeze, its last frame held
+# (plots included), and a watermark of text. Positions are pixels of this 960 x 540
+# film; the 1920 x 1080 layout is scaled to fit.
+fps: 24
+size: [960, 540]
+style: {caption: {size: 24, margin: 30}}
+watermark: {text: 'FlowReel example', size: 14, opacity: 0.6}
+shots:
+  - {name: opening, card: card.yml, seconds: 2, fade: [0.5, 0.5]}
+  - name: compare
+    layout: compare.yml                  # the wakes and plots.yml, a rate: output panel
+    rate: {fps: 8, to_output: interpolate}
+    fade: [0.5, 0]
+    freezes:
+      - at: 1.5
+        hold: 1.5
+        text:
+          - lines: ['Frozen: the bare cylinder swings,', 'the grooved one hardly moves']
+            place: [24, 200]
+            size: 22
+            align: left
+            box: true
+    text:
+      - {lines: [Bare], at: 0, place: [20, 14], size: 22, align: left, colour: '#e8b04a'}
+      - {lines: [Helical], at: 0, place: [20, 284], size: 22, align: left, colour: '#6ac1c8'}
+  - name: end
+    hold_last_of: compare                # with its plots: overlays default to true
+    seconds: 2
+    fade: [0, 1]
+    text: [{lines: ['Thank you'], at: [0.3, 2], place: centre}]

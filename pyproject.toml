@@ -37,7 +37,7 @@ geometry = "flowreel.sources.geometry:GeometrySource"
 where = ["src"]
 
 [tool.setuptools.package-data]
-flowreel = ["fonts/*.ttf", "fonts/OFL.txt"]
+flowreel = ["fonts/*.ttf", "fonts/OFL.txt", "jobs/*.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

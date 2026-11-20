@@ -1,0 +1,33 @@
+# Clusters FlowReel can submit to (plan Section 14). Add or override clusters in
+# ~/.flowreel/partitions.yml, written the same way; a partition given there replaces the
+# one here, and new ones are added.
+#
+# Per cluster:
+#   hosts       host names (shell patterns) that pick this cluster when no --cluster is
+#               given; empty: chosen by --cluster or FLOWREEL_CLUSTER only
+#   partitions  per partition:
+#     time        the longest a job may run: 3h, 72h, 1-00:00:00 ...
+#     cpus        cores of one node; ~ when not known
+#     memory      memory of one node, such as 125G; ~ when not known
+#     max_cpus    most cores one job may ask for (default: cpus)
+#     shared      true when jobs share a node (a render can take part of it)
+#     note        a line for `flowreel jobs partitions`
+
+airavata:
+  hosts: [airavata, airavata*, node1]
+  partitions:
+    part1: {time: 3h, cpus: 128, memory: 125G, shared: true, note: 'node1, up to 3 hours'}
+    part2: {time: 24h, cpus: 128, memory: 125G, shared: true, note: 'node1, up to a day'}
+    part3: {time: 72h, cpus: 128, memory: 125G, shared: true, note: 'node1, up to 3 days'}
+
+# From flexflow's hpc_partition.py. Memory per node is not recorded there.
+param_shakti:
+  hosts: []
+  partitions:
+    shared: {time: 72h, cpus: 40, max_cpus: 36, memory: ~, shared: true,
+             note: 'serial and OpenMP jobs, at most 36 cores; the one for renders'}
+    medium: {time: 72h, cpus: 40, memory: ~, shared: false,
+             note: 'whole nodes for MPI (ntasks-per-node=40)'}
+    large: {time: 168h, cpus: 40, memory: ~, shared: false,
+            note: 'whole nodes, longer than 3 days, lower priority'}
+    gpu: {time: 72h, cpus: ~, memory: ~, shared: false, note: 'GPU nodes'}

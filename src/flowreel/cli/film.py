@@ -42,6 +42,9 @@ Reference: docs/commands.md.""",
     "chapters": """examples:
   flowreel film chapters                     print chapters.txt, for YouTube
   flowreel film chapters -o chapters.txt""",
+    "template": """examples:
+  flowreel film template                     print a film file with the defaults
+  flowreel film template wake --fps 30 -o film.yml""",
 }
 
 
@@ -139,6 +142,18 @@ class FilmCommand(BaseCommand):
                         "is noted on stderr. Nothing is built.")
         _film_arg(h)
         h.add_argument("-o", "--output", metavar="FILE", help="write to FILE instead of printing")
+
+        m = _parser(
+            actions, "template", help="write a commented film file with the defaults",
+            description="Print (or write with -o) a film file with every key at its "
+                        "default, each with a comment, and one frames shot.")
+        m.add_argument("name", nargs="?", default="my_shot",
+                       help="the shot's name; its frames are in frames/NAME (default my_shot)")
+        m.add_argument("--fps", type=int, default=24, metavar="N",
+                       help="frames a second of the film (default 24)")
+        m.add_argument("-o", "--output", metavar="FILE",
+                       help="write to FILE instead of printing").completer = paths((".yml", ".yaml"))
+        m.add_argument("--force", action="store_true", help="overwrite FILE if it exists")
         return p
 
     def execute(self, args, ctx):
@@ -216,4 +231,21 @@ class FilmCommand(BaseCommand):
             ctx.out(f"wrote {args.output}: {len(chapters)} chapters")
         else:
             ctx.out(text, end="")
+        return 0
+
+    def do_template(self, args, ctx):
+        from pathlib import Path
+
+        from flowreel.film.template import template
+        if args.fps < 1:
+            raise CommandError("--fps must be at least 1")
+        text = template(args.name, args.fps)
+        if not args.output:
+            ctx.out(text, end="")
+            return 0
+        path = Path(args.output)
+        if path.exists() and not args.force:
+            raise CommandError(f"{path} exists (use --force to overwrite)")
+        path.write_text(text)
+        ctx.out(f"wrote {path}")
         return 0

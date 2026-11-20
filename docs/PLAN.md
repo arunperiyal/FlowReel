@@ -1173,7 +1173,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 **Branch 6: `phase4/cli-film`** (commands; needs branch 5)
 - [x] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
 - [x] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
-- [ ] `film template`: a commented `film.yml` with every key at its default
+- [x] `film template`: a commented `film.yml` with every key at its default
 - [ ] `project` context in the shell (Section 13), so film commands find `film.yml`
 - [ ] Help text; docs: commands page
 

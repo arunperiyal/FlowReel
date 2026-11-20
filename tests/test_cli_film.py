@@ -91,3 +91,14 @@ def test_srt_and_chapters(sh, project):
     assert out == "0:00 Start\n0:01 Middle\n0:03 End\n" and "YouTube's 10 s" in err
     status, out, _ = sh.run("film chapters -o ch.txt")
     assert (project / "ch.txt").read_text() == "0:00 Start\n0:01 Middle\n0:03 End\n"
+
+
+def test_template(sh, tmp_path):
+    status, out, _ = sh.run("film template")
+    assert status == 0 and "name: my_shot" in out and out.startswith("# Film file")
+    target = tmp_path / "t.yml"
+    assert sh.run(f"film template wake --fps 30 -o {target}")[0] == 0
+    assert "fps: 30" in target.read_text()
+    status, _, err = sh.run(f"film template -o {target}")
+    assert status != 0 and "--force" in err
+    assert sh.run(f"film template -o {target} --force")[0] == 0

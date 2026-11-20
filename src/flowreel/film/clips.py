@@ -3,7 +3,7 @@
 Every shot becomes a **base clip**: its picture alone, at the film's rate and size,
 exactly as long as the timeline says. Then a **finished clip**: the base clip with its
 fades, captions, shapes and the film's watermark on top. The film is the finished clips
-joined (branch 5).
+joined (:mod:`flowreel.film.build`).
 
 **Rates.** A frames shot plays its frames in the timeline's ``order`` (frozen frames
 repeated) at its own ``fps``; ``to_output`` makes up the film's rate:

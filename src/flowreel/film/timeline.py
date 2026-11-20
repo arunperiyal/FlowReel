@@ -16,6 +16,10 @@ finished shot, freezes included; ``end`` left out runs to the shot's end, and ``
 NAME, at: S}`` ends ``S`` seconds into a later shot. A freeze's captions count from
 the start of the freeze. :func:`timeline` checks every time against the lengths and
 gives each caption its start and end in film seconds.
+
+**Chapters.** A shot's ``chapter`` starts ``at`` seconds into the finished shot (0 by
+default) and runs until the next chapter, or the film's end. ``at`` must lie inside the
+shot, so chapters come in the shots' order.
 """
 from __future__ import annotations
 
@@ -90,14 +94,26 @@ class TimedCaption:
     end: float
 
 
+@dataclass(frozen=True)
+class TimedChapter:
+    """A chapter placed: its ``title``, started by shot ``shot``, from ``start`` to
+    ``end`` in film seconds."""
+
+    title: str
+    shot: str
+    start: float
+    end: float
+
+
 @dataclass
 class Timeline:
-    """The film laid out: ``shots`` in order, ``captions`` by start, ``length`` in
-    seconds."""
+    """The film laid out: ``shots`` in order, ``captions`` by start, ``chapters`` in
+    order, ``length`` in seconds."""
 
     film: Film
     shots: list[TimedShot]
     captions: list[TimedCaption]
+    chapters: list[TimedChapter] = field(default_factory=list)
 
     @property
     def length(self) -> float:
@@ -194,7 +210,22 @@ def timeline(film: Film, counts: dict[str, int] | None = None) -> Timeline:
                 base = ts.start + tf.start
                 captions.append(TimedCaption(c, ts.shot.name, base + c.start, base + c.end))
     captions.sort(key=lambda c: c.start)
-    return Timeline(film, shots, captions)
+    return Timeline(film, shots, captions, _chapters(shots, check))
+
+
+def _chapters(shots: list[TimedShot], check: Checker) -> list[TimedChapter]:
+    starts = []
+    for i, ts in enumerate(shots):
+        ch = ts.shot.chapter
+        if ch is None:
+            continue
+        if ch.at >= ts.length - EPS:
+            raise check.at("shots", i, "chapter", "at").error(
+                f"chapter {ch.title!r} starts at {ch.at:g} s, at or after the end of shot "
+                f"{ts.shot.name!r} ({ts.length:g} s)")
+        starts.append((ch.title, ts.shot.name, ts.start + ch.at))
+    ends = [s for _, _, s in starts[1:]] + [shots[-1].end if shots else 0.0]
+    return [TimedChapter(t, name, a, b) for (t, name, a), b in zip(starts, ends)]
 
 
 def _frames_shot(shot: Shot, start: float, n: int, check: Checker) -> TimedShot:

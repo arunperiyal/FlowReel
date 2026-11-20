@@ -7,8 +7,10 @@ replaces the AFMS prototype's shot list in `make_film.py` and its `film_text.tom
 This page covers the file, the captions and the timeline worked out from them. How
 captions, shapes and the watermark are drawn is [captions](captions.md); cards are
 [cards](cards.md); how each shot becomes a clip, at the film's rate with its text on
-top, is [clips](clips.md). Joining the clips into the film comes with branch 5. A runnable example on generated frames, which prints a short film's
-timeline, is `examples/film_timeline/run.py`.
+top, is [clips](clips.md); joining them into the film, with sound, a preview copy,
+subtitles, chapters and a contact sheet, is [building the film](build.md). A runnable
+example on generated frames, which prints a short film's timeline, is
+`examples/film_timeline/run.py`.
 
 ```yaml
 output: film.mp4
@@ -62,6 +64,7 @@ Each shot has a `name` (unique) and is one of four kinds:
 | `fade_out_at` | number | so the fade ends with the shot | start the fade out early; what follows is black, so a caption can sit on it |
 | `text` | a text file, or captions written in place | none | the shot's captions |
 | `overlays` | bool | `true` | a hold of a layout shot: with its `rate: output` panels |
+| `chapter` | `TITLE` or `{title, at}` | none | the shot starts a chapter, `at` seconds into the finished shot (`0`); see [chapters](build.md#chapters) |
 
 **A shot's rate divides the film's.** `fps: 8` in a 24 frames a second film shows each
 frame for three output frames (`to_output` says how they are made). The rate must
@@ -134,9 +137,25 @@ How captions are drawn (measured text, shadow or box, the shapes' keys) is on
 
 One track, or a list. Each has `file` (required), `offset` (seconds into the track to
 start from, `0`), `start` (seconds into the film, `0`), `volume` (`1` as recorded),
-`fade` (`[in, out]` seconds) and `licence` (a note kept with it). The build measures
-the files' lengths rather than trusting plans (branch 5). Music files stay out of the
-repository.
+`fade` (`[in, out]` seconds) and `licence` (a note kept with it). Music files stay out
+of the repository.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `file` | path | required | the sound file, from the film file's folder |
+| `offset` | seconds | `0` | where in the file to start playing |
+| `start` | seconds | `0` | when in the film the track starts |
+| `volume` | number | `1` | gain; `1` is as recorded |
+| `fade` | `[in, out]` seconds | `[0, 0]` | fade in from the track's start, fade out to its end |
+| `licence` | text | none | a note, not used |
+
+The build measures every file's length rather than trusting a plan (the prototype's
+planned and measured lengths differed by a second). A track plays until the picture
+ends or the file runs out, whichever comes first, and its fade out ends there, so music
+shorter than the film fades to silence instead of stopping. Tracks are added, not
+averaged, so two tracks at `volume: 0.5` sound as one at `1`. Silence fills the rest of
+the picture. An `offset` past the file's end, or a `start` after the picture's end, is
+an error. `build(..., mute=True)` (`film build --mute`) leaves the sound out.
 
 ## Watermark
 

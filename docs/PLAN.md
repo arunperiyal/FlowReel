@@ -618,7 +618,8 @@ screenshot (Pillow), part of the frame key, scaled in drafts.
 4. Join clips without re-encoding; add audio; write `film.mp4`.
 5. Print planned and measured length per shot.
 
-Outputs besides the film: `film.srt` from the captions, `contact.png` from `film check`.
+Outputs besides the film: `film.srt` from the captions, `chapters.txt` from the chapters
+(Section 10.9), `contact.png` from `film check`.
 
 **Preview copy.** `film build --preview 480` writes a small, strongly compressed copy
 (`film_480p.mp4`) next to the film, for sending to someone; the number is the height in
@@ -628,6 +629,34 @@ text, laid out in the film's own pixels, shrinks with the picture and stays in p
 `--crf N` sets the quality (default 28 for a preview). The prototype had no such option:
 its size was fixed in the scripts, and a small copy meant running ffmpeg by hand on the
 finished film.
+
+### 10.9 Chapters
+
+Added 2026-11-20. Chapters let a viewer jump between parts of a long film, as between
+slides in an hour's talk. A shot starts one with `chapter: TITLE` (or `{title: TITLE,
+at: S}`, `S` seconds into the finished shot); it runs until the next chapter starts, or
+to the end of the film. Times come from the timeline, so moving or adding shots moves the
+chapters with them.
+
+```yaml
+shots:
+  - {name: opening, card: cards/opening.yml, seconds: 7, chapter: Opening}
+  - {name: domain, frames: frames/bare_domain, chapter: The set-up}
+  - {name: bare_reveal, frames: frames/bare_reveal}          # still "The set-up"
+  - {name: compare, layout: compare.yml, chapter: Smooth against grooved}
+```
+
+- **In the file.** An ffmpeg metadata file (`;FFMETADATA1`, one `[CHAPTER]` per chapter,
+  in milliseconds) is given at the join with `-map_chapters`. No frame is drawn again and
+  nothing is re-encoded, so adding or renaming a chapter takes a second. The preview copy
+  keeps them. Checked by hand on 2026-11-20 with ffmpeg 8.0: three clips joined with
+  `-c copy` and the preview re-encode both read back their chapters with `ffprobe`.
+- **Where they show.** Desktop players (VLC, mpv, IINA, QuickTime) show a chapter menu and
+  next and previous keys. YouTube, browsers and, as far as known, video in PowerPoint
+  ignore them. YouTube takes chapters from timestamps in its description, so the build
+  also writes `chapters.txt` in that form (`0:00 Opening`, one per line).
+- **Not a pause.** A player does not stop at a chapter's end. For a talk, end a chapter on
+  a hold (`hold_last_of`) or a freeze, and pause the player there.
 
 ## 11. Caching
 
@@ -691,7 +720,7 @@ flowreel project  init | info | clean
 flowreel camera   edit | path | orbit | project | import | preview
 flowreel shot     render | preview | template | memory
 flowreel compose  layout | panel | plot
-flowreel film     build | check | lengths | srt | template
+flowreel film     build | check | lengths | srt | chapters | template
 flowreel data     series | surface
 flowreel jobs     write | submit
 ```
@@ -706,8 +735,9 @@ flowreel jobs     write | submit
 | `compose panel PANEL.yml` | `-j N`, `-o DIR` | draws a 2D panel per frame |
 | `film build` | `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N` | builds the film, or a small copy of it to share |
 | `film check` | `--at caption\|freeze\|every:S` | contact sheet of stills with text in place |
-| `film lengths` | | planned and measured length per shot |
+| `film lengths` | | planned and measured length per shot, and each chapter's |
 | `film srt` | | caption file for players |
+| `film chapters` | | chapter list with YouTube timestamps (Section 10.9) |
 | `data surface SOURCE` | `--steps A:B:E`, `-o DIR` | wall shear and sectional forces per step |
 | `data series SOURCE` | `--name`, `-o FILE` | a source's time series to CSV |
 | `camera project` | `--view V` or `--track T`, `--points ...` | screen positions of model points |
@@ -1137,11 +1167,12 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 - [ ] Preview copy: `preview: HEIGHT` writes `film_<H>p.mp4` from the same clips, scaled and encoded once, `crf`
 - [ ] `only`: one shot's finished clip, for checking its text
 - [ ] `film.srt` from the captions; `contact.png`: stills at captions, freezes or every few seconds, with text in place (`film check`)
-- [ ] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, caches that rebuild when they should
+- [ ] Chapters (Section 10.9, added 2026-11-20): a shot's `chapter: TITLE` or `{title, at}`, checked against the shot's length; chapter times from the timeline; an ffmpeg metadata file given at the join (`-map_chapters`), in the film and its preview copy; `chapters.txt` with YouTube timestamps (`0:00 Title`)
+- [ ] Tests on a tiny generated film (Section 16: three shots of 10 frames, two captions, a freeze, a generated tone): lengths, caption timing, audio length, preview size, chapters read back with `ffprobe`, caches that rebuild when they should
 
 **Branch 6: `phase4/cli-film`** (commands; needs branch 5)
 - [ ] `film build` with `--only SHOT`, `--mute`, `--force`, `--preview HEIGHT`, `--crf N`
-- [ ] `film check` with `--at caption|freeze|every:S`; `film lengths`; `film srt`
+- [ ] `film check` with `--at caption|freeze|every:S`; `film lengths` (with each chapter's start and length); `film srt`; `film chapters` (prints `chapters.txt`)
 - [ ] `film template`: a commented `film.yml` with every key at its default
 - [ ] `project` context in the shell (Section 13), so film commands find `film.yml`
 - [ ] Help text; docs: commands page

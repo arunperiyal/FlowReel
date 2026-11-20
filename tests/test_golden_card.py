@@ -4,6 +4,9 @@ its logo replaced by a generated one.
 
 Compared over the whole card with the limits of Phase 2's golden tests. A card whose
 title lines are a few pixels further apart must fail the same limits.
+
+The golden card was drawn by a Pillow without raqm, so unkerned; FlowReel kerns where
+Pillow can, so here it is drawn unkerned too, on any machine.
 """
 from dataclasses import replace
 from pathlib import Path
@@ -17,6 +20,14 @@ from flowreel.film.schema import FilmStyle
 from test_reveal_golden import CLEAR_LIMIT, MEAN_LIMIT, difference
 
 DATA = Path(__file__).parent / "data" / "cards"
+
+
+@pytest.fixture(autouse=True)
+def unkerned(monkeypatch):
+    """Lay text out as the golden card's Pillow did: no raqm, so no kerning."""
+    from PIL import features
+    check = features.check
+    monkeypatch.setattr(features, "check", lambda name: False if name == "raqm" else check(name))
 
 
 @pytest.fixture(scope="module")

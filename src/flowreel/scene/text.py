@@ -14,6 +14,17 @@ FONTS = Path(flowreel.__file__).parent / "fonts"
 MARGIN = 0.02            # of the picture's height, from the frame's edges
 
 
+def pillow_font(path, size: int):
+    """The font file ``path`` at ``size`` pixels for Pillow, kerned where Pillow can:
+    with raqm (conda-forge's Pillow has it) text is laid out by HarfBuzz, kerned as the
+    font says, as the AFMS film's cards were; a Pillow without raqm (the pip wheel)
+    falls back to its basic layout, unkerned, so the same text can sit a pixel or two
+    differently on such a machine."""
+    from PIL import ImageFont, features
+    engine = ImageFont.Layout.RAQM if features.check("raqm") else ImageFont.Layout.BASIC
+    return ImageFont.truetype(str(path), size, layout_engine=engine)
+
+
 def font_file(style: str = "Regular") -> str:
     """The path of the bundled ``Lato-<style>.ttf``."""
     return str(FONTS / f"Lato-{style}.ttf")
@@ -92,5 +103,5 @@ def label_at(renderer, text: str, point, size: float, colour, opacity: float = 1
     actor.GetPositionCoordinate().SetCoordinateSystemToDisplay()
     actor.SetPosition(x + offset[0], y + offset[1])
     lato(actor.GetTextProperty(), size, colour, opacity)
-    renderer.AddActor2D(actor)
+    renderer.AddViewProp(actor)       # AddActor2D is gone from VTK 9.7
     return actor

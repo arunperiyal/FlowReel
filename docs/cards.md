@@ -70,6 +70,15 @@ Each block is one of `image`, `title`, `divider`, `names` or `text`.
 
 - `size` is the font's size in pixels.
 - `weight` is `regular`, `light`, `bold` or `italic`, all of the bundled Lato.
+- The font is the film's `style.font`, as for captions: Lato by default, or any family
+  installed on the machine that builds the film, such as `Times New Roman`, at its
+  nearest weight (Times New Roman has no light weight, so its names are regular). A
+  family that is not installed is an error naming it.
+- Text is kerned where Pillow can: a Pillow with raqm (conda-forge's, as on airavata)
+  lays it out with HarfBuzz, kerned as the font says, as the AFMS film's card was. A
+  Pillow without raqm (the pip wheel) does not kern, so the same card can differ by a
+  pixel or two between such machines; build a film's cards where its final copy is
+  built.
 - The film's colours are `style.colours.text` and `style.colours.muted` in `film.yml`
   (`'#f2f2f2'` and `'#96a5b2'`), so a film's cards follow its style unless a block sets
   `colour`.

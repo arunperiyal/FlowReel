@@ -37,7 +37,8 @@ def test_wall_gap_hides_near_wall():
     gap = layer.surface(f, {**f.values, "wall_gap": 0.4})
     wall = f.data.body()
     from scipy.spatial import cKDTree
-    assert gap.n_points < near.n_points
+    # counted by distance, not points: VTK 9.7's clip adds points along the cut edges
+    assert cKDTree(wall.points).query(near.points)[0].min() < 0.3
     assert cKDTree(wall.points).query(gap.points)[0].min() >= 0.3  # clip edges interpolate the gap
 
 

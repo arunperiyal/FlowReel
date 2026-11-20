@@ -222,10 +222,14 @@ functions:
 | all 32 captions drawn, with their shadows, boxes and arrows | `make_film.caption_image`, same limits as the golden frames; a caption moved by 4 by 3 pixels fails |
 | the opening card, with a generated logo | `make_film.opening_card` |
 
-The rebuild from the real frames is run on the workstation:
+The rebuild from the real frames reads the research repository's final copy of the
+scripts (`--prototype`), which is newer than `prototype/afms`: it moves some captions
+and sets the film in Times New Roman with STIX maths (its `[style]`), which the tool
+writes into the film's and the plots' `style`.
 
 ```bash
-python tools/afms_film.py ~/path/to/afms_project      # then copy frames/, series/, assets/
+python tools/afms_film.py ~/path/to/afms_project --prototype ~/path/to/studies/afms_video
+# then copy or link frames/, series/ and assets/ from afms_video
 cd ~/path/to/afms_project
 flowreel film build --preview 480
 flowreel film check --at caption

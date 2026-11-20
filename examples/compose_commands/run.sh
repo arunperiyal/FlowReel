@@ -6,7 +6,8 @@ set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
 DIR=${1:-compose_example}
 FLOWREEL=${FLOWREEL:-flowreel}
-python - "$HERE/../panels" "$DIR" <<'PY'
+PYTHON=${PYTHON:-python}
+$PYTHON - "$HERE/../panels" "$DIR" <<'PY'
 import shutil, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])

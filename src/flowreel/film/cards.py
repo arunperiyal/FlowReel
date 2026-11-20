@@ -25,7 +25,8 @@ their ``spacing``, a divider's ``thickness``, a heading's ``heading_gap`` plus t
 Sizes, spacing and positions are pixels of a card ``size`` pixels large (default 1920 by
 1080, the size the card is written for); drawn at another size, the whole card is
 scaled. Text is the bundled Lato (``weight``: ``regular``, ``light``, ``bold`` or
-``italic``), drawn by Pillow. Colours left out are the film's text colour, or its
+``italic``), drawn by Pillow, unless the film's ``style: {font: ...}`` names another
+installed family (then its nearest weight). Colours left out are the film's text colour, or its
 muted colour for headings, dividers and small print. Image files are taken from the
 card file's folder and stay outside the repository (no logos in it).
 
@@ -215,12 +216,26 @@ def height(b: Block) -> float:
 
 # Drawing ------------------------------------------------------------------------------
 
-def font(weight: str, size: float):
-    """The bundled Lato of ``weight`` at ``size`` pixels, for Pillow."""
-    from PIL import ImageFont
-
-    from flowreel.scene.text import font_file
-    return ImageFont.truetype(font_file(weight.capitalize()), round(size))
+def font(weight: str, size: float, family: str = "Lato"):
+    """A font of ``family`` and ``weight`` (``regular``, ``light``, ``bold`` or
+    ``italic``) at ``size`` pixels, for Pillow. Lato is the bundled copy; another family
+    is found among the machine's fonts through matplotlib, at the nearest weight (Times
+    New Roman has no light weight, so its regular is used). A family that is not
+    installed is an error naming it. Text is kerned where Pillow can
+    (:func:`~flowreel.scene.text.pillow_font`)."""
+    from flowreel.scene.text import font_file, pillow_font
+    if family == "Lato":
+        return pillow_font(font_file(weight.capitalize()), round(size))
+    from matplotlib import font_manager
+    props = font_manager.FontProperties(
+        family=family, style="italic" if weight == "italic" else "normal",
+        weight={"italic": "normal", "regular": "normal"}.get(weight, weight))
+    try:
+        path = font_manager.findfont(props, fallback_to_default=False)
+    except ValueError:
+        raise ValueError(f"font {family!r} is not installed on this machine (style: font in "
+                         "the film file)") from None
+    return pillow_font(path, round(size))
 
 
 def _rgb(value: str) -> tuple[int, int, int]:
@@ -248,7 +263,8 @@ def _background(card: Card):
 def card_image(card: Card, style=None, size: tuple[int, int] | None = None):
     """Draw ``card``: a Pillow RGB image ``size`` (width, height) pixels, the card's own
     size by default (another size scales the whole card). ``style`` is the film's
-    :class:`~flowreel.film.schema.FilmStyle`, for colours a block leaves out."""
+    :class:`~flowreel.film.schema.FilmStyle`, for its font and for colours a block
+    leaves out."""
     from PIL import Image, ImageDraw
 
     from flowreel.film.schema import FilmStyle
@@ -272,13 +288,14 @@ def card_image(card: Card, style=None, size: tuple[int, int] | None = None):
             y = top
             if b.get("heading"):
                 hf = _rgb(b["heading_colour"]) if b.get("heading_colour") else muted
-                _centred(draw, width, y, b["heading"], font(b["heading_weight"], b["heading_size"]), hf)
+                _centred(draw, width, y, b["heading"],
+                         font(b["heading_weight"], b["heading_size"], style.font), hf)
                 y += b["heading_gap"]
-            fnt = font(b["weight"], b["size"])
+            fnt = font(b["weight"], b["size"], style.font)
             for i, name in enumerate(b["names"]):
                 _centred(draw, width, y + i * b["spacing"], name, fnt, fill or text)
         else:
-            fnt = font(b["weight"], b["size"])
+            fnt = font(b["weight"], b["size"], style.font)
             default = text if b.kind == "title" else muted
             for i, line in enumerate(b[b.kind]):
                 _centred(draw, width, top + i * b["spacing"], line, fnt, fill or default)

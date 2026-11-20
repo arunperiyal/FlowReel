@@ -160,6 +160,8 @@ def test_the_opening_card_matches(afms, tmp_path, monkeypatch):
     from flowreel.film.cards import card_image, load_card
     folder, mf, text, film = afms
     monkeypatch.setattr(mf, "LOGO", folder / mf.LOGO.relative_to(mf.ROOT))
+    # Both kern where this machine's Pillow can (raqm): FlowReel on purpose, the
+    # prototype by Pillow's default.
     mf.opening_card(tmp_path / "gold.png", text["opening"])
     gold = np.asarray(Image.open(tmp_path / "gold.png").convert("RGB"))
     ours = np.asarray(card_image(load_card(folder / "cards" / "opening.yml"), film.style))

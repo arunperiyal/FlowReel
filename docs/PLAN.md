@@ -1121,7 +1121,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 **Branch 3: `phase4/film-cards`** (cards; needs branch 1)
 - [x] Card file (Section 10.5): a background and blocks placed down the card: `image` (a file outside the repository), `title`, `divider`, `names` (a heading and a list), `text` (small print); sizes, colours and spacing in pixels
 - [x] Card drawing with Pillow and the bundled Lato, centred by measured widths
-- [ ] A golden opening card drawn by the prototype's `make_film.opening_card` (its logo replaced by a generated image), matched by a card file; docs: cards page
+- [x] A golden opening card drawn by the prototype's `make_film.opening_card` (its logo replaced by a generated image), matched by a card file; docs: cards page
 
 **Branch 4: `phase4/film-clips`** (base and finished clips; needs branches 1 to 3)
 - [ ] ffmpeg: a standard build from conda-forge in `flexflow_env`, declared in a new `environment.yml` (pip cannot install ffmpeg, so not in `pyproject.toml`), with install notes in the README; found through `FFMPEG` or the path, its version and filters (`minterpolate`, `xfade`) checked once, with a clear error naming the binary found (the workstation's `ffmpeg` on the path is Tecplot's own copy)

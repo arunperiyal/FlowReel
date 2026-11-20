@@ -28,6 +28,20 @@ Reference: docs/commands.md.""",
   flowreel film build --preview 720 --crf 23 a better preview copy
   flowreel film build --only compare         one shot alone, as film_compare.mp4
   flowreel film build --force                build every clip again""",
+    "check": """examples:
+  flowreel film check                        a still at the middle of each caption
+  flowreel film check --at freeze            one at each freeze
+  flowreel film check --at every:10          one every 10 seconds
+  flowreel film check --columns 6 --width 320 -o sheet.png""",
+    "lengths": """examples:
+  flowreel film lengths                      planned, and measured from the last build
+  flowreel film lengths talk.yml""",
+    "srt": """examples:
+  flowreel film srt                          film.srt beside the film
+  flowreel film srt -o captions.srt""",
+    "chapters": """examples:
+  flowreel film chapters                     print chapters.txt, for YouTube
+  flowreel film chapters -o chapters.txt""",
 }
 
 
@@ -80,6 +94,51 @@ class FilmCommand(BaseCommand):
         b.add_argument("--crf", type=int, metavar="N",
                        help="quality of the preview copy, 0 to 51, lower is better (default 28)")
         _clips_arg(b)
+
+        c = _parser(
+            actions, "check", help="contact sheet of stills, with the text in place",
+            description="Draw contact.png beside the film: stills of the finished film, each "
+                        "labelled with its time and shot, the captions drawn as they show. "
+                        "Missing finished clips are built; the film is not joined.")
+        _film_arg(c)
+        c.add_argument("--at", default="caption", metavar="WHEN",
+                       help="caption (middle of each caption), freeze (middle of each "
+                            "freeze) or every:S (every S seconds); default caption")
+        c.add_argument("--columns", type=int, default=4, metavar="N",
+                       help="stills across the sheet (default 4)")
+        c.add_argument("--width", type=int, default=480, metavar="PX",
+                       help="width of a still in pixels, at most the film's (default 480)")
+        c.add_argument("-o", "--output", metavar="FILE",
+                       help="where the sheet goes (default contact.png beside the film)")
+        c.add_argument("--force", action="store_true",
+                       help="build the clips again, even when their key did not change")
+        _clips_arg(c)
+
+        n = _parser(
+            actions, "lengths", help="planned and measured length per shot, and chapters",
+            description="Print each shot's planned length (from the timeline) and its "
+                        "measured length (from its finished clip of the last build; - when "
+                        "none), the film's, and each chapter's start and length. Nothing is "
+                        "built.")
+        _film_arg(n)
+        n.add_argument("--clips", metavar="DIR",
+                       help="folder of the clips (default clips/ beside the film file)")
+
+        t = _parser(
+            actions, "srt", help="write the captions as a subtitle file",
+            description="Write the captions as SubRip subtitles, at their film times, with "
+                        "maths between $ as plain text. Nothing is built.")
+        _film_arg(t)
+        t.add_argument("-o", "--output", metavar="FILE",
+                       help="where the subtitles go (default film.srt beside the film)")
+
+        h = _parser(
+            actions, "chapters", help="print the chapters as YouTube timestamps",
+            description="Print the chapters as chapters.txt holds them, one '0:00 Title' "
+                        "line each, for a YouTube description; what YouTube would refuse "
+                        "is noted on stderr. Nothing is built.")
+        _film_arg(h)
+        h.add_argument("-o", "--output", metavar="FILE", help="write to FILE instead of printing")
         return p
 
     def execute(self, args, ctx):
@@ -112,4 +171,49 @@ class FilmCommand(BaseCommand):
         for line in built.table():
             ctx.out(line)
         ctx.out(f"built in {time.perf_counter() - start:.1f} s")
+        return 0
+
+    def do_check(self, args, ctx):
+        from flowreel.film.check import contact
+        if args.columns < 1 or args.width < 2:
+            raise CommandError("--columns must be at least 1 and --width at least 2")
+        start = time.perf_counter()
+        path = contact(args.film, args.at, args.output, columns=args.columns,
+                       width=args.width, folder=args.clips, force=args.force,
+                       panels={"jobs": args.jobs})
+        ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
+        return 0
+
+    def do_lengths(self, args, ctx):
+        from flowreel.film.build import lengths
+        for line in lengths(args.film, folder=args.clips).table():
+            ctx.out(line)
+        return 0
+
+    def do_srt(self, args, ctx):
+        from flowreel.film import load, timeline
+        from flowreel.film.check import srt
+        line = timeline(load(args.film))
+        if not line.captions:
+            raise CommandError("the film has no captions")
+        path = srt(line, args.output)
+        ctx.out(f"wrote {path}: {len(line.captions)} captions")
+        return 0
+
+    def do_chapters(self, args, ctx):
+        from pathlib import Path
+
+        from flowreel.film import load, timeline
+        from flowreel.film.chapters import youtube_notes, youtube_text
+        chapters = timeline(load(args.film)).chapters
+        if not chapters:
+            raise CommandError("the film has no chapters (a shot's 'chapter: TITLE')")
+        text = youtube_text(chapters)
+        for note in youtube_notes(chapters):
+            ctx.warn(note)
+        if args.output:
+            Path(args.output).write_text(text, encoding="utf-8")
+            ctx.out(f"wrote {args.output}: {len(chapters)} chapters")
+        else:
+            ctx.out(text, end="")
         return 0

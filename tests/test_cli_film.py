@@ -57,3 +57,37 @@ def test_build_errors(sh):
     assert status != 0 and "-j" in err
     status, _, _ = sh.run("film")
     assert status != 0
+
+
+def test_check(sh, project):
+    status, out, err = sh.run("film check --at every:1 --width 80 --columns 2 -o sheet.png")
+    assert status == 0, err
+    from PIL import Image
+    sheet = Image.open(project / "sheet.png")
+    assert sheet.width < 2 * 80 + 20 and "sheet.png" in out
+    status, _, err = sh.run("film check --at sometimes")
+    assert status != 0 and "every:S" in err
+
+
+def test_lengths_measured_from_the_last_build(sh, project, tmp_path):
+    status, out, err = sh.run("film lengths --clips " + str(tmp_path / "none"))
+    assert status == 0, err
+    rows = words(out)
+    assert rows["b"] == ["1.75", "s", "-"] and rows["film"] == [f"{TOTAL:.2f}", "s", "-"]
+    assert "no finished clip" in out
+    sh.run("film build")
+    rows = words(sh.run("film lengths")[1])
+    assert rows["b"] == ["1.75", "s", "1.75", "s"]
+    assert rows["Middle"] == ["0:01", "1.25", "s", "2.00", "s"]
+    assert rows["End"] == ["0:03", "3.25", "s", "1.00", "s"]
+
+
+def test_srt_and_chapters(sh, project):
+    status, out, err = sh.run("film srt -o subs.srt")
+    assert status == 0, err
+    assert "2 captions" in out and (project / "subs.srt").read_text().startswith("1\n00:00:00,250")
+    status, out, err = sh.run("film chapters")
+    assert status == 0
+    assert out == "0:00 Start\n0:01 Middle\n0:03 End\n" and "YouTube's 10 s" in err
+    status, out, _ = sh.run("film chapters -o ch.txt")
+    assert (project / "ch.txt").read_text() == "0:00 Start\n0:01 Middle\n0:03 End\n"

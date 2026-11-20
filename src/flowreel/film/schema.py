@@ -312,12 +312,23 @@ def _watermark(value, check: Checker, folder: Path, names: list[str]) -> Waterma
     return w
 
 
-def parse_watermark(value, check: Checker, folder: Path) -> Watermark:
-    """A ``watermark`` mapping (film or shot level; plan Section 10.7)."""
-    spec = check.mapping(value, WATERMARK_KEYS)
+#: Keys of a film's watermark only: when it shows.
+WHEN_KEYS = ("shots", "seconds", "cards")
+
+
+def parse_watermark(value, check: Checker, folder: Path, shot: bool = False) -> Watermark:
+    """A ``watermark`` mapping (plan Section 10.7): the film's, or a shot file's when
+    ``shot`` (drawn into every frame, so without ``shots``, ``seconds`` or ``cards``).
+    An ``image`` is taken from ``folder`` and must exist."""
+    spec = check.mapping(value, tuple(k for k in WATERMARK_KEYS if not (shot and k in WHEN_KEYS)))
     given = [k for k in ("image", "text") if spec.get(k) is not None]
     if len(given) != 1:
         raise check.error("give one of 'image' (a file) or 'text' (a line of text)")
+    image = None
+    if spec.get("image") is not None:
+        image = folder / check.at("image").string(spec["image"])
+        if not image.is_file():
+            raise check.at("image").error(f"no image file {image}")
     if "corner" in spec and "place" in spec:
         raise check.at("place").error("give 'corner' or 'place', not both")
     opacity = check.at("opacity").number(spec.get("opacity", Watermark.opacity))
@@ -337,7 +348,7 @@ def parse_watermark(value, check: Checker, folder: Path) -> Watermark:
         shots = tuple(check.at("shots", k).string(s)
                       for k, s in enumerate(check.at("shots").sequence(spec["shots"], minimum=1)))
     return Watermark(
-        image=None if spec.get("image") is None else folder / check.at("image").string(spec["image"]),
+        image=image,
         text=None if spec.get("text") is None else check.at("text").string(spec["text"]),
         corner=check.at("corner").choice(spec.get("corner", Watermark.corner), CORNERS),
         place=None if spec.get("place") is None else check.at("place").numbers(spec["place"], 2),

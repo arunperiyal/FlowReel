@@ -1163,7 +1163,7 @@ other, so they can be built in parallel. Branch 4 needs branches 1 to 3, branch 
 
 **Branch 5: `phase4/film-build`** (the film; needs branch 4)
 - [x] Join the finished clips without re-encoding; planned and measured length per shot printed (Section 10.8)
-- [ ] Audio (Section 10.6): one or more tracks, each with `file`, `offset`, `start`, `volume`, `fade`; lengths measured from the files, a fade ending with the shorter of picture and track; `mute`
+- [x] Audio (Section 10.6): one or more tracks, each with `file`, `offset`, `start`, `volume`, `fade`; lengths measured from the files, a fade ending with the shorter of picture and track; `mute`
 - [ ] Preview copy: `preview: HEIGHT` writes `film_<H>p.mp4` from the same clips, scaled and encoded once, `crf`
 - [ ] `only`: one shot's finished clip, for checking its text
 - [ ] `film.srt` from the captions; `contact.png`: stills at captions, freezes or every few seconds, with text in place (`film check`)

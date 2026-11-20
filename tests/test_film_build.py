@@ -63,3 +63,78 @@ def test_a_second_build_keeps_every_clip(tmp_path):
     assert lines[0].split() == ["shot", "planned", "measured"]
     assert lines[1].split()[:5] == ["a", "0.50", "s", "0.50", "s"] and lines[1].endswith("kept")
     assert lines[3].startswith("film") and lines[3].endswith("film.mp4")
+
+
+# -- audio ---------------------------------------------------------------------------
+
+def tone(path, seconds, freq=440):
+    """A generated sine tone of ``seconds``, peaking at 0.5 of full scale."""
+    ff.run("-f", "lavfi", "-i", f"sine=frequency={freq}:duration={seconds}:sample_rate=48000",
+           "-af", "volume=4", "-c:a", "pcm_s16le", path)      # sine is 1/8: 0.5
+    return path
+
+
+def sound(path):
+    """The film's sound as float samples, mono, 48 kHz."""
+    import subprocess
+    import numpy as np
+    done = subprocess.run([str(ff.find().ffmpeg), "-v", "error", "-i", str(path), "-map", "0:a",
+                           "-ac", "1", "-ar", "48000", "-f", "f32le", "-"],
+                          capture_output=True, check=True)
+    return np.frombuffer(done.stdout, np.float32)
+
+
+def loudness(samples, t, width=0.05):
+    """Peak level around ``t`` seconds."""
+    a, b = int((t - width) * 48000), int((t + width) * 48000)
+    return float(abs(samples[max(a, 0):b]).max())
+
+
+def audio_length(path) -> float:
+    return float(ff.probe(path, "stream=duration", stream="a:0"))
+
+
+def test_a_track_plays_under_the_picture_cut_to_its_length(tmp_path):
+    tone(tmp_path / "tone.wav", 3.0)
+    built = build(two_shots(tmp_path, audio={"file": "tone.wav", "volume": 0.5}))
+    assert abs(audio_length(built.output) - 1.0) < 0.03
+    assert abs(ff.length(built.output) - 1.0) < 0.03
+    s = sound(built.output)
+    assert abs(loudness(s, 0.5) - 0.25) < 0.02            # 0.5 of the tone's 0.5
+    assert any("tone.wav: 0.00 to 1.00 s" in n for n in built.notes)
+
+
+def test_offset_start_and_a_fade_that_ends_with_the_shorter(tmp_path):
+    """From 2.6 s into a 3 s file, starting 0.2 s in: the track ends at 0.6 s of film, and
+    its fade out ends there, not at the picture's end; silence follows."""
+    tone(tmp_path / "tone.wav", 3.0)
+    built = build(two_shots(tmp_path, audio={"file": "tone.wav", "offset": 2.6, "start": 0.2,
+                                             "fade": [0, 0.2]}))
+    s = sound(built.output)
+    assert abs(audio_length(built.output) - 1.0) < 0.03    # padded to the picture
+    assert loudness(s, 0.1) < 1e-3                         # not started
+    assert abs(loudness(s, 0.3, 0.02) - 0.5) < 0.02        # full before the fade
+    assert loudness(s, 0.59, 0.005) < 0.1                  # nearly gone at its end
+    assert loudness(s, 0.8) < 1e-3                         # silence after the track
+    assert any("0.20 to 0.60 s" in n for n in built.notes)
+
+
+def test_tracks_are_added_and_mute_leaves_them_out(tmp_path):
+    tone(tmp_path / "a.wav", 2.0, 440)
+    tone(tmp_path / "b.wav", 2.0, 660)
+    tracks = [{"file": "a.wav", "volume": 0.4}, {"file": "b.wav", "volume": 0.4}]
+    built = build(two_shots(tmp_path, audio=tracks))
+    assert loudness(sound(built.output), 0.5) > 0.25      # more than either alone (0.2)
+    muted = build(two_shots(tmp_path, audio=tracks), mute=True)
+    assert ff.probe(muted.output, "stream=codec_type", stream=None).split() == ["video"]
+    assert "audio: muted" in muted.notes
+
+
+def test_a_track_that_cannot_play_is_an_error(tmp_path):
+    tone(tmp_path / "tone.wav", 1.0)
+    with pytest.raises(ValueError, match="offset 2 s is past the end"):
+        build(two_shots(tmp_path, audio={"file": "tone.wav", "offset": 2}))
+    with pytest.raises(ValueError, match="starts at 1.5 s, after the picture's 1 s"):
+        build(two_shots(tmp_path, audio={"file": "tone.wav", "start": 1.5}))
+    with pytest.raises(FileNotFoundError, match="no file"):
+        build(two_shots(tmp_path, audio={"file": "missing.wav"}))

@@ -134,9 +134,25 @@ How captions are drawn (measured text, shadow or box, the shapes' keys) is on
 
 One track, or a list. Each has `file` (required), `offset` (seconds into the track to
 start from, `0`), `start` (seconds into the film, `0`), `volume` (`1` as recorded),
-`fade` (`[in, out]` seconds) and `licence` (a note kept with it). The build measures
-the files' lengths rather than trusting plans (branch 5). Music files stay out of the
-repository.
+`fade` (`[in, out]` seconds) and `licence` (a note kept with it). Music files stay out
+of the repository.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `file` | path | required | the sound file, from the film file's folder |
+| `offset` | seconds | `0` | where in the file to start playing |
+| `start` | seconds | `0` | when in the film the track starts |
+| `volume` | number | `1` | gain; `1` is as recorded |
+| `fade` | `[in, out]` seconds | `[0, 0]` | fade in from the track's start, fade out to its end |
+| `licence` | text | none | a note, not used |
+
+The build measures every file's length rather than trusting a plan (the prototype's
+planned and measured lengths differed by a second). A track plays until the picture
+ends or the file runs out, whichever comes first, and its fade out ends there, so music
+shorter than the film fades to silence instead of stopping. Tracks are added, not
+averaged, so two tracks at `volume: 0.5` sound as one at `1`. Silence fills the rest of
+the picture. An `offset` past the file's end, or a `start` after the picture's end, is
+an error. `build(..., mute=True)` (`film build --mute`) leaves the sound out.
 
 ## Watermark
 

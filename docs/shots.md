@@ -34,6 +34,7 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |
 | `lights` | `default`, `raking` or a list (see [cameras](cameras.md#lights)) | none: VTK's own light kit | `lights: raking` |
 | `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` |
+| `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
 
 `source` in its short form gives the adapter one location (a path, or a body name for

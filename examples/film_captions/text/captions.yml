@@ -1,0 +1,31 @@
+# Captions drawn by examples/film_captions/run.py over a generated picture (1920 x 1080).
+# A highlight darkens what is beneath it, so the caption holding one comes first.
+- id: wake
+  lines: ['The wake, coloured by $\omega_z D/U$']
+  place: bottom
+  colour: '#f5a142'
+  shapes:
+    - {highlight: {from: [1100, 420], to: [1820, 700], dim: 0.5, radius: 16}}
+    - {bracket: {from: [1120, 720], to: [1800, 720], depth: -20}}
+- id: title
+  lines: ['Flow past a cylinder with helical grooves']
+  place: top
+- id: groove
+  lines: ['Each groove $0.08D$ deep', 'and $0.2D$ wide']
+  place: [1080, 200]
+  size: 40
+  align: left
+  box: true
+  shapes:
+    - {arrow: {from: [1250, 330], to: [1060, 520]}}
+    - {dimension: {from: [880, 760], to: [1040, 760], value: '$0.2D$', offset: -40}}
+- id: marks
+  lines: ['Shapes']
+  place: [120, 360]
+  size: 36
+  align: left
+  shapes:
+    - {circle: {centre: [960, 540], radius: 160, width: 3}}
+    - {ellipse: {centre: [960, 540], radii: [220, 90], width: 2, colour: '#6fb6d6'}}
+    - {box: {from: [120, 420], to: [420, 620], radius: 10}}
+    - {line: {from: [120, 660], to: [420, 660], width: 2}}

@@ -1,6 +1,7 @@
 """--slurm and --submit of shot render, compose and film build, and the jobs commands,
 with fake sbatch, squeue and sacct that record their calls."""
 import json
+import os
 import stat
 
 import pytest
@@ -81,6 +82,22 @@ def test_missing_plans_only_frames_not_drawn(sh, tmp_path):
     assert status != 0 and "every frame is drawn already" in err
 
 
+def test_compose_and_film_as_jobs_after_others(sh, tmp_path):
+    (tmp_path / "board.yml").write_text("size: [10, 10]\ntiles: []\n")
+    status, out, err = sh.run("compose layout board.yml --slurm c.sh --scale 0.5 -j 8 "
+                              "--cpus 8 --mem 32G --after 1310")
+    assert status == 0, err
+    assert "8 cores, 32G, 02:00:00 on airavata part1" in out
+    text = (tmp_path / "c.sh").read_text()
+    assert "flowreel compose layout board.yml --scale 0.5 -j 8 -o frames\n" in text
+    assert "#SBATCH --dependency=afterok:1310" in text
+    status, out, err = sh.run("film build --submit --preview 480 --mute --time 30m")
+    assert status == 0, err
+    assert "submitted job 1310" in out
+    assert "flowreel film build film.yml -j 1 --preview 480 --mute\n" in \
+        (tmp_path / "jobs" / "film.sh").read_text()
+
+
 def test_errors(sh, tmp_path):
     for line, message in [
         ("shot render g.yml --missing", "--missing is for --slurm or --submit"),
@@ -88,6 +105,12 @@ def test_errors(sh, tmp_path):
         ("shot render g.yml --slurm r.sh --cluster moon", "no cluster 'moon'"),
         ("shot render g.yml --slurm r.sh --after soon", "expected a job id"),
         ("shot render g.yml --slurm r.sh --missing --force", "not both"),
+        ("film build --slurm f.sh --partition part9", "no partition 'part9'"),
+        ("film build --slurm f.sh --time 4h --partition part1", "at most 03:00:00"),
     ]:
         status, _, err = sh.run(line)
         assert status != 0 and message in err, (line, err)
+    os.environ["FLOWREEL_SBATCH"] = str(fake(tmp_path / "bin" / "sbatch",
+                                             'echo "sbatch: error: invalid partition" >&2; exit 1\n'))
+    status, _, err = sh.run("film build --submit")
+    assert status != 0 and "sbatch refused" in err and "invalid partition" in err

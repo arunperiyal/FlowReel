@@ -59,3 +59,15 @@ def slurm_options(args) -> dict:
     return {"script": args.slurm, "submit": args.submit, "cluster": args.cluster,
             "partition": args.partition, "time": time, "memory": memory, "cpus": args.cpus,
             "after": tuple(args.after)}
+
+
+def run_single(ctx, name: str, command: list[str], kind: str, args) -> int:
+    """Write or submit ``command`` as one job, from a command's ``args``."""
+    from flowreel.jobs import run
+    from flowreel.jobs.partitions import format_memory, format_time
+    done = run.single(name, command, kind=kind, **slurm_options(args))
+    s = done.spec
+    ctx.out(f"{s.cpus} cores, {format_memory(s.memory)}, {format_time(s.time)} on "
+            f"{s.partition.cluster} {s.partition.name}")
+    ctx.out(done.text())
+    return 0

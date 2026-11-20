@@ -1252,7 +1252,7 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 
 **Branch 4: `phase5/cli-slurm`** (commands; needs branch 3)
 - [x] `shot render --slurm FILE` and `--submit`, with `--cluster`, `--partition`, `--time`, `--mem`, `--cpus`, `--max-running N`, `--after JOBID`, `--missing`; prints the job id and the log path
-- [ ] `compose layout`, `compose panel` and `film build` take `--slurm FILE`, `--submit` and `--after JOBID`, so a film is a chain of jobs: renders, then composes, then the build
+- [x] `compose layout`, `compose panel` and `film build` take `--slurm FILE`, `--submit` and `--after JOBID`, so a film is a chain of jobs: renders, then composes, then the build
 - [ ] `jobs partitions` (the table), `jobs check` (branch 2), `jobs status [JOBID]` (Slurm's state of FlowReel's jobs and the frames drawn so far)
 - [ ] Help text; docs: commands page
 

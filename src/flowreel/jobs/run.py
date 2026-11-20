@@ -5,6 +5,7 @@
 the measured cost of its frames, writes the script (:mod:`flowreel.jobs.script`) and,
 with ``submit``, hands it to ``sbatch``. A shot not measured yet gets a measuring job
 instead, which then runs the same command again on the node: by then it can be sized.
+:func:`single` does the same for one command (``compose layout``, ``film build``).
 """
 from __future__ import annotations
 
@@ -176,3 +177,24 @@ def render_command(shot: str, *, script: str, out: str, frames=None, scale=None,
     if max_running is not None:
         cmd += ["--max-running", str(max_running)]
     return cmd
+
+
+def single(name: str, command: list[str], *, kind: str, script: str | Path | None = None,
+           submit: bool = False, cluster: str | None = None, partition: str | None = None,
+           time: int | None = None, memory: int | None = None, cpus: int | None = None,
+           after=(), workdir: str | Path | None = None) -> Submitted:
+    """Write (and with ``submit``, submit) one job that runs ``command`` (``compose
+    layout``, ``film build``): :data:`SINGLE` cores, memory and time unless given, in the
+    shortest partition that takes it unless named. ``script`` defaults to
+    ``jobs/<name>.sh``."""
+    workdir = Path(workdir or os.getcwd()).resolve()
+    found = partitions.find(cluster)
+    cpus = cpus or SINGLE[0]
+    memory = memory or SINGLE[1]
+    time = time or SINGLE[2]
+    part = found.partition(partition) if partition else found.fitting(time, cpus, memory)
+    spec = JobSpec(name, part, cpus=cpus, memory=memory, time=time,
+                   after=tuple(str(a) for a in after)).check()
+    script = Path(script) if script else workdir / "jobs" / f"{name}.sh"
+    return _write_and_submit(spec, [command], None, script, workdir, submit,
+                             " ".join(command[:3]) + " --slurm", kind)

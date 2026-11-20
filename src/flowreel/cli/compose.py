@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import textwrap
 import time
+from pathlib import Path
 
 from shellkit import BaseCommand, CommandError, paths
 
@@ -25,7 +26,8 @@ Reference: docs/commands.md.""",
   flowreel compose layout compare.yml             every frame, into frames/compare/
   flowreel compose layout compare.yml --scale 0.5 a half-size draft, frames/compare@960x540/
   flowreel compose layout compare.yml --frames 0:48:4 -j 8
-  flowreel compose layout compare.yml --force     compose again even if nothing changed""",
+  flowreel compose layout compare.yml --force     compose again even if nothing changed
+  flowreel compose layout compare.yml --submit --after 1310   as a job, after the renders""",
     "panel": """examples:
   flowreel compose panel lift.yml                 every frame, into frames/lift/
   flowreel compose panel lift.yml -j 8            eight runs of frames at once
@@ -48,6 +50,19 @@ def _common(parser, what: str):
                         help="processes drawing at once (default 1)")
     parser.add_argument("-o", "--out", default="frames", metavar="DIR",
                         help="folder of the frame folders (default ./frames)")
+    from flowreel.cli.jobs import add_slurm_args
+    add_slurm_args(parser)
+
+
+def _as_job(args, what: str, file: str, extra: list[str]) -> list[str]:
+    """The ``flowreel compose WHAT FILE ...`` line a job runs: these options, without the
+    Slurm ones."""
+    cmd = ["flowreel", "compose", what, file, *extra, "-j", str(args.jobs), "-o", args.out]
+    if args.frames:
+        cmd += ["--frames", args.frames]
+    if args.force:
+        cmd.append("--force")
+    return cmd
 
 
 class ComposeCommand(BaseCommand):
@@ -98,13 +113,20 @@ class ComposeCommand(BaseCommand):
             raise CommandError(str(exc)) from None
         except FileNotFoundError as exc:
             raise CommandError(f"no such file: {exc.filename}") from None
-        except ValueError as exc:
-            raise CommandError(str(exc)) from None
+        except (ValueError, LookupError) as exc:
+            raise CommandError(str(exc.args[0]) if isinstance(exc, LookupError) and exc.args
+                               else str(exc)) from None
 
     def do_layout(self, args, ctx):
+        from flowreel.cli.jobs import run_single, slurm_wanted
         from flowreel.compose import layout
         if args.scale is not None and args.size is not None:
             raise CommandError("give --scale or --size, not both")
+        if slurm_wanted(args):
+            extra = (["--scale", f"{args.scale:g}"] if args.scale is not None else []) + \
+                (["--size", *map(str, args.size)] if args.size else [])
+            return run_single(ctx, Path(args.layout).stem, _as_job(args, "layout", args.layout,
+                                                                   extra), "compose", args)
         frames = parse_frames(args.frames) if args.frames else None
         start = time.perf_counter()
         report = layout(args.layout, args.out, frames=frames, force=args.force,
@@ -116,7 +138,11 @@ class ComposeCommand(BaseCommand):
         return 0
 
     def do_panel(self, args, ctx):
+        from flowreel.cli.jobs import run_single, slurm_wanted
         from flowreel.compose import panel
+        if slurm_wanted(args):
+            return run_single(ctx, Path(args.panel).stem, _as_job(args, "panel", args.panel, []),
+                              "compose", args)
         frames = parse_frames(args.frames) if args.frames else None
         start = time.perf_counter()
         report = panel(args.panel, args.out, frames=frames, jobs=args.jobs, force=args.force,

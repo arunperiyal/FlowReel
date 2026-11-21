@@ -167,3 +167,18 @@ def test_the_opening_card_matches(afms, tmp_path, monkeypatch):
     ours = np.asarray(card_image(load_card(folder / "cards" / "opening.yml"), film.style))
     mean, clear = difference(ours, gold)
     assert mean < MEAN_LIMIT and clear < CLEAR_LIMIT, (mean, clear)
+
+
+def test_the_reveal_shot_loads(tmp_path):
+    """tools/afms_film.py --reveal: the bare reveal as a shot file, from render_frames.py
+    and make_film.py; rendered on airavata in Phase 5."""
+    from flowreel.scene.shot import load as load_shot
+    written = afms_film.write_reveal(tmp_path, tmp_path / "no_case")
+    assert [p.name for p in written] == ["bare_reveal.yml", "cameras.yml"]   # no case: no init
+    shot = load_shot(tmp_path / "reveal" / "bare_reveal.yml")
+    assert shot.name == "bare_reveal" and tuple(shot.size) == (1920, 1080)
+    text = (tmp_path / "reveal" / "bare_reveal.yml").read_text()
+    for part in ("steps: [5000, 5600], every: 1", "frames: [48, 72]", "frames: [57.6, 72]",
+                 "[48.01, true]", "crop: {x: [-1, 13], y: [-6, 6], z: [-2, 25]}"):
+        assert part in text
+    assert "position: [-19, 13, -5], focal: [6, 0, 8.5]" in (tmp_path / "reveal" / "cameras.yml").read_text()

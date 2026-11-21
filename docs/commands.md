@@ -33,7 +33,10 @@ it out, and print `Using shot: ...`. `unuse shot` clears it.
 `film.yml`. The `film` commands then use its `film.yml` when no film file is given, from
 any folder; without a project they use `./film.yml`. How a project folder is made and
 laid out is still open (plan Section 24, question 6); for now the context only finds
-the film file. `help`, `help shot`, and
+the film file.
+
+`use view:main` sets a view of `cameras.yml`; `camera project` then uses it when neither
+`--view` nor `--track` is given. `help`, `help shot`, and
 `shot render --help` show the help. Commands can be chained with `;`, and the output of
 one piped to the system's commands with `|`. `-d` (or `set debug on`) shows the full
 traceback when a command fails.
@@ -42,7 +45,7 @@ traceback when a command fails.
 
 ```text
 flowreel shot render [SHOT] [--frames SPEC] [--scale S | --size W H] [--force]
-                     [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
+                     [--save-vtp DIR] [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
                      [--slurm FILE] [--submit] [Slurm options] [--max-running N] [--missing]
 ```
 
@@ -59,6 +62,7 @@ change since they were drawn are skipped (see [rendering](rendering.md#frame-key
 | `--scale S` | none | a draft at the shot's size times S, rounded to even pixels |
 | `--size W H` | none | a draft at W x H pixels |
 | `--force` | off | draw the frames even when their key did not change |
+| `--save-vtp DIR` | none | draw no frames; save the scene's surfaces at each step the frames show into `DIR`, for the [camera editor](camera-editor.md#away-from-the-data---vtp) on another machine |
 | `-j N`, `--jobs N` | 1 | frames drawn at once, each in its own process |
 | `--threads T` | `min(4, cores / N)` | threads per job |
 | `--backend B` | `auto` | `auto` (OSMesa, else EGL), `osmesa`, `egl` or `x` |
@@ -131,6 +135,131 @@ once `source` and `camera` name real things.
 | `--layers TYPES` | `body` | comma list of layer types: `body`, `slice`, `iso`, `outline`, `glyphs`, `markers3d`, `geometry`, `supports`, `centreline`, `axes` |
 | `-o FILE` | print | write to FILE |
 | `--force` | off | overwrite FILE if it exists |
+
+## Camera commands
+
+Every camera command reads and writes one `cameras.yml`: `-c FILE`, else the one beside
+the shot when a shot is given (or set with `use shot:FILE`), else `./cameras.yml`. Files
+are written by [`update_cameras`](cameras.md#writing-camerasyml): other views and tracks
+are kept, the old file is left as `cameras.yml.bak`, and comments are not kept.
+
+### `camera edit`
+
+```text
+flowreel camera edit [SHOT] --track NAME [--frames N] [--vtp DIR] [--film FILE]
+                     [--spline] [--size W H] [-c FILE]
+```
+
+Opens the [camera editor](camera-editor.md) on the shot's scene: move the camera, set the
+Frame slider, press `s` to save a key. Keys: `s` save, `u` undo, `r` replace nearest,
+`p` play, `n` next step. Every change is written at once.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `SHOT` | the `shot` context | the shot whose scene is shown |
+| `--track NAME` | required | the track to make, or to take up where it was left |
+| `--frames N` | the shot's frames | the track's length; needed with `--vtp` and no shot |
+| `--vtp DIR` | none | open surfaces saved by `shot render --save-vtp DIR` instead of the data |
+| `--film FILE` | none | mark the points in the model that this film's captions point at on the shot's frames |
+| `--spline` | off | write the track with `path: spline` |
+| `--size W H` | `1280 720` | the window's size |
+
+Where there is no display (`DISPLAY` or `WAYLAND_DISPLAY` unset on Linux) it stops at
+once with an error saying to save the surfaces and open them elsewhere.
+
+### `camera path`
+
+```text
+flowreel camera path NAME --keys F:VIEW[:EASE] ... [--path linear|spline] [--ease E]
+                     [--frames N] [-c FILE]
+```
+
+Writes a track from keys, frames increasing; a key's `EASE` sets the segment from it to
+the next ([camera tracks](cameras.md#camera-tracks)).
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--keys` | required | `FRAME:VIEW` or `FRAME:VIEW:EASE`, views of `cameras.yml` |
+| `--path` | `linear` | through the keys: `linear` or `spline` |
+| `--ease E` | `smooth` | the segments' easing unless a key gives one |
+| `--frames N` | none | the track's length |
+
+### `camera orbit`
+
+```text
+flowreel camera orbit NAME --radius R --frames N (--target X Y Z | --shot FILE --station S
+                      [--body B] [--step N]) [--azimuth A] [--span S] [--elevation E [E2]]
+                      [--axis x|y|z] [--up X Y Z] [--lead L] [--view-angle DEG] [--ease E] [-c FILE]
+```
+
+Writes views `NAME_00`, `NAME_01`, ... and a track that circle a target
+([orbits](cameras.md#orbits)). The target is a point, or a body's centre at a station
+along its axis, found in the shot's source as `follow` finds it.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--radius R` | required | the camera's distance from the target |
+| `--frames N` | required | the track's length |
+| `--target X Y Z` | | a point; or give `--station` |
+| `--station S` | | where along the body's axis; with `--shot` |
+| `--shot FILE` | | the shot whose source has the body |
+| `--body B` | the one body | a body of that source |
+| `--step N` | the first | the body at this step |
+| `--azimuth A` | `0` | where the orbit starts, degrees |
+| `--span S` | `360` | degrees turned; positive is anticlockwise seen from the axis tip |
+| `--elevation E [E2]` | `0` | degrees above the plane across the axis, or from and to |
+| `--axis` | `y`; with `--station`, the body's axis | what the camera turns about; the station is always along the body's own axis |
+| `--up X Y Z` | the axis | the camera's up |
+| `--lead L` | `0` | the focal point moved this far along the turn axis |
+| `--view-angle` | `30` | degrees |
+| `--ease E` | `smooth` | over the whole turn |
+
+### `camera import`
+
+```text
+flowreel camera import FILE [NAME] [--index I] [--view V] [--force] [-c FILE]
+```
+
+Adds the camera of a ParaView state (`.pvsm`), a ParaView Python state or trace (`.py`),
+or a flexflow camera frame or another `cameras.yml` (`.yml`) as view `NAME` (default
+`main`). `--index I` picks a render view of a ParaView file (from 0), `--view V` a view of
+a `cameras.yml`. A view of the same name is replaced only with `--force`
+([importing a view](cameras.md#importing-a-view)).
+
+### `camera project`
+
+```text
+flowreel camera project (--view V | --track T) --points X,Y,Z ... [--size W H]
+                        [--frames SPEC] [-c FILE]
+```
+
+Prints where model points land on the screen, in pixels from the upper left with `y`
+down, for a view, or for each frame of a track (`--frames`: `A:B:E` or a list; default
+every frame). A point behind the camera prints `behind`. `--size` is the picture's
+(default `1920 1080`). In the shell, `use view:main` and `--view` can be left out
+(an explicit `--track` wins over it).
+
+```text
+$ flowreel camera project --track turn --points 6,0,0 6,0.5,0 --frames 0:47:23
+frame                   6,0,0                 6,0.5,0
+    0          (959.9, 540.0)          (959.9, 374.2)
+   23          (960.0, 540.0)          (960.0, 379.5)
+   46          (960.1, 540.0)          (960.1, 388.1)
+```
+
+### `camera preview`
+
+```text
+flowreel camera preview TRACK [SHOT] [--vtp DIR] [--every N] [--scale S] [-o DIR] [-c FILE]
+```
+
+Draws every `N`th frame of a track (and its last) small, over one scene: the shot's first
+step, or saved surfaces (`--vtp`). Nothing else changes between the frames, so it shows
+the camera move in a second or two, without rendering the shot. Frames go to
+`DIR/<track>@preview/` (default `frames/`); `--scale` is of the shot's size (default
+`0.25`; 1920x1080 with `--vtp` and no shot).
+
+See `examples/camera_commands/run.sh`, which runs each of these on generated data.
 
 ## `compose layout`
 
@@ -247,6 +376,10 @@ clips are built; the film is not joined, so the sheet comes before the build.
 | `-o FILE`, `--output FILE` | `contact.png` beside the film | the sheet |
 
 `--force`, `--clips` and `-j` are those of `film build`.
+
+A caption with [points in the model](captions.md#points-in-the-model) that are hidden for
+a while (behind the camera or off the frame) is named in a warning, with its shot and
+the film times.
 
 ## `film lengths`
 

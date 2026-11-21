@@ -19,8 +19,9 @@ left to right across the frame, its left is up. ``bracket``'s ``depth`` and
 ``dimension``'s ``offset`` are measured that way, so a positive value puts the bracket's
 tips and the dimension's line above a horizontal shape drawn left to right.
 
-Shapes in the model (``arrow3d``, points given as ``{model: ..., view: ...}``) come
-with the camera editor in Phase 6.
+A shape's ``from``, ``to`` and ``centre`` may instead be points in the model,
+``{model: [x, y, z], offset: [dx, dy]}``, projected on every frame so the shape follows
+the camera (:mod:`flowreel.film.anchors`).
 """
 from __future__ import annotations
 
@@ -38,12 +39,18 @@ KEYS = {
     "bracket": ("from", "to", "depth", "width", "colour"),
     "dimension": ("from", "to", "value", "offset", "width", "head", "size", "colour"),
     "highlight": ("from", "to", "dim", "radius"),
+    "label": ("at", "text", "size", "colour"),
+    "label3d": ("at", "text", "offset", "size", "colour"),
+    "dimension3d": ("from", "to", "value", "offset", "width", "head", "size", "colour"),
 }
 REQUIRED = {
     "arrow": ("from", "to"), "line": ("from", "to"), "box": ("from", "to"),
     "circle": ("centre", "radius"), "ellipse": ("centre", "radii"),
     "bracket": ("from", "to"), "dimension": ("from", "to"), "highlight": ("from", "to"),
+    "label": ("at", "text"), "label3d": ("at", "text"), "dimension3d": ("from", "to"),
 }
+#: Shapes in the model, and the 2D shape each becomes once its points are projected.
+IN_MODEL = {"label3d": "label", "dimension3d": "dimension"}
 WIDTH = 4.0                # pixels, of lines and outlines
 HEAD = 4.5                 # an arrow head's length, times the line's width
 DIMENSION_WIDTH = 2.0      # pixels, a dimension's lines
@@ -83,7 +90,18 @@ def parse_shape(spec, check: Checker) -> Shape:
     keys = {}
     for name, v in value.items():
         c = at.at(name)
-        if name in ("from", "to", "centre", "radii"):
+        if kind in IN_MODEL and name in ("from", "to", "at"):
+            keys[name] = _model_point(v, c, value.get("offset") if kind == "label3d" else None,
+                                      at.at("offset"))
+        elif kind == "label3d" and name == "offset":
+            continue                              # part of the point, above
+        elif name in ("from", "to", "centre", "at"):
+            keys[name] = _point(v, c)
+        elif name == "text":
+            keys[name] = c.string(str(v) if isinstance(v, (int, float)) else v)
+        elif name == "radii":
+            if isinstance(v, dict):
+                raise c.error("radii are two lengths in pixels, [rx, ry]")
             keys[name] = _point(v, c)
         elif name in ("colour", "fill"):
             keys[name] = None if v is None and name == "fill" else colour(v, c)
@@ -104,10 +122,26 @@ def parse_shape(spec, check: Checker) -> Shape:
     return Shape(kind, keys)
 
 
-def _point(value, check: Checker) -> tuple[float, float]:
+def _model_point(value, check: Checker, offset, offset_check: Checker):
+    """A point of a shape in the model: ``[x, y, z]`` (or a full anchor mapping), with a
+    ``label3d``'s pixel ``offset`` folded in."""
+    from flowreel.film.anchors import Anchor, parse_anchor
     if isinstance(value, dict):
-        raise check.error("a point in the model ({model: ..., view: ...}) comes with the "
-                          "camera editor (Phase 6); give [x, y] in pixels")
+        anchor = parse_anchor(value, check)
+    else:
+        anchor = Anchor(tuple(float(x) for x in check.numbers(value, 3)))
+    if offset is not None:
+        dx, dy = offset_check.numbers(offset, 2)
+        anchor = Anchor(anchor.model, (anchor.offset[0] + dx, anchor.offset[1] + dy),
+                        anchor.view, anchor.track)
+    return anchor
+
+
+def _point(value, check: Checker):
+    """``[x, y]`` in pixels, or a point in the model (:class:`~flowreel.film.anchors.Anchor`)."""
+    if isinstance(value, dict):
+        from flowreel.film.anchors import parse_anchor
+        return parse_anchor(value, check)
     x, y = check.numbers(value, 2)
     return (float(x), float(y))
 
@@ -161,7 +195,7 @@ def draw(draw, shape: Shape) -> None:
     """Draw ``shape`` with Pillow's ``draw`` (an ``ImageDraw`` of the caption's
     picture). Highlights are drawn by :func:`highlight_layer` instead."""
     k = shape.kind
-    if k == "highlight":
+    if k in ("highlight", "label"):
         return
     colour = _rgba(shape["colour"])
     width = shape.get("width", DIMENSION_WIDTH if k == "dimension" else WIDTH)
@@ -210,14 +244,18 @@ def label_place(shape: Shape, size: float) -> tuple[float, float]:
 
 
 def add_labels(fig, shape: Shape, lk, picture: tuple[int, int]) -> None:
-    """Add a dimension's ``value`` as text to the caption's matplotlib ``fig``, so its
-    maths matches the caption's. ``lk`` is the caption's look."""
-    if shape.kind != "dimension" or not shape.get("value"):
+    """Add a dimension's ``value``, or a label's ``text``, as text to the caption's
+    matplotlib ``fig``, so its maths matches the caption's. ``lk`` is the caption's
+    look. A label is centred on its point."""
+    if shape.kind == "label":
+        size, (x, y), text = shape.get("size", lk.size * 0.8), shape["at"], shape["text"]
+    elif shape.kind == "dimension" and shape.get("value"):
+        size = shape.get("size", lk.size * 0.8)
+        (x, y), text = label_place(shape, size), shape["value"]
+    else:
         return
-    size = shape.get("size", lk.size * 0.8)
-    x, y = label_place(shape, size)
     width, height = picture
-    fig.text(x / width, 1 - y / height, shape["value"], fontsize=size * 72 / 100,
+    fig.text(x / width, 1 - y / height, text, fontsize=size * 72 / 100,
              color=shape["colour"], ha="center", va="center")
 
 

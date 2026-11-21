@@ -29,7 +29,9 @@ for c in f.shot("domain").text:
   maths included, and a longer line never runs past a box.
 - **Places.** `top` and `bottom` are centred across the frame, `caption.margin` pixels
   (default 80) from the edge; `centre` is the middle of the frame; `[x, y]` puts the
-  text's upper left corner there; `[centre, y]` centres it across with its top at `y`.
+  text's upper left corner there; `[centre, y]` centres it across with its top at `y`;
+  `{model: [x, y, z], offset: [dx, dy]}` puts the corner at a point of the model, on
+  every frame ([anchored points](#points-in-the-model)).
   Lines are `size × caption.spacing` pixels apart (default 1.3).
 - **`align`** places the lines against each other inside the block: `left`, `centre`
   or `right`.
@@ -76,20 +78,80 @@ shadow. Each is in the caption's colour unless it gives `colour`.
 | `bracket` | `from`, `to`; `depth`, `width`, `colour` | `depth: 20`, `width: 4` | a square bracket: a back from `from` to `to`, with tips `depth` pixels long |
 | `dimension` | `from`, `to`; `value`, `offset`, `width`, `head`, `size`, `colour` | `offset: 0`, `width: 2`, `head: 14`, `size: 0.8 × the caption's` | a measured length: a line with heads at both ends, moved `offset` pixels away with lines back to the ends, and `value` (text, `$...$` allowed) beside its middle |
 | `highlight` | `from`, `to`; `dim`, `radius` | `dim: 0.6`, `radius: 0` | the picture darkened outside a box, by `dim` (0: not at all, 1: black) |
+| `label` | `at`, `text`; `size`, `colour` | `size: 0.8 × the caption's` | `text` (`$...$` allowed) centred on the point `at` |
+| `label3d` | `at: [x, y, z]`, `text`; `offset: [dx, dy]`, `size`, `colour` | `offset: [0, 0]` | a `label` at a point of the model, moved `offset` pixels on screen |
+| `dimension3d` | `from: [x, y, z]`, `to: [x, y, z]`; as `dimension` | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured |
 
 - **Which side.** A bracket's `depth` and a dimension's `offset` are measured to the
   **left of the direction from `from` to `to`**. For a shape drawn left to right, left
   is up: a bracket under a feature, drawn left to right, has its tips pointing up at
   it. A negative value goes the other way.
-- **Points** are `[x, y]` in pixels. A point in the model (`{model: [x, y, z], view: V}`),
-  which follows a moving camera, comes with the camera editor in Phase 6, as do the 3D
-  shapes (`arrow3d`, `block`, ...).
+- **Points** are `[x, y]` in pixels, or points of the model (below). `label3d` and
+  `dimension3d` take `[x, y, z]` in the model directly; the other shapes take
+  `{model: [x, y, z]}` in `from`, `to`, `centre` or `at`. Lengths (`radius`, `radii`,
+  widths) stay in pixels.
 - **Keys are checked when the text file is read**, so a misspelt key (`widht`) is an
   error naming the file and the key path, not a surprise at the build.
 - Colours are names (`orange`) or `#rrggbb`; `fill` is a colour, or left out for none.
 - A highlight is drawn beneath its own caption's text, shadow and box, so the words
   stay bright over the dimmed picture. It dims whatever lies under it, other captions
   showing at the same time included; put the caption holding it first.
+
+## Points in the model
+
+A caption's `place` and a shape's `from`, `to`, `centre` or `at` may be a point of the
+model instead of pixels. It is projected onto every frame the caption shows in, so an
+arrow follows its target while the camera moves. Code: `flowreel.film.anchors`.
+
+```yaml
+- lines: ['Groove $0.08D$ deep']
+  at: [8.4, 10.6]
+  place: {model: [6, 0.42, 0.18], offset: [40, -120]}     # the text's upper left corner
+  shapes:
+    - {arrow: {from: {model: [6, 0.42, 0.18], offset: [40, -60]},
+               to: {model: [6, 0.42, 0.18]}, width: 4}}
+    - {label3d: {at: [6, 0, 0.5], text: '$D$', offset: [0, -30]}}
+    - {dimension3d: {from: [6, -0.5, 0], to: [6, 0.5, 0], value: '$D$', offset: 20}}
+```
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `model` | `[x, y, z]`, the source's units; required | | `model: [6, 0.42, 0.18]` |
+| `offset` | `[dx, dy]` pixels, `y` down, added after projection | `[0, 0]` | `offset: [40, -60]` |
+| `view` | a view of the project's `cameras.yml` | the frame's own camera | `view: main` |
+| `track` | a camera track of the same file, taken at the frame's number | the frame's own camera | `track: carve` |
+
+- **Which camera.** The one that drew the frame on screen. `shot render` records every
+  frame's view, picture size and stretch in the frame folder (`.views.json`,
+  [rendering](rendering.md#frames-and-folders)), so a camera track, `follow` or `fit`
+  is followed without saying so here. Why record rather than name the camera in the
+  caption: a film shot names a folder of frames, not the shot file that drew them, and
+  a camera moved by `follow` cannot be worked out again without the data. `view` or
+  `track` (not both) are for frames FlowReel did not draw; they read the project's
+  `cameras.yml`, at its root beside `flowreel.yml` (without a project, the one beside
+  the film file).
+- **Which frame.** Each output frame of a finished shot shows a place among the shot's
+  frames. Between two frames (interpolated or blended to the film's rate) the point is
+  blended between its places in the two, as the picture moves; under
+  `to_output: repeat` it stays with the frame shown; in a freeze it stays put. A
+  `hold_last_of` shot uses the held shot's last frame.
+- **Into the film.** The pixel in the drawn frame is scaled and centred into the film's
+  picture as the frame is, so frames of another size, and draft frames drawn with
+  `shot render --scale`, put the point in the same place. The preview copy
+  (`film build --preview`) is scaled from the built film, captions included.
+- **Hidden.** A point behind the camera, or outside the drawn picture before its
+  `offset`, cannot be shown: its shape is left out of that frame, and a caption whose
+  `place` it is shows no words there. `film check` prints a warning naming the caption,
+  the shot and the times.
+- **Cost.** A caption with points in the model is drawn once per output frame it shows
+  in (a picture sequence in the clips folder), not once; it rebuilds when the recorded
+  cameras change.
+- **Errors.** A point in the model on a card or a layout shot (no camera), frames with
+  no record and no `view` or `track`, and a `view` or `track` not in `cameras.yml` are
+  errors naming the shot.
+
+See `examples/anchored_caption/`: a panning shot rendered, then a film whose caption,
+arrow, label and dimension follow the sphere.
 
 ## The watermark
 

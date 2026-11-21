@@ -139,10 +139,13 @@ def text_block(caption: Caption, style: FilmStyle, picture: tuple[int, int]) -> 
             plt.close(fig)
 
 
-def caption_image(caption: Caption, style: FilmStyle, picture: tuple[int, int]):
+def caption_image(caption: Caption, style: FilmStyle, picture: tuple[int, int],
+                  text: bool = True):
     """``caption`` drawn on a transparent picture of ``picture`` (width, height)
-    pixels: its text, its shapes, and its shadow or box. Returns ``(image, block)``,
-    a Pillow RGBA image and the text's :class:`Block`."""
+    pixels: its text, its shapes, and its shadow or box. ``text`` false leaves out the
+    words and their box, keeping the shapes (an anchored caption whose place is hidden
+    on this frame). Returns ``(image, block)``, a Pillow RGBA image and the text's
+    :class:`Block`."""
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from PIL import Image, ImageDraw, ImageFilter
@@ -160,32 +163,34 @@ def caption_image(caption: Caption, style: FilmStyle, picture: tuple[int, int]):
             block = _layout(texts, fig.canvas.get_renderer(), caption, lk, picture)
             for t, (x, y) in zip(texts, block.lines):
                 t.set_position((x / width, 1 - y / height))
+                t.set_visible(text)
             for shape in parsed:
                 shapes_mod.add_labels(fig, shape, lk, picture)
             fig.canvas.draw()
-            text = Image.fromarray(np.asarray(fig.canvas.buffer_rgba()).copy())
+            words = Image.fromarray(np.asarray(fig.canvas.buffer_rgba()).copy())
         finally:
             plt.close(fig)
-    draw = ImageDraw.Draw(text)
+    draw = ImageDraw.Draw(words)
     for shape in parsed:
         shapes_mod.draw(draw, shape)
     back = Image.new("RGBA", picture, (0, 0, 0, 0))
-    if lk.box:
+    if lk.box and text:
         left, top, right, bottom = block.box
         pad = round(lk.size * 0.6)
         ImageDraw.Draw(back).rounded_rectangle(
             (left - pad, top - pad * 0.7, right + pad, bottom + pad * 0.3),
             radius=BOX_RADIUS, fill=(0, 0, 0, BOX_ALPHA))
     elif lk.shadow:
-        back.putalpha(text.getchannel("A").filter(ImageFilter.MaxFilter(SHADOW_GROW))
+        back.putalpha(words.getchannel("A").filter(ImageFilter.MaxFilter(SHADOW_GROW))
                       .filter(ImageFilter.GaussianBlur(SHADOW_BLUR)))
     for shape in parsed:
         if shape.kind == "highlight":
             back = Image.alpha_composite(shapes_mod.highlight_layer(shape, picture), back)
-    return Image.alpha_composite(back, text), block
+    return Image.alpha_composite(back, words), block
 
 
-def save_caption(caption: Caption, style: FilmStyle, picture: tuple[int, int], path) -> None:
+def save_caption(caption: Caption, style: FilmStyle, picture: tuple[int, int], path,
+                 text: bool = True) -> None:
     """Draw ``caption`` (:func:`caption_image`) and save it as a PNG at ``path``."""
-    image, _ = caption_image(caption, style, picture)
+    image, _ = caption_image(caption, style, picture, text)
     image.save(path)

@@ -36,7 +36,10 @@ Reference: docs/commands.md.""",
   flowreel film check                        a still at the middle of each caption
   flowreel film check --at freeze            one at each freeze
   flowreel film check --at every:10          one every 10 seconds
-  flowreel film check --columns 6 --width 320 -o sheet.png""",
+  flowreel film check --columns 6 --width 320 -o sheet.png
+
+Warns where a caption with points in the model is hidden (behind the camera or off
+the frame), with the caption, shot and times.""",
     "lengths": """examples:
   flowreel film lengths                      planned, and measured from the last build
   flowreel film lengths talk.yml""",
@@ -221,6 +224,11 @@ class FilmCommand(BaseCommand):
                        width=args.width, folder=args.clips, force=args.force,
                        panels={"jobs": args.jobs})
         ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
+        from flowreel.film import load
+        from flowreel.film.anchors import hidden_spans
+        from flowreel.film.clips import Clips
+        for hidden in hidden_spans(Clips(load(args.film), folder=args.clips)):
+            ctx.warn(hidden.message())
         return 0
 
     def do_lengths(self, args, ctx):

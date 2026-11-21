@@ -1,0 +1,8 @@
+views:
+  - {name: front, position: [3, 2.5, 3.2], focal: [0, 0, 0.5], up: [0, 0, 1], view_angle: 30}
+  - {name: side, position: [-2.5, 3, 2.2], focal: [0, 0, 0.5], up: [0, 0, 1], view_angle: 30}
+tracks:
+  pan:
+    keys:
+      - {frame: 0, view: front}
+      - {frame: 23, view: side}

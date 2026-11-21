@@ -53,7 +53,9 @@ class Caption:
     ``lines`` of text (``$...$`` is mathematics); ``start`` and ``end`` in seconds of
     the finished shot (``end`` ``None``: to the shot's end, or a :class:`Later`);
     ``place``: ``top``, ``bottom``, ``centre``, ``(x, y)`` (the text's upper left
-    corner) or ``("centre", y)`` (centred across, its top at ``y``). ``size`` is the
+    corner), ``("centre", y)`` (centred across, its top at ``y``) or an
+    :class:`~flowreel.film.anchors.Anchor` (the upper left corner at a point of the
+    model, projected per frame). ``size`` is the
     letters' height in pixels, ``align`` the lines' alignment, ``colour``, ``box`` (a
     dark panel behind) or ``shadow`` (a soft shadow), ``fade`` in and out in seconds;
     ``None`` takes the film's style. ``shapes`` are its 2D shapes
@@ -170,8 +172,8 @@ def _place(value, check: Checker):
     if isinstance(value, str):
         return check.choice(value, PLACES)
     if isinstance(value, dict):
-        raise check.error("a place in the model ({model: ..., view: ...}) comes with the "
-                          "camera editor (Phase 6); give top, bottom, centre or [x, y]")
+        from flowreel.film.anchors import parse_anchor
+        return parse_anchor(value, check)
     items = check.sequence(value)
     if len(items) != 2:
         raise check.error(f"expected [x, y] or [centre, y], got {len(items)} entries")

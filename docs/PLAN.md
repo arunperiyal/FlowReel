@@ -1306,9 +1306,9 @@ branch 4 needs 3, and branch 5 needs all.
 - [x] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
   a line, tracks with their keys), read back equal by `load_views` and `load_tracks`; a
   `.bak` of the file it replaces; comments are not kept, and the file's first line says so
-- [ ] Easing per segment: `ease` on a track key sets the segment after it (the track's
-  `ease` stays the default); `camera_path.path(...)`, a track from keys with easing per
-  segment, for `camera path`
+- [x] Easing per segment: `ease` on a track key sets the segment after it (the track's
+  `ease` stays the default); `camera_path.build_track(...)`, a track from keys with easing
+  per segment, and `update_cameras`, which adds it to a file, for `camera path`
 - [ ] Orbit: an arc of keys round a target (a point, or a body's centre at a station
   along its axis) with radius, elevation from and to, azimuth span, lead and frame count,
   for `camera orbit`

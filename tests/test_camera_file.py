@@ -74,3 +74,32 @@ def test_view_line_keeps_non_defaults():
     assert "parallel_scale: 2" in view_line(VIEWS["main"].with_(parallel_scale=2.0))
     line = view_line(VIEWS["top"].with_(view_angle=45.0))
     assert "view_angle: 45" in line and "parallel: true" in line
+
+
+def test_key_eases_round_trip(tmp_path):
+    from flowreel.scene.camera_path import build_track
+    track = build_track(VIEWS, [(0, "main"), (10, "odd", "hold"), (20, "main")], ease="linear")
+    path = save_cameras(tmp_path / "c.yml", VIEWS, {"t": track})
+    assert "{frame: 10, view: odd, ease: hold}" in path.read_text()
+    assert load_tracks(path, load_views(path))["t"] == track
+
+
+def test_unnamed_view_found_by_equality(tmp_path):
+    from flowreel.scene.camera_path import CameraTrack
+    track = CameraTrack(((0, VIEWS["main"].with_(name="")), (5, VIEWS["top"].with_(name=""))))
+    text = save_cameras(tmp_path / "c.yml", VIEWS, {"t": track}).read_text()
+    assert "{frame: 0, view: main}" in text and "{frame: 5, view: top}" in text
+
+
+def test_update_adds_and_replaces(tmp_path):
+    from flowreel.scene.camera_file import update_cameras
+    from flowreel.scene.camera_path import build_track
+    path = tmp_path / "cameras.yml"
+    update_cameras(path, {"main": VIEWS["main"], "top": VIEWS["top"]})
+    moved = VIEWS["main"].with_(view_angle=20.0)
+    update_cameras(path, {"main": moved, "odd": VIEWS["odd"]},
+                   {"t": build_track(VIEWS, [(0, "odd"), (4, "top")])})
+    views = load_views(path)
+    assert list(views) == ["main", "top", "odd"] and views["main"].view_angle == 20
+    update_cameras(path, tracks={"u": build_track(views, [(0, "main")])})
+    assert list(load_tracks(path, load_views(path))) == ["t", "u"]

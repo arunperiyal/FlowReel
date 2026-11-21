@@ -65,6 +65,19 @@ def save_cameras(path: str | Path, views: dict[str, View],
     return path
 
 
+def update_cameras(path: str | Path, views: dict[str, View] | None = None,
+                   tracks: dict[str, CameraTrack] | None = None) -> Path:
+    """Add ``views`` and ``tracks`` to the ``cameras.yml`` at ``path`` (made if missing),
+    replacing those of the same names and keeping the rest in their order. Returns the
+    path written; see :func:`save_cameras`."""
+    from flowreel.scene.camera_path import load_tracks
+    from flowreel.scene.views import load_views
+    path = Path(path)
+    old_views = load_views(path) if path.exists() else {}
+    old_tracks = load_tracks(path, old_views) if path.exists() else {}
+    return save_cameras(path, {**old_views, **(views or {})}, {**old_tracks, **(tracks or {})})
+
+
 def view_line(view: View) -> str:
     """One view as a YAML flow mapping, as ``cameras.yml`` lists it. ``view_angle`` is
     left out of a parallel view that has the default, ``parallel_scale`` out of a
@@ -81,19 +94,34 @@ def view_line(view: View) -> str:
     return "{" + ", ".join(parts) + "}"
 
 
-def _track_text(name: str, track: CameraTrack, views: dict[str, View]) -> str:
-    text = f"  {_scalar(name)}:\n"
+def _track_text(track_name: str, track: CameraTrack, views: dict[str, View]) -> str:
+    text = f"  {_scalar(track_name)}:\n"
     if track.frames is not None:
         text += f"    frames: {track.frames}\n"
     text += f"    path: {track.path}\n    ease: {track.ease}\n    keys:\n"
     for i, key in enumerate(track.keys):
-        frame, view = key[0], key[1]
-        if views.get(view.name) != view.with_(name=view.name) or not view.name:
-            raise ValueError(f"track {name!r}, key {i} (frame {_num(frame)}): its view is "
-                             f"not one of the views written"
-                             + (f" (no view named {view.name!r})" if view.name else ""))
-        text += f"      - {{frame: {_num(frame)}, view: {_scalar(view.name)}}}\n"
+        frame, view = key
+        name = _name_of(view, views)
+        if name is None:
+            raise ValueError(f"track {track_name!r}, key {i} (frame {_num(frame)}): its "
+                             f"view is not one of the views written"
+                             + (f" (none named {view.name!r} is the same)" if view.name else ""))
+        entry = f"frame: {_num(frame)}, view: {_scalar(name)}"
+        if track.eases and track.eases[i] is not None:
+            entry += f", ease: {track.eases[i]}"
+        text += f"      - {{{entry}}}\n"
     return text
+
+
+def _name_of(view: View, views: dict[str, View]) -> str | None:
+    """The name under which ``view`` is in ``views``: its own name if that entry is the
+    same view, else the first entry equal to it apart from the name."""
+    if view.name in views and views[view.name].with_(name="") == view.with_(name=""):
+        return view.name
+    for name, other in views.items():
+        if other.with_(name="") == view.with_(name=""):
+            return name
+    return None
 
 
 def _num(x: float) -> str:

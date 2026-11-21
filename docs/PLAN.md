@@ -1309,7 +1309,7 @@ branch 4 needs 3, and branch 5 needs all.
 - [x] Easing per segment: `ease` on a track key sets the segment after it (the track's
   `ease` stays the default); `camera_path.build_track(...)`, a track from keys with easing
   per segment, and `update_cameras`, which adds it to a file, for `camera path`
-- [ ] Orbit: an arc of keys round a target (a point, or a body's centre at a station
+- [x] Orbit: an arc of keys round a target (a point, or a body's centre at a station
   along its axis) with radius, elevation from and to, azimuth span, lead and frame count,
   for `camera orbit`
 - [ ] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a

@@ -1330,15 +1330,15 @@ repeat in the caption.
   and a caption's `place`; resolved per output frame of the finished shot from the frame
   shown (rates and freezes, Section 10.2: between two frames the positions are blended),
   its recorded view and size, fitted to the film's size as the picture is; optional
-  `view: V` or `track: T` from the film folder's `cameras.yml` for frames FlowReel did not
-  draw. An anchored caption is drawn once per output frame it shows in; errors for a
+  `view: V` or `track: T` from the project's `cameras.yml` (at its root, Section 24
+  question 6; else beside the film file) for frames FlowReel did not draw. An anchored caption is drawn once per output frame it shows in; errors for a
   card or layout shot, and for frames with no record and no `view` or `track`
 - [x] A point behind the camera or off the frame hides its shape (or its caption's text)
   for that frame; `film check` warns with the caption and the times
 - [x] `label3d` (text at a model point) and `dimension3d` (between two model points, with
   a value) as caption shapes, projected and drawn in 2D like the others, and `label`
   (text at a pixel point), the 2D shape they become
-- [ ] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and
+- [x] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and
   `film build --preview` (scaled from the film); tests on a generated film (an arrow on a
   camera track, checked against `project()`); docs: `docs/captions.md`
 

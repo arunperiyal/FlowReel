@@ -36,7 +36,10 @@ Reference: docs/commands.md.""",
   flowreel film check                        a still at the middle of each caption
   flowreel film check --at freeze            one at each freeze
   flowreel film check --at every:10          one every 10 seconds
-  flowreel film check --columns 6 --width 320 -o sheet.png""",
+  flowreel film check --columns 6 --width 320 -o sheet.png
+
+Warns where a caption with points in the model is hidden (behind the camera or off
+the frame), with the caption, shot and times.""",
     "lengths": """examples:
   flowreel film lengths                      planned, and measured from the last build
   flowreel film lengths talk.yml""",

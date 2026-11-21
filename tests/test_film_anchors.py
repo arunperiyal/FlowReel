@@ -220,3 +220,46 @@ def test_a_label_is_centred_on_its_point():
     image, _ = caption_image(cap, FilmStyle(), (200, 100))
     centre = red_centre(np.asarray(image.convert("RGB")))
     assert centre == pytest.approx((120, 40), abs=2.5)
+
+
+def test_draft_frames_put_the_point_where_full_size_ones_do(tmp_path, toy_source):
+    from flowreel.scene import render
+    from flowreel.scene.camera_path import parse_track
+    from flowreel.scene.shot import from_dict
+    from flowreel.scene.views import parse_view
+    views = {"a": parse_view({"name": "a", "position": [3, 2, 4], "focal": [0, 0, 0.5]}),
+             "b": parse_view({"name": "b", "position": [2, -3, 1.5], "focal": [0.2, 0, 0.5]})}
+    tracks = {"t": parse_track({"keys": [{"frame": 0, "view": "a"}, {"frame": 2, "view": "b"}]},
+                               views)}
+    shot = from_dict({"name": "toy", "source": "toy:none", "time": {"steps": [0, 20]},
+                      "camera": {"track": "t"}, "size": [160, 96], "antialias": "none",
+                      "layers": [{"type": "body"}]}, file="toy.yml")
+    try:
+        for scale in (None, 0.5):
+            render(shot, source=toy_source, views=views, tracks=tracks, out=tmp_path / "frames",
+                   processes=False, scale=scale)
+    except (RuntimeError, OSError) as error:
+        pytest.skip(f"off-screen rendering is not available: {error}")
+    points = []
+    for folder in ("frames/toy", "frames/toy@80x48"):
+        c = load(tmp_path, [{"name": "s", "frames": folder, "rate": {"fps": 8}}])
+        p = ShotProjector(c.film, c.line, "s")
+        points.append([p.point(Anchor((0.1, 0.1, 0.6)), j) for j in range(9)])
+    for full, draft in zip(*points):
+        assert draft == pytest.approx(full, abs=1e-6)
+
+
+def test_named_cameras_come_from_the_project_root(tmp_path):
+    from flowreel.project import PROJECT_FILE
+    films = tmp_path / "films"
+    drawn_frames(films / "f", 2, record=False)
+    (tmp_path / PROJECT_FILE).write_text("source: toy:none\n")
+    (tmp_path / "cameras.yml").write_text(
+        "views:\n  - {name: v0, position: [0, 0, 10], focal: [0, 0, 0], view_angle: 40}\n")
+    (films / "cameras.yml").write_text(
+        "views:\n  - {name: other, position: [0, 0, 5], focal: [0, 0, 0]}\n")
+    c = load(films, [{"name": "a", "frames": "f"}])
+    p = ShotProjector(c.film, c.line, "a")
+    assert p.point(Anchor(POINT, view="v0"), 0) == pytest.approx(expected(0))
+    with pytest.raises(ValueError, match="no view 'other'"):
+        p.point(Anchor(POINT, view="other"), 0)

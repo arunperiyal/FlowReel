@@ -248,6 +248,10 @@ clips are built; the film is not joined, so the sheet comes before the build.
 
 `--force`, `--clips` and `-j` are those of `film build`.
 
+A caption with [points in the model](captions.md#points-in-the-model) that are hidden for
+a while (behind the camera or off the frame) is named in a warning, with its shot and
+the film times.
+
 ## `film lengths`
 
 ```text

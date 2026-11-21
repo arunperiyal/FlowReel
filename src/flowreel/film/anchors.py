@@ -20,7 +20,8 @@ the screen after projection, so a label can sit beside what it names and still f
 records it with the frames (:mod:`flowreel.scene.frame_views`), so a camera track,
 ``follow`` or ``fit`` is followed without being repeated here. For frames FlowReel did
 not draw, ``view: NAME`` (a fixed view) or ``track: NAME`` (a camera track, at the
-frame's number) names a camera of the ``cameras.yml`` in the film's folder.
+frame's number) names a camera of the project's ``cameras.yml``, at its root beside
+``flowreel.yml`` (without a project, the one beside the film file).
 
 **Which frame.** Output frame ``j`` of a finished shot shows a position among the shot's
 frames (:meth:`~flowreel.film.timeline.TimedShot.positions`); between two frames, as
@@ -171,7 +172,11 @@ class ShotProjector:
         return (float(x), float(y), drawn.size)
 
     def _cameras_path(self) -> Path:
-        return self.film.folder / "cameras.yml"
+        """The project's ``cameras.yml``, at its root (beside ``flowreel.yml``); without
+        a project, the one beside the film file."""
+        from flowreel.project import find_project
+        found = find_project(self.film.folder)
+        return (found.parent if found is not None else self.film.folder) / "cameras.yml"
 
     def _named_cameras(self):
         if self._cameras is None:

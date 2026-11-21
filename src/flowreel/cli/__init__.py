@@ -62,6 +62,7 @@ CONTEXTS = [
 def make_app(storage=None) -> App:
     """The FlowReel shellkit app with every command registered. ``storage`` is where the
     shell keeps history and settings (default ``~/.flowreel``)."""
+    from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
@@ -74,6 +75,7 @@ def make_app(storage=None) -> App:
                      + " [dim]help, Tab, exit[/dim]\n")
     app.register(ProjectCommand)
     app.register(ShotCommand)
+    app.register(CameraCommand)
     app.register(ComposeCommand)
     app.register(FilmCommand)
     app.register(JobsCommand)

@@ -1234,10 +1234,10 @@ Branch 1 comes first. Branch 2 needs nothing from branch 1, so the two can be bu
 parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs all.
 
 **Branch 1: `phase5/jobs-partitions`** (data model and job scripts)
-- [ ] Partition table (Section 14): `jobs/partitions.yml` in the package with airavata's `part1` (3 h), `part2` (24 h), `part3` (72 h) on `node1` (128 CPUs, 125 GB), and Param Shakti's from flexflow's `hpc_partition.py`; a user file (`~/.flowreel/partitions.yml`) adds or overrides clusters; the cluster from `--cluster`, `FLOWREEL_CLUSTER`, or the host name
-- [ ] Job spec: partition, CPUs, memory, time, array and its concurrency (`%N`), dependencies, output log; checked against the partition (CPUs, memory, walltime), errors naming the limit
-- [ ] Job script writer: `#SBATCH` lines, the environment (the `flowreel` of the environment it was written from, `unset DISPLAY`, the backend), the command; plain text that reads as a person would write it
-- [ ] Tests with exact script text; docs: Slurm page (partitions and scripts)
+- [x] Partition table (Section 14): `jobs/partitions.yml` in the package with airavata's `part1` (3 h), `part2` (24 h), `part3` (72 h) on `node1` (128 CPUs, 125 GB), and Param Shakti's from flexflow's `hpc_partition.py`; a user file (`~/.flowreel/partitions.yml`) adds or overrides clusters; the cluster from `--cluster`, `FLOWREEL_CLUSTER`, or the host name
+- [x] Job spec: partition, CPUs, memory, time, array and its concurrency (`%N`), dependencies, output log; checked against the partition (CPUs, memory, walltime), errors naming the limit
+- [x] Job script writer: `#SBATCH` lines, the environment (the `flowreel` of the environment it was written from, `unset DISPLAY`, the backend), the command; plain text that reads as a person would write it
+- [x] Tests with exact script text; docs: Slurm page (partitions and scripts)
 
 **Branch 2: `phase5/jobs-resources`** (what a job has; independent of branch 1)
 - [ ] Cores and memory of the running process: in a Slurm job its allocation (`SLURM_CPUS_PER_TASK`, `SLURM_MEM_PER_NODE`, the cgroup's limit, the CPU affinity), elsewhere the machine's free memory and cores; used by `default_threads`, `check_fits` and `shot memory`'s suggested `-j`

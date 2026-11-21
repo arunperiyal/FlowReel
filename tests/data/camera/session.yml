@@ -1,0 +1,22 @@
+# Phase 6's check (tests/test_golden_camera.py). The scripted editor session picks these
+# views as keys of a new track; tools/make_camera_golden.py draws the golden frames from
+# the same numbers with plain pyvista, none of FlowReel's camera, track or caption code.
+# Views are level (position and focal at z = 0) with up +z, square to the view, so
+# blending them needs no correction of the up vector.
+size: [640, 360]
+frames: 25                    # the track's length; keys at 0, 12 and 24
+keys:
+  - {frame: 0, position: [-3, -8, 0], focal: [4, 0, 0], up: [0, 0, 1], view_angle: 30}
+  - {frame: 12, position: [6, -5, 0], focal: [6, 0, 0], up: [0, 0, 1], view_angle: 30}
+  - {frame: 24, position: [14, -6, 0], focal: [8, 0, 0], up: [0, 0, 1], view_angle: 25}
+golden:
+  key: 12                     # a key's own view: golden_key.png
+  mid: 6                      # halfway between keys 0 and 12 (smooth ease: t = 0.5): golden_mid.png
+  near: 8                     # a nearby frame that must fail against golden_mid.png
+body: {colour: '#c8ccd0', specular: 0.4, specular_power: 20, ambient: 0.25}
+arrow:                        # an anchored arrow: from a pixel to a point on the body
+  from: [100, 60]
+  to: [6, 0, 0.5]             # the top of the cylinder at its middle
+  width: 4
+  colour: '#ffcc33'
+  frames: [0, 6, 12]          # arrow_00000.png, arrow_00006.png, arrow_00012.png

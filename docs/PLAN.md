@@ -846,7 +846,7 @@ Each phase ends with something checkable.
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
 | 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place (done 2026-11-21) |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata (done 2026-11-21) |
-| 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
+| 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 
 ### 19.1 Phase 1 tasks
@@ -1303,68 +1303,92 @@ Branch 3 needs both (the editor writes through branch 1 and shows branch 2's anc
 branch 4 needs 3, and branch 5 needs all.
 
 **Branch 1: `phase6/cameras-file`** (camera data model and the commands' library)
-- [ ] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
+- [x] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
   a line, tracks with their keys), read back equal by `load_views` and `load_tracks`; a
   `.bak` of the file it replaces; comments are not kept, and the file's first line says so
-- [ ] Easing per segment: `ease` on a track key sets the segment after it (the track's
-  `ease` stays the default); `camera_path.path(...)`, a track from keys with easing per
-  segment, for `camera path`
-- [ ] Orbit: an arc of keys round a target (a point, or a body's centre at a station
+- [x] Easing per segment: `ease` on a track key sets the segment after it (the track's
+  `ease` stays the default); `camera_path.build_track(...)`, a track from keys with easing
+  per segment, and `update_cameras`, which adds it to a file, for `camera path`
+- [x] Orbit: an arc of keys round a target (a point, or a body's centre at a station
   along its axis) with radius, elevation from and to, azimuth span, lead and frame count,
   for `camera orbit`
-- [ ] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
+- [x] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
   flexflow `cam.yml`, for `camera import`
-- [ ] Tests on generated files (round trip, segment easing, orbit geometry, small
+- [x] Tests on generated files (round trip, segment easing, orbit geometry, small
   ParaView states written in the test); docs: `docs/cameras.md`
 
 **Branch 2: `phase6/annotations-anchored`** (independent of branch 1)
-- [ ] Anchored points: `{model: [x, y, z], view: V}` or `{model: ..., track: T}`, with
-  `offset: [dx, dy]`, in a shape's points and a caption's `place`; resolved per film
-  frame from the shot on screen at that time, its frame (rates, Section 10.2), the named
-  view or track of its `cameras.yml`, and the film's size; errors naming a view or track
-  that the shot's `cameras.yml` lacks
-- [ ] A point behind the camera or off the frame hides its shape for that frame;
-  `film check` warns with the caption and the times
-- [ ] `label3d` (text at a model point) and `dimension3d` (between two model points, with
-  a value) as caption shapes, projected and drawn in 2D like the others
-- [ ] Draft sizes: anchored positions follow `film build --preview` and the shot's
-  `--scale`; tests on a generated film (an arrow on a camera track, checked against
-  `camera project`'s numbers); docs: `docs/captions.md`
+
+A film shot names a folder of frames, not the shot file that drew them, so `shot render`
+records the camera of every frame it draws; an anchor then takes the camera that drew
+the frame on screen, whatever moved it (a track, `follow`, `fit`), with nothing to
+repeat in the caption.
+
+- [x] `shot render` records each frame's view, picture size and stretch in the frames
+  folder (`.views.json`, beside `.keys.json`), for drawn and skipped frames alike
+- [x] Anchored points: `{model: [x, y, z]}`, with `offset: [dx, dy]`, in a shape's points
+  and a caption's `place`; resolved per output frame of the finished shot from the frame
+  shown (rates and freezes, Section 10.2: between two frames the positions are blended),
+  its recorded view and size, fitted to the film's size as the picture is; optional
+  `view: V` or `track: T` from the project's `cameras.yml` (at its root, Section 24
+  question 6; else beside the film file) for frames FlowReel did not draw. An anchored caption is drawn once per output frame it shows in; errors for a
+  card or layout shot, and for frames with no record and no `view` or `track`
+- [x] A point behind the camera or off the frame hides its shape (or its caption's text)
+  for that frame; `film check` warns with the caption and the times
+- [x] `label3d` (text at a model point) and `dimension3d` (between two model points, with
+  a value) as caption shapes, projected and drawn in 2D like the others, and `label`
+  (text at a pixel point), the 2D shape they become
+- [x] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and
+  `film build --preview` (scaled from the film); tests on a generated film (an arrow on a
+  camera track, checked against `project()`); docs: `docs/captions.md`
 
 **Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
-- [ ] Editor state without a window: views collected with their frames; save, undo,
+- [x] Editor state without a window: views collected with their frames; save, undo,
   replace the nearest, play, next step; the file written (branch 1) after every change,
   so closing the window loses nothing
-- [ ] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
+- [x] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
   *Frame* and *Time step* sliders; on screen the views saved, the frame and the step;
   each step's scene built once (the shot's layers, as `shot render` builds them)
-- [ ] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
+- [x] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
   writes a frame's surfaces to copy to a machine with a display
-- [ ] The shot's anchored points (branch 2) drawn as markers with their names
-- [ ] Tests: the state with fake views; the window off-screen driven by synthetic key
+- [x] The shot's anchored points (branch 2) drawn as markers with their names
+- [x] Tests: the state with fake views; the window off-screen driven by synthetic key
   events; docs: camera editor page
 
 **Branch 4: `phase6/cli-camera`** (commands; needs branch 3)
-- [ ] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `-o FILE`)
-- [ ] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
+- [x] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `--film FILE` for
+  the captions' points, `-c FILE`: every camera command reads and writes one `cameras.yml`)
+- [x] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
   `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
   track over saved surfaces or the shot's first step)
-- [ ] The `view` context in the shell (`use view:main`, Section 13)
-- [ ] Help text; docs: commands page
+- [x] The `view` context in the shell (`use view:main`, Section 13)
+- [x] Help text; docs: commands page
 
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)
-- [ ] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
+- [x] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
   views into a new track; `shot render` draws it; frames compared with golden frames
-- [ ] A golden caption frame: an anchored arrow on a camera track, at three frames
-- [ ] `examples/camera_editor` on generated data, with the scripted session so it runs
-  anywhere
-- [ ] By hand on a display: a track picked in the window on the laptop (surfaces copied
+- [x] A golden caption frame: an anchored arrow on a camera track, at three frames
+- [x] `examples/camera_editor` on generated data, with the scripted session so it runs
+  anywhere (made in branch 3; here it also renders the picked track)
+- [x] By hand on a display: a track picked in the window on the laptop (surfaces copied
   with `--vtp`), rendered, and recorded here
 
 Left out of Phase 6: editing a track's keys by dragging on a timeline, and picking points
 in the window for anchors (anchors are typed; the window shows where they land).
 
+Asked for after the run by hand, for later:
+- Mark the frames that have a saved key on the Frame slider (ticks or numbers in another
+  colour), so the keys of a track can be seen without playing it.
+- Let the Frame slider move the Time step slider to the step that frame shows (through
+  the shot's `time` keys), so the two need not be set apart; the Time step slider stays
+  for looking at other steps while framing a view.
+
 **Phase 6 is done when** a new camera track is picked in the window and rendered.
+
+**Done 2026-11-22.** Arun picked a track by hand in the window on the laptop
+(`examples/camera_editor/run.py --window`): keys saved with `s`, the sliders and Play
+behaved; the track was rendered. The scripted check of the same path is
+`tests/test_golden_camera.py`.
 
 ## 20. From the prototype
 

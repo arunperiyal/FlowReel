@@ -1,0 +1,21 @@
+# The rendered frames as one shot, at 12 frames a second brought to the film's 24.
+# Every caption below points at the sphere (centre (0, 0, 0.5), radius 0.2) and
+# follows it as the camera pans.
+fps: 24
+size: [640, 360]
+output: film.mp4
+shots:
+  - name: pan
+    frames: frames/anchored
+    rate: {fps: 12, to_output: interpolate}
+    text:
+      - lines: ['The body']
+        at: [0.2, 1.9]
+        size: 26
+        place: {model: [0, 0, 0.5], offset: [70, -90]}     # text beside the sphere
+        shapes:
+          - {arrow: {from: {model: [0, 0, 0.5], offset: [80, -55]},
+                     to: {model: [0, 0, 0.72]}, width: 3}}
+          - {label3d: {at: [0, 0, 0.5], text: '$O$', size: 20}}
+          - {dimension3d: {from: [0, -0.2, 0.25], to: [0, 0.2, 0.25], value: '$D$',
+                           offset: -10, width: 2, head: 9, size: 20}}

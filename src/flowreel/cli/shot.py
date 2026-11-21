@@ -125,6 +125,10 @@ class ShotCommand(BaseCommand):
         _draft_args(r)
         r.add_argument("--force", action="store_true",
                        help="draw the frames even when their key did not change")
+        r.add_argument("--save-vtp", metavar="DIR",
+                       help="instead of drawing frames, save the scene's surfaces at each "
+                            "step the frames show into DIR, to open with 'camera edit --vtp "
+                            "DIR' on a machine with a display")
         _run_args(r)
         from flowreel.cli.jobs import add_slurm_args
         add_slurm_args(r, render=True)
@@ -183,6 +187,10 @@ class ShotCommand(BaseCommand):
     def do_render(self, args, ctx):
         from flowreel.cli.jobs import slurm_wanted
         frames = parse_frames(args.frames) if args.frames else None
+        if args.save_vtp:
+            if slurm_wanted(args):
+                raise CommandError("--save-vtp runs here, not as a Slurm job")
+            return _save_vtp(args, ctx, frames)
         if slurm_wanted(args):
             return _render_on_slurm(args, ctx, frames)
         if args.missing:
@@ -233,6 +241,25 @@ class ShotCommand(BaseCommand):
         path.write_text(text)
         ctx.out(f"wrote {path}")
         return 0
+
+
+def _save_vtp(args, ctx, frames) -> int:
+    from flowreel.editor.surfaces import save_shot_surfaces
+    from flowreel.scene.rendering import Scene
+    start = time.perf_counter()
+    try:
+        plan = Scene.make(args.shot).plan
+        indices = range(plan.n_frames) if frames is None else frames
+        steps = sorted({plan.time.step(i) for i in indices if 0 <= i < plan.n_frames})
+        if not steps:
+            raise CommandError(f"no frame of {args.frames} is in the shot (0 to {plan.n_frames - 1})")
+        saved = save_shot_surfaces(args.shot, args.save_vtp, steps)
+    except (ValueError, IndexError) as exc:
+        raise CommandError(str(exc)) from None
+    ctx.out(f"saved the surfaces of {len(saved)} step{'s' * (len(saved) != 1)} "
+            f"({', '.join(map(str, saved))}) in {time.perf_counter() - start:.1f} s -> "
+            f"{args.save_vtp}")
+    return 0
 
 
 def _render_on_slurm(args, ctx, frames) -> int:

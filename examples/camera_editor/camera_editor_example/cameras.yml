@@ -1,0 +1,13 @@
+# Written by FlowReel; comments are not kept when it is written again.
+views:
+  - {name: start, position: [3, 2.5, 3.2], focal: [0, 0, 0.5], up: [0, 0, 1], view_angle: 30}
+  - {name: approach_0000, position: [3, 2.5, 3.2], focal: [0, 0, 0.5], up: [0, 0, 1], view_angle: 30, parallel_scale: 1.5}
+  - {name: approach_0047, position: [1, -1.7, 1.2], focal: [0, 0, 0.5], up: [0, 0, 1], view_angle: 30, parallel_scale: 1.5}
+tracks:
+  approach:
+    frames: 48
+    path: linear
+    ease: smooth
+    keys:
+      - {frame: 0, view: approach_0000}
+      - {frame: 47, view: approach_0047}

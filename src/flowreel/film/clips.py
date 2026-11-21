@@ -41,12 +41,14 @@ the base clip under it.
 """
 from __future__ import annotations
 
+import math
 import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from flowreel.film import ffmpeg as ff
+from flowreel.film.anchors import anchored
 from flowreel.film.timeline import EPS
 from flowreel.scene.keys import digest
 from flowreel.scene.rendering import FRAME_NAME
@@ -313,7 +315,7 @@ class Clips:
         graph, last = [f"[0:v]{','.join(picture) or 'null'}[v0]"], "v0"
         inputs = ["-i", base.path]
         style = self.film.style
-        laid, drawn = [], []
+        laid, drawn, sequences = [], [], []
         for k, (c, start, end, fi, fo) in enumerate(self.captions(name)):
             png = self.folder / f"caption_{name}_{k}.png"
             fade = min(c.fade if c.fade is not None else style.caption.fade, (end - start) / 2)
@@ -322,8 +324,19 @@ class Clips:
                 alpha.append(f"fade=in:st={start:g}:d={fade:g}:alpha=1")
             if fo and fade > 0:
                 alpha.append(f"fade=out:st={end - fade:g}:d={fade:g}:alpha=1")
-            last = self._lay(graph, inputs, last, png, alpha, f"between(t,{start:g},{end:g})",
-                             ts.length)
+            when = f"between(t,{start:g},{end:g})"
+            if anchored(c):
+                placed = self.placed(name, c, start, end)
+                if not placed:
+                    continue
+                seq = self.folder / f"caption_{name}_{k}"
+                last = self._lay(graph, inputs, last, seq / "frame_%05d.png", alpha, when,
+                                 ts.length, start_frame=placed[0][0])
+                laid.append([c, start, end, fi, fo, fade,
+                             [[j, p.caption, p.text] for j, p in placed]])
+                sequences.append((seq, placed))
+                continue
+            last = self._lay(graph, inputs, last, png, alpha, when, ts.length)
             laid.append([c, start, end, fi, fo, fade])
             drawn.append((c, png))
         mark = self.film.watermark
@@ -340,6 +353,13 @@ class Clips:
             from flowreel.film.draw import save_caption
             for c, png in drawn:
                 save_caption(c, style, self.film.size, png)
+            for seq, placed in sequences:
+                if seq.exists():
+                    shutil.rmtree(seq)
+                seq.mkdir()
+                for i, (_, p) in enumerate(placed):
+                    save_caption(p.caption, style, self.film.size, seq / FRAME_NAME.format(i),
+                                 text=p.text)
             if showing:
                 from flowreel.film.watermark import watermark_image
                 watermark_image(mark, self.film.size).save(mark_png)
@@ -347,15 +367,36 @@ class Clips:
         return self._encode("shot", name, parts, inputs, ";".join(graph), n,
                             FINISHED_QUALITY, prepare)
 
+    def placed(self, name: str, caption, start: float, end: float) -> list[tuple]:
+        """An anchored caption on shot ``name``, frame by frame: ``(j, Placed)`` for each
+        output frame ``j`` of the finished shot from ``start`` to ``end`` seconds
+        (:func:`flowreel.film.anchors.place`)."""
+        from flowreel.film.anchors import ShotProjector, place
+        projectors = self.__dict__.setdefault("_projectors", {})
+        if name not in projectors:
+            projectors[name] = ShotProjector(self.film, self.line, name)
+        projector = projectors[name]
+        fps = self.film.fps
+        first = max(0, math.ceil(start * fps - EPS))
+        last = min(self._frames(self.line.shot(name)) - 1, math.floor(end * fps + EPS))
+        return [(j, place(caption, projector, j)) for j in range(first, last + 1)]
+
     def _lay(self, graph: list, inputs: list, last: str, png: Path, alpha: list, when: str,
-             length: float) -> str:
+             length: float, start_frame: int | None = None) -> str:
         """Lay the transparent picture ``png`` over ``last`` while ``when`` holds,
-        through the ``alpha`` fades; returns the new last label."""
+        through the ``alpha`` fades; returns the new last label. With ``start_frame``,
+        ``png`` is a numbered sequence of pictures, one per output frame from that one
+        (an anchored caption)."""
         k = len([a for a in inputs if a == "-i"])
-        inputs += ["-loop", 1, "-framerate", self.film.fps, "-t", f"{length:g}", "-i", png]
+        if start_frame is None:
+            inputs += ["-loop", 1, "-framerate", self.film.fps, "-t", f"{length:g}", "-i", png]
+            timing = []
+        else:
+            inputs += ["-framerate", self.film.fps, "-i", png]
+            timing = [f"setpts=PTS+{start_frame}/({self.film.fps}*TB)"]
         # In BT.709, as the picture under it, so a caption keeps its colour.
-        chain = ",".join(["format=rgba", *alpha, "scale=out_color_matrix=bt709:out_range=tv",
-                          "format=yuva420p"])
+        chain = ",".join([*timing, "format=rgba", *alpha,
+                          "scale=out_color_matrix=bt709:out_range=tv", "format=yuva420p"])
         graph.append(f"[{k}:v]{chain}[c{k}]")
         graph.append(f"[{last}][c{k}]overlay=0:0:enable='{when}':eof_action=pass[v{k}]")
         return f"v{k}"

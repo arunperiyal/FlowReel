@@ -9,13 +9,15 @@
         ease: smooth                  # between neighbouring keys; default smooth
         keys:
           - {frame: 0, view: carve_wide}
-          - {frame: 218, view: carve_close}
+          - {frame: 218, view: carve_close, ease: in}   # this key to the next
+          - {frame: 241, view: carve_close}
 
 ``linear`` blends position, focal point, up vector, view angle and parallel scale
 between the two neighbouring keys. ``spline`` bends the position and focal point through
 all keys with a uniform Catmull-Rom curve; the other values stay linear. The ease maps the
 frame's place between two keys before blending, so each segment starts and ends gently
-under ``smooth``. Views of different projection (perspective and parallel) cannot be
+under ``smooth``. A key's own ``ease`` sets the segment from that key to the next; the
+track's ``ease`` is the default for keys without one. Views of different projection (perspective and parallel) cannot be
 blended: the track switches at the later key's frame.
 """
 from __future__ import annotations
@@ -35,12 +37,20 @@ PATHS = ("linear", "spline")
 @dataclass(frozen=True)
 class CameraTrack:
     """A camera moving through views. ``frames`` is the track's length, ``keys`` pairs of
-    ``(frame, View)`` with strictly increasing frames. Call :meth:`at` for the view."""
+    ``(frame, View)`` with strictly increasing frames. ``eases`` is empty, or one entry
+    per key: the easing of the segment from that key to the next (``None`` takes
+    ``ease``). Call :meth:`at` for the view."""
 
     keys: tuple
     path: str = "linear"
     ease: str = "smooth"
     frames: int | None = None
+    eases: tuple = ()
+
+    def ease_of(self, i: int) -> str:
+        """The easing of the segment from key ``i`` to key ``i + 1``."""
+        own = self.eases[i] if self.eases else None
+        return own or self.ease
 
     def at(self, frame: float) -> View:
         """The view at ``frame``; held before the first key and after the last."""
@@ -52,7 +62,7 @@ class CameraTrack:
             return views[-1]
         i = int(np.searchsorted(fr, frame, side="right")) - 1
         a, b = views[i], views[i + 1]
-        t = EASINGS[self.ease]((frame - fr[i]) / (fr[i + 1] - fr[i]))
+        t = EASINGS[self.ease_of(i)]((frame - fr[i]) / (fr[i + 1] - fr[i]))
         if a.parallel != b.parallel:
             return a if t < 1 else b
         pos, foc = _lerp(a.position, b.position, t), _lerp(a.focal, b.focal, t)
@@ -90,17 +100,59 @@ def parse_track(spec, views: dict[str, View], check: Checker | None = None) -> C
     frames = spec.get("frames")
     if frames is not None:
         frames = check.at("frames").integer(frames, minimum=1)
-    keys, last = [], None
+    keys = []
     for i, item in enumerate(check.at("keys").sequence(spec["keys"], 1)):
         where = check.at("keys", i)
-        item = where.mapping(item, ("frame", "view"), required=("frame", "view"))
-        frame = where.at("frame").number(item["frame"])
+        item = where.mapping(item, ("frame", "view", "ease"), required=("frame", "view"))
+        keys.append((where.at("frame").number(item["frame"]),
+                     where.at("view").choice(item["view"], list(views)),
+                     None if "ease" not in item
+                     else where.at("ease").choice(item["ease"], EASE_NAMES)))
+    try:
+        return build_track(views, keys, path, ease, frames)
+    except _KeyError as exc:
+        raise check.at("keys", exc.index, "frame").error(str(exc)) from None
+
+
+class _KeyError(ValueError):
+    """A key out of order, with its index, for :func:`parse_track` to place."""
+
+    def __init__(self, index: int, message: str):
+        super().__init__(message)
+        self.index = index
+
+
+def build_track(views: dict[str, View], keys, path: str = "linear", ease: str = "smooth",
+                frames: int | None = None) -> CameraTrack:
+    """A :class:`CameraTrack` from ``keys``, each ``(frame, view_name)`` or
+    ``(frame, view_name, ease)``; ``ease`` ``None`` takes the track's ``ease``.
+
+    Frames must increase and views must be in ``views``; ``ValueError`` otherwise. This
+    is what ``camera path`` writes: a track filled between keys, with easing per segment.
+    """
+    if path not in PATHS:
+        raise ValueError(f"unknown path {path!r} (allowed: {', '.join(PATHS)})")
+    if ease not in EASE_NAMES:
+        raise ValueError(f"unknown ease {ease!r} (allowed: {', '.join(EASE_NAMES)})")
+    if not keys:
+        raise ValueError("a track needs at least one key")
+    out, eases, last = [], [], None
+    for i, key in enumerate(keys):
+        frame, name = float(key[0]), key[1]
+        own = key[2] if len(key) > 2 else None
         if last is not None and frame <= last:
-            raise where.at("frame").error(f"frames must increase, {frame:g} follows {last:g}")
+            raise _KeyError(i, f"frames must increase, {frame:g} follows {last:g}")
         last = frame
-        where.at("view").choice(item["view"], list(views))
-        keys.append((frame, views[item["view"]]))
-    return CameraTrack(tuple(keys), path, ease, frames)
+        if name not in views:
+            raise ValueError(f"key {i}: no view named {name!r} "
+                             f"(views: {', '.join(views) or 'none'})")
+        if own is not None and own not in EASE_NAMES:
+            raise ValueError(f"key {i}: unknown ease {own!r} (allowed: {', '.join(EASE_NAMES)})")
+        out.append((int(frame) if frame == int(frame) else frame,
+                    views[name]))
+        eases.append(own)
+    return CameraTrack(tuple(out), path, ease, frames,
+                       tuple(eases) if any(e is not None for e in eases) else ())
 
 
 def load_tracks(path: str | Path, views: dict[str, View]) -> dict[str, CameraTrack]:

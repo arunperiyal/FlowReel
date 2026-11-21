@@ -150,3 +150,10 @@ def test_the_frame_slider_follows_set_frame(window):
     window.set_frame(17.6)
     assert window.state.frame == 18
     assert window._frame_slider.GetRepresentation().GetValue() == 18
+
+
+def test_a_perspective_view_is_saved_without_vtks_parallel_scale(window, tmp_path):
+    window.plotter.camera.parallel_scale = 6.5
+    key(window, "s")
+    assert window.view().parallel_scale == 1.0
+    assert "parallel_scale" not in (tmp_path / "cameras.yml").read_text()

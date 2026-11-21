@@ -77,11 +77,13 @@ class EditorWindow:
     # -- the camera -------------------------------------------------------------------
 
     def view(self) -> View:
-        """The camera's view now."""
+        """The camera's view now. A perspective view keeps the default ``parallel_scale``
+        (VTK's value is unused there, and would only clutter ``cameras.yml``)."""
         c = self.plotter.camera
+        parallel = bool(c.parallel_projection)
         return View(tuple(map(float, c.position)), tuple(map(float, c.focal_point)),
-                    tuple(map(float, c.up)), float(c.view_angle), bool(c.parallel_projection),
-                    float(c.parallel_scale))
+                    tuple(map(float, c.up)), float(c.view_angle), parallel,
+                    float(c.parallel_scale) if parallel else 1.0)
 
     def look(self, view: View) -> None:
         """Put the camera at ``view``."""

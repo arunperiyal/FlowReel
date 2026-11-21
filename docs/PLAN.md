@@ -1373,7 +1373,13 @@ Added 2026-11-22, while Phase 6 is being built. Phase 7 turns the per-phase page
 from a public data set, a user guide, and a reference generated from the code where it
 can be, so it cannot drift. Two questions come first: how a project folder is made and
 laid out (Section 24, question 6, kept until now for this phase), and which public data
-set the tutorial uses (question 7).
+set the tutorial uses (question 7, decided: pyvista's `cylinder_crossflow`).
+
+The data set is one steady step of a 2D flow at Re 35, where the wake stays attached and
+does not shed. So the tutorial's film is made with what FlowReel does to one step:
+camera moves, a field coloured and its range swept, contour lines and the wall, rather
+than a wake that develops in time. The 2D mesh is given a thin span when it is converted,
+so the layers, which expect cells with volume, work on it unchanged.
 
 Branches 1 and 2 need nothing from each other, so they can be built in parallel once
 the two questions are answered. Branch 3 needs both, branch 4 needs branch 1 (the
@@ -1390,12 +1396,17 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
 - [ ] Tests on generated projects; help text; docs: project page
 
-**Branch 2: `phase7/tutorial-data`** (the public data set; needs question 7 answered;
-independent of branch 1)
-- [ ] `examples/tutorial/get_data.py`: downloads the chosen data set into the project's
-  data folder, checks its SHA-256, converts it to a `.pvd` series of `.vtu` files when it
-  is in another format, and writes the data set's licence and citation beside it; a
-  second run downloads nothing
+**Branch 2: `phase7/tutorial-data`** (pyvista's `cylinder_crossflow`; independent of
+branch 1)
+- [ ] The data set's licence and source checked and recorded (where pyvista's copy
+  comes from, who made it, whether it may be shown in a film); if it may not, back to
+  question 7
+- [ ] `examples/tutorial/get_data.py`: downloads `cylinder_crossflow` into the project's
+  data folder (pyvista's downloader), checks its SHA-256, and converts the EnSight case to
+  a `.pvd` of one `.vtu` step: `fluid` extruded to a thin span (one cell, about 0.1 D) as
+  the flow, with `velocity` split into `U`, `V`, `W` and `pressure` as `p`, and
+  `wall_cylinder` extruded the same way as the body `cylinder`; it writes the licence and
+  citation beside it, and a second run downloads nothing
 - [ ] A generated stand-in with the same names, fields and steps at a small size, so
   the tutorial's test runs without the network
 - [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
@@ -1403,9 +1414,11 @@ independent of branch 1)
 
 **Branch 3: `phase7/tutorial`** (the tutorial; needs branches 1 and 2)
 - [ ] `docs/tutorial.md`, in short chapters, each ending with a frame or a still to
-  compare: install; `project init` on the data; a first shot (`shot template`, a slice
-  and an iso surface, `shot preview`); a camera picked in the editor and an orbit; a
-  layout or a panel; `film.yml` with a title card, two captions (one with maths, one
+  compare: install; `project init` on the data; a first shot (`shot template`, the flow
+  coloured by vorticity from velocity, contour lines of pressure, the cylinder; `shot
+  preview`); a camera picked in the editor that moves from the whole domain to the
+  cylinder; a second shot sweeping the colour range; a panel of the pressure
+  coefficient round the wall; `film.yml` with a title card, two captions (one with maths, one
   anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
   the full build; optionally Slurm
 - [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
@@ -1502,7 +1515,7 @@ New ones are added here as the work raises them.
 | 4 | ~~Where do the AFMS film's own FlowReel files live?~~ **Answered 2026-11-19:** in a FlowReel project folder of their own, outside this repository (they name a logo and a licensed track). How a project folder is made and laid out is question 6. | Phase 4, branch 7 |
 | 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
 | 6 | **Project rules, to discuss once the backend is done.** Arun's proposal: FlowReel is always run from an initialised project folder; an init command writes a hidden file holding what the project needs, and empty folders such as `data/`, `assets/`, `clips/`. To settle then: the hidden file against today's `flowreel.yml` (written by `project init`, found by walking up from a shot or panel file), the folder names, and what a command does outside a project. Until then the code keeps finding `flowreel.yml` as it does. | after Phase 4's backend, before Phase 7 |
-| 7 | **The tutorial's public data set.** It must be free to download and to show in a film, small enough for a laptop (about 1 GB at most), readable as VTK (or converted once by `get_data.py`), with velocity and pressure (derived fields come from them, Section 6). Unsteady data makes a better film; a single steady step still makes 20 s with a camera move, a slice sweep and an iso level change. Candidates to compare: pyvista's `cylinder_crossflow` and `backward_facing_step` (steady, from VTK's example data; licence to check), a small unsteady case from a public solver tutorial run once and published with FlowReel's release (for example OpenFOAM's 2D cylinder), or a public database's cut-out. To decide with Arun. | Phase 7, branch 2 |
+| 7 | ~~Which public data set does the tutorial use?~~ **Decided 2026-11-22: pyvista's `cylinder_crossflow`** (`pyvista.examples.download_cylinder_crossflow`). Looked at: 0.7 MB of EnSight (`cylinder_Re35.case`), one steady step of a 2D flow past a cylinder of diameter 1 at Re 35, domain x 0 to 15, y -3.75 to 3.75, z 0; blocks `fluid` (14 831 points, quads and triangles) with `velocity`, `pressure` and `vorticity_mag` (the last not used, Section 6), the boundaries `inlet`, `outlet`, `outlet_top`, `outlet_bottom`, and the wall `wall_cylinder`. Its licence is still to be checked before it is shown in a film (branch 2). | Phase 7, branch 2 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

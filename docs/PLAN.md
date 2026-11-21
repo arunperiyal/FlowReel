@@ -1326,7 +1326,7 @@ repeat in the caption.
 
 - [x] `shot render` records each frame's view, picture size and stretch in the frames
   folder (`.views.json`, beside `.keys.json`), for drawn and skipped frames alike
-- [ ] Anchored points: `{model: [x, y, z]}`, with `offset: [dx, dy]`, in a shape's points
+- [x] Anchored points: `{model: [x, y, z]}`, with `offset: [dx, dy]`, in a shape's points
   and a caption's `place`; resolved per output frame of the finished shot from the frame
   shown (rates and freezes, Section 10.2: between two frames the positions are blended),
   its recorded view and size, fitted to the film's size as the picture is; optional

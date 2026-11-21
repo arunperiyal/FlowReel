@@ -19,8 +19,9 @@ left to right across the frame, its left is up. ``bracket``'s ``depth`` and
 ``dimension``'s ``offset`` are measured that way, so a positive value puts the bracket's
 tips and the dimension's line above a horizontal shape drawn left to right.
 
-Shapes in the model (``arrow3d``, points given as ``{model: ..., view: ...}``) come
-with the camera editor in Phase 6.
+A shape's ``from``, ``to`` and ``centre`` may instead be points in the model,
+``{model: [x, y, z], offset: [dx, dy]}``, projected on every frame so the shape follows
+the camera (:mod:`flowreel.film.anchors`).
 """
 from __future__ import annotations
 
@@ -83,7 +84,11 @@ def parse_shape(spec, check: Checker) -> Shape:
     keys = {}
     for name, v in value.items():
         c = at.at(name)
-        if name in ("from", "to", "centre", "radii"):
+        if name in ("from", "to", "centre"):
+            keys[name] = _point(v, c)
+        elif name == "radii":
+            if isinstance(v, dict):
+                raise c.error("radii are two lengths in pixels, [rx, ry]")
             keys[name] = _point(v, c)
         elif name in ("colour", "fill"):
             keys[name] = None if v is None and name == "fill" else colour(v, c)
@@ -104,10 +109,11 @@ def parse_shape(spec, check: Checker) -> Shape:
     return Shape(kind, keys)
 
 
-def _point(value, check: Checker) -> tuple[float, float]:
+def _point(value, check: Checker):
+    """``[x, y]`` in pixels, or a point in the model (:class:`~flowreel.film.anchors.Anchor`)."""
     if isinstance(value, dict):
-        raise check.error("a point in the model ({model: ..., view: ...}) comes with the "
-                          "camera editor (Phase 6); give [x, y] in pixels")
+        from flowreel.film.anchors import parse_anchor
+        return parse_anchor(value, check)
     x, y = check.numbers(value, 2)
     return (float(x), float(y))
 

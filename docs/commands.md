@@ -42,7 +42,7 @@ traceback when a command fails.
 
 ```text
 flowreel shot render [SHOT] [--frames SPEC] [--scale S | --size W H] [--force]
-                     [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
+                     [--save-vtp DIR] [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
                      [--slurm FILE] [--submit] [Slurm options] [--max-running N] [--missing]
 ```
 
@@ -59,6 +59,7 @@ change since they were drawn are skipped (see [rendering](rendering.md#frame-key
 | `--scale S` | none | a draft at the shot's size times S, rounded to even pixels |
 | `--size W H` | none | a draft at W x H pixels |
 | `--force` | off | draw the frames even when their key did not change |
+| `--save-vtp DIR` | none | draw no frames; save the scene's surfaces at each step the frames show into `DIR`, for the [camera editor](camera-editor.md#away-from-the-data---vtp) on another machine |
 | `-j N`, `--jobs N` | 1 | frames drawn at once, each in its own process |
 | `--threads T` | `min(4, cores / N)` | threads per job |
 | `--backend B` | `auto` | `auto` (OSMesa, else EGL), `osmesa`, `egl` or `x` |

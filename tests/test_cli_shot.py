@@ -133,3 +133,17 @@ def test_the_commands_example_renders(sh, tmp_path):
     status, out, err = run(sh, f"shot render {shot} --frames 23 --scale 0.25 -o {tmp_path}")
     assert status == 0, err
     assert (tmp_path / "cylinder@160x90" / "frame_00023.png").exists()
+
+
+def test_render_save_vtp_saves_surfaces_and_draws_nothing(sh, tmp_path):
+    status, out, err = run(sh, "shot render g.yml --save-vtp vtp")
+    assert status == 0, err
+    assert "saved the surfaces of 1 step (0)" in out and out.rstrip().endswith("-> vtp")
+    assert not (tmp_path / "frames").exists()
+    from flowreel.editor.surfaces import SavedScenes
+    saved = SavedScenes(tmp_path / "vtp")
+    assert saved.steps == [0] and saved.first_view.position == pytest.approx((0, -30, 3))
+    status, _, err = run(sh, "shot render g.yml --save-vtp vtp --frames 9")
+    assert status != 0 and "no frame of 9 is in the shot" in err
+    status, _, err = run(sh, "shot render g.yml --save-vtp vtp --slurm job.sh")
+    assert status != 0 and "not as a Slurm job" in err

@@ -1356,12 +1356,13 @@ repeat in the caption.
   events; docs: camera editor page
 
 **Branch 4: `phase6/cli-camera`** (commands; needs branch 3)
-- [ ] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `-o FILE`)
-- [ ] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
+- [x] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `--film FILE` for
+  the captions' points, `-c FILE`: every camera command reads and writes one `cameras.yml`)
+- [x] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
   `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
   track over saved surfaces or the shot's first step)
-- [ ] The `view` context in the shell (`use view:main`, Section 13)
-- [ ] Help text; docs: commands page
+- [x] The `view` context in the shell (`use view:main`, Section 13)
+- [x] Help text; docs: commands page
 
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)
 - [ ] A scripted editor session (off-screen, synthetic keys) on a generated shot picks

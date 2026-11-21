@@ -2,7 +2,8 @@
 
 ``flowreel shot render reveal.yml -j 8`` runs one command and exits (as a Slurm job
 needs); ``flowreel`` alone starts FlowReel's interactive shell, where ``use shot:FILE``
-sets the shot that later commands use and ``use project:DIR`` the project folder, whose
+sets the shot that later commands use, ``use view:NAME`` the view of ``camera project``,
+and ``use project:DIR`` the project folder, whose
 ``film.yml`` the film commands use. Commands keep their work in library functions
 (``flowreel.scene.render`` ...), so the shell stays a thin layer.
 """
@@ -36,6 +37,14 @@ def _project_folder(raw: str, runtime=None) -> str:
     return str(path)
 
 
+def _view_name(raw: str, runtime=None) -> str:
+    """A view context value: a view's name in cameras.yml (checked when it is used)."""
+    name = raw.strip()
+    if not name:
+        raise ValueError("a view needs a name, as in use view:main")
+    return name
+
+
 #: Files that make a folder a project, for ``use project:DIR``.
 PROJECT_FILES = ("flowreel.yml", "film.yml")
 
@@ -45,12 +54,15 @@ CONTEXTS = [
                format=lambda v: Path(v).name),
     ContextKey("shot", parse=_shot_file, path=True, label="shot", style="#e0a030 bold",
                description="Shot file that shot commands use", format=lambda v: Path(v).name),
+    ContextKey("view", parse=_view_name, label="view", style="#70c070 bold",
+               description="View of cameras.yml that camera project uses"),
 ]
 
 
 def make_app(storage=None) -> App:
     """The FlowReel shellkit app with every command registered. ``storage`` is where the
     shell keeps history and settings (default ``~/.flowreel``)."""
+    from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
@@ -63,6 +75,7 @@ def make_app(storage=None) -> App:
                      + " [dim]help, Tab, exit[/dim]\n")
     app.register(ProjectCommand)
     app.register(ShotCommand)
+    app.register(CameraCommand)
     app.register(ComposeCommand)
     app.register(FilmCommand)
     app.register(JobsCommand)

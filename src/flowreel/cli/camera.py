@@ -164,7 +164,8 @@ class CameraCommand(BaseCommand):
         o.add_argument("--elevation", type=float, nargs="+", default=[0.0], metavar="E",
                        help="above the plane across the axis: one angle, or from and to (0)")
         o.add_argument("--axis", default=None, metavar="x|y|z",
-                       help="turn about this axis (default y, or the body's axis)")
+                       help="turn about this axis (default y, or with --station the body's "
+                            "axis; the station is always along the body's axis)")
         o.add_argument("--up", type=float, nargs=3, metavar=("X", "Y", "Z"),
                        help="the camera's up (default the axis)")
         o.add_argument("--lead", type=float, default=0.0, metavar="L",
@@ -320,11 +321,10 @@ class CameraCommand(BaseCommand):
         else:
             if not args.shot:
                 raise CommandError("--station needs --shot FILE, whose source has the body")
-            from flowreel.scene.rendering import Scene
-            source = Scene.make(args.shot).source
+            source = _shot_source(args.shot)
             try:
                 target, body_axis = body_target(source, args.body or None, args.station,
-                                                args.step, axis)
+                                                args.step)
             except (LookupError, ValueError) as exc:
                 raise CommandError(str(exc.args[0]) if exc.args else str(exc)) from None
             axis = axis or body_axis
@@ -339,7 +339,8 @@ class CameraCommand(BaseCommand):
             raise CommandError(str(exc)) from None
         path = update_cameras(cameras_path(args), views, {args.name: track})
         ctx.out(f"wrote track {args.name!r}: {len(views)} views round "
-                f"({', '.join(f'{x:g}' for x in target)}) over {args.frames} frames to {path}")
+                f"({', '.join(f'{round(x, 4) + 0.0:g}' for x in target)}) over {args.frames} frames "
+                f"to {path}")
         return 0
 
     def do_import(self, args, ctx):
@@ -430,6 +431,7 @@ class CameraCommand(BaseCommand):
             for f in frames:
                 track.at(f).apply(plotter.camera)
                 plotter.renderer.ResetCameraClippingRange()
+                plotter.render()                 # screenshot() alone shows the last render
                 picture = np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
                 Image.fromarray(picture).save(folder / f"frame_{f:05d}.png")
         finally:
@@ -437,6 +439,17 @@ class CameraCommand(BaseCommand):
         ctx.out(f"{len(frames)} frames of {args.track!r} at {size[0]}x{size[1]} in "
                 f"{time.perf_counter() - start:.1f} s -> {folder}")
         return 0
+
+
+def _shot_source(path):
+    """The source of the shot at ``path``, seen through its project's bodies, without
+    making the shot's scene: its camera may be the very track being made."""
+    from flowreel.project import project_for
+    from flowreel.project.names import declare
+    from flowreel.scene.rendering import open_source
+    from flowreel.scene.shot import load
+    shot = load(path)
+    return declare(open_source(shot), project_for(shot.file))
 
 
 def _context_view(store, namespace):

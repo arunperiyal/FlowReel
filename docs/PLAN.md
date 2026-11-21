@@ -1343,7 +1343,7 @@ repeat in the caption.
   camera track, checked against `project()`); docs: `docs/captions.md`
 
 **Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
-- [ ] Editor state without a window: views collected with their frames; save, undo,
+- [x] Editor state without a window: views collected with their frames; save, undo,
   replace the nearest, play, next step; the file written (branch 1) after every change,
   so closing the window loses nothing
 - [ ] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;

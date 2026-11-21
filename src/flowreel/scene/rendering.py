@@ -180,8 +180,7 @@ class Scene:
         import pyvista as pv
         if not 0 <= index < self.plan.n_frames:
             raise IndexError(f"frame {index} is outside 0..{self.plan.n_frames - 1}")
-        shot, step = self.shot, self.plan.time.step(index)
-        time = self.plan.times[step]
+        shot = self.shot
         data = self.data(index)
         view = self.camera.view(index, data)
         plotter = pv.Plotter(off_screen=True, window_size=list(self.size))
@@ -192,12 +191,7 @@ class Scene:
                 apply_lights(plotter, shot.lights, view)
             if shot.antialias != "none":
                 plotter.enable_anti_aliasing(shot.antialias)
-            from flowreel.scene.drawn import drawing
-            with drawing(plotter.renderer, shot.stretch.scale if shot.stretch else None):
-                for layer, values in zip(shot.layers, self.values(index)):
-                    layer.draw(plotter, Frame(index, step, time, data, values))
-            if shot.stretch is not None:
-                self._stretch(plotter)
+            self.populate(plotter, index, data=data)
             picture = np.asarray(plotter.screenshot(return_img=True))[:, :, :3]
         finally:
             plotter.close()
@@ -206,6 +200,23 @@ class Scene:
             picture = stamp(picture, shot.watermark, self.pixel_scale)
         return picture
 
+
+    def populate(self, plotter, index: int, step: int | None = None, data=None) -> None:
+        """Add the layers of frame ``index`` to ``plotter``, stretched as the shot says:
+        what :meth:`draw` draws, without the camera, lights, background or watermark.
+        ``step`` shows another time step with frame ``index``'s layer values (the camera
+        editor); ``data`` is the frame's :class:`FrameData` when already made."""
+        shot = self.shot
+        step = self.plan.time.step(index) if step is None else step
+        if data is None:
+            data = (self.data(index) if step == self.plan.time.step(index) else
+                    FrameData(self.source, step, crop=self.crop(index), cache=self.cache))
+        from flowreel.scene.drawn import drawing
+        with drawing(plotter.renderer, shot.stretch.scale if shot.stretch else None):
+            for layer, values in zip(shot.layers, self.values(index)):
+                layer.draw(plotter, Frame(index, step, self.plan.times[step], data, values))
+        if shot.stretch is not None:
+            self._stretch(plotter)
 
     def _stretch(self, plotter) -> None:
         """Scale every 3D actor by the shot's stretch (about the origin, so the scene

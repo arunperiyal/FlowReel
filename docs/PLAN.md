@@ -1346,7 +1346,7 @@ repeat in the caption.
 - [x] Editor state without a window: views collected with their frames; save, undo,
   replace the nearest, play, next step; the file written (branch 1) after every change,
   so closing the window loses nothing
-- [ ] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
+- [x] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
   *Frame* and *Time step* sliders; on screen the views saved, the frame and the step;
   each step's scene built once (the shot's layers, as `shot render` builds them)
 - [ ] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`

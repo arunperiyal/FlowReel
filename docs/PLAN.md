@@ -1488,7 +1488,6 @@ translations, and video tutorials.
 
 **Phase 7 is done when** a new user makes a 20 s film from the tutorial.
 
-||||||| 7212c3a
 ## 20. From the prototype
 
 | Prototype file | Becomes |

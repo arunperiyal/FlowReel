@@ -43,7 +43,11 @@ traceback when a command fails.
 ```text
 flowreel shot render [SHOT] [--frames SPEC] [--scale S | --size W H] [--force]
                      [-j N] [--threads T] [--backend B] [--no-memory-check] [-o DIR]
+                     [--slurm FILE] [--submit] [Slurm options] [--max-running N] [--missing]
 ```
+
+With `--slurm FILE` or `--submit`, the render becomes a Slurm job array instead of
+running here; see [Slurm options](#slurm-options).
 
 Renders the shot's frames to `DIR/<shot>/frame_00000.png`. Frames whose key did not
 change since they were drawn are skipped (see [rendering](rendering.md#frame-keys-what-is-drawn-again)).
@@ -323,6 +327,79 @@ held, and a guess would be drawn as if it were known. See [bodies](bodies.md).
 ```text
 $ flowreel project init geometry:grooved_cylinder -o carve
 wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
+```
+
+## Slurm options
+
+`shot render`, `compose layout`, `compose panel` and `film build` run as Slurm jobs when
+given `--slurm FILE` (write the job script to FILE) or `--submit` (write it, to
+`jobs/NAME.sh` unless `--slurm` names one, and hand it to `sbatch`). The job runs the
+same command in this folder, from this environment. See [Slurm](slurm.md) for how a
+render is sized and split.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--slurm FILE` | | write the job script to FILE |
+| `--submit` | off | submit it with `sbatch`; prints the job id and the log |
+| `--cluster NAME` | `FLOWREEL_CLUSTER`, else this host's | the cluster of [the partition table](slurm.md#clusters-and-partitions) |
+| `--partition NAME` | the shortest that takes the job | the partition |
+| `--time T` | estimated for a render, 2 h otherwise | `90m`, `3h`, `1-12:00:00` |
+| `--mem SIZE` | worked out for a render, 16 GB otherwise | `32G`, `500M` |
+| `--cpus N` | 16 for a render, 4 otherwise | cores of a job (a render's task) |
+| `--after JOBID` | | start only when that job ended well; may be repeated |
+| `--max-running N` | as Slurm schedules | `shot render`: at most N tasks at once, so the render takes part of a node |
+| `--missing` | off | `shot render`: tasks only for frames not drawn yet |
+
+A render is sized from the measured cost of one frame, kept beside its frames by every
+render and by `shot memory`. A shot not measured yet gets a measuring job first, which
+then submits the render from the node:
+
+```text
+$ flowreel shot render reveal.yml --submit --max-running 2
+reveal: no measurement of a frame yet; the job measures one on the node, then plans and submits the render as reveal.sh
+wrote jobs/reveal_measure.sh (measuring job)
+submitted job 1310; log logs/reveal_measure_1310.log
+
+$ flowreel shot render reveal.yml --submit --max-running 2       # once measured
+121 frames in 1 task of up to 121 frames, 1 at once
+each task: 16 cores, 14G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
+one frame: 0.70 GB and 6.0 s a frame (1 frame, 1 thread, node1, 2026-11-21 04:00)
+wrote jobs/reveal.sh (job array of 1 task)
+submitted job 1311; log logs/reveal_1311_*.log
+```
+
+A film as a chain: render the shots, then compose after them, then build after that.
+
+```bash
+flowreel shot render bare_panel.yml --submit          # job 1320
+flowreel shot render helical_panel.yml --submit       # job 1321
+flowreel compose layout compare.yml --submit --after 1320 --after 1321 -j 16 --cpus 16   # 1322
+flowreel film build --submit --after 1322 --preview 480
+```
+
+## `jobs partitions`, `jobs check`, `jobs status`
+
+```text
+flowreel jobs partitions [--cluster NAME]
+flowreel jobs check [--backend B] [--timeout S]
+flowreel jobs status [JOBID ...] [--all]
+```
+
+- **`partitions`** lists the clusters and partitions FlowReel knows, its own table and
+  `~/.flowreel/partitions.yml`, marking this machine's cluster.
+- **`check`** draws a tiny picture with each off-screen backend, each in its own process,
+  and says which work; it exits 1 when the one renders would use does not. Every job
+  script runs it first, so a node without OpenGL fails in seconds.
+- **`status`** gives Slurm's state of the jobs submitted from this folder (the last ten,
+  or `--all`; noted in `.flowreel/jobs.json`) or of the jobs given: `squeue` for those
+  queued or running, `sacct` for the rest. For a render it counts the frames drawn since
+  it was submitted.
+
+```text
+$ flowreel jobs status
+1311  reveal (render), submitted 00:04:10 ago
+  RUNNING 1
+  frames drawn since: 64 of 121 (frames/reveal)
 ```
 
 ## Errors and exit status

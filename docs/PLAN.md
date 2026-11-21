@@ -1251,10 +1251,10 @@ parallel. Branch 3 needs branches 1 and 2, branch 4 needs 3, and branch 5 needs 
 - [x] Tests on generated shots (task ranges, sizes, resume); docs
 
 **Branch 4: `phase5/cli-slurm`** (commands; needs branch 3)
-- [ ] `shot render --slurm FILE` and `--submit`, with `--cluster`, `--partition`, `--time`, `--mem`, `--cpus`, `--max-running N`, `--after JOBID`, `--missing`; prints the job id and the log path
-- [ ] `compose layout`, `compose panel` and `film build` take `--slurm FILE`, `--submit` and `--after JOBID`, so a film is a chain of jobs: renders, then composes, then the build
-- [ ] `jobs partitions` (the table), `jobs check` (branch 2), `jobs status [JOBID]` (Slurm's state of FlowReel's jobs and the frames drawn so far)
-- [ ] Help text; docs: commands page
+- [x] `shot render --slurm FILE` and `--submit`, with `--cluster`, `--partition`, `--time`, `--mem`, `--cpus`, `--max-running N`, `--after JOBID`, `--missing`; prints the job id and the log path
+- [x] `compose layout`, `compose panel` and `film build` take `--slurm FILE`, `--submit` and `--after JOBID`, so a film is a chain of jobs: renders, then composes, then the build
+- [x] `jobs partitions` (the table), `jobs check` (branch 2), `jobs status [JOBID]` (Slurm's state of FlowReel's jobs and the frames drawn so far)
+- [x] Help text; docs: commands page
 
 **Branch 5: `phase5/golden-slurm`** (the check; needs all the others)
 - [ ] A fake `sbatch` and `squeue` on the path in tests (they record the call and run the script, array tasks one by one): a generated shot submitted, rendered, cancelled half way and resubmitted with nothing redrawn

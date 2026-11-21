@@ -30,7 +30,8 @@ Reference: docs/commands.md.""",
   flowreel film build --preview 480          and film_480p.mp4, to send to someone
   flowreel film build --preview 720 --crf 23 a better preview copy
   flowreel film build --only compare         one shot alone, as film_compare.mp4
-  flowreel film build --force                build every clip again""",
+  flowreel film build --force                build every clip again
+  flowreel film build --submit --after 1312  as a Slurm job, after the composes""",
     "check": """examples:
   flowreel film check                        a still at the middle of each caption
   flowreel film check --at freeze            one at each freeze
@@ -107,6 +108,8 @@ class FilmCommand(BaseCommand):
         b.add_argument("--crf", type=int, metavar="N",
                        help="quality of the preview copy, 0 to 51, lower is better (default 28)")
         _clips_arg(b)
+        from flowreel.cli.jobs import add_slurm_args
+        add_slurm_args(b)
 
         c = _parser(
             actions, "check", help="contact sheet of stills, with the text in place",
@@ -183,11 +186,22 @@ class FilmCommand(BaseCommand):
             raise CommandError(str(exc.args[0]) if exc.args else str(exc)) from None
         except (ValueError, FfmpegError) as exc:
             raise CommandError(str(exc)) from None
+        except LookupError as exc:
+            raise CommandError(str(exc.args[0]) if exc.args else str(exc)) from None
 
     def do_build(self, args, ctx):
+        from flowreel.cli.jobs import run_single, slurm_wanted
         from flowreel.film.build import PREVIEW_CRF, build
         if args.crf is not None and args.preview is None:
             raise CommandError("--crf sets the preview copy's quality; give --preview too")
+        if slurm_wanted(args):
+            cmd = ["flowreel", "film", "build", args.film, "-j", str(args.jobs)]
+            for flag, value in (("--only", args.only), ("--preview", args.preview),
+                                ("--crf", args.crf), ("--clips", args.clips)):
+                if value is not None:
+                    cmd += [flag, str(value)]
+            cmd += [f for f, on in (("--mute", args.mute), ("--force", args.force)) if on]
+            return run_single(ctx, "film", cmd, "film", args)
         start = time.perf_counter()
         built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
                       preview=args.preview,

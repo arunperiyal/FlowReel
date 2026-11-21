@@ -1367,7 +1367,7 @@ repeat in the caption.
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)
 - [x] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
   views into a new track; `shot render` draws it; frames compared with golden frames
-- [ ] A golden caption frame: an anchored arrow on a camera track, at three frames
+- [x] A golden caption frame: an anchored arrow on a camera track, at three frames
 - [ ] `examples/camera_editor` on generated data, with the scripted session so it runs
   anywhere
 - [ ] By hand on a display: a track picked in the window on the laptop (surfaces copied

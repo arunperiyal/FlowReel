@@ -1343,16 +1343,16 @@ repeat in the caption.
   camera track, checked against `project()`); docs: `docs/captions.md`
 
 **Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
-- [ ] Editor state without a window: views collected with their frames; save, undo,
+- [x] Editor state without a window: views collected with their frames; save, undo,
   replace the nearest, play, next step; the file written (branch 1) after every change,
   so closing the window loses nothing
-- [ ] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
+- [x] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
   *Frame* and *Time step* sliders; on screen the views saved, the frame and the step;
   each step's scene built once (the shot's layers, as `shot render` builds them)
-- [ ] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
+- [x] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
   writes a frame's surfaces to copy to a machine with a display
-- [ ] The shot's anchored points (branch 2) drawn as markers with their names
-- [ ] Tests: the state with fake views; the window off-screen driven by synthetic key
+- [x] The shot's anchored points (branch 2) drawn as markers with their names
+- [x] Tests: the state with fake views; the window off-screen driven by synthetic key
   events; docs: camera editor page
 
 **Branch 4: `phase6/cli-camera`** (commands; needs branch 3)

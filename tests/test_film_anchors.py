@@ -263,3 +263,21 @@ def test_named_cameras_come_from_the_project_root(tmp_path):
     assert p.point(Anchor(POINT, view="v0"), 0) == pytest.approx(expected(0))
     with pytest.raises(ValueError, match="no view 'other'"):
         p.point(Anchor(POINT, view="other"), 0)
+
+
+def test_anchors_for_the_frames_of_a_shot(tmp_path):
+    from flowreel.film.anchors import anchors_for_frames
+    drawn_frames(tmp_path / "f", 3)
+    drawn_frames(tmp_path / "g", 3)
+    groove = {**DOT, "lines": ["Groove $0.08D$ deep"], "at": [0, 0.1],
+              "place": {"model": [1, 2, 3], "offset": [5, 5]},
+              "shapes": [{"arrow": {"from": [0, 0], "to": {"model": [1, 2, 3]}}},
+                         {"label3d": {"at": [4, 5, 6], "text": "$D$"}}]}
+    other = {**DOT, "lines": ["elsewhere"], "at": [0, 0.1], "place": {"model": [9, 9, 9]},
+             "shapes": []}
+    c = load(tmp_path, [{"name": "a", "frames": "f", "text": [groove]},
+                        {"name": "b", "frames": "g", "text": [other]}])
+    assert anchors_for_frames(c.film, tmp_path / "f") == [
+        ("Groove 0.08D deep", (1.0, 2.0, 3.0)), ("D", (4.0, 5.0, 6.0))]
+    assert anchors_for_frames(c.film, tmp_path / "g") == [("elsewhere", (9.0, 9.0, 9.0))]
+    assert anchors_for_frames(c.film, tmp_path / "none") == []

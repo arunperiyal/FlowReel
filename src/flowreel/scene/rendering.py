@@ -372,7 +372,29 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
                     for fut in as_completed(futures):
                         done(fut.result())
     report.frames = [results[i] for i in indices]
+    drawn = [r for r in report.frames if r.status == "rendered"]
+    if processes and drawn:          # for sizing the next render (flowreel.jobs.measured)
+        from flowreel.jobs import measured
+        record = measured.from_frames([r.peak_bytes for r in drawn],
+                                      [r.seconds for r in drawn], threads)
+        if record is not None:
+            measured.save(folder, record)
     return report
+
+
+def missing(shot, frames: Iterable[int] | None = None, source=None, *, views=None,
+            tracks=None, out: str | Path = "frames", scale: float | None = None,
+            size: tuple[int, int] | None = None) -> list[int]:
+    """The frames among ``frames`` (default all) of ``shot`` that :func:`render` would
+    draw: no file, or one drawn with another key. Nothing is drawn; the source is
+    opened to work out the keys."""
+    shot = _as_shot(shot)
+    size = draft_size(shot.size, scale, size)
+    scene = Scene.make(shot, source, views, tracks, size, cache=Path(out) / CACHE_FOLDER)
+    folder = frame_folder(out, shot, size)
+    store = KeyStore(folder)
+    return [i for i in _frames(frames, scene.plan.n_frames, shot)
+            if not store.fresh(folder / FRAME_NAME.format(i), frame_key(scene, i))]
 
 
 def _frames(frames, n: int, shot: Shot) -> list[int]:

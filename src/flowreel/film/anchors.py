@@ -231,7 +231,9 @@ def place(caption, projector: ShotProjector, j: int) -> Placed:
                     break
                 keys[k] = p
         if ok:
-            shapes.append(dataclasses.replace(shape, keys=keys))
+            from flowreel.film.shapes import IN_MODEL
+            kind = IN_MODEL.get(shape.kind, shape.kind)
+            shapes.append(dataclasses.replace(shape, kind=kind, keys=keys))
         else:
             hidden += 1
     return Placed(dataclasses.replace(caption, place=where, shapes=tuple(shapes)), text, hidden)

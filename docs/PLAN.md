@@ -1335,7 +1335,7 @@ repeat in the caption.
   card or layout shot, and for frames with no record and no `view` or `track`
 - [x] A point behind the camera or off the frame hides its shape (or its caption's text)
   for that frame; `film check` warns with the caption and the times
-- [ ] `label3d` (text at a model point) and `dimension3d` (between two model points, with
+- [x] `label3d` (text at a model point) and `dimension3d` (between two model points, with
   a value) as caption shapes, projected and drawn in 2D like the others, and `label`
   (text at a pixel point), the 2D shape they become
 - [ ] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and

@@ -175,3 +175,48 @@ def test_film_check_warns(tmp_path, monkeypatch):
     status, out, err = Shell(tmp_path / "store").run("film check --at every:0.5 --width 80")
     assert status == 0, err
     assert "caption 'Look here' on shot 'a': text hidden from" in err
+
+
+def test_label3d_and_dimension3d_become_2d_shapes(tmp_path):
+    from flowreel.film.shapes import parse_shape
+    lab = parse_shape({"label3d": {"at": [0, 0, 0], "text": "$D$", "offset": [5, -8]}}, Checker())
+    assert lab["at"] == Anchor((0, 0, 0), (5, -8)) and "offset" not in lab.keys
+    dim = parse_shape({"dimension3d": {"from": [-1, 0, 0], "to": {"model": [1, 0, 0]},
+                                       "value": "$2$", "offset": 12}}, Checker())
+    assert dim["from"] == Anchor((-1, 0, 0)) and dim["offset"] == 12
+    drawn_frames(tmp_path / "f", 2)
+    c = load(tmp_path, [{"name": "a", "frames": "f"}])
+    p = ShotProjector(c.film, c.line, "a")
+    cap = parse_caption({**DOT, "shapes": [
+        {"label3d": {"at": [0, 0, 0], "text": "$D$", "offset": [5, -8]}},
+        {"dimension3d": {"from": [-1, 0, 0], "to": [1, 0, 0], "value": "$2$"}}]}, Checker())
+    shapes = place(cap, p, 0).caption.shapes
+    assert [s.kind for s in shapes] == ["label", "dimension"]
+    x, y = expected(0)
+    assert shapes[0]["at"] == pytest.approx((x + 5, y - 8))
+    left = project(view(0), (-1, 0, 0), (160, 90))[0][:2]
+    assert shapes[1]["from"] == pytest.approx(tuple(left))
+
+
+@pytest.mark.parametrize("spec, message", [
+    ({"label3d": {"at": [0, 0], "text": "a"}}, r"label3d\.at"),
+    ({"label3d": {"at": [0, 0, 0]}}, "missing key 'text'"),
+    ({"dimension3d": {"from": [0, 0, 0], "to": [0, 0, 0]}}, "must differ"),
+    ({"label": {"at": [0, 0, 0], "text": "a"}}, r"label\.at"),
+])
+def test_model_shape_errors(spec, message):
+    from flowreel.film.shapes import parse_shape
+    from flowreel.scene.errors import ConfigError
+    with pytest.raises(ConfigError, match=message):
+        parse_shape(spec, Checker())
+
+
+def test_a_label_is_centred_on_its_point():
+    from flowreel.film.draw import caption_image
+    from flowreel.film.schema import FilmStyle
+    cap = parse_caption({"lines": ["."], "colour": "#00ff00", "shadow": False, "place": [0, 0],
+                         "shapes": [{"label": {"at": [120, 40], "text": "O", "size": 30,
+                                               "colour": "#ff0000"}}]}, Checker())
+    image, _ = caption_image(cap, FilmStyle(), (200, 100))
+    centre = red_centre(np.asarray(image.convert("RGB")))
+    assert centre == pytest.approx((120, 40), abs=2.5)

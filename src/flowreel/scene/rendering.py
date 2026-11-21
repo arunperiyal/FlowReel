@@ -309,6 +309,7 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
 
     Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
     drawn with the same key (plan Section 11, :mod:`flowreel.scene.keys`) is skipped;
+    every frame asked for has its camera recorded in the folder (:func:`record_views`);
     ``force`` draws every frame asked for again. ``scale`` or ``size`` draws a draft:
     the same shot with fewer pixels (:func:`draft_size`), into ``out/<shot>@<W>x<H>/``.
     ``jobs`` frames are drawn at a time,
@@ -339,6 +340,7 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     results: dict[int, FrameResult] = {}
     store = KeyStore(folder)
     keys = {i: frame_key(scene, i) for i in indices}
+    record_views(scene, indices, folder)
 
     def done(result: FrameResult):
         results[result.index] = result
@@ -380,6 +382,16 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
         if record is not None:
             measured.save(folder, record)
     return report
+
+
+def record_views(scene: Scene, indices, folder: Path) -> None:
+    """Record in ``folder`` the view, size and stretch of frames ``indices`` of
+    ``scene`` (:mod:`flowreel.scene.frame_views`), for captions anchored in the model."""
+    from flowreel.scene.frame_views import DrawnView, save_views
+    stretch = None if scene.shot.stretch is None else tuple(scene.shot.stretch.scale)
+    save_views(folder, {FRAME_NAME.format(i): DrawnView(scene.camera.view(i, scene.data(i)),
+                                                         tuple(scene.size), stretch)
+                        for i in indices})
 
 
 def missing(shot, frames: Iterable[int] | None = None, source=None, *, views=None,

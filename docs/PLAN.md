@@ -1318,18 +1318,29 @@ branch 4 needs 3, and branch 5 needs all.
   ParaView states written in the test); docs: `docs/cameras.md`
 
 **Branch 2: `phase6/annotations-anchored`** (independent of branch 1)
-- [ ] Anchored points: `{model: [x, y, z], view: V}` or `{model: ..., track: T}`, with
-  `offset: [dx, dy]`, in a shape's points and a caption's `place`; resolved per film
-  frame from the shot on screen at that time, its frame (rates, Section 10.2), the named
-  view or track of its `cameras.yml`, and the film's size; errors naming a view or track
-  that the shot's `cameras.yml` lacks
-- [ ] A point behind the camera or off the frame hides its shape for that frame;
-  `film check` warns with the caption and the times
+
+A film shot names a folder of frames, not the shot file that drew them, so `shot render`
+records the camera of every frame it draws; an anchor then takes the camera that drew
+the frame on screen, whatever moved it (a track, `follow`, `fit`), with nothing to
+repeat in the caption.
+
+- [x] `shot render` records each frame's view, picture size and stretch in the frames
+  folder (`.views.json`, beside `.keys.json`), for drawn and skipped frames alike
+- [ ] Anchored points: `{model: [x, y, z]}`, with `offset: [dx, dy]`, in a shape's points
+  and a caption's `place`; resolved per output frame of the finished shot from the frame
+  shown (rates and freezes, Section 10.2: between two frames the positions are blended),
+  its recorded view and size, fitted to the film's size as the picture is; optional
+  `view: V` or `track: T` from the film folder's `cameras.yml` for frames FlowReel did not
+  draw. An anchored caption is drawn once per output frame it shows in; errors for a
+  card or layout shot, and for frames with no record and no `view` or `track`
+- [ ] A point behind the camera or off the frame hides its shape (or its caption's text)
+  for that frame; `film check` warns with the caption and the times
 - [ ] `label3d` (text at a model point) and `dimension3d` (between two model points, with
-  a value) as caption shapes, projected and drawn in 2D like the others
-- [ ] Draft sizes: anchored positions follow `film build --preview` and the shot's
-  `--scale`; tests on a generated film (an arrow on a camera track, checked against
-  `camera project`'s numbers); docs: `docs/captions.md`
+  a value) as caption shapes, projected and drawn in 2D like the others, and `label`
+  (text at a pixel point), the 2D shape they become
+- [ ] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and
+  `film build --preview` (scaled from the film); tests on a generated film (an arrow on a
+  camera track, checked against `project()`); docs: `docs/captions.md`
 
 **Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
 - [ ] Editor state without a window: views collected with their frames; save, undo,

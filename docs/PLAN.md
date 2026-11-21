@@ -1360,7 +1360,7 @@ repeat in the caption.
 - [ ] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
   `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
   track over saved surfaces or the shot's first step)
-- [ ] The `view` context in the shell (`use view:main`, Section 13)
+- [x] The `view` context in the shell (`use view:main`, Section 13)
 - [ ] Help text; docs: commands page
 
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)

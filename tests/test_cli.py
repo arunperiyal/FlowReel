@@ -38,3 +38,10 @@ def test_shot_context_takes_an_existing_file(sh, tmp_path):
     assert sh.rt.context.get("shot") == str(tmp_path / "a.yml")
     status, _, err = sh.run("use shot:missing.yml")
     assert status != 0 and "no such file" in err
+
+
+def test_view_context_takes_a_name(sh):
+    assert sh.run("use view:main")[0] == 0
+    assert sh.rt.context.get("view") == "main"
+    status, _, err = sh.run("use view: ")
+    assert status != 0

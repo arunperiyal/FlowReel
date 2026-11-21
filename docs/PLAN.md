@@ -1366,6 +1366,76 @@ in the window for anchors (anchors are typed; the window shows where they land).
 
 **Phase 6 is done when** a new camera track is picked in the window and rendered.
 
+### 19.8 Phase 7 tasks
+
+Added 2026-11-22, while Phase 6 is being built. Phase 7 turns the per-phase pages in
+`docs/` into documentation a new user can start from: a tutorial that makes a short film
+from a public data set, a user guide, and a reference generated from the code where it
+can be, so it cannot drift. Two questions come first: how a project folder is made and
+laid out (Section 24, question 6, kept until now for this phase), and which public data
+set the tutorial uses (question 7).
+
+Branches 1 and 2 need nothing from each other, so they can be built in parallel once
+the two questions are answered. Branch 3 needs both, branch 4 needs branch 1 (the
+reference describes the project rules), and branch 5 needs all. Phase 7 starts after
+Phase 6 is done, since the tutorial picks a camera in the editor.
+
+**Branch 1: `phase7/project-rules`** (the project folder; needs question 6 answered)
+- [ ] Question 6 settled with Arun and recorded in Section 23: the project file (today's
+  `flowreel.yml` or a hidden one), the folders `project init` makes, and what a command
+  does outside a project
+- [ ] `project init` writes the agreed file and folders; commands find the project as
+  agreed, with an error outside one that says how to make one
+- [ ] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
+  `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
+- [ ] Tests on generated projects; help text; docs: project page
+
+**Branch 2: `phase7/tutorial-data`** (the public data set; needs question 7 answered;
+independent of branch 1)
+- [ ] `examples/tutorial/get_data.py`: downloads the chosen data set into the project's
+  data folder, checks its SHA-256, converts it to a `.pvd` series of `.vtu` files when it
+  is in another format, and writes the data set's licence and citation beside it; a
+  second run downloads nothing
+- [ ] A generated stand-in with the same names, fields and steps at a small size, so
+  the tutorial's test runs without the network
+- [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
+  set, its source, licence and how to cite it
+
+**Branch 3: `phase7/tutorial`** (the tutorial; needs branches 1 and 2)
+- [ ] `docs/tutorial.md`, in short chapters, each ending with a frame or a still to
+  compare: install; `project init` on the data; a first shot (`shot template`, a slice
+  and an iso surface, `shot preview`); a camera picked in the editor and an orbit; a
+  layout or a panel; `film.yml` with a title card, two captions (one with maths, one
+  anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
+  the full build; optionally Slurm
+- [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
+  reader can compare theirs
+- [ ] A test that follows the tutorial on the stand-in data at a small size, command by
+  command, and checks the film is 20 s with the captions in place
+
+**Branch 4: `phase7/docs-reference`** (the guide and reference; needs branch 1)
+- [ ] `docs/README.md`: where to start (tutorial), the user guide pages in reading order,
+  and the reference; the per-phase pages renamed and linked as guide chapters
+- [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
+  card, `flowreel.yml`) with type, default and example, generated from the schema modules
+  and the `template` commands, with a test that fails when the page is out of date
+- [ ] Command reference generated from the help text, with the same test
+- [ ] `README.md` brought up to date (status, what it does, a still, install, the
+  tutorial link); a docstring check over public modules (`.claude/rules/documentation.md`)
+
+**Branch 5: `phase7/tutorial-check`** (the check; needs all the others)
+- [ ] The tutorial followed from a clean checkout on a machine that has never had
+  FlowReel, with the real data set, by the instructions alone; time per chapter and every
+  place where the reader stopped recorded here
+- [ ] Fixes from that run, each a commit naming the chapter
+- [ ] By a new user: someone other than Arun makes a 20 s film from the tutorial; what
+  they made and what they asked recorded here
+
+Left out of Phase 7: a documentation website (the pages are Markdown read on GitHub),
+translations, and video tutorials.
+
+**Phase 7 is done when** a new user makes a 20 s film from the tutorial.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |
@@ -1432,6 +1502,7 @@ New ones are added here as the work raises them.
 | 4 | ~~Where do the AFMS film's own FlowReel files live?~~ **Answered 2026-11-19:** in a FlowReel project folder of their own, outside this repository (they name a logo and a licensed track). How a project folder is made and laid out is question 6. | Phase 4, branch 7 |
 | 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
 | 6 | **Project rules, to discuss once the backend is done.** Arun's proposal: FlowReel is always run from an initialised project folder; an init command writes a hidden file holding what the project needs, and empty folders such as `data/`, `assets/`, `clips/`. To settle then: the hidden file against today's `flowreel.yml` (written by `project init`, found by walking up from a shot or panel file), the folder names, and what a command does outside a project. Until then the code keeps finding `flowreel.yml` as it does. | after Phase 4's backend, before Phase 7 |
+| 7 | **The tutorial's public data set.** It must be free to download and to show in a film, small enough for a laptop (about 1 GB at most), readable as VTK (or converted once by `get_data.py`), with velocity and pressure (derived fields come from them, Section 6). Unsteady data makes a better film; a single steady step still makes 20 s with a camera move, a slice sweep and an iso level change. Candidates to compare: pyvista's `cylinder_crossflow` and `backward_facing_step` (steady, from VTK's example data; licence to check), a small unsteady case from a public solver tutorial run once and published with FlowReel's release (for example OpenFOAM's 2D cylinder), or a public database's cut-out. To decide with Arun. | Phase 7, branch 2 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

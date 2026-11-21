@@ -65,3 +65,36 @@ def test_load_tracks(tmp_path):
                  "tracks:\n  t: {frames: 9, path: spline, keys: [{frame: 0, view: a}, {frame: 8, view: b}]}\n")
     t = load_tracks(p, load_views(p))["t"]
     assert t.frames == 9 and t.path == "spline"
+
+
+def test_key_ease_sets_its_segment():
+    keys = [{"frame": 0, "view": "a"}, {"frame": 10, "view": "b", "ease": "hold"},
+            {"frame": 20, "view": "c"}]
+    t = parse_track({"keys": keys, "ease": "linear"}, VIEWS)
+    assert t.eases == (None, "hold", None)
+    assert t.at(5).position[0] == pytest.approx(5)            # track's linear
+    assert t.at(15).position == VIEWS["b"].position            # held until the next key
+    assert t.at(20).position == VIEWS["c"].position
+
+
+def test_key_ease_errors_name_the_key():
+    keys = [{"frame": 0, "view": "a", "ease": "fast"}, {"frame": 10, "view": "b"}]
+    with pytest.raises(ConfigError, match=r"keys\[0\]\.ease"):
+        parse_track({"keys": keys}, VIEWS)
+    keys = [{"frame": 0, "view": "a"}, {"frame": 0, "view": "b"}]
+    with pytest.raises(ConfigError, match=r"keys\[1\]\.frame.*must increase"):
+        parse_track({"keys": keys}, VIEWS)
+
+
+def test_build_track():
+    from flowreel.scene.camera_path import build_track
+    t = build_track(VIEWS, [(0, "a"), (10, "b", "in"), (20, "c")], path="spline")
+    assert t.path == "spline" and t.eases == (None, "in", None)
+    assert t.at(10).position == pytest.approx(VIEWS["b"].position)
+    assert build_track(VIEWS, [(0, "a"), (5, "b")]).eases == ()
+    for keys, msg in [([], "at least one"), ([(0, "a"), (0, "b")], "must increase"),
+                      ([(0, "zz")], "no view named 'zz'"), ([(0, "a", "bad")], "unknown ease")]:
+        with pytest.raises(ValueError, match=msg):
+            build_track(VIEWS, keys)
+    with pytest.raises(ValueError, match="unknown path"):
+        build_track(VIEWS, [(0, "a")], path="bezier")

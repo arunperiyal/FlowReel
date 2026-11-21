@@ -1303,18 +1303,18 @@ Branch 3 needs both (the editor writes through branch 1 and shows branch 2's anc
 branch 4 needs 3, and branch 5 needs all.
 
 **Branch 1: `phase6/cameras-file`** (camera data model and the commands' library)
-- [ ] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
+- [x] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
   a line, tracks with their keys), read back equal by `load_views` and `load_tracks`; a
   `.bak` of the file it replaces; comments are not kept, and the file's first line says so
-- [ ] Easing per segment: `ease` on a track key sets the segment after it (the track's
-  `ease` stays the default); `camera_path.path(...)`, a track from keys with easing per
-  segment, for `camera path`
-- [ ] Orbit: an arc of keys round a target (a point, or a body's centre at a station
+- [x] Easing per segment: `ease` on a track key sets the segment after it (the track's
+  `ease` stays the default); `camera_path.build_track(...)`, a track from keys with easing
+  per segment, and `update_cameras`, which adds it to a file, for `camera path`
+- [x] Orbit: an arc of keys round a target (a point, or a body's centre at a station
   along its axis) with radius, elevation from and to, azimuth span, lead and frame count,
   for `camera orbit`
-- [ ] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
+- [x] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
   flexflow `cam.yml`, for `camera import`
-- [ ] Tests on generated files (round trip, segment easing, orbit geometry, small
+- [x] Tests on generated files (round trip, segment easing, orbit geometry, small
   ParaView states written in the test); docs: `docs/cameras.md`
 
 **Branch 2: `phase6/annotations-anchored`** (independent of branch 1)

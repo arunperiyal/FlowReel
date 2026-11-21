@@ -1,0 +1,47 @@
+# Written by FlowReel; comments are not kept when it is written again.
+views:
+  - {name: wide, position: [-19, 13, -5], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_00, position: [-5.276311449, 4.10424172, 8.5], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_01, position: [-5.172749018, 4.267809142, 9.477488879], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_02, position: [-4.982743765, 4.430473768, 10.436554048], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_03, position: [-4.70878921, 4.592201188, 11.369411421], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_04, position: [-4.354090799, 4.752957192, 12.268580854], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_05, position: [-3.922530763, 4.912707774, 13.126952083], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_06, position: [-3.418626807, 5.071419141, 13.937846722], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_07, position: [-2.847485065, 5.229057719, 14.695075737], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_08, position: [-2.21474782, 5.385590162, 15.392991866], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_09, position: [-1.526536502, 5.540983359, 16.026536502], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_10, position: [-0.789390579, 5.695204437, 16.591280614], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_11, position: [-0.01020294, 5.848220774, 17.083459349], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_12, position: [0.803847577, 6, 17.5], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_13, position: [1.645365822, 6.15051001, 17.83854313], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_14, position: [2.506811444, 6.299718964, 18.097456678], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_15, position: [3.380570776, 6.4475953, 18.27584295], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_16, position: [4.259028769, 6.594107737, 18.373538491], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_17, position: [5.134640279, 6.739225281, 18.391106872], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+  - {name: turn_18, position: [6, 6.882917236, 18.329824531], focal: [6, 0, 8.5], up: [0, 1, 0], view_angle: 30}
+tracks:
+  turn:
+    frames: 120
+    path: spline
+    ease: linear
+    keys:
+      - {frame: 0, view: turn_00}
+      - {frame: 17.026218, view: turn_01}
+      - {frame: 24.669662, view: turn_02}
+      - {frame: 30.838733, view: turn_03}
+      - {frame: 36.284938, view: turn_04}
+      - {frame: 41.303032, view: turn_05}
+      - {frame: 46.048614, view: turn_06}
+      - {frame: 50.619238, view: turn_07}
+      - {frame: 55.084487, view: turn_08}
+      - {frame: 59.5, view: turn_09}
+      - {frame: 63.915513, view: turn_10}
+      - {frame: 68.380762, view: turn_11}
+      - {frame: 72.951386, view: turn_12}
+      - {frame: 77.696968, view: turn_13}
+      - {frame: 82.715062, view: turn_14}
+      - {frame: 88.161267, view: turn_15}
+      - {frame: 94.330338, view: turn_16}
+      - {frame: 101.973782, view: turn_17}
+      - {frame: 119, view: turn_18}

@@ -144,3 +144,9 @@ def test_markers_sit_on_the_stretched_model(tmp_path):
         assert points and points[0] == pytest.approx((2.0, 0.0, 0.5))
     finally:
         w.plotter.close()
+
+
+def test_the_frame_slider_follows_set_frame(window):
+    window.set_frame(17.6)
+    assert window.state.frame == 18
+    assert window._frame_slider.GetRepresentation().GetValue() == 18

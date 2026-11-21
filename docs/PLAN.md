@@ -1352,7 +1352,7 @@ repeat in the caption.
 - [x] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
   writes a frame's surfaces to copy to a machine with a display
 - [x] The shot's anchored points (branch 2) drawn as markers with their names
-- [ ] Tests: the state with fake views; the window off-screen driven by synthetic key
+- [x] Tests: the state with fake views; the window off-screen driven by synthetic key
   events; docs: camera editor page
 
 **Branch 4: `phase6/cli-camera`** (commands; needs branch 3)

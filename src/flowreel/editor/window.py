@@ -137,6 +137,8 @@ class EditorWindow:
         if not self._ready:
             return
         self.state.set_frame(value)
+        if self._frame_slider is not None:       # set from code: move the slider too
+            self._frame_slider.GetRepresentation().SetValue(self.state.frame)
         self._status()
 
     def set_step(self, value: float) -> None:
@@ -172,8 +174,9 @@ class EditorWindow:
 
     def _widgets(self) -> None:
         p, st = self.plotter, self.state
+        self._frame_slider = None
         if st.frames > 1:
-            p.add_slider_widget(self.set_frame, [0, st.frames - 1], value=st.frame, title="Frame",
+            self._frame_slider = p.add_slider_widget(self.set_frame, [0, st.frames - 1], value=st.frame, title="Frame",
                                 pointa=(0.05, 0.08), pointb=(0.45, 0.08), fmt="%.0f",
                                 style="modern")
         self._step_slider = None

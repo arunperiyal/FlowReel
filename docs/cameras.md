@@ -62,6 +62,9 @@ position and focal point through all keys on a Catmull-Rom curve (smooth through
 no overshoot control; add a key to tame a bend). A perspective and a parallel view cannot
 blend, so the track switches at the later key. A shot uses it with `camera: {track: carve}`.
 
+To pick a track's views by eye rather than type them, use the
+[camera editor](camera-editor.md).
+
 ## Writing cameras.yml
 
 The camera editor and the camera commands write `cameras.yml` with

@@ -235,3 +235,47 @@ def place(caption, projector: ShotProjector, j: int) -> Placed:
         else:
             hidden += 1
     return Placed(dataclasses.replace(caption, place=where, shapes=tuple(shapes)), text, hidden)
+
+
+@dataclass(frozen=True)
+class Hidden:
+    """A stretch of film where an anchored caption cannot show all of itself: its
+    ``caption``'s first line, the ``shot``, ``start`` and ``end`` in film seconds, and
+    ``what`` is hidden (``text``, ``N shapes`` or both)."""
+
+    caption: str
+    shot: str
+    start: float
+    end: float
+    what: str
+
+    def message(self) -> str:
+        """The warning ``film check`` prints."""
+        return (f"caption {self.caption!r} on shot {self.shot!r}: {self.what} hidden from "
+                f"{self.start:.2f} to {self.end:.2f} s (behind the camera or off the frame)")
+
+
+def hidden_spans(clips) -> list[Hidden]:
+    """Where the anchored captions of a film are hidden, shot by shot
+    (``clips`` is the film's :class:`~flowreel.film.clips.Clips`)."""
+    out = []
+    fps = clips.film.fps
+    for ts in clips.line.shots:
+        name = ts.shot.name
+        for c, start, end, *_ in clips.captions(name):
+            if not anchored(c):
+                continue
+            run = None
+            for j, p in [*clips.placed(name, c, start, end), (None, None)]:
+                what = None
+                if p is not None:
+                    parts = (["text"] if not p.text else []) + (
+                        [f"{p.hidden} shape{'s' * (p.hidden != 1)}"] if p.hidden else [])
+                    what = " and ".join(parts) or None
+                if run is not None and (what != run[1] or j is None):
+                    out.append(Hidden(c.lines[0], name, ts.start + run[0] / fps,
+                                      ts.start + (run[2] + 1) / fps, run[1]))
+                    run = None
+                if what is not None:
+                    run = [run[0], what, j] if run is not None else [j, what, j]
+    return out

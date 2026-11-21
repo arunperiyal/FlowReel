@@ -1333,7 +1333,7 @@ repeat in the caption.
   `view: V` or `track: T` from the film folder's `cameras.yml` for frames FlowReel did not
   draw. An anchored caption is drawn once per output frame it shows in; errors for a
   card or layout shot, and for frames with no record and no `view` or `track`
-- [ ] A point behind the camera or off the frame hides its shape (or its caption's text)
+- [x] A point behind the camera or off the frame hides its shape (or its caption's text)
   for that frame; `film check` warns with the caption and the times
 - [ ] `label3d` (text at a model point) and `dimension3d` (between two model points, with
   a value) as caption shapes, projected and drawn in 2D like the others, and `label`

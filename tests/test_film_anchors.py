@@ -142,3 +142,36 @@ def test_the_finished_clip_draws_the_dot_where_the_point_is(tmp_path):
     moved = load(tmp_path, [{"name": "a", "frames": "f", "rate": {"fps": 8},
                              "text": [caption]}]).finished("a")
     assert moved.built                                   # a camera changed: rebuilt
+
+
+def test_hidden_spans_name_the_caption_and_times(tmp_path):
+    from flowreel.film.anchors import hidden_spans
+    drawn_frames(tmp_path / "f", 6)
+    # The camera slides +0.3 a frame; a point at x = -5.5 leaves the frame on the left
+    # partway through, and the arrow to it goes with it.
+    gone = [-5.5, 0, 0]
+    caption = {**DOT, "lines": ["Look here"], "at": [0.0, 0.75], "place": {"model": gone},
+               "shapes": [{"arrow": {"from": [10, 10], "to": {"model": gone}}}]}
+    c = load(tmp_path, [{"name": "a", "frames": "f", "rate": {"fps": 8}, "text": [caption]}])
+    p = ShotProjector(c.film, c.line, "a")
+    shown = [p.point(Anchor(tuple(gone)), j) is not None for j in range(18)]
+    first = shown.index(False)
+    assert any(shown) and not any(shown[first:])
+    spans = hidden_spans(c)
+    assert len(spans) == 1
+    h = spans[0]
+    assert (h.caption, h.shot, h.what) == ("Look here", "a", "text and 1 shape")
+    assert h.start == pytest.approx(first / 24) and h.end == pytest.approx(18 / 24)
+    assert "'Look here' on shot 'a': text and 1 shape hidden from" in h.message()
+
+
+def test_film_check_warns(tmp_path, monkeypatch):
+    need_ffmpeg()
+    from cli_harness import Shell
+    drawn_frames(tmp_path / "f", 6)
+    caption = {**DOT, "lines": ["Look here"], "at": [0.0, 0.75], "place": {"model": [-5.5, 0, 0]}}
+    film_file(tmp_path, [{"name": "a", "frames": "f", "rate": {"fps": 8}, "text": [caption]}])
+    monkeypatch.chdir(tmp_path)
+    status, out, err = Shell(tmp_path / "store").run("film check --at every:0.5 --width 80")
+    assert status == 0, err
+    assert "caption 'Look here' on shot 'a': text hidden from" in err

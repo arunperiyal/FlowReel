@@ -221,6 +221,11 @@ class FilmCommand(BaseCommand):
                        width=args.width, folder=args.clips, force=args.force,
                        panels={"jobs": args.jobs})
         ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
+        from flowreel.film import load
+        from flowreel.film.anchors import hidden_spans
+        from flowreel.film.clips import Clips
+        for hidden in hidden_spans(Clips(load(args.film), folder=args.clips)):
+            ctx.warn(hidden.message())
         return 0
 
     def do_lengths(self, args, ctx):

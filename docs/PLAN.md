@@ -1356,7 +1356,8 @@ repeat in the caption.
   events; docs: camera editor page
 
 **Branch 4: `phase6/cli-camera`** (commands; needs branch 3)
-- [ ] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `-o FILE`)
+- [x] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `--film FILE` for
+  the captions' points, `-c FILE`: every camera command reads and writes one `cameras.yml`)
 - [x] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
   `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
   track over saved surfaces or the shot's first step)

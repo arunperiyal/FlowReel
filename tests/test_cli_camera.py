@@ -1,4 +1,4 @@
-"""flowreel camera: path, orbit, import, project, preview."""
+"""flowreel camera: edit, path, orbit, import, project, preview."""
 import pytest
 
 from flowreel.scene.camera_path import load_tracks
@@ -112,7 +112,41 @@ def test_preview_draws_small_frames(sh, tmp_path):
     assert names == ["frame_00000.png", "frame_00005.png", "frame_00010.png"]
 
 
-@pytest.mark.parametrize("action", ["path", "orbit", "import", "project", "preview"])
+def test_edit_picks_a_track(sh, tmp_path, monkeypatch):
+    import flowreel.cli.camera as cli
+    import flowreel.editor.window as win
+
+    class Scripted(win.EditorWindow):
+        def __init__(self, state, scenes, size=(1280, 720), anchors=()):
+            super().__init__(state, scenes, size=(160, 90), off_screen=True, anchors=anchors)
+
+        def show(self):
+            self.press("s")
+            self.set_frame(5)
+            self.look(View((0, -20, 10), (0, 0, 3), (0, 0, 1)))
+            self.press("s")
+            self.plotter.close()
+
+    monkeypatch.setattr(win, "EditorWindow", Scripted)
+    monkeypatch.setattr(cli, "_display", lambda: True)
+    out = ok(sh, "camera edit g.yml --track picked")
+    assert "track picked: 2 views saved" in out
+    t = cameras(tmp_path)[1]["picked"]
+    assert [k[0] for k in t.keys] == [0, 5] and t.frames == 6
+
+
+def test_edit_away_from_the_data_and_errors(sh, tmp_path, monkeypatch):
+    import flowreel.cli.camera as cli
+    monkeypatch.setattr(cli, "_display", lambda: False)
+    assert "no display" in fails(sh, "camera edit g.yml --track t")
+    assert "give a shot" in fails(sh, "camera edit --track t")
+    ok(sh, "shot render g.yml --save-vtp vtp")
+    assert "--frames N is needed" in fails(sh, "camera edit --vtp vtp --track t")
+    assert "give -c FILE" in fails(sh, "camera edit --vtp vtp --track t --frames 9")
+    assert "no display" in fails(sh, "camera edit --vtp vtp --track t --frames 9 -c c.yml")
+
+
+@pytest.mark.parametrize("action", ["edit", "path", "orbit", "import", "project", "preview"])
 def test_every_action_has_help_with_examples(action, capsys):
     from flowreel.cli import main
     assert main(["camera", action, "--help"]) == 0

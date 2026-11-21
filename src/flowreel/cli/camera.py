@@ -1,6 +1,7 @@
 """``flowreel camera``: pick, make, import and check camera views and tracks.
 
-Each action is a thin layer over a library function: :func:`~flowreel.scene.camera_path.build_track`,
+Each action is a thin layer over a library function: the editor
+(:mod:`flowreel.editor`), :func:`~flowreel.scene.camera_path.build_track`,
 :func:`~flowreel.scene.orbit.orbit`, :func:`~flowreel.scene.camera_import.import_view`
 and :func:`~flowreel.scene.projection.project`. They all read and write one
 ``cameras.yml``: ``-c FILE``, else the one beside the shot when a shot is given (or set
@@ -9,6 +10,8 @@ with ``use shot:FILE``), else ``./cameras.yml``.
 from __future__ import annotations
 
 import argparse
+import os
+import sys
 import textwrap
 import time
 from pathlib import Path
@@ -19,6 +22,7 @@ from flowreel.scene.errors import ConfigError
 
 EXAMPLES = {
     "camera": """examples:
+  flowreel camera edit wake.yml --track approach     pick views in a window
   flowreel camera orbit turn --target 6 0 9.5 --radius 12 --frames 240 --span 120
   flowreel camera path intro --keys 0:wide:hold 24:wide 72:close
   flowreel camera import state.pvsm wide
@@ -27,6 +31,13 @@ EXAMPLES = {
 
 Every action reads and writes one cameras.yml: -c FILE, else the one beside the shot,
 else ./cameras.yml. Reference: docs/commands.md, docs/camera-editor.md.""",
+    "edit": """examples:
+  flowreel camera edit wake.yml --track approach     a window on the shot's first step
+  flowreel camera edit wake.yml --track approach --film film.yml   with the captions' points
+  flowreel camera edit --vtp wake_vtp --track approach --frames 240 -c cameras.yml
+                                                     away from the data (shot render --save-vtp)
+
+keys: s save view, u undo, r replace nearest, p play, n next step""",
     "path": """examples:
   flowreel camera path intro --keys 0:wide 120:close      eased between two views
   flowreel camera path intro --keys 0:wide:hold 24:wide 72:close --path spline
@@ -101,6 +112,24 @@ class CameraCommand(BaseCommand):
                                   description=self.description, epilog=EXAMPLES["camera"],
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
         actions = p.add_subparsers(dest="camera_cmd", metavar="<action>")
+
+        e = _parser(actions, "edit", help="pick views into a track in a window",
+                    description="Open the camera editor on the shot's scene: move the camera, "
+                                "set the Frame slider, press s to save the view as a key of "
+                                "the track. Every change is written to cameras.yml at once.")
+        _shot_arg(e)
+        e.add_argument("--track", required=True, metavar="NAME", help="the track to make or extend")
+        e.add_argument("--frames", type=int, metavar="N",
+                       help="the track's length (default: the shot's frames; needed with --vtp "
+                            "and no shot)")
+        e.add_argument("--vtp", metavar="DIR",
+                       help="open surfaces saved by 'shot render --save-vtp DIR' instead of the data")
+        e.add_argument("--film", metavar="FILE",
+                       help="mark the points in the model that this film's captions point at")
+        e.add_argument("--spline", action="store_true", help="write the track with path: spline")
+        e.add_argument("--size", type=int, nargs=2, default=(1280, 720), metavar=("W", "H"),
+                       help="the window's size (default 1280 720)")
+        _cameras_arg(e)
 
         t = _parser(actions, "path", help="write a track from keys",
                     description="Write a camera track from keys FRAME:VIEW, or FRAME:VIEW:EASE "
@@ -197,6 +226,58 @@ class CameraCommand(BaseCommand):
             raise CommandError(str(exc)) from None
         except FileNotFoundError as exc:
             raise CommandError(f"no such file: {exc.filename or exc}") from None
+
+    # -- edit -----------------------------------------------------------------------
+
+    def do_edit(self, args, ctx):
+        from flowreel.editor.state import EditorState
+        from flowreel.editor.window import EditorWindow
+        if not args.shot and not args.vtp:
+            raise CommandError("give a shot (or use shot:FILE), or --vtp DIR")
+        if args.frames is not None and args.frames < 1:
+            raise CommandError("--frames must be at least 1")
+        scene = None
+        if args.vtp:
+            from flowreel.editor.surfaces import SavedScenes
+            scenes = SavedScenes(args.vtp)
+        else:
+            from flowreel.editor.scenes import ShotScenes
+            from flowreel.scene.rendering import Scene
+            scene = Scene.make(args.shot)
+            scenes = ShotScenes(scene)
+        frames = args.frames or (scene.plan.n_frames if scene is not None else None)
+        if frames is None:
+            raise CommandError("--frames N is needed with --vtp and no shot")
+        anchors = self._anchors(args, scene)
+        if not args.cameras and not args.shot:
+            raise CommandError("give -c FILE: with --vtp and no shot there is no cameras.yml "
+                               "to go beside")
+        if not _display():
+            raise CommandError("no display to open the window on: run it where there is one "
+                               "(save the surfaces here with 'shot render SHOT --save-vtp DIR', "
+                               "copy DIR, and use 'camera edit --vtp DIR' there)")
+        path = cameras_path(args)
+        state = EditorState.open(path, args.track, frames, scenes.steps,
+                                 "spline" if args.spline else "linear")
+        window = EditorWindow(state, scenes, size=tuple(args.size), anchors=anchors)
+        ctx.out(f"editing track {args.track!r} of {path}; s save, u undo, r replace, "
+                "p play, n next step; close the window when done")
+        window.show()
+        ctx.out(state.status().split("   ")[0] + f" -> {path}")
+        return 0
+
+    def _anchors(self, args, scene):
+        if not args.film:
+            return []
+        from flowreel.film import load
+        from flowreel.film.anchors import anchors_for_frames
+        film = load(args.film)
+        name = scene.shot.name if scene is not None else None
+        out = []
+        for s in film.shots:
+            if s.kind == "frames" and (name is None or Path(s.source).name == name):
+                out += [a for a in anchors_for_frames(film, s.source) if a not in out]
+        return out
 
     # -- path, orbit, import ----------------------------------------------------------
 
@@ -369,3 +450,10 @@ def _views(path: Path) -> dict:
         raise CommandError(f"no {path}: make views first (camera edit, camera import or "
                            "camera orbit), or give -c FILE")
     return load_views(path)
+
+
+def _display() -> bool:
+    """Whether a window can be shown here."""
+    if sys.platform != "linux":
+        return True
+    return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))

@@ -95,3 +95,10 @@ def test_body_target_centre_at_station():
     assert axis == "x" and centre == pytest.approx((7.0, 0.1, 0), abs=1e-6)
     views, _ = orbit(centre, radius=3, frames=24, axis=axis, up=(0, 1, 0), span=45)
     assert list(views.values())[0].focal == pytest.approx(centre)
+
+
+@pytest.mark.parametrize("span", [360, 30, 4])
+def test_camera_keeps_to_the_circle(span):
+    _, track = orbit((0, 0, 0), radius=1.0, frames=361, span=span, ease="linear")
+    r = [np.linalg.norm(track.at(f).position) for f in np.linspace(0, 360, 3601)]
+    assert 1 - min(r) < 1e-3 and max(r) - 1 < 1e-6

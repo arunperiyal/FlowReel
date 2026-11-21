@@ -14,8 +14,10 @@ across the axis, blended from its first to its last value along the arc. ``lead`
 the focal point that far along the axis from the target (model units), so a camera
 circling a station of a long body looks a little along it.
 
-The keys lie at most :data:`STEP` degrees apart on a spline path, so the camera keeps
-to the circle. ``ease`` shapes the motion over the whole orbit, not per segment: the
+The keys lie evenly, at most :data:`STEP` degrees apart, on a spline path. A spline
+repeats its end keys, so its first and last segments sag inside the circle, by about
+0.05% of the radius at 5 degrees (0.4% at 15); between the others the camera keeps to
+the circle within 0.0002%. ``ease`` shapes the motion over the whole orbit, not per segment: the
 key frames are spaced so the camera starts and stops gently under ``smooth`` (the
 segments between them are linear).
 """
@@ -29,7 +31,7 @@ from flowreel.scene.camera_path import CameraTrack, build_track
 from flowreel.scene.views import View
 from flowreel.tracks import EASE_NAMES, EASINGS
 
-STEP = 15.0           # degrees between keys, at most
+STEP = 5.0            # degrees between keys, at most
 AXES = {"x": (1.0, 0.0, 0.0), "y": (0.0, 1.0, 0.0), "z": (0.0, 0.0, 1.0)}
 
 
@@ -70,10 +72,8 @@ def orbit(target, radius: float, frames: int, azimuth: float = 0.0, span: float 
     e2 = np.cross(k, e1)
     up = k if up is None else _unit(up, "up")
     focal = target + lead * k
-    n = max(1, math.ceil(abs(span) / STEP))
     views, keys = {}, []
-    for i in range(n + 1):
-        s = i / n
+    for i, s in enumerate(_fractions(abs(span))):
         az = math.radians(azimuth + span * s)
         elev = math.radians(el[0] + (el[1] - el[0]) * s)
         out = math.cos(elev) * (math.cos(az) * e1 + math.sin(az) * e2) + math.sin(elev) * k
@@ -108,6 +108,13 @@ def body_target(source, body: str | None, station: float, step: int | None = Non
     axis = axis or (decl.axis if decl else None) or long_axis(surface) or "z"
     slab = 0.25 * decl.diameter if decl and decl.diameter else None
     return tuple(float(x) for x in body_centre(surface, station, axis, slab)), axis
+
+
+def _fractions(span: float) -> list[float]:
+    """Where the keys lie, as fractions of the turn: evenly, at most :data:`STEP`
+    degrees apart (a uniform spline overshoots between keys spaced unevenly)."""
+    n = max(1, math.ceil(span / STEP))
+    return [i / n for i in range(n + 1)]
 
 
 def _frame(s: float, ease: str, last: int) -> float:

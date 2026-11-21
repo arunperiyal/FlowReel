@@ -7,8 +7,10 @@ Needs no data, only off-screen rendering. It copies shot.yml and cameras.yml to 
 opens the editor on the shot without showing it, and picks the track 'approach': a view
 at frame 0, the next time step, a closer view at frame 47, a view replaced, one undone,
 and the track played. Every key press writes DIR/cameras.yml at once. It saves a picture
-of the window as DIR/editor.png and prints the track. Then it saves the shot's surfaces
-to DIR/vtp/ and opens the editor on them, as on a laptop away from the data.
+of the window as DIR/editor.png and prints the track, then renders three frames of the
+shot on the picked track (DIR/frames/editor_demo@320x180/), as Phase 6's check does.
+Last it saves the shot's surfaces to DIR/vtp/ and opens the editor on them, as on a
+laptop away from the data.
 """
 import shutil
 import sys
@@ -22,6 +24,7 @@ from flowreel.editor.state import EditorState
 from flowreel.editor.surfaces import SavedScenes, save_shot_surfaces
 from flowreel.editor.window import EditorWindow
 from flowreel.scene.camera_path import load_tracks
+from flowreel.scene import render
 from flowreel.scene.rendering import Scene
 from flowreel.scene.views import View, load_views
 
@@ -101,6 +104,16 @@ def main(folder: Path, show: bool = False) -> None:
     for frame, view in track.keys:
         print(f"key at frame {frame}: {view.name} from "
               f"({', '.join(f'{x:.1f}' for x in view.position)})")
+
+    picked = folder / "picked.yml"                   # the shot on the picked track
+    picked.write_text((folder / "shot.yml").read_text()
+                      .replace("camera: {view: start}", "camera: {track: approach}"))
+    # In worker processes, as shot render does: the windows above were made with VTK's
+    # default OpenGL, and render chooses an off-screen one; one process must not mix them.
+    report = render(picked, [0, 24, 47], source=Vortex(), out=folder / "frames", scale=0.5,
+                    jobs=2)
+    print(f"rendered frames 0, 24 and 47 of the picked track: "
+          f"{report.count('rendered')} drawn -> {report.folder.relative_to(folder)}")
 
     saved = save_shot_surfaces(folder / "shot.yml", folder / "vtp", source=Vortex())
     away = EditorWindow(EditorState.open(folder / "cameras.yml", "approach", 48, saved),

@@ -16,14 +16,21 @@ def test_example_picks_a_track(tmp_path):
                           text=True, timeout=300)
     if done.returncode != 0 and ("OpenGL" in done.stderr or "EGL" in done.stderr):
         pytest.skip("off-screen rendering is not available")
-    assert done.returncode == 0, done.stderr[-2000:]
+    assert done.returncode == 0, (done.stdout, done.stderr[-300:])
     lines = done.stdout.splitlines()
     assert lines[:3] == [
         "played 48 frames",
         "key at frame 0: approach_0000 from (3.0, 2.5, 3.2)",
         "key at frame 47: approach_0047 from (1.0, -1.7, 1.2)"]
-    assert lines[3].startswith("saved surfaces of steps [0, 1, 2]; opened without the data: "
+    assert lines[3] == ("rendered frames 0, 24 and 47 of the picked track: 3 drawn -> "
+                        "frames/editor_demo@320x180")
+    assert lines[4].startswith("saved surfaces of steps [0, 1, 2]; opened without the data: "
                                "step 1 loaded in ")
+    import numpy as np
+    from PIL import Image
+    frames = tmp_path / "ex" / "frames" / "editor_demo@320x180"
+    first, last = (np.asarray(Image.open(frames / f"frame_{i:05d}.png")).astype(int) for i in (0, 47))
+    assert np.abs(first - last).mean() > 5                # the picked camera moved
     path = tmp_path / "ex" / "cameras.yml"
     views = load_views(path)
     assert list(views) == ["start", "approach_0000", "approach_0047"]

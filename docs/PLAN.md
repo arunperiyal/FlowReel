@@ -846,7 +846,7 @@ Each phase ends with something checkable.
 | 3 | Compose: layouts (with `stations`), panels at the output rate (with `locator`, `phase`) | comparison and lift-map frames match |
 | 4 | Film: text with maths, shapes, cards, rates, freezes, audio, `check`, `lengths`, watermark (film and shot level); a small preview copy (`film build --preview`) | the AFMS film rebuilt from files, same length, captions in place (done 2026-11-21) |
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata (done 2026-11-21) |
-| 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered |
+| 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 
 ### 19.1 Phase 1 tasks
@@ -1365,18 +1365,30 @@ repeat in the caption.
 - [x] Help text; docs: commands page
 
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)
-- [ ] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
+- [x] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
   views into a new track; `shot render` draws it; frames compared with golden frames
-- [ ] A golden caption frame: an anchored arrow on a camera track, at three frames
-- [ ] `examples/camera_editor` on generated data, with the scripted session so it runs
-  anywhere
-- [ ] By hand on a display: a track picked in the window on the laptop (surfaces copied
+- [x] A golden caption frame: an anchored arrow on a camera track, at three frames
+- [x] `examples/camera_editor` on generated data, with the scripted session so it runs
+  anywhere (made in branch 3; here it also renders the picked track)
+- [x] By hand on a display: a track picked in the window on the laptop (surfaces copied
   with `--vtp`), rendered, and recorded here
 
 Left out of Phase 6: editing a track's keys by dragging on a timeline, and picking points
 in the window for anchors (anchors are typed; the window shows where they land).
 
+Asked for after the run by hand, for later:
+- Mark the frames that have a saved key on the Frame slider (ticks or numbers in another
+  colour), so the keys of a track can be seen without playing it.
+- Let the Frame slider move the Time step slider to the step that frame shows (through
+  the shot's `time` keys), so the two need not be set apart; the Time step slider stays
+  for looking at other steps while framing a view.
+
 **Phase 6 is done when** a new camera track is picked in the window and rendered.
+
+**Done 2026-11-22.** Arun picked a track by hand in the window on the laptop
+(`examples/camera_editor/run.py --window`): keys saved with `s`, the sliders and Play
+behaved; the track was rendered. The scripted check of the same path is
+`tests/test_golden_camera.py`.
 
 ## 20. From the prototype
 

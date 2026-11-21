@@ -1371,9 +1371,22 @@ in the window for anchors (anchors are typed; the window shows where they land).
 Added 2026-11-22, while Phase 6 is being built. Phase 7 turns the per-phase pages in
 `docs/` into documentation a new user can start from: a tutorial that makes a short film
 from a public data set, a user guide, and a reference generated from the code where it
-can be, so it cannot drift. Two questions come first: how a project folder is made and
-laid out (Section 24, question 6, kept until now for this phase), and which public data
-set the tutorial uses (question 7, decided: pyvista's `cylinder_crossflow`).
+can be, so it cannot drift. It needed two answers, both given on 2026-11-22 (Section 23):
+how a project folder is made and laid out (Section 24, question 6, kept until now for
+this phase), and which public data set the tutorial uses (question 7: pyvista's
+`cylinder_crossflow`).
+
+**Project rules** (question 6): `flowreel.yml` stays the visible project file, for what
+is edited by hand, and a hidden `.flowreel/` folder holds only machine state (caches,
+measured timings). `project init` makes the folders `shots/`, `text/`, `cards/`,
+`assets/` and `data/`, with `film.yml` and `cameras.yml` at the root, and a `.gitignore`
+for `frames/`, `clips/`, `.flowreel/` and `data/`; `init --link` puts a symlink to the
+data in `data/`, which is never copied. Generated output goes under the project root
+wherever a command is run from (`-o` still overrides). One `cameras.yml`, at the root,
+serves every shot and caption; one left beside a shot file is an error that says to
+move it. Outside a project the commands stop with an error saying how to make one,
+except `project init`, the `template` commands and `jobs`; the Python library works
+anywhere. Paths written in files stay relative to the file.
 
 The data set is one steady step of a 2D flow at Re 35, where the wake stays attached and
 does not shed. So the tutorial's film is made with what FlowReel does to one step:
@@ -1381,13 +1394,12 @@ camera moves, a field coloured and its range swept, contour lines and the wall, 
 than a wake that develops in time. The 2D mesh is given a thin span when it is converted,
 so the layers, which expect cells with volume, work on it unchanged.
 
-Branches 1 and 2 need nothing from each other, so they can be built in parallel once
-the two questions are answered. Branch 3 needs both, branch 4 needs branch 1 (the
+Branches 1 and 2 need nothing from each other, so they can be built in parallel. Branch 3 needs both, branch 4 needs branch 1 (the
 reference describes the project rules), and branch 5 needs all. Phase 7 starts after
 Phase 6 is done, since the tutorial picks a camera in the editor.
 
 **Branch 1: `phase7/project-rules`** (the project folder; question 6 decided)
-- [ ] Question 6, decided and confirmed 2026-11-22 (Section 24), recorded in Section 23
+- [x] Question 6, decided and confirmed 2026-11-22 (Section 24), recorded in Section 23
 - [ ] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
   link; commands find the project by walking up, and stop outside one with an error
   saying how to make one (except `project init`, the `template` commands and `jobs`)
@@ -1505,6 +1517,8 @@ submitted film.
 | Environment | The existing `flexflow_env` conda environment (Python 3.12) on the laptop, workstation and airavata |
 | AFMS prototype | Stays in the research repository as the record of the submitted film; this repository has a copy in `prototype/afms/` |
 | When | Starting now, with Phase 1 next |
+| Project rules (2026-11-22) | `flowreel.yml` stays the visible project file; machine state in a hidden `.flowreel/`; `project init` makes `shots/`, `text/`, `cards/`, `assets/`, `data/` and a `.gitignore`, `--link` symlinks the data; output under the project root; one `cameras.yml` at the root; commands stop outside a project (except `project init`, templates, `jobs`). Section 24 question 6, Section 19.8 |
+| Tutorial data (2026-11-22) | pyvista's `cylinder_crossflow`: one steady 2D step at Re 35, converted to a `.pvd` with a thin span; its licence to check before it is shown in a film. Section 24 question 7, Section 19.8 |
 
 ## 24. Questions
 

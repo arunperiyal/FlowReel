@@ -33,6 +33,12 @@ class ShotScenes:
         return self.scene.camera.view(0, self.scene.data(0))
 
     @property
+    def stretch(self):
+        """The shot's stretch ``(x, y, z)``, or ``None``."""
+        st = self.scene.shot.stretch
+        return None if st is None else tuple(st.scale)
+
+    @property
     def lights(self):
         """The shot's lights (``None``: VTK's light kit)."""
         return self.scene.shot.lights

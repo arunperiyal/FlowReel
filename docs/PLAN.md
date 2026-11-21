@@ -1351,7 +1351,7 @@ repeat in the caption.
   each step's scene built once (the shot's layers, as `shot render` builds them)
 - [x] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
   writes a frame's surfaces to copy to a machine with a display
-- [ ] The shot's anchored points (branch 2) drawn as markers with their names
+- [x] The shot's anchored points (branch 2) drawn as markers with their names
 - [ ] Tests: the state with fake views; the window off-screen driven by synthetic key
   events; docs: camera editor page
 

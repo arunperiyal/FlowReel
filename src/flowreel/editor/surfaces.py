@@ -145,6 +145,7 @@ def save_shot_surfaces(shot, folder: str | Path, steps=None, source=None, *, vie
                        "view_angle": first.view_angle, "parallel": first.parallel,
                        "parallel_scale": first.parallel_scale},
         "background": scenes.scene.shot.background,
+        "stretch": None if scenes.stretch is None else list(scenes.stretch),
         "shot": scenes.scene.shot.name}, indent=1))
     return steps
 
@@ -171,6 +172,7 @@ class SavedScenes:
         self._first = None if v is None else View(
             tuple(v["position"]), tuple(v["focal"]), tuple(v["up"]), v["view_angle"],
             v["parallel"], v["parallel_scale"])
+        self.stretch = None if info.get("stretch") is None else tuple(info["stretch"])
         from flowreel.scene.rendering import _background
         raw = info.get("background")
         self.background = None if raw is None else _background(raw)

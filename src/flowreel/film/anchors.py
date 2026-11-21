@@ -286,3 +286,32 @@ def hidden_spans(clips) -> list[Hidden]:
                 if what is not None:
                     run = [run[0], what, j] if run is not None else [j, what, j]
     return out
+
+
+def anchors_for_frames(film, folder) -> list[tuple[str, tuple[float, float, float]]]:
+    """The points in the model that ``film``'s captions point at on its shots of the
+    frames in ``folder``: ``(name, (x, y, z))``, named by the caption's first line (a
+    ``label3d`` by its text), each point once. For the camera editor, which shows them
+    so a view can be framed with room for the captions. ``film`` is a
+    :class:`~flowreel.film.schema.Film`."""
+    from flowreel.film.check import plain
+    from flowreel.film.timeline import timeline
+    folder = Path(folder).resolve()
+    line = timeline(film)
+    names = {ts.shot.name for ts in line.shots
+             if ts.shot.kind == "frames" and Path(ts.shot.source).resolve() == folder}
+    out, seen = [], set()
+    for tc in line.captions:
+        if tc.shot not in names:
+            continue
+        c = tc.caption
+        title = plain(c.lines[0])
+        points = [(title, c.place)] if isinstance(c.place, Anchor) else []
+        for shape in c.shapes:
+            name = plain(shape["text"]) if shape.kind == "label3d" else title
+            points += [(name, shape.get(k)) for k in POINT_KEYS if isinstance(shape.get(k), Anchor)]
+        for name, a in points:
+            if (name, a.model) not in seen:
+                seen.add((name, a.model))
+                out.append((name, a.model))
+    return out

@@ -109,3 +109,38 @@ def test_the_step_slider_follows_the_keys(window):
     key(window, "n")
     rep = window._step_slider.GetRepresentation()
     assert rep.GetValue() == 1 and rep.GetTitleText() == "Time step 10 (2 of 3)"
+
+
+class Stretched:
+    """A scene source with no data: one step, a sphere, drawn stretched 2x along x."""
+
+    steps = [0]
+    stretch = (2.0, 1.0, 1.0)
+    first_view = View((0, -6, 0), (0, 0, 0), (0, 0, 1))
+
+    def build(self, plotter, step):
+        import pyvista as pv
+        plotter.add_mesh(pv.Sphere(radius=0.2), color="white")
+
+
+def test_markers_sit_on_the_stretched_model(tmp_path):
+    state = EditorState.open(tmp_path / "c.yml", "t", 5, [0])
+    try:
+        w = EditorWindow(state, Stretched(), size=(160, 90), off_screen=True,
+                         anchors=[("tip", (1.0, 0.0, 0.5))])
+    except (RuntimeError, OSError) as error:
+        pytest.skip(f"off-screen rendering is not available: {error}")
+    try:
+        points = []
+        for name, actor in w.plotter.actors.items():
+            mapper = getattr(actor, "GetMapper", lambda: None)()
+            if "anchors" not in name or mapper is None:
+                continue
+            if mapper.GetInputAlgorithm() is not None:
+                mapper.GetInputAlgorithm().Update()
+            data = mapper.GetInputDataObject(0, 0)
+            if data is not None and hasattr(data, "GetPoint") and data.GetNumberOfPoints():
+                points.append(data.GetPoint(0))
+        assert points and points[0] == pytest.approx((2.0, 0.0, 0.5))
+    finally:
+        w.plotter.close()

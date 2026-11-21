@@ -209,6 +209,9 @@ class EditorWindow:
             return
         import numpy as np
         points = np.array([a[1] for a in anchors], float)
+        stretch = getattr(self.scenes, "stretch", None)
+        if stretch is not None:                  # where the stretched model is drawn
+            points = points * np.asarray(stretch, float)
         self.plotter.add_point_labels(points, [a[0] for a in anchors], point_color=MARKER,
                                       point_size=10, text_color=MARKER, font_size=11,
                                       shape_opacity=0.3, render_points_as_spheres=True,

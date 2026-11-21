@@ -1289,6 +1289,83 @@ result is recorded under this line.
   also opens the data. The render's own record (32 s a frame over 121 frames, on one
   thread) now sizes the next one.
 
+### 19.7 Phase 6 tasks
+
+Added 2026-11-22. Phase 6 makes cameras something picked by eye, not typed: a window that
+shows a shot's scene and collects views into `cameras.yml` (Section 8.3), the camera
+commands of Section 8.2, and captions and shapes anchored to model points, projected per
+frame so an arrow follows a moving camera (Section 12). `film srt` was built in Phase 4;
+an anchored caption is still plain text in the `.srt`, so nothing is left of
+it here.
+
+Branches 1 and 2 need nothing from each other, so they can be built in parallel.
+Branch 3 needs both (the editor writes through branch 1 and shows branch 2's anchors),
+branch 4 needs 3, and branch 5 needs all.
+
+**Branch 1: `phase6/cameras-file`** (camera data model and the commands' library)
+- [ ] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
+  a line, tracks with their keys), read back equal by `load_views` and `load_tracks`; a
+  `.bak` of the file it replaces; comments are not kept, and the file's first line says so
+- [ ] Easing per segment: `ease` on a track key sets the segment after it (the track's
+  `ease` stays the default); `camera_path.path(...)`, a track from keys with easing per
+  segment, for `camera path`
+- [ ] Orbit: an arc of keys round a target (a point, or a body's centre at a station
+  along its axis) with radius, elevation from and to, azimuth span, lead and frame count,
+  for `camera orbit`
+- [ ] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
+  flexflow `cam.yml`, for `camera import`
+- [ ] Tests on generated files (round trip, segment easing, orbit geometry, small
+  ParaView states written in the test); docs: `docs/cameras.md`
+
+**Branch 2: `phase6/annotations-anchored`** (independent of branch 1)
+- [ ] Anchored points: `{model: [x, y, z], view: V}` or `{model: ..., track: T}`, with
+  `offset: [dx, dy]`, in a shape's points and a caption's `place`; resolved per film
+  frame from the shot on screen at that time, its frame (rates, Section 10.2), the named
+  view or track of its `cameras.yml`, and the film's size; errors naming a view or track
+  that the shot's `cameras.yml` lacks
+- [ ] A point behind the camera or off the frame hides its shape for that frame;
+  `film check` warns with the caption and the times
+- [ ] `label3d` (text at a model point) and `dimension3d` (between two model points, with
+  a value) as caption shapes, projected and drawn in 2D like the others
+- [ ] Draft sizes: anchored positions follow `film build --preview` and the shot's
+  `--scale`; tests on a generated film (an arrow on a camera track, checked against
+  `camera project`'s numbers); docs: `docs/captions.md`
+
+**Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
+- [ ] Editor state without a window: views collected with their frames; save, undo,
+  replace the nearest, play, next step; the file written (branch 1) after every change,
+  so closing the window loses nothing
+- [ ] The window (a VTK interactor): keys `s`, `u`, `r`, `p`, `n` and buttons for them;
+  *Frame* and *Time step* sliders; on screen the views saved, the frame and the step;
+  each step's scene built once (the shot's layers, as `shot render` builds them)
+- [ ] `--vtp DIR`: open saved surfaces instead of the data; `shot render --save-vtp`
+  writes a frame's surfaces to copy to a machine with a display
+- [ ] The shot's anchored points (branch 2) drawn as markers with their names
+- [ ] Tests: the state with fake views; the window off-screen driven by synthetic key
+  events; docs: camera editor page
+
+**Branch 4: `phase6/cli-camera`** (commands; needs branch 3)
+- [ ] `camera edit SHOT.yml` (`--track NAME`, `--frames N`, `--vtp DIR`, `-o FILE`)
+- [ ] `camera path`, `camera orbit`, `camera import`, `camera project` (`--view V` or
+  `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
+  track over saved surfaces or the shot's first step)
+- [ ] The `view` context in the shell (`use view:main`, Section 13)
+- [ ] Help text; docs: commands page
+
+**Branch 5: `phase6/golden-camera`** (the check; needs all the others)
+- [ ] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
+  views into a new track; `shot render` draws it; frames compared with golden frames
+- [ ] A golden caption frame: an anchored arrow on a camera track, at three frames
+- [ ] `examples/camera_editor` on generated data, with the scripted session so it runs
+  anywhere
+- [ ] By hand on a display: a track picked in the window on the laptop (surfaces copied
+  with `--vtp`), rendered, and recorded here
+
+Left out of Phase 6: editing a track's keys by dragging on a timeline, and picking points
+in the window for anchors (anchors are typed; the window shows where they land).
+
+**Phase 6 is done when** a new camera track is picked in the window and rendered.
+
 ## 20. From the prototype
 
 | Prototype file | Becomes |

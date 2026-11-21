@@ -1303,7 +1303,7 @@ Branch 3 needs both (the editor writes through branch 1 and shows branch 2's anc
 branch 4 needs 3, and branch 5 needs all.
 
 **Branch 1: `phase6/cameras-file`** (camera data model and the commands' library)
-- [ ] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
+- [x] Writing `cameras.yml`: views and tracks saved in the layout of Section 8.1 (one view
   a line, tracks with their keys), read back equal by `load_views` and `load_tracks`; a
   `.bak` of the file it replaces; comments are not kept, and the file's first line says so
 - [ ] Easing per segment: `ease` on a track key sets the segment after it (the track's

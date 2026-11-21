@@ -1,9 +1,9 @@
-# A shot on generated data (see run.py): a solid-body vortex round a sphere, three time
-# steps, its speed on a slice. Its camera starts at the view 'start'; the editor picks
+# A shot on generated data (see run.py): a solid-body vortex round a sphere, 48 frames
+# over three time steps, its speed on a slice. Its camera starts at the view 'start'; the editor picks
 # the track 'approach', which the shot can then use with camera: {track: approach}.
 name: editor_demo
 source: vortex:generated         # run.py builds the source in code
-time: {steps: [0, 2]}
+time: {keys: [[0, 0], [47, 2]]}   # 48 frames over steps 0 to 2
 camera: {view: start}
 size: [640, 360]
 layers:

@@ -119,6 +119,11 @@ EditorWindow(state, scenes, anchors=anchors).show()
 `press("s")`, `look(view)`, `set_frame(n)` and `set_step(i)`, as the tests and
 `examples/camera_editor/` do.
 
+To render the picked track in the same script, render in worker processes
+(`render(shot, jobs=2)`, as `shot render` does), not with `processes=False`. The
+editor's windows use VTK's default OpenGL and `render` picks an off-screen one (OSMesa or
+EGL); one process cannot safely use both, and mixing them can crash it.
+
 | Argument | Type | Default | Meaning |
 |---|---|---|---|
 | `EditorState.open(path, track, frames, steps)` | | | the file, the track's name, its length in frames, the steps to show |

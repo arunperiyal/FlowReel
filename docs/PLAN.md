@@ -1368,8 +1368,8 @@ repeat in the caption.
 - [x] A scripted editor session (off-screen, synthetic keys) on a generated shot picks
   views into a new track; `shot render` draws it; frames compared with golden frames
 - [x] A golden caption frame: an anchored arrow on a camera track, at three frames
-- [ ] `examples/camera_editor` on generated data, with the scripted session so it runs
-  anywhere
+- [x] `examples/camera_editor` on generated data, with the scripted session so it runs
+  anywhere (made in branch 3; here it also renders the picked track)
 - [ ] By hand on a display: a track picked in the window on the laptop (surfaces copied
   with `--vtp`), rendered, and recorded here
 

@@ -1390,6 +1390,105 @@ Asked for after the run by hand, for later:
 behaved; the track was rendered. The scripted check of the same path is
 `tests/test_golden_camera.py`.
 
+### 19.8 Phase 7 tasks
+
+Added 2026-11-22, while Phase 6 is being built. Phase 7 turns the per-phase pages in
+`docs/` into documentation a new user can start from: a tutorial that makes a short film
+from a public data set, a user guide, and a reference generated from the code where it
+can be, so it cannot drift. It needed two answers, both given on 2026-11-22 (Section 23):
+how a project folder is made and laid out (Section 24, question 6, kept until now for
+this phase), and which public data set the tutorial uses (question 7: pyvista's
+`cylinder_crossflow`).
+
+**Project rules** (question 6): `flowreel.yml` stays the visible project file, for what
+is edited by hand, and a hidden `.flowreel/` folder holds only machine state (caches,
+measured timings). `project init` makes the folders `shots/`, `text/`, `cards/`,
+`assets/` and `data/`, with `film.yml` and `cameras.yml` at the root, and a `.gitignore`
+for `frames/`, `clips/`, `.flowreel/` and `data/`; `init --link` puts a symlink to the
+data in `data/`, which is never copied. Generated output goes under the project root
+wherever a command is run from (`-o` still overrides). One `cameras.yml`, at the root,
+serves every shot and caption; one left beside a shot file is an error that says to
+move it. Outside a project the commands stop with an error saying how to make one,
+except `project init`, the `template` commands and `jobs`; the Python library works
+anywhere. Paths written in files stay relative to the file.
+
+The data set is one steady step of a 2D flow at Re 35, where the wake stays attached and
+does not shed. So the tutorial's film is made with what FlowReel does to one step:
+camera moves, a field coloured and its range swept, contour lines and the wall, rather
+than a wake that develops in time. The 2D mesh is given a thin span when it is converted,
+so the layers, which expect cells with volume, work on it unchanged.
+
+Branches 1 and 2 need nothing from each other, so they can be built in parallel. Branch 3 needs both, branch 4 needs branch 1 (the
+reference describes the project rules), and branch 5 needs all. Phase 7 starts after
+Phase 6 is done, since the tutorial picks a camera in the editor.
+
+**Branch 1: `phase7/project-rules`** (the project folder; question 6 decided)
+- [x] Question 6, decided and confirmed 2026-11-22 (Section 24), recorded in Section 23
+- [ ] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
+  link; commands find the project by walking up, and stop outside one with an error
+  saying how to make one (except `project init`, the `template` commands and `jobs`)
+- [ ] Generated output under the project root, wherever a command runs (`frames/`,
+  `clips/`; caches and measured timings in `.flowreel/`); `-o` still overrides
+- [ ] One `cameras.yml` at the project root for shots (today beside the shot file) and
+  captions; a `cameras.yml` beside a shot file is an error that says to move it
+- [ ] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
+  `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
+- [ ] Tests on generated projects; help text; docs: project page
+
+**Branch 2: `phase7/tutorial-data`** (pyvista's `cylinder_crossflow`; independent of
+branch 1)
+- [ ] The data set's licence and source checked and recorded (where pyvista's copy
+  comes from, who made it, whether it may be shown in a film); if it may not, back to
+  question 7
+- [ ] `examples/tutorial/get_data.py`: downloads `cylinder_crossflow` into the project's
+  data folder (pyvista's downloader), checks its SHA-256, and converts the EnSight case to
+  a `.pvd` of one `.vtu` step: `fluid` extruded to a thin span (one cell, about 0.1 D) as
+  the flow, with `velocity` split into `U`, `V`, `W` and `pressure` as `p`, and
+  `wall_cylinder` extruded the same way as the body `cylinder`; it writes the licence and
+  citation beside it, and a second run downloads nothing
+- [ ] A generated stand-in with the same names, fields and steps at a small size, so
+  the tutorial's test runs without the network
+- [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
+  set, its source, licence and how to cite it
+
+**Branch 3: `phase7/tutorial`** (the tutorial; needs branches 1 and 2)
+- [ ] `docs/tutorial.md`, in short chapters, each ending with a frame or a still to
+  compare: install; `project init` on the data; a first shot (`shot template`, the flow
+  coloured by vorticity from velocity, contour lines of pressure, the cylinder; `shot
+  preview`); a camera picked in the editor that moves from the whole domain to the
+  cylinder; a second shot sweeping the colour range; a panel of the pressure
+  coefficient round the wall; `film.yml` with a title card, two captions (one with maths, one
+  anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
+  the full build; optionally Slurm
+- [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
+  reader can compare theirs
+- [ ] A test that follows the tutorial on the stand-in data at a small size, command by
+  command, and checks the film is 20 s with the captions in place
+
+**Branch 4: `phase7/docs-reference`** (the guide and reference; needs branch 1)
+- [ ] `docs/README.md`: where to start (tutorial), the user guide pages in reading order,
+  and the reference; the per-phase pages renamed and linked as guide chapters
+- [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
+  card, `flowreel.yml`) with type, default and example, generated from the schema modules
+  and the `template` commands, with a test that fails when the page is out of date
+- [ ] Command reference generated from the help text, with the same test
+- [ ] `README.md` brought up to date (status, what it does, a still, install, the
+  tutorial link); a docstring check over public modules (`.claude/rules/documentation.md`)
+
+**Branch 5: `phase7/tutorial-check`** (the check; needs all the others)
+- [ ] The tutorial followed from a clean checkout on a machine that has never had
+  FlowReel, with the real data set, by the instructions alone; time per chapter and every
+  place where the reader stopped recorded here
+- [ ] Fixes from that run, each a commit naming the chapter
+- [ ] By a new user: someone other than Arun makes a 20 s film from the tutorial; what
+  they made and what they asked recorded here
+
+Left out of Phase 7: a documentation website (the pages are Markdown read on GitHub),
+translations, and video tutorials.
+
+**Phase 7 is done when** a new user makes a 20 s film from the tutorial.
+
+||||||| 7212c3a
 ## 20. From the prototype
 
 | Prototype file | Becomes |
@@ -1443,6 +1542,8 @@ submitted film.
 | Environment | The existing `flexflow_env` conda environment (Python 3.12) on the laptop, workstation and airavata |
 | AFMS prototype | Stays in the research repository as the record of the submitted film; this repository has a copy in `prototype/afms/` |
 | When | Starting now, with Phase 1 next |
+| Project rules (2026-11-22) | `flowreel.yml` stays the visible project file; machine state in a hidden `.flowreel/`; `project init` makes `shots/`, `text/`, `cards/`, `assets/`, `data/` and a `.gitignore`, `--link` symlinks the data; output under the project root; one `cameras.yml` at the root; commands stop outside a project (except `project init`, templates, `jobs`). Section 24 question 6, Section 19.8 |
+| Tutorial data (2026-11-22) | pyvista's `cylinder_crossflow`: one steady 2D step at Re 35, converted to a `.pvd` with a thin span; its licence to check before it is shown in a film. Section 24 question 7, Section 19.8 |
 
 ## 24. Questions
 
@@ -1455,7 +1556,8 @@ New ones are added here as the work raises them.
 | 3 | ~~Should frame keys (and Phase 2B's window index) include each data file's size and modification time?~~ **Decided 2026-11-18: yes**, done in Phase 2B branch 6; the span index is keyed by its file's the same way. | Phase 2B, branch 6 |
 | 4 | ~~Where do the AFMS film's own FlowReel files live?~~ **Answered 2026-11-19:** in a FlowReel project folder of their own, outside this repository (they name a logo and a licensed track). How a project folder is made and laid out is question 6. | Phase 4, branch 7 |
 | 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
-| 6 | **Project rules, to discuss once the backend is done.** Arun's proposal: FlowReel is always run from an initialised project folder; an init command writes a hidden file holding what the project needs, and empty folders such as `data/`, `assets/`, `clips/`. To settle then: the hidden file against today's `flowreel.yml` (written by `project init`, found by walking up from a shot or panel file), the folder names, and what a command does outside a project. Until then the code keeps finding `flowreel.yml` as it does. | after Phase 4's backend, before Phase 7 |
+| 6 | ~~Project rules~~ **Decided 2026-11-22** (Arun's proposal, discussed after the backend): (a) `flowreel.yml` stays the visible project file, for what is edited by hand; a hidden `.flowreel/` folder holds only machine state (caches, measured timings). (b) Outside a project the commands stop with an error saying how to make one, except `project init`, the `template` commands and `jobs`; the Python library works anywhere. (c) Generated output (`frames/`, `clips/`, `.flowreel/`) goes under the project root, wherever a command is run from; `-o` still overrides. (d) One `cameras.yml`, at the project root, for every shot and caption. Paths written in files stay relative to the file. Confirmed the same day: the folders `project init` makes (`shots/`, `text/`, `cards/`, `assets/`, `data/`, with `film.yml` and `cameras.yml` at the root), a `.gitignore` for the generated ones and `data/`, and `init --link` putting a symlink to the data in `data/` (data is never copied); a `cameras.yml` beside a shot file is an error that says to move it to the root. | Phase 7, branch 1 |
+| 7 | ~~Which public data set does the tutorial use?~~ **Decided 2026-11-22: pyvista's `cylinder_crossflow`** (`pyvista.examples.download_cylinder_crossflow`). Looked at: 0.7 MB of EnSight (`cylinder_Re35.case`), one steady step of a 2D flow past a cylinder of diameter 1 at Re 35, domain x 0 to 15, y -3.75 to 3.75, z 0; blocks `fluid` (14 831 points, quads and triangles) with `velocity`, `pressure` and `vorticity_mag` (the last not used, Section 6), the boundaries `inlet`, `outlet`, `outlet_top`, `outlet_bottom`, and the wall `wall_cylinder`. Its licence is still to be checked before it is shown in a film (branch 2). | Phase 7, branch 2 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

@@ -1314,7 +1314,7 @@ branch 4 needs 3, and branch 5 needs all.
   for `camera orbit`
 - [x] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
   flexflow `cam.yml`, for `camera import`
-- [ ] Tests on generated files (round trip, segment easing, orbit geometry, small
+- [x] Tests on generated files (round trip, segment easing, orbit geometry, small
   ParaView states written in the test); docs: `docs/cameras.md`
 
 **Branch 2: `phase6/annotations-anchored`** (independent of branch 1)

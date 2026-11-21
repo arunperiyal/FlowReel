@@ -848,6 +848,7 @@ Each phase ends with something checkable.
 | 5 | Slurm (the flexflow adapter moved to Phase 1) | `flowreel shot render --submit` renders the AFMS reveal on airavata (done 2026-11-21) |
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
+| 8 | Editor and workflow improvements asked for while using FlowReel, collected as they come | each one checked as its task says; the list closed by Arun |
 
 ### 19.1 Phase 1 tasks
 
@@ -1376,7 +1377,7 @@ repeat in the caption.
 Left out of Phase 6: editing a track's keys by dragging on a timeline, and picking points
 in the window for anchors (anchors are typed; the window shows where they land).
 
-Asked for after the run by hand, for later:
+Asked for after the run by hand, moved to Phase 8 (Section 19.9):
 - Mark the frames that have a saved key on the Frame slider (ticks or numbers in another
   colour), so the keys of a track can be seen without playing it.
 - Let the Frame slider move the Time step slider to the step that frame shows (through
@@ -1487,6 +1488,23 @@ Left out of Phase 7: a documentation website (the pages are Markdown read on Git
 translations, and video tutorials.
 
 **Phase 7 is done when** a new user makes a 20 s film from the tutorial.
+
+### 19.9 Phase 8 tasks
+
+Added 2026-11-22. Phase 8 collects the improvements Arun asks for while using FlowReel,
+starting with the camera editor after Phase 6's run by hand. It comes after Phase 7, so
+each change also updates the tutorial and the reference pages. The list grows as requests
+come in; it is split into stacked branches by kind of feature (`phase8/<kind>-<topic>`)
+when the work starts.
+
+**Camera editor**
+- [ ] Mark the frames that have a saved key on the Frame slider (ticks or numbers in
+  another colour), so the keys of a track can be seen without playing it
+- [ ] Let the Frame slider move the Time step slider to the step that frame shows
+  (through the shot's `time` keys); the Time step slider stays for looking at other steps
+  while framing a view
+
+**Phase 8 is done when** every task listed here is done and Arun closes the list.
 
 ## 20. From the prototype
 

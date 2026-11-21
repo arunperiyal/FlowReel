@@ -4,8 +4,8 @@ A window that shows a shot's scene and collects the views you pick into a camera
 `cameras.yml`. It is the one window FlowReel has (plan Section 2): everything else is
 files, and the editor's only output is a file too. Code: `flowreel.editor`.
 
-The command, `flowreel camera edit SHOT.yml`, comes with the camera commands; until
-then, open it from Python (below).
+Open it with [`flowreel camera edit SHOT.yml --track NAME`](commands.md#camera-edit), or
+from Python (below).
 
 ## Picking a track
 
@@ -86,7 +86,8 @@ Save the scene's surfaces there, copy the folder, and pick the views on a laptop
 # where the data is: the surfaces of the steps that frames 0, 120 and 239 show
 flowreel shot render riser.yml --frames 0,120,239 --save-vtp riser_vtp
 # on the laptop
-scp -r cluster:films/riser/riser_vtp .
+scp -r cluster:films/riser/riser_vtp cluster:films/riser/riser.yml .
+flowreel camera edit --vtp riser_vtp --track approach --frames 240 -c cameras.yml
 ```
 
 `--save-vtp DIR` draws no frames. Each step goes to `DIR/step_<NNNNNNNN>/`, one `.vtp`

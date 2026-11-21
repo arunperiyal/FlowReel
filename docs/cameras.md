@@ -63,7 +63,8 @@ no overshoot control; add a key to tame a bend). A perspective and a parallel vi
 blend, so the track switches at the later key. A shot uses it with `camera: {track: carve}`.
 
 To pick a track's views by eye rather than type them, use the
-[camera editor](camera-editor.md).
+[camera editor](camera-editor.md). The [camera commands](commands.md#camera-commands)
+(`camera path`, `orbit`, `import`, `project`, `preview`) call the functions below.
 
 ## Writing cameras.yml
 

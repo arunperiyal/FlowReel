@@ -1362,7 +1362,7 @@ repeat in the caption.
   `--track T`, `--points ...`, `--size W H`), `camera preview TRACK` (small frames of a
   track over saved surfaces or the shot's first step)
 - [x] The `view` context in the shell (`use view:main`, Section 13)
-- [ ] Help text; docs: commands page
+- [x] Help text; docs: commands page
 
 **Branch 5: `phase6/golden-camera`** (the check; needs all the others)
 - [ ] A scripted editor session (off-screen, synthetic keys) on a generated shot picks

@@ -1487,6 +1487,7 @@ branch 1)
   (`cylinder`) rather than `body`; a single `--body FILE` is unchanged
 - [x] A slice's `range` is a vector track, so a shot can sweep it (the plane is coloured
   afresh every frame); `iso` and `body` keep a fixed range
+- [x] `project info` writes a shot's source with its body files on one line
 - [ ] `docs/tutorial/`, one page per chapter with an index page, each chapter ending with
   a still to compare: install; `project init` on the data; a first shot (`shot template`, the flow
   coloured by vorticity from velocity, contour lines of pressure, the cylinder; `shot

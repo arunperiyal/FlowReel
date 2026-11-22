@@ -30,6 +30,13 @@ Reference: docs/project.md, docs/bodies.md and docs/commands.md.""",
   flowreel project init --link /scratch/run vtk:data/run/flow.pvd
                                                     link the data first, read it there
   flowreel project init                             the folders only; bodies by hand""",
+    "info": """examples:
+  flowreel project info                             the project of this folder
+  flowreel project info films/afms""",
+    "clean": """examples:
+  flowreel project clean                            the caches (.flowreel/cache/)
+  flowreel project clean --frames --dry-run         what removing the frames would free
+  flowreel project clean --frames --clips           frames and finished clips""",
 }
 
 
@@ -77,7 +84,7 @@ class ProjectCommand(BaseCommand):
     """The ``project`` command group."""
 
     name = "project"
-    description = "Make a project folder: flowreel.yml, its bodies and folders"
+    description = "Make a project folder, see what it holds, clean what it made"
     category = "Projects"
 
     def setup_parser(self, subparsers):
@@ -108,6 +115,35 @@ class ProjectCommand(BaseCommand):
                        help="link PATH (a case folder or file) into DIR/data/ under its name")
         i.add_argument("--force", action="store_true",
                        help="overwrite flowreel.yml (and replace a data link) if it exists")
+
+        n = actions.add_parser(
+            "info", help="what the project holds, and the size of what it made",
+            description=textwrap.fill(
+                "Print the project's data links, the sources its shots read, the bodies "
+                "of flowreel.yml, every shot file with the frames drawn for it, the views "
+                "and tracks of cameras.yml, the film's shots and planned length, and the "
+                "size of frames/, clips/ and .flowreel/. Files that do not load are "
+                "listed with their error. Nothing is changed.", 78),
+            epilog=EXAMPLES["info"], formatter_class=argparse.RawDescriptionHelpFormatter)
+        n.add_argument("folder", nargs="?", metavar="DIR",
+                       help="a folder in the project (default: use project:DIR, else here)")
+
+        c = actions.add_parser(
+            "clean", help="remove caches, frames or clips the project made",
+            description=textwrap.fill(
+                "Remove generated output of the project: --cache (.flowreel/cache/, the "
+                "default when nothing is named), --frames (frames/) and --clips (clips/). "
+                "Files written by hand, the data, and the measured frame costs and job "
+                "records in .flowreel/ are never removed. A folder that is a link is "
+                "skipped.", 78),
+            epilog=EXAMPLES["clean"], formatter_class=argparse.RawDescriptionHelpFormatter)
+        c.add_argument("folder", nargs="?", metavar="DIR",
+                       help="a folder in the project (default: use project:DIR, else here)")
+        c.add_argument("--cache", action="store_true", help="the caches, .flowreel/cache/")
+        c.add_argument("--frames", action="store_true", help="every frame folder, frames/")
+        c.add_argument("--clips", action="store_true", help="the finished clips, clips/")
+        c.add_argument("--dry-run", action="store_true",
+                       help="say what would be removed, and its size; remove nothing")
         return p
 
     def execute(self, args, ctx):
@@ -120,6 +156,27 @@ class ProjectCommand(BaseCommand):
             raise CommandError(str(exc)) from None
         except FileNotFoundError as exc:
             raise CommandError(f"no such file: {exc.filename or exc}") from None
+
+    def do_info(self, args, ctx):
+        from flowreel.project.info import info
+        ctx.out(info(project_root(ctx, args.folder)).text())
+        return 0
+
+    def do_clean(self, args, ctx):
+        from flowreel.project.info import clean, human
+        root = project_root(ctx, args.folder)
+        what = [w for w in ("cache", "frames", "clips") if getattr(args, w)] or ["cache"]
+        done = clean(root, what, dry_run=args.dry_run)
+        verb = "would remove" if args.dry_run else "removed"
+        for path, n in done.removed:
+            ctx.out(f"{verb} {path.relative_to(root)}/ ({human(n)})")
+        for path in done.skipped:
+            ctx.warn(f"skipped {path.relative_to(root)}: a link (clean what it points to by hand)")
+        if not done.removed and not done.skipped:
+            ctx.out(f"nothing to remove ({', '.join(what)})")
+        elif done.removed:
+            ctx.out(f"{verb} {human(done.total)} in all")
+        return 0
 
     def do_init(self, args, ctx):
         from flowreel.project.init import make_link, make_project

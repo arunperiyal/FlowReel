@@ -193,3 +193,59 @@ def test_camera_commands_write_the_root_file(project, monkeypatch):
     (project / "shots" / "cameras.yml").write_text(CAMERAS)
     status, _, err = sh.run("camera preview intro g.yml --every 12")
     assert status != 0 and "move this one to" in err
+
+
+# -- project info and project clean --------------------------------------------------------
+
+def test_project_info_lists_what_the_project_holds(tmp_path, monkeypatch):
+    from flowreel import sources
+    make_project(tmp_path, sources.create("geometry", body="grooved_cylinder"))
+    (tmp_path / "shots" / "g.yml").write_text(SHOT)
+    (tmp_path / "shots" / "broken.yml").write_text("source: x\nlayers: [\n")   # not YAML: skipped
+    (tmp_path / "frames" / "g").mkdir(parents=True)
+    for i in range(2):
+        (tmp_path / "frames" / "g" / f"frame_{i:05d}.png").write_bytes(b"x" * 500)
+    (tmp_path / ".flowreel" / "cache").mkdir(parents=True)
+    (tmp_path / ".flowreel" / "cache" / "s.vtp").write_bytes(b"x" * 2000)
+    monkeypatch.chdir(tmp_path / "shots")
+    status, out, err = Shell(tmp_path / "store").run("project info")
+    assert status == 0, err
+    assert f"project {tmp_path}" in out
+    assert "source:  geometry:grooved_cylinder" in out and "bodies:  grooved_cylinder" in out
+    assert "shots/g.yml: g, 2 frames drawn" in out and "broken" not in out
+    assert "cameras: views main; tracks none" in out
+    assert "film:    film.yml: 1 shot" in out          # the template's shot; its frames are missing
+    assert "frames/ 1.0 kB" in out and ".flowreel/ 2.0 kB" in out
+
+
+def test_project_clean(tmp_path, monkeypatch):
+    make_project(tmp_path)
+    for rel, n in (("frames/g/frame_00000.png", 1000), (".flowreel/cache/surfaces/a.vtp", 3000),
+                   (".flowreel/measured/frames/g.json", 10), ("clips/g.mp4", 500)):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_bytes(b"x" * n)
+    monkeypatch.chdir(tmp_path)
+    sh = Shell(tmp_path / "store")
+    status, out, err = sh.run("project clean --frames --dry-run")
+    assert status == 0, err
+    assert "would remove frames/ (1.0 kB)" in out and (tmp_path / "frames" / "g").is_dir()
+    status, out, err = sh.run("project clean")                     # the caches by default
+    assert status == 0 and "removed .flowreel/cache/ (3.0 kB)" in out, err
+    assert not (tmp_path / ".flowreel" / "cache").exists()
+    assert (tmp_path / ".flowreel" / "measured" / "frames" / "g.json").is_file()   # kept
+    status, out, err = sh.run("project clean --frames --clips")
+    assert status == 0 and "removed 1.5 kB in all" in out, err
+    assert not (tmp_path / "frames").exists() and not (tmp_path / "clips").exists()
+    assert (tmp_path / "film.yml").is_file() and (tmp_path / "cameras.yml").is_file()
+    assert "nothing to remove" in sh.run("project clean --cache")[1]
+    scratch = tmp_path.parent / f"{tmp_path.name}_scratch"
+    scratch.mkdir()
+    (tmp_path / "frames").symlink_to(scratch)
+    status, _, err = sh.run("project clean --frames")
+    assert status == 0 and "skipped frames: a link" in err and scratch.is_dir()
+
+
+def test_info_and_clean_stop_outside_a_project(sh):
+    for line in ("project info", "project clean --dry-run"):
+        status, _, err = sh.run(line)
+        assert status != 0 and "not in a FlowReel project" in err

@@ -1432,7 +1432,7 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
   `clips/`; caches and measured timings in `.flowreel/`); `-o` still overrides
 - [x] One `cameras.yml` at the project root for shots (today beside the shot file) and
   captions; a `cameras.yml` beside a shot file is an error that says to move it
-- [ ] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
+- [x] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
 - [ ] Tests on generated projects; help text; docs: project page
 

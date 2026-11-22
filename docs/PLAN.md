@@ -1507,7 +1507,7 @@ branch 1)
   only once branch 2 has recorded that the licence allows it; the GIF on the index page
 - [x] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
   reader can compare theirs
-- [ ] A test that follows the tutorial on the stand-in data at a small size, command by
+- [x] A test that follows the tutorial on the stand-in data at a small size, command by
   command, and checks the film is 20 s with the captions in place
 
 **Branch 5: `phase7/docs-reference`** (the guide and reference; needs branches 1 and 3)

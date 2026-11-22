@@ -1,0 +1,5 @@
+# Captions of the wake shot. Times are seconds into the finished shot, freeze included.
+# Reference: docs/film.md#captions.
+- lines: ['Vorticity, from the velocity alone', '$\omega_z = \partial v / \partial x - \partial u / \partial y$']
+  at: [0.6, 4.2]
+  place: bottom

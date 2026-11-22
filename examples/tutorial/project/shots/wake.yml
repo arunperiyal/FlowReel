@@ -1,0 +1,19 @@
+# The first shot: the flow coloured by its vorticity, the camera moving in from the
+# whole domain to the cylinder. Reference: docs/shots.md, docs/layers-flow.md.
+name: wake
+source:
+  adapter: vtk
+  path: ../data/cylinder_crossflow/flow.pvd
+  body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
+time: {frozen: 0, frames: 120}        # one saved step, shown for 120 frames (5 s at 24)
+camera: {track: approach}             # picked in the camera editor: cameras.yml
+size: [1920, 1080]
+layers:
+  - type: slice                       # the plane z = 0, through the middle of the span
+    normal: z
+    position: 0.0
+    field: vorticity_z                # computed from the velocity (docs/fields.md)
+    range: [-60, 60]
+  - type: body
+    body: cylinder
+    colour: '#c8ccd0'

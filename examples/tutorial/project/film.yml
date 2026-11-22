@@ -1,0 +1,23 @@
+# The tutorial's film: 20 seconds, silent. Reference: docs/film.md.
+output: film.mp4
+fps: 24
+size: [1920, 1080]
+# no audio: the film is silent (docs/film.md#audio adds a track)
+shots:
+  - {name: title, card: cards/title.yml, seconds: 3, fade: [0.5, 0.5]}
+  - name: wake                        # 120 frames at 24 a second: 5 s, and a 2 s freeze
+    frames: frames/wake
+    fade: [0.5, 0]
+    text: text/wake.yml
+    freezes: [{at: 4.5, hold: 2, text: text/freeze.yml}]
+  - name: sweep                       # 72 frames: 3 s
+    frames: frames/sweep
+    text: [{lines: ['The same flow, its colours narrowed', 'to show the weak vorticity'], at: [0.3, 2.8]}]
+  - name: pressure                    # the panel's 72 frames: 3 s
+    frames: frames/pressure
+    text: [{lines: ['Pressure: high in front, low behind'], at: [0.3, 3]}]
+  - name: end
+    hold_last_of: pressure
+    seconds: 4
+    fade: [0, 1.5]
+    text: [{lines: ['Made with FlowReel'], at: [0.3, 3], place: bottom}]

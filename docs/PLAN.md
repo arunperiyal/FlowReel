@@ -1499,7 +1499,7 @@ branch 1)
 - [ ] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
   of the finished film from `cylinder_crossflow` into `docs/tutorial/images/`; committed
   only once branch 2 has recorded that the licence allows it; the GIF on the index page
-- [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
+- [x] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
   reader can compare theirs
 - [ ] A test that follows the tutorial on the stand-in data at a small size, command by
   command, and checks the film is 20 s with the captions in place

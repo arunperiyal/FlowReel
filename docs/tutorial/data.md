@@ -72,8 +72,10 @@ layers expect cells with volume. So the script:
   `pressure` becomes `p`.
 - **Drops `vorticity_mag`:** FlowReel computes every derived field from velocity and
   pressure only, and never uses a solver's stored one ([rules](../rules.md), [fields](../fields.md)).
-- **Extrudes `wall_cylinder`** in the same way into the surface `cylinder.vtp`, the body.
-  The other boundaries (`inlet`, `outlet`, `outlet_top`, `outlet_bottom`) are not needed.
+- **Extrudes `wall_cylinder`** in the same way into the surface `cylinder.vtp`, the body,
+  and closes it with a flat cap at each end, its faces turned outwards. Without the caps
+  it would be an open tube, and a camera looking along it, as the tutorial's does, would
+  see through it into the background. The other boundaries (`inlet`, `outlet`, `outlet_top`, `outlet_bottom`) are not needed.
 
 Units are the solver's. The free stream is 35 along +x, and `p` is the static pressure
 as Fluent exported it. The domain is x 0 to 15 and y -3.75 to 3.75, and the

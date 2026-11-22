@@ -16,7 +16,8 @@ folder, the tutorial's project folder). The script:
    hexahedra. The velocity is split into ``U``, ``V``, ``W`` and the pressure is stored
    as ``p``. The solver's ``vorticity_mag`` is dropped: FlowReel derives every field
    from velocity and pressure (docs/fields.md). The wall ``wall_cylinder`` is extruded
-   the same way into the surface ``cylinder.vtp``.
+   the same way into the surface ``cylinder.vtp``, closed at both ends, so that a camera
+   looking along the cylinder sees a solid body, not into an open tube.
 3. Writes ``LICENSE`` and ``README.md`` beside the data, saying where it comes from and
    how to cite it.
 
@@ -136,17 +137,32 @@ def _extrude_flow(fluid, span: float):
 
 
 def _extrude_wall(wall, span: float):
-    """``wall`` (line segments at z = 0) as a surface of quadrilaterals across the span."""
+    """``wall`` (a closed loop of line segments at z = 0) as a closed surface: a band of
+    quadrilaterals across the span, and a flat cap at each end. Without the caps the
+    cylinder is an open tube, and a camera looking along it sees through it."""
     import numpy as np
     import pyvista as pv
     pts = np.asarray(wall.points, float)
     n = len(pts)
     bottom, top = pts.copy(), pts.copy()
     bottom[:, 2], top[:, 2] = -span / 2, span / 2
-    faces = []
+    after = {}
     for i in range(wall.n_cells):
         a, b = wall.get_cell(i).point_ids
+        after[a] = b
+    loop = [next(iter(after))]
+    while len(loop) < len(after):
+        loop.append(after.get(loop[-1]))
+        if loop[-1] is None or loop[-1] == loop[0]:
+            raise ValueError("wall_cylinder is not one closed loop of segments")
+    xy = pts[loop, :2]
+    if np.sum(xy[:, 0] * np.roll(xy[:, 1], -1) - np.roll(xy[:, 0], -1) * xy[:, 1]) < 0:
+        loop = loop[::-1]          # counter-clockwise seen from +z: the band faces outwards
+    faces = []
+    for a, b in zip(loop, loop[1:] + loop[:1]):
         faces += [4, a, b, b + n, a + n]
+    faces += [len(loop), *loop[::-1]]                  # the caps, facing -z and +z
+    faces += [len(loop), *(i + n for i in loop)]
     return pv.PolyData(np.vstack([bottom, top]), faces=np.array(faces))
 
 
@@ -315,7 +331,7 @@ them by `examples/tutorial/get_data.py`:
 - `flow.pvd` and `flow_0.vtu`: the block `fluid`, given a span of {span} (one cell,
   {span_d} diameter) centred on z = 0; `velocity` split into `U`, `V`, `W`; `pressure`
   as `p`; `vorticity_mag` left out.
-- `cylinder.vtp`: the block `wall_cylinder`, extruded the same way.
+- `cylinder.vtp`: the block `wall_cylinder`, extruded the same way and closed at both ends.
 
 {facts}
 

@@ -61,6 +61,12 @@ def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_
     assert (volumes > 0).all()                                   # no cell turned inside out
     body = pv.read(out / "cylinder.vtp")
     assert body.bounds[1] - body.bounds[0] == pytest.approx(1.0, abs=1e-3)
+    assert body.n_open_edges == 0                                # capped: seen end-on, solid
+    faces = body.compute_normals(cell_normals=True, point_normals=False, split_vertices=False,
+                                 auto_orient_normals=False, consistent_normals=False)
+    out_of_axis = faces.cell_centers().points - (2.5, 0, 0)
+    out_of_axis[np.abs(out_of_axis[:, 2]) < 0.049, 2] = 0         # the band: radially out
+    assert ((out_of_axis * faces["Normals"]).sum(1) > 0).all()  # every face faces outwards
     assert "stand-in, not the real data" in (out / "README.md").read_text()
 
 

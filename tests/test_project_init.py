@@ -79,3 +79,29 @@ def test_project_init_help(capsys):
     from flowreel.cli import main
     assert main(["project", "init", "--help"]) == 0
     assert "flowreel project init flexflow:bare/BR0SG0U1P0" in capsys.readouterr().out
+
+
+def test_body_option_names_bodies():
+    from shellkit import CommandError
+    from flowreel.cli.project import body_option
+    assert body_option(None) is None
+    assert body_option(["wall.vtp"]) == "wall.vtp"
+    assert body_option(["cylinder=wall.vtp"]) == {"cylinder": "wall.vtp"}
+    assert body_option(["a=a.vtp", "b=b_*.vtp"]) == {"a": "a.vtp", "b": "b_*.vtp"}
+    for bad, words in ((["a.vtp", "b.vtp"], "a name each"), (["a.vtp", "b=b.vtp"], "or one FILE"),
+                       (["=b.vtp"], "NAME=FILE"), (["a=x", "a=y"], "given twice")):
+        with pytest.raises(CommandError, match=words):
+            body_option(bad)
+
+
+def test_project_init_names_a_vtk_body(tmp_path, monkeypatch):
+    flow = pv.ImageData(dimensions=(5, 5, 5), spacing=(1, 1, 1)).cast_to_unstructured_grid()
+    flow.point_data["U"] = flow.points[:, 0]
+    flow.save(tmp_path / "flow.vtu")
+    tube(length=4.0, rings=9).save(tmp_path / "wall.vtp")
+    monkeypatch.chdir(tmp_path)
+    status, out, err = Shell(tmp_path / "store").run(
+        "project init vtk:flow.vtu --body cylinder=wall.vtp")
+    assert status == 0, err
+    assert "1 body (cylinder)" in out
+    assert load_project(tmp_path).bodies["cylinder"].zone == "cylinder"

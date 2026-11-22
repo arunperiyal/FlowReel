@@ -26,6 +26,8 @@ Reference: docs/project.md, docs/bodies.md and docs/commands.md.""",
     "init": """examples:
   flowreel project init flexflow:bare/BR0SG0U1P0     one body per surface zone
   flowreel project init vtk:flow.pvd --body body.vtp --step 5000
+  flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
+                                                    the body named cylinder
   flowreel project init geometry:grooved_cylinder -o carve --force
   flowreel project init --link /scratch/run vtk:data/run/flow.pvd
                                                     link the data first, read it there
@@ -60,10 +62,35 @@ def default_out(ctx, out, *files, kind: str = "frames") -> Path:
     return Path(out) if out else project_root(ctx, *files) / kind
 
 
-def open_source(text: str, body: str | None = None):
+def body_option(values) -> str | dict | None:
+    """``--body`` as the source takes it: one ``FILE`` (a body named ``body``), or
+    ``NAME=FILE`` once or more (bodies named as given). Raises ``CommandError`` on a mix,
+    a repeated name or an empty part."""
+    if not values:
+        return None
+    named = [v for v in values if "=" in v]
+    if not named:
+        if len(values) > 1:
+            raise CommandError("several --body files need a name each: --body NAME=FILE")
+        return values[0]
+    if len(named) != len(values):
+        raise CommandError("give every --body as NAME=FILE, or one FILE alone")
+    bodies = {}
+    for value in values:
+        name, _, path = value.partition("=")
+        if not name or not path:
+            raise CommandError(f"--body {value!r}: expected NAME=FILE")
+        if name in bodies:
+            raise CommandError(f"--body: the name {name!r} is given twice")
+        bodies[name] = path
+    return bodies
+
+
+def open_source(text: str, body: str | dict | None = None):
     """The source written ``adapter:location`` on the command line (``geometry:NAME``
     names a body; others take the location as ``path``), with ``body`` for an adapter
-    that reads the body from its own file."""
+    that reads the body from its own file: a file or pattern (the body ``body``), or a
+    mapping ``{name: file}`` (see :func:`body_option`)."""
     from flowreel import sources
     adapter, sep, location = text.partition(":")
     if not sep or not adapter or not location:
@@ -106,8 +133,10 @@ class ProjectCommand(BaseCommand):
             epilog=EXAMPLES["init"], formatter_class=argparse.RawDescriptionHelpFormatter)
         i.add_argument("source", metavar="SOURCE", nargs="?",
                        help="adapter:location, e.g. flexflow:CASE (optional)")
-        i.add_argument("--body", metavar="FILE",
-                       help="body file or pattern, for a source that reads it separately (vtk)")
+        i.add_argument("--body", metavar="[NAME=]FILE", action="append",
+                       help="body file or pattern, for a source that reads it separately "
+                            "(vtk); NAME=FILE names the body (default 'body'), and may be "
+                            "given once per body")
         i.add_argument("--step", type=int, metavar="N", help="step to measure (default the first)")
         i.add_argument("-o", "--out", default=".", metavar="DIR",
                        help="project folder (default the current one)")
@@ -193,7 +222,7 @@ class ProjectCommand(BaseCommand):
                 ctx.out(f"linked {link} -> {link.readlink()}")
             source = None
             if args.source is not None:
-                source = open_source(args.source, args.body)
+                source = open_source(args.source, body_option(args.body))
                 if args.step is not None and args.step not in source.steps():
                     raise CommandError(f"step {args.step} is not saved (steps "
                                        f"{source.steps()[0]} to {source.steps()[-1]})")

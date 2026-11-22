@@ -1479,7 +1479,7 @@ branch 1)
   page in the navigation; the pages still read on GitHub
 - [x] `.github/workflows/docs.yml`: `mkdocs build --strict` on every PR, deployed to GitHub
   Pages on every push to `main` (Pages turned on in the repository's settings by Arun)
-- [ ] A test that builds the site strictly when `mkdocs` is installed (skipped otherwise);
+- [x] A test that builds the site strictly when `mkdocs` is installed (skipped otherwise);
   docs: building the site locally, and where it is published
 
 **Branch 4: `phase7/tutorial`** (the tutorial; needs branches 1, 2 and 3)

@@ -43,7 +43,8 @@ def _value(v) -> str:
 
 
 def _line(text: str, comment: str) -> str:
-    return f"{text.ljust(COLUMN)}# {comment}" if comment else text
+    # A comment needs a space before '#' in YAML, even when the text is past the column.
+    return f"{text.ljust(COLUMN - 1)} # {comment}" if comment else text
 
 
 def layer_block(name: str) -> str:

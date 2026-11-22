@@ -39,3 +39,11 @@ def test_commented_audio_and_watermark_load(tmp_path):
     film = from_dict(yaml.safe_load("\n".join(opened)), file=str(tmp_path / "film.yml"))
     assert film.audio[0].volume == 1.0 and film.audio[0].fade == (0.0, 0.0)
     assert film.watermark.text == "A. Periyal" and film.watermark.opacity == schema.Watermark.opacity
+
+
+def test_a_long_shot_name_still_loads(tmp_path):
+    from flowreel.scene.template import template as shot_template
+    name = "a_shot_with_a_name_long_enough_to_pass_the_comment_column"
+    film = from_dict(yaml.safe_load(template(name)), file=str(tmp_path / "film.yml"))
+    assert film.shots[0].name == name
+    assert yaml.safe_load(shot_template(name))["name"] == name

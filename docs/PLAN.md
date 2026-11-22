@@ -1517,7 +1517,7 @@ branch 1)
 - [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
   card, `flowreel.yml`) with type, default and example, generated from the schema modules
   and the `template` commands, with a test that fails when the page is out of date
-- [ ] Command reference generated from the help text, with the same test
+- [x] Command reference generated from the help text, with the same test
 - [ ] `README.md` brought up to date (status, what it does, a still, install, links to
   the site and its tutorial); a docstring check over public modules (`.claude/rules/documentation.md`)
 

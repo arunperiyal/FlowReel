@@ -103,4 +103,5 @@ nav:
       - Worked example:
           - The reveal look: reveal.md
   - Reference:
-      - Commands: commands.md
+      - Commands, by example: commands.md
+      - Every command and option: reference/commands.md

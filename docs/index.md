@@ -28,7 +28,9 @@ Each part of FlowReel, in the order a film is made:
 
 ## The reference
 
-- **[Commands](commands.md):** every command, its options and examples.
+- **[Commands](reference/commands.md):** every command and option, from the commands'
+  own help. The guide's [commands page](commands.md) shows them in use.
+It is generated from the commands' own help, so it cannot drift from them.
 
 ## This site
 

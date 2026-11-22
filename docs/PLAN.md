@@ -1458,8 +1458,9 @@ branch 1)
 - [x] The data set's licence and source checked and recorded (where pyvista's copy
   comes from, who made it, whether it may be shown in a film); if it may not, back to
   question 7. Checked 2026-11-22: it may (Section 24, question 7)
-- [ ] `examples/tutorial/get_data.py`: downloads `cylinder_crossflow` into the project's
-  data folder (pyvista's downloader), checks its SHA-256, and converts the EnSight case to
+- [x] `examples/tutorial/get_data.py`: downloads `cylinder_crossflow` into the project's
+  data folder (from `pyvista/data` at a fixed commit rather than with pyvista's
+  downloader, which follows the latest copy and keeps it in its own cache), checks its SHA-256, and converts the EnSight case to
   a `.pvd` of one `.vtu` step: `fluid` extruded to a thin span (one cell, about 0.1 D) as
   the flow, with `velocity` split into `U`, `V`, `W` and `pressure` as `p`, and
   `wall_cylinder` extruded the same way as the body `cylinder`; it writes the licence and

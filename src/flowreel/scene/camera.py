@@ -12,7 +12,8 @@
 Exactly one of ``view``, ``track`` and ``fit`` gives the base view; ``follow`` then moves
 it onto a body: a body name (declared in ``flowreel.yml`` or a zone of the source), or
 ``true`` for the one body there is. Without ``station``, ``follow`` takes the station
-(and, with ``follow: true``, the body) of the shot's ``crop: {around: ...}``. Views and tracks come from ``cameras.yml`` beside the shot file.
+(and, with ``follow: true``, the body) of the shot's ``crop: {around: ...}``. Views and tracks come from the project's ``cameras.yml``, at its root
+(:func:`flowreel.project.paths.cameras_file`; beside the shot file outside a project).
 """
 from __future__ import annotations
 
@@ -135,8 +136,9 @@ def shot_camera(shot, views: dict[str, View] | None = None,
                 rest_step: int | None = None) -> ShotCamera:
     """The :class:`ShotCamera` of ``shot``.
 
-    ``views`` and ``tracks`` default to those in the ``cameras.yml`` next to the shot
-    file. Errors name the shot file and the ``camera`` key.
+    ``views`` and ``tracks`` default to those in the project's ``cameras.yml``
+    (:func:`~flowreel.project.paths.cameras_file`: at the root, or next to the shot file
+    outside a project). Errors name the shot file and the ``camera`` key.
     """
     check = Checker(shot.file, ("camera",))
     if not shot.camera:
@@ -144,9 +146,11 @@ def shot_camera(shot, views: dict[str, View] | None = None,
     if views is None:
         if not shot.file:
             raise check.error("no cameras.yml to read the views from (pass views=)")
-        path = Path(shot.file).parent / "cameras.yml"
+        from flowreel.project.paths import cameras_file, find_root
+        path = cameras_file(shot.file)
         if not path.exists():
-            raise check.error(f"no cameras.yml beside the shot file ({path})")
+            where = "at the project root" if find_root(shot.file) else "beside the shot file"
+            raise check.error(f"no cameras.yml {where} ({path})")
         views = load_views(path)
         if tracks is None:
             tracks = load_tracks(path, views)

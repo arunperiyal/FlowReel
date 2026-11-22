@@ -173,10 +173,10 @@ class ShotProjector:
 
     def _cameras_path(self) -> Path:
         """The project's ``cameras.yml``, at its root (beside ``flowreel.yml``); without
-        a project, the one beside the film file."""
-        from flowreel.project import find_project
-        found = find_project(self.film.folder)
-        return (found.parent if found is not None else self.film.folder) / "cameras.yml"
+        a project, the one beside the film file
+        (:func:`flowreel.project.paths.cameras_file`)."""
+        from flowreel.project.paths import cameras_file
+        return cameras_file(self.film.folder)
 
     def _named_cameras(self):
         if self._cameras is None:

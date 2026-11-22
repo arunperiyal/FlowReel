@@ -166,3 +166,30 @@ def test_jobs_run_at_the_root(project, monkeypatch):
     from flowreel.jobs.run import _workdir
     monkeypatch.chdir(project / "shots")
     assert _workdir(None) == project
+
+
+# -- one cameras.yml at the root -----------------------------------------------------------
+
+def test_one_cameras_file_at_the_root_serves_shots_below_it(project):
+    from flowreel.project.paths import cameras_file
+    from flowreel.scene.camera import shot_camera
+    from flowreel.scene.shot import load
+    (project / "shots" / "g.yml").write_text(SHOT)
+    assert cameras_file(project / "shots" / "g.yml") == project / "cameras.yml"
+    shot_camera(load(project / "shots" / "g.yml"))                  # found at the root
+    (project / "shots" / "cameras.yml").write_text(CAMERAS)          # left beside the shot
+    with pytest.raises(Exception, match="one cameras.yml, at its root; move this one to"):
+        shot_camera(load(project / "shots" / "g.yml"))
+
+
+def test_camera_commands_write_the_root_file(project, monkeypatch):
+    (project / "shots" / "g.yml").write_text(SHOT)
+    monkeypatch.chdir(project / "shots")
+    sh = Shell(project / "store")
+    status, out, err = sh.run("camera path intro --keys 0:main 12:main")
+    assert status == 0, err
+    assert "intro" in (project / "cameras.yml").read_text()
+    assert not (project / "shots" / "cameras.yml").exists()
+    (project / "shots" / "cameras.yml").write_text(CAMERAS)
+    status, _, err = sh.run("camera preview intro g.yml --every 12")
+    assert status != 0 and "move this one to" in err

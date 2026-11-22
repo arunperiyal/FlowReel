@@ -276,7 +276,7 @@ def render_frame(shot, frame: int, source=None, *, views=None, tracks=None,
 
     ``shot`` is a :class:`~flowreel.scene.shot.Shot` or a shot file path; ``source``
     defaults to the shot's own (:func:`open_source`); ``views`` and ``tracks`` to the
-    ``cameras.yml`` beside the shot file. ``size`` (``(width, height)``) or ``scale``
+    project's ``cameras.yml`` (:func:`flowreel.project.paths.cameras_file`). ``size`` (``(width, height)``) or ``scale``
     draws a draft (:func:`draft_size`); by default the shot's size. ``backend`` is chosen as in :func:`render`, so a frame drawn here and the same frame
     drawn by a render are the same picture. Returns ``(height, width, 3)`` uint8.
     """

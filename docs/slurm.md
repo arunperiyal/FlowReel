@@ -1,6 +1,6 @@
 # Rendering on a Slurm cluster
 
-Phase 5. A long render runs on a compute node: FlowReel writes the job script and hands
+A long render runs on a compute node: FlowReel writes the job script and hands
 it to `sbatch`, so nothing is written by hand. This page covers the pieces under that:
 the clusters FlowReel knows, the job it asks for, and the script it writes. The commands
 that use them, `shot render --slurm FILE --submit` and the same for `compose` and `film

@@ -1,6 +1,6 @@
 # Building the film
 
-Phase 4, branch 5. `film.build` turns a [film file](film.md) into `film.mp4`: every
+`film.build` turns a [film file](film.md) into `film.mp4`: every
 shot's [finished clip](clips.md), joined in order, with the film's sound under it.
 From the command line it is `flowreel film build`, and the checks below are `film
 check`, `film lengths`, `film srt` and `film chapters` ([commands](commands.md#film-build)).
@@ -236,5 +236,5 @@ flowreel film check --at caption
 ```
 
 Its lengths per shot are compared with the prototype's film and its contact sheet with
-the prototype's film at the same times; the results are written in `docs/PLAN.md`
-under Phase 4's done line.
+the prototype's film at the same times; the results are recorded in `docs/PLAN.md`
+(Section 19.5).

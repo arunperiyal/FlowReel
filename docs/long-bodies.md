@@ -100,8 +100,8 @@ lengths, so a span drawn at 1/50 reads 0 to 500 along its edge.
 
 ## The check: a riser 500 diameters long
 
-Phase 2B ends on a case of the kind it was made for. No such run exists yet, so the
-case is generated: `examples/riser500/riser500_case.py` writes, at test time or when
+Long bodies are checked on a case of the kind they are made for. No such run exists
+yet, so the case is generated: `examples/riser500/riser500_case.py` writes, at test time or when
 asked, eight steps of a channel 500 long round a riser of diameter 1 that vibrates in
 its third mode, a second cylinder 12 long beside it, the riser's displacement at 51
 probes (one CSV per probe, as FlexFlow Analyzer exports them) and a pendulum's swing.

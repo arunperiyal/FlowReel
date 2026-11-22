@@ -1,8 +1,8 @@
 # Captions, shapes and the watermark, drawn
 
-Phase 4, branch 2. A caption written in a text file (see [the film file](film.md#captions))
+A caption written in a text file (see [the film file](film.md#captions))
 becomes one transparent picture the size of the film, which the build lays over its
-shot with its own fades (branch 4). The film's watermark is drawn the same way. This page
+shot with its own fades ([clips](clips.md)). The film's watermark is drawn the same way. This page
 says how they are drawn, the keys of the 2D shapes, and the watermark of a shot file.
 
 All positions and sizes are **pixels of the film**: `(0, 0)` is the upper left corner,

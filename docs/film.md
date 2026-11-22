@@ -116,8 +116,9 @@ text file of its own, so the person writing the words never edits `film.yml`:
 - **Quote a line with a colon.** `Outlet: p = 0` unquoted is a mapping to YAML; the
   error says to write `'Outlet: p = 0'`. Single quotes also keep `$12D \times 30D$`
   as written.
-- Places in the model (`{model: [x, y, z], view: V}`) come with the camera editor in
-  Phase 6.
+- **Places in the model.** A caption's `place` and a shape's points may be points of
+  the model, `{model: [x, y, z]}`, which follow the camera
+  ([points in the model](captions.md#points-in-the-model)).
 
 How captions are drawn (measured text, shadow or box, the shapes' keys) is on
 [captions, shapes and the watermark](captions.md).

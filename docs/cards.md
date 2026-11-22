@@ -1,6 +1,6 @@
 # Cards
 
-Phase 4, branch 3. A card is a still shot, such as an opening title or the credits at the
+A card is a still shot, such as an opening title or the credits at the
 end. It is a file of blocks placed down a background, not code, so a different
 competition's layout is a different file (plan Section 10.5). A film names it as a shot:
 

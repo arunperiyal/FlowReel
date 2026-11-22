@@ -4,9 +4,8 @@ The opening look of the AFMS film: a wake surface coloured by spanwise vorticity
 cutting plane that sweeps along the span, showing a live section of the flow while the
 wake ahead of it is cut away and the rest turns grey.
 
-It was Phase 1's first path through sources, fields and tracks (`flowreel.reveal`). Since
-Phase 2 it is an ordinary shot file on three layers, `tests/data/reveal/reveal.yml`, and
-the module is gone; the golden-frame test stays.
+It is an ordinary shot file on three layers, `tests/data/reveal/reveal.yml`, and a
+golden-frame test checks it against the prototype's frame.
 
 ## The shot file
 

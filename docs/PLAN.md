@@ -1511,7 +1511,7 @@ branch 1)
   command, and checks the film is 20 s with the captions in place
 
 **Branch 5: `phase7/docs-reference`** (the guide and reference; needs branches 1 and 3)
-- [ ] `docs/index.md`, the site's first page: where to start (the tutorial), the user
+- [x] `docs/index.md`, the site's first page: where to start (the tutorial), the user
   guide and the reference; the per-phase pages renamed as guide chapters, in reading order
   in the site's navigation
 - [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,

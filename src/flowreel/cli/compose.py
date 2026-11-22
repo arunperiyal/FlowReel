@@ -107,6 +107,8 @@ class ComposeCommand(BaseCommand):
             return 2
         if args.jobs < 1:
             raise CommandError("-j must be at least 1")
+        from flowreel.cli.project import project_root
+        project_root(ctx, getattr(args, "layout", None), getattr(args, "panel", None))
         try:
             return getattr(self, "do_" + args.compose_cmd)(args, ctx)
         except ConfigError as exc:

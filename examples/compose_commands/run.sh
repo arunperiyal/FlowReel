@@ -18,7 +18,7 @@ for name in run.FILES:
     shutil.copy(run.HERE / name, folder / name)
 run.write_data(folder / "data")
 PY
-cd "$DIR"
+cd "$DIR"                                    # a project: the panels example's flowreel.yml
 $FLOWREEL compose panel compare.yml -j 2
 $FLOWREEL compose layout rate_board.yml
 $FLOWREEL compose layout rate_board.yml --scale 0.5 --frames 0:15:5

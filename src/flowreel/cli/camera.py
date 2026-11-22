@@ -221,6 +221,8 @@ class CameraCommand(BaseCommand):
         if not args.camera_cmd:
             ctx.error("give an action: flowreel camera --help")
             return 2
+        from flowreel.cli.project import project_root
+        project_root(ctx, getattr(args, "shot", None), getattr(args, "cameras", None))
         try:
             return getattr(self, "do_" + args.camera_cmd)(args, ctx)
         except ConfigError as exc:

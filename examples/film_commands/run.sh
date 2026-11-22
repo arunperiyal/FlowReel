@@ -20,6 +20,7 @@ run.wake(folder / "frames" / "wake")
 run.tone(folder / "tone.wav")
 PY
 cd "$DIR"
+$FLOWREEL project init --force >/dev/null              # a project; film.yml is kept
 $FLOWREEL film template wake -o template.yml --force   # a film file to start from
 $FLOWREEL film lengths                                 # planned; nothing built yet
 $FLOWREEL film build --preview 180

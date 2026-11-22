@@ -175,6 +175,9 @@ class ShotCommand(BaseCommand):
         if not args.shot_cmd:
             ctx.error("give an action: flowreel shot --help")
             return 2
+        if args.shot_cmd != "template":
+            from flowreel.cli.project import project_root
+            project_root(ctx, getattr(args, "shot", None))
         try:
             return getattr(self, "do_" + args.shot_cmd)(args, ctx)
         except ConfigError as exc:

@@ -16,6 +16,7 @@ def project(tmp_path_factory):
     need_ffmpeg()
     folder = tmp_path_factory.mktemp("cli_film")
     make(folder)
+    (folder / "flowreel.yml").write_text("")                # a project (docs/project.md)
     return folder
 
 

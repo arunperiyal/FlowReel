@@ -1425,7 +1425,7 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
 
 **Branch 1: `phase7/project-rules`** (the project folder; question 6 decided)
 - [x] Question 6, decided and confirmed 2026-11-22 (Section 24), recorded in Section 23
-- [ ] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
+- [x] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
   link; commands find the project by walking up, and stop outside one with an error
   saying how to make one (except `project init`, the `template` commands and `jobs`)
 - [ ] Generated output under the project root, wherever a command runs (`frames/`,

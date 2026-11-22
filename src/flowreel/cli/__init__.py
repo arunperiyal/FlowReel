@@ -26,14 +26,15 @@ def _shot_file(raw: str, runtime=None) -> str:
 
 
 def _project_folder(raw: str, runtime=None) -> str:
-    """A project context value: a folder holding ``flowreel.yml`` or ``film.yml``, kept
-    as an absolute path."""
+    """A project context value: a folder holding ``flowreel.yml`` (plan Section 23,
+    question 6), kept as an absolute path."""
     base = Path(getattr(runtime, "cwd", None) or Path.cwd())
     path = (base / raw).expanduser().resolve()
     if not path.is_dir():
         raise ValueError(f"no such folder: {raw}")
     if not any((path / name).is_file() for name in PROJECT_FILES):
-        raise ValueError(f"{raw} is not a project: it has no {' or '.join(PROJECT_FILES)}")
+        raise ValueError(f"{raw} is not a project: it has no {' or '.join(PROJECT_FILES)} "
+                         "(make one with flowreel project init)")
     return str(path)
 
 
@@ -46,7 +47,7 @@ def _view_name(raw: str, runtime=None) -> str:
 
 
 #: Files that make a folder a project, for ``use project:DIR``.
-PROJECT_FILES = ("flowreel.yml", "film.yml")
+PROJECT_FILES = ("flowreel.yml",)
 
 CONTEXTS = [
     ContextKey("project", parse=_project_folder, path=True, label="project",

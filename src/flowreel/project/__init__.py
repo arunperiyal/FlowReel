@@ -3,7 +3,8 @@
 ``flowreel.yml`` holds what belongs to the project rather than to one shot. So far that
 is ``bodies:`` (:mod:`flowreel.project.bodies`); paths, defaults and ``scales:`` come
 with the phases that use them. A shot finds its project by looking for
-``flowreel.yml`` in its own folder and then in each folder above it.
+``flowreel.yml`` in its own folder and then in each folder above it; where the
+project's other files and its output go is :mod:`flowreel.project.paths`.
 """
 from __future__ import annotations
 
@@ -12,9 +13,9 @@ from pathlib import Path
 
 
 from flowreel.project.bodies import Body, End, Series, parse_bodies
+from flowreel.project.paths import PROJECT_FILE, find_root
 from flowreel.scene.errors import Checker
 
-PROJECT_FILE = "flowreel.yml"
 KEYS = ("bodies",)
 
 __all__ = ["PROJECT_FILE", "Project", "Body", "End", "Series", "load_project", "find_project",
@@ -51,12 +52,8 @@ def load_project(path: str | Path) -> Project:
 def find_project(start: str | Path) -> Path | None:
     """The ``flowreel.yml`` in ``start`` (a folder, or a file's folder) or the nearest
     folder above it; ``None`` when there is none."""
-    start = Path(start).expanduser().resolve()
-    folder = start if start.is_dir() else start.parent
-    for d in (folder, *folder.parents):
-        if (d / PROJECT_FILE).is_file():
-            return d / PROJECT_FILE
-    return None
+    root = find_root(start)
+    return None if root is None else root / PROJECT_FILE
 
 
 def project_for(shot_file: str | Path | None) -> Project | None:

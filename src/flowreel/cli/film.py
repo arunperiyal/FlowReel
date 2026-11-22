@@ -179,6 +179,9 @@ class FilmCommand(BaseCommand):
             return 2
         if getattr(args, "jobs", 1) < 1:
             raise CommandError("-j must be at least 1")
+        if args.film_cmd != "template":
+            from flowreel.cli.project import project_root
+            project_root(ctx, getattr(args, "film", None))
         try:
             return getattr(self, "do_" + args.film_cmd)(args, ctx)
         except ConfigError as exc:

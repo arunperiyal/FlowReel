@@ -29,8 +29,11 @@ Each part of FlowReel, in the order a film is made:
 ## The reference
 
 - **[Commands](reference/commands.md):** every command and option, from the commands'
-  own help. The guide's [commands page](commands.md) shows them in use.
-It is generated from the commands' own help, so it cannot drift from them.
+  own help.
+- **[YAML keys](reference/yaml.md):** every key of every file FlowReel reads, with its
+  type and default, linked to the guide page that explains it.
+
+Both are generated from the code, so they cannot drift from it.
 
 ## This site
 

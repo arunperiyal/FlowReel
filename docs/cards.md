@@ -49,6 +49,11 @@ Each block is centred across the card by its measured width. Its top is either:
 - `y`: pixels from the card's top, or
 - `gap`: pixels below the **end** of the block before it (default `0`; it may be negative).
 
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `y` | pixels | none | the block's top, from the card's top |
+| `gap` | pixels | `0` | the block's top, below the end of the block before it; used without `y` |
+
 A block ends where what it draws ends: an image's height; a divider's `thickness`; lines
 times their `spacing`; for names, the `heading_gap` (if there is a heading) plus the names
 times their `spacing`. So editing a title from two lines to three moves everything after

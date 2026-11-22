@@ -1,17 +1,27 @@
 """Write the reference pages of the documentation from the code.
 
-    python tools/reference.py            write docs/reference/commands.md
-    python tools/reference.py --check    exit 1 if it is out of date
+    python tools/reference.py            write docs/reference/commands.md and yaml.md
+    python tools/reference.py --check    exit 1 if either is out of date, or a key the
+                                         code accepts has no row in its guide page
 
 **Commands** (``docs/reference/commands.md``): the ``--help`` of every command, as the
 parsers print it at 88 columns.
 
+**YAML keys** (``docs/reference/yaml.md``): every key of every file FlowReel reads. The
+keys are the tuples the code checks a file against (``KEYS``, ``SHOT_KEYS`` and so on),
+so a key added to the code appears here. What a key means, its type and its default are
+taken from the row that documents it in its guide page's tables, so the reference
+cannot say something the guide does not; a key without such a row is an error, and
+``--check`` names it. Layer options carry their own type, default and words in the code
+(``Option``); those are used, and the guide's row is still required.
 """
 from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,11 +67,352 @@ def commands_page() -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+# ---- the guide's tables -------------------------------------------------------------------
+
+@dataclass
+class Row:
+    """A row of a guide table: its key names, the cells by heading, and its section."""
+
+    names: list[str]
+    cells: dict[str, str]
+    page: str
+    section: str
+
+
+def _slug(heading: str) -> str:
+    """The anchor MkDocs (with GitHub's slugs, mkdocs.yml) gives a heading."""
+    text = re.sub(r"[^\w\- ]", "", heading.strip().lower())
+    return text.replace(" ", "-")
+
+
+def _split(row: str) -> list[str]:
+    cells, cell, code = [], "", False
+    for ch in row.strip().strip("|"):
+        if ch == "`":
+            code = not code
+        if ch == "|" and not code:
+            cells.append(cell.strip())
+            cell = ""
+        else:
+            cell += ch
+    return cells + [cell.strip()]
+
+
+def guide_rows(page: str) -> list[Row]:
+    """Every row of every table of ``docs/<page>`` whose first cell names keys in code."""
+    rows, section, header = [], "", None
+    lines = (DOCS / page).read_text().splitlines()
+    code_block = False
+    for i, line in enumerate(lines):
+        if line.startswith("```"):
+            code_block = not code_block
+        if code_block:
+            continue
+        if line.startswith("#"):
+            section = _slug(line.lstrip("#"))
+            header = None
+            continue
+        if not line.startswith("|"):
+            header = None
+            continue
+        cells = _split(line)
+        if header is None:
+            header = [c.lower() for c in cells]
+            continue
+        if set("".join(cells)) <= set("-: "):
+            continue
+        names = [n.replace("[]", "") for n in re.findall(r"`([^`]+)`", cells[0])]
+        if names:
+            rows.append(Row(names, dict(zip(header[1:], cells[1:])), page, section))
+    return rows
+
+
+def _words_in_code(row: Row) -> set[str]:
+    """The words written in code (between backticks) in a row's cells."""
+    spans = re.findall(r"`([^`]+)`", " ".join(row.cells.values()))
+    return {w for s in spans for w in re.findall(r"[A-Za-z_]\w*", s)}
+
+
+def find_row(rows: list[Row], path: str) -> Row | None:
+    """The row documenting the key ``path`` (``a.b.c``), tried in this order:
+
+    1. a row naming ``b.c`` or ``a.b.c`` (the longest match wins), or a row in a section
+       headed ``b`` whose cells name ``c`` in code (a time form);
+    2. a row naming ``c`` or ``.c``;
+    3. a row naming ``b`` whose cells name ``c`` in code (a table of kinds and their
+       keys: a shape, a card block);
+    4. for a key that holds others, a row naming ``c.something``.
+    """
+    parts = path.split(".")
+
+    def by_name(least):
+        best, length = None, 0
+        for row in rows:
+            for name in row.names:
+                tail = name.split(":")[0].strip().lstrip(".").split(".")
+                n = len(tail)
+                if n >= least and tail == parts[-n:] and n > length:
+                    best, length = row, n
+        return best
+
+    def kind_row(candidates):
+        for row in candidates:
+            if parts[-1] in _words_in_code(row):
+                return row
+        return None
+
+    if len(parts) > 1:
+        found = by_name(2) or kind_row([r for r in rows if r.section == parts[-2]])
+        if found is not None:
+            return found
+    found = by_name(1)
+    if found is not None:
+        return found
+    if len(parts) > 1:
+        found = kind_row([r for r in rows
+                          if parts[-2] in [n.split(":")[0].strip() for n in r.names]])
+        if found is not None:
+            return found
+    for row in rows:
+        if any(n.lstrip(".").startswith(parts[-1] + ".") for n in row.names):
+            return row
+    return None
+
+
+# ---- the files and their keys -----------------------------------------------------------
+
+def file_types():
+    """``(title, file, guide page, [(prefix, keys, page), ...])`` for every file type."""
+    from flowreel.compose import layout_file, panel_file, panels
+    from flowreel.compose.flow_panels import SectionPanel, StripPanel
+    from flowreel.compose.series_panel import AXIS_KEYS, LINE_KEYS, MARGIN_KEYS
+    from flowreel.compose.style import KEYS as STYLE_KEYS
+    from flowreel.film import anchors, cards, schema, shapes, text
+    from flowreel.project import bodies
+    from flowreel.scene import camera_path, shot, views
+    import flowreel.compose.phase_panel  # noqa: F401  (registers panel types)
+    import flowreel.compose.span_panels  # noqa: F401
+    import flowreel.compose.flow_panels  # noqa: F401
+    shot_watermark = tuple(k for k in schema.WATERMARK_KEYS if k not in schema.WHEN_KEYS)
+    panel_parts = [("", panel_file.KEYS, "panels.md"), ("style", STYLE_KEYS, "panels.md")]
+    for name, cls in sorted(panels.REGISTRY.items()):
+        if not cls.__module__.startswith("flowreel."):
+            continue                            # registered by a test, say
+        own = tuple(k for k in cls.KEYS if k not in panel_file.KEYS)
+        panel_parts.append((f"<{name}>", own, "panels.md"))
+    panel_parts += [("<series>.lines[]", LINE_KEYS, "panels.md"),
+                    ("<series>.x", AXIS_KEYS, "panels.md"),
+                    ("<series>.margins", MARGIN_KEYS, "panels.md"),
+                    ("<section>.streamlines", SectionPanel.STREAM_KEYS, "panels.md"),
+                    ("<section>.inset", SectionPanel.INSET_KEYS, "panels.md"),
+                    ("<strip>.zero", StripPanel.ZERO_KEYS, "panels.md")]
+    supports = tuple(dict.fromkeys(k for ks in bodies.SUPPORTS.values() for k in ks))
+    return [
+        ("Shot file", "shots/NAME.yml", "shots.md", [
+            ("", shot.KEYS, "shots.md"),
+            ("time", shot._TIME_KEYS, "shots.md"),
+            ("camera", shot._CAMERA_KEYS, "cameras.md#a-shots-camera"),
+            ("watermark", shot_watermark, "captions.md#the-watermark"),
+        ]),
+        ("Cameras", "cameras.yml", "cameras.md", [
+            ("views[]", views.VIEW_KEYS, "cameras.md#views-camerasyml"),
+            ("tracks.NAME", camera_path.TRACK_KEYS, "cameras.md#camera-tracks"),
+            ("tracks.NAME.keys[]", camera_path.TRACK_KEY_KEYS, "cameras.md#camera-tracks"),
+        ]),
+        ("Project", "flowreel.yml", "bodies.md", [
+            ("bodies.NAME", bodies.BODY_KEYS, "bodies.md"),
+            ("bodies.NAME (virtual)", bodies.VIRTUAL_KEYS, "bodies.md"),
+            ("bodies.NAME.attach", bodies.ATTACH_KEYS, "bodies.md"),
+            ("bodies.NAME.ends[]", bodies.END_KEYS + supports, "bodies.md"),
+            ("bodies.NAME.series.NAME", bodies.SERIES_KEYS, "bodies.md"),
+        ]),
+        ("Layout", "NAME.yml (compose layout)", "layouts.md", [
+            ("", layout_file.KEYS, "layouts.md"),
+            ("tiles[]", layout_file.TILE_KEYS, "layouts.md"),
+            ("tiles[].stations", layout_file.STATIONS_KEYS, "layouts.md"),
+            ("tiles[].label", layout_file.LABEL_KEYS, "layouts.md"),
+        ]),
+        ("Panel", "NAME.yml (compose panel)", "panels.md", panel_parts),
+        ("Film", "film.yml", "film.md", [
+            ("", schema.KEYS, "film.md"),
+            ("style", schema.STYLE_KEYS, "film.md"),
+            ("style.colours", schema.COLOUR_KEYS, "film.md"),
+            ("style.caption", schema.CAPTION_KEYS, "film.md"),
+            ("audio[]", schema.AUDIO_KEYS, "film.md"),
+            ("watermark", schema.WATERMARK_KEYS, "captions.md#the-watermark"),
+            ("shots[]", schema.SHOT_KEYS, "film.md"),
+            ("shots[].rate", schema.RATE_KEYS, "film.md"),
+            ("shots[].freezes[]", schema.FREEZE_KEYS, "film.md"),
+            ("shots[].chapter", schema.CHAPTER_KEYS, "build.md"),
+        ]),
+        ("Captions", "text/NAME.yml, or a shot's text", "film.md", [
+            ("[]", text.KEYS, "film.md"),
+            ("[].place, a point in the model", anchors.ANCHOR_KEYS, "captions.md"),
+        ] + [(f"[].shapes[].{kind}", keys, "captions.md#shapes")
+             for kind, keys in shapes.KEYS.items()]),
+        ("Card", "cards/NAME.yml", "cards.md", [
+            ("", cards.KEYS, "cards.md"),
+            ("blocks[]", cards.PLACE_KEYS, "cards.md"),
+        ] + [(f"blocks[] ({kind})", keys, "cards.md#blocks")
+             for kind, keys in cards.BLOCK_KEYS.items()]),
+    ]
+
+
+def _sections_under(page: str, section: str) -> set[str]:
+    """The anchor ``section`` of ``docs/<page>`` and those of the headings below it, up
+    to the next heading of its level or higher."""
+    found, level = set(), None
+    for line in (DOCS / page).read_text().splitlines():
+        if not line.startswith("#") or line.startswith("#!"):
+            continue
+        depth = len(line) - len(line.lstrip("#"))
+        slug = _slug(line.lstrip("#"))
+        if level is None:
+            if slug == section:
+                level = depth
+                found.add(slug)
+        elif depth > level:
+            found.add(slug)
+        else:
+            break
+    if not found:
+        raise ValueError(f"docs/{page} has no section #{section}")
+    return found
+
+
+def _cell(cells: dict, *starts: str) -> str:
+    """The first cell whose heading starts with one of ``starts``, tried in order."""
+    for start in starts:
+        for heading, value in cells.items():
+            if heading.startswith(start) and value:
+                return value
+    return ""
+
+
+def _clean(cell: str, page: str) -> str:
+    """A cell copied from ``docs/<page>``, its links made relative to the reference."""
+    cell = re.sub(r"\]\(#", f"](../{page}#", cell)
+    cell = re.sub(r"\]\((?!https?:|\.\./|#)", "](../", cell)
+    return cell.replace("\n", " ").strip()
+
+
+def _match_path(prefix: str, key: str) -> str:
+    """The dotted path a guide row is looked for under: list marks, names you choose,
+    panel types and notes in brackets left out (``tiles[].stations`` and ``shot`` give
+    ``tiles.stations.shot``)."""
+    prefix = prefix.split(",")[0].replace("(virtual)", "")
+    prefix = re.sub(r"\s*\((\w+)\)", r".\1", prefix)            # blocks[] (title): blocks.title
+    prefix = re.sub(r"<.*?>|\[\]|\bNAME\b", "", prefix)
+    parts = [p for p in prefix.replace(" ", "").split(".") if p]
+    return ".".join(parts + [key])
+
+
+def _join(prefix: str, key: str) -> str:
+    if not prefix:
+        return key
+    if prefix.endswith("[]") and not prefix[:-2]:
+        return key
+    return f"{prefix}.{key}"
+
+
+def yaml_page() -> tuple[str, list[str]]:
+    """The page, and the keys without a row in their guide page."""
+    from flowreel.scene.layers import available, layer_type
+    import flowreel.scene.template  # noqa: F401  (registers every layer type)
+    missing = []
+    rows_of: dict[str, list[Row]] = {}
+
+    def rows(page):
+        """The rows of ``page``, or of one of its sections: ``page.md#section``
+        takes that section and the sections under it."""
+        if page not in rows_of:
+            name, _, section = page.partition("#")
+            found = guide_rows(name)
+            if section:
+                found = [r for r in found if r.section in _sections_under(name, section)]
+            rows_of[page] = found
+        return rows_of[page]
+
+    lines = ["# YAML keys", "",
+             "Every key of every file FlowReel reads. The keys come from the code (the lists a",
+             "file is checked against), and each key's type, default and meaning from the row",
+             "that documents it in the guide; the link goes to that row's section. This page",
+             "is generated by `tools/reference.py`, and a test fails when it is out of date or",
+             "when a key the code accepts is not documented.", "",
+             "`[]` marks an item of a list, `NAME` a name you choose, and `<type>` the keys of",
+             "one `type` of panel.", ""]
+    for title, where, guide, parts in file_types():
+        lines += [f"## {title}: `{where}`", "", f"Guide: [{guide[:-3]}](../{guide}).", "",
+                  "| Key | Type | Default | Meaning | Section |", "|---|---|---|---|---|"]
+        for prefix, keys, page in parts:
+            found = []                          # (paths, row): keys sharing a row merged
+            for key in keys:
+                path = _join(prefix, key)
+                row = find_row(rows(page), _match_path(prefix, key))
+                if row is None:
+                    missing.append(f"{title}: {path} (expected a row in docs/{page})")
+                if found and row is not None and found[-1][1] is row:
+                    found[-1][0].append(path)
+                else:
+                    found.append(([path], row))
+            for paths, row in found:
+                names = f"`{paths[0]}`" + "".join(
+                    f", `.{q.rsplit('.', 1)[-1]}`" for q in paths[1:])
+                if row is None:
+                    lines.append(f"| {names} | | | **not documented** | |")
+                    continue
+                cells = row.cells
+                kind = _cell(cells, "type")
+                default = _cell(cells, "default")
+                meaning = _cell(cells, "meaning", "does", "what", "draws", "fixes", "keys",
+                                "example")
+                link = f"[{row.page[:-3]}](../{row.page}#{row.section})"
+                lines.append(f"| {names} | {_clean(kind, row.page)} | "
+                             f"{_clean(default, row.page)} | {_clean(meaning, row.page)} | {link} |")
+        lines.append("")
+    lines += ["## Shot layers", "",
+              "Each item of a shot's `layers:` has a `type` and that type's options. Types,",
+              "defaults and words come from the layers' own declarations (`Option`), as",
+              "`flowreel shot template --layers TYPE` writes them. A *track* may change",
+              "along the shot ([tracks](../tracks.md)).", ""]
+    for name in available():
+        cls = layer_type(name)
+        if not cls.__module__.startswith("flowreel."):
+            continue                            # registered by a test, say
+        page = "layers-flow.md" if name in ("iso", "slice", "body") else "layers-markers.md"
+        lines += [f"### `{name}`", "", f"Guide: [{page[:-3]}](../{page}#{_slug(name)}).", "",
+                  "| Option | Type | Default | Meaning |", "|---|---|---|---|"]
+        for opt in cls.options:
+            if find_row(rows(page), opt.name) is None:
+                missing.append(f"layer {name}: {opt.name} (expected a row in docs/{page})")
+            kind = ("track" + (f" ({opt.kind})" if opt.kind and opt.kind != "number" else "")
+                    if opt.track else "fixed")
+            notes = []
+            if opt.required:
+                notes.append("required")
+            if opt.choices:
+                notes.append("one of " + ", ".join(f"`{c}`" for c in opt.choices))
+            if opt.pixels:
+                notes.append("pixels")
+            if opt.doc:
+                notes.append(opt.doc)
+            default = "" if opt.default is None or opt.required else f"`{_value(opt.default)}`"
+            lines.append(f"| `{opt.name}` | {kind} | {default} | {'; '.join(notes)} |")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n", missing
+
+
+def _value(v) -> str:
+    from flowreel.scene.template import _value as value
+    return value(v)
+
+
 # ---- writing and checking ------------------------------------------------------------------
 
 def pages() -> tuple[dict[Path, str], list[str]]:
-    """Every generated page by path, and what is missing from the guide (nothing yet)."""
-    return {OUT / "commands.md": commands_page()}, []
+    """Every generated page by path, and the undocumented keys."""
+    yaml_text, missing = yaml_page()
+    return {OUT / "commands.md": commands_page(), OUT / "yaml.md": yaml_text}, missing
 
 
 def main(argv=None) -> int:

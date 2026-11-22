@@ -105,3 +105,4 @@ nav:
   - Reference:
       - Commands, by example: commands.md
       - Every command and option: reference/commands.md
+      - YAML keys: reference/yaml.md

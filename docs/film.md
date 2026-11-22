@@ -50,13 +50,14 @@ Each shot has a `name` (unique) and is one of four kinds:
 
 | Kind | Key | Lasts |
 |---|---|---|
-| frames | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
-| layout | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
-| card | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
-| hold | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
+| `frames` | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
+| `layout` | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
+| `card` | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
+| `hold_last_of` | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
+| `name` | string | required | unique in the film; captions, holds and `--only` name the shot by it |
 | `seconds` | number | required for cards and holds | how long the still shows; not allowed on frames and layouts |
 | `rate` | `{fps, to_output}` | `{fps: <film fps>}` | the shot's own frames a second, and how they are made up to the film's: `interpolate` (motion-compensated), `repeat` or `blend` |
 | `freezes` | list of `{at, hold, text}` | none | stop on a frame for a while (below) |

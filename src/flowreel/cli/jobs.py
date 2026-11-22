@@ -84,6 +84,13 @@ def slurm_options(args) -> dict:
             "after": tuple(args.after)}
 
 
+def job_path(path) -> str:
+    """``path`` as a job's command line gives it: relative to the folder the job runs in
+    (the project root, :func:`flowreel.jobs.run._workdir`) when inside it, else absolute."""
+    from flowreel.jobs.run import _rel, _workdir
+    return _rel(path, _workdir(None))
+
+
 def run_single(ctx, name: str, command: list[str], kind: str, args) -> int:
     """Write or submit ``command`` as one job, from a command's ``args``."""
     from flowreel.jobs import run
@@ -182,7 +189,9 @@ class JobsCommand(BaseCommand):
     def do_status(self, args, ctx):
         from flowreel.jobs.partitions import format_time
         from flowreel.jobs.submit import frames_done, notes, status
-        noted = {n["job"]: n for n in notes(Path.cwd())}
+        from flowreel.project.paths import find_root
+        base = find_root() or Path.cwd()
+        noted = {n["job"]: n for n in notes(base)}
         if args.jobs:
             jobs = list(args.jobs)
         else:
@@ -214,6 +223,6 @@ class JobsCommand(BaseCommand):
                         + "".join(f"  [{s.job} {s.state} {s.elapsed} {s.reason}]".rstrip()
                                   for s in found if len(found) == 1))
             if n.get("folder") and n.get("frames"):
-                drawn = frames_done(Path.cwd() / n["folder"], n["frames"], n["submitted"])
+                drawn = frames_done(base / n["folder"], n["frames"], n["submitted"])
                 ctx.out(f"  frames drawn since: {drawn} of {len(n['frames'])} ({n['folder']})")
         return 0

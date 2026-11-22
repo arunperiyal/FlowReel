@@ -57,6 +57,16 @@ class Submitted:
         return "\n".join(lines)
 
 
+def _workdir(workdir) -> Path:
+    """The folder a job runs in: ``workdir``, else the project root of the current
+    folder (so scripts go to ``<root>/jobs/`` and the record to ``<root>/.flowreel/``),
+    else the current folder."""
+    if workdir is not None:
+        return Path(workdir).resolve()
+    from flowreel.project.paths import find_root
+    return find_root() or Path(os.getcwd()).resolve()
+
+
 def _rel(path, workdir: Path) -> str:
     """``path`` relative to ``workdir`` when inside it, else absolute."""
     p = Path(path).resolve()
@@ -89,13 +99,13 @@ def render(shot, *, script: str | Path | None = None, submit: bool = False,
     (default all) of the shot file ``shot``. ``script`` defaults to
     ``jobs/<shot>.sh``; ``missing`` plans only the frames not drawn yet; the other
     options are those of ``shot render`` and :func:`~flowreel.jobs.split.plan_render`.
-    The job runs in ``workdir`` (default the current folder)."""
+    The job runs in ``workdir`` (default the project root, else the current folder)."""
     from flowreel.jobs import measured, split
     from flowreel.scene.rendering import _as_shot, draft_size, frame_folder
     from flowreel.scene.rendering import missing as missing_frames
     if missing and force:
         raise ValueError("give --missing or --force, not both")
-    workdir = Path(workdir or os.getcwd()).resolve()
+    workdir = _workdir(workdir)
     shot_obj = _as_shot(shot)
     shot_arg = _rel(shot, workdir)
     out_arg = _rel(out, workdir)
@@ -188,7 +198,7 @@ def single(name: str, command: list[str], *, kind: str, script: str | Path | Non
     layout``, ``film build``): :data:`SINGLE` cores, memory and time unless given, in the
     shortest partition that takes it unless named. ``script`` defaults to
     ``jobs/<name>.sh``."""
-    workdir = Path(workdir or os.getcwd()).resolve()
+    workdir = _workdir(workdir)
     found = partitions.find(cluster)
     cpus = cpus or SINGLE[0]
     memory = memory or SINGLE[1]

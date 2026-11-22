@@ -58,7 +58,7 @@ def test_a_shot_not_measured_gets_a_measuring_job(sh, tmp_path):
 def test_a_measured_shot_becomes_a_job_array_and_is_submitted(sh, tmp_path):
     status, _, err = run(sh, "shot memory g.yml -o frames")
     assert status == 0, err
-    assert (tmp_path / "frames" / "g" / ".measured.json").is_file()
+    assert (tmp_path / ".flowreel" / "measured" / "frames" / "g.json").is_file()
     status, out, err = sh.run("shot render g.yml --submit --cpus 4 --after 1300")
     assert status == 0, err
     assert "6 frames in 1 task" in out and "-j 4 --threads 1" in out

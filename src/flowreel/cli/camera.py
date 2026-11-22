@@ -212,8 +212,9 @@ class CameraCommand(BaseCommand):
         v.add_argument("--every", type=int, default=4, metavar="N", help="every Nth frame (4)")
         v.add_argument("--scale", type=float, default=0.25, metavar="S",
                        help="the shot's size times S (0.25; 1920x1080 without a shot)")
-        v.add_argument("-o", "--out", default="frames", metavar="DIR",
-                       help="frames go to DIR/<track>@preview/ (default ./frames)")
+        v.add_argument("-o", "--out", metavar="DIR",
+                       help="frames go to DIR/<track>@preview/ (default frames/ at the "
+                            "project root)")
         _cameras_arg(v)
         return p
 
@@ -222,7 +223,9 @@ class CameraCommand(BaseCommand):
             ctx.error("give an action: flowreel camera --help")
             return 2
         from flowreel.cli.project import project_root
-        project_root(ctx, getattr(args, "shot", None), getattr(args, "cameras", None))
+        root = project_root(ctx, getattr(args, "shot", None), getattr(args, "cameras", None))
+        if getattr(args, "out", "") is None:
+            args.out = str(root / "frames")
         try:
             return getattr(self, "do_" + args.camera_cmd)(args, ctx)
         except ConfigError as exc:

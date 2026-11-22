@@ -76,7 +76,7 @@ def _film_arg(parser):
 
 def _clips_arg(parser):
     parser.add_argument("--clips", metavar="DIR",
-                        help="folder of the clips (default clips/ beside the film file)")
+                        help="folder of the clips (default clips/ at the project root)")
     parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
                         help="processes drawing a layout's live panels (default 1)")
 
@@ -141,7 +141,7 @@ class FilmCommand(BaseCommand):
                         "built.")
         _film_arg(n)
         n.add_argument("--clips", metavar="DIR",
-                       help="folder of the clips (default clips/ beside the film file)")
+                       help="folder of the clips (default clips/ at the project root)")
 
         t = _parser(
             actions, "srt", help="write the captions as a subtitle file",
@@ -201,7 +201,8 @@ class FilmCommand(BaseCommand):
         if args.crf is not None and args.preview is None:
             raise CommandError("--crf sets the preview copy's quality; give --preview too")
         if slurm_wanted(args):
-            cmd = ["flowreel", "film", "build", args.film, "-j", str(args.jobs)]
+            from flowreel.cli.jobs import job_path
+            cmd = ["flowreel", "film", "build", job_path(args.film), "-j", str(args.jobs)]
             for flag, value in (("--only", args.only), ("--preview", args.preview),
                                 ("--crf", args.crf), ("--clips", args.clips)):
                 if value is not None:

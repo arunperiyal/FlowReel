@@ -101,3 +101,68 @@ def test_commands_stop_outside_a_project(sh, tmp_path):
         assert sh.run(line)[0] == 0, line
     status, _, err = sh.run(f"use project:{tmp_path}")
     assert status != 0 and "flowreel project init" in err
+
+
+# -- generated output under the root ------------------------------------------------------
+
+SHOT = """name: g
+source: geometry:grooved_cylinder
+time: {frozen: 0, frames: 3}
+camera: {view: main}
+size: [64, 48]
+antialias: none
+layers:
+  - {type: geometry, body: grooved_cylinder, colour: "#ff0000"}
+"""
+CAMERAS = "views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up: [0, 0, 1]}\n"
+
+
+@pytest.fixture
+def project(tmp_path):
+    (tmp_path / "flowreel.yml").write_text("")
+    (tmp_path / "cameras.yml").write_text(CAMERAS)
+    (tmp_path / "shots").mkdir()
+    (tmp_path / "g.yml").write_text(SHOT)
+    return tmp_path
+
+
+def test_output_goes_under_the_root_wherever_a_command_runs(project, monkeypatch):
+    monkeypatch.chdir(project / "shots")
+    sh = Shell(project / "store")
+    status, out, err = sh.run("shot render ../g.yml --frames 0:2 -j 2")
+    if status and ("OpenGL" in err or "display" in err.lower()):
+        pytest.skip("off-screen rendering is not available")
+    assert status == 0, err
+    assert len(list((project / "frames" / "g").glob("frame_*.png"))) == 3
+    assert not (project / "shots" / "frames").exists()
+    assert (project / ".flowreel" / "measured" / "frames" / "g.json").is_file()
+    assert not (project / "frames" / "g" / ".measured.json").exists()
+    status, _, err = sh.run("shot render ../g.yml --frames 0 -o elsewhere")    # -o still overrides
+    assert status == 0, err
+    assert (project / "shots" / "elsewhere" / "g" / "frame_00000.png").is_file()
+
+
+def test_caches_and_records_are_machine_state(project, tmp_path_factory):
+    from flowreel.jobs import measured
+    from flowreel.project.paths import output
+    from flowreel.scene.rendering import surface_cache
+    from flowreel.scene.shot import load
+    shot = load(project / "g.yml")
+    assert surface_cache(shot, "anything") == project / ".flowreel" / "cache" / "surfaces"
+    assert measured.path(project / "frames" / "g@32x24") == \
+        project / ".flowreel" / "measured" / "frames" / "g@32x24.json"
+    assert output(project / "shots" / "film.yml", "clips") == project / "clips"
+    away = tmp_path_factory.mktemp("away")                       # the library, outside one
+    assert measured.path(away / "g") == away / "g" / ".measured.json"
+    assert output(away / "film.yml", "clips") == away / "clips"
+    rec = measured.Measured(10, 1.0, 1, 1, "h", "now")
+    (project / "frames" / "old").mkdir(parents=True)
+    (project / "frames" / "old" / ".measured.json").write_text(
+        '{"peak_bytes": 10, "seconds": 1.0, "threads": 1, "frames": 1, "host": "h", "when": "now"}')
+    assert measured.load(project / "frames" / "old") == rec       # an older record is read
+
+
+def test_jobs_run_at_the_root(project, monkeypatch):
+    from flowreel.jobs.run import _workdir
+    monkeypatch.chdir(project / "shots")
+    assert _workdir(None) == project

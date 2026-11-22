@@ -1428,7 +1428,7 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
 - [x] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
   link; commands find the project by walking up, and stop outside one with an error
   saying how to make one (except `project init`, the `template` commands and `jobs`)
-- [ ] Generated output under the project root, wherever a command runs (`frames/`,
+- [x] Generated output under the project root, wherever a command runs (`frames/`,
   `clips/`; caches and measured timings in `.flowreel/`); `-o` still overrides
 - [ ] One `cameras.yml` at the project root for shots (today beside the shot file) and
   captions; a `cameras.yml` beside a shot file is an error that says to move it

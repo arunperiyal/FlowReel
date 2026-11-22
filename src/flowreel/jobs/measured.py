@@ -3,9 +3,11 @@
 A job array is sized from one frame's peak memory and seconds. Both are measured, not
 guessed: every :func:`~flowreel.scene.rendering.render` that draws frames records the
 largest peak and the middle time of its frames, and ``shot memory`` records the frame it
-draws. The record is ``.measured.json`` in the shot's frame folder (``frames/reveal/``,
-or a draft's own folder, since a draft costs less), so the next render, on any machine
-sharing the folder, is sized from the last one.
+draws. There is one record per frame folder (``frames/reveal/``, or a draft's own folder,
+since a draft costs less), so the next render, on any machine sharing the folder, is
+sized from the last one. In a project it is machine state, kept in
+``.flowreel/measured/<frame folder>.json`` at the root (``.flowreel/measured/frames/reveal.json``);
+for a frame folder outside one, ``.measured.json`` inside the folder.
 """
 from __future__ import annotations
 
@@ -41,16 +43,31 @@ class Measured:
 
 
 def path(folder: str | Path) -> Path:
-    """The record of the frame folder ``folder``."""
-    return Path(folder) / FILE
+    """The record of the frame folder ``folder`` (see the module)."""
+    from flowreel.project.paths import STATE, find_root
+    folder = Path(folder)
+    full = folder.expanduser().resolve()
+    root = find_root(full)
+    if root is not None:
+        try:
+            rel = full.relative_to(root)
+        except ValueError:
+            rel = None
+        if rel is not None and rel.parts:
+            return root / STATE / "measured" / f"{rel}.json"
+    return folder / FILE
 
 
 def load(folder: str | Path) -> Measured | None:
-    """The record of ``folder``, or ``None`` when there is none (or it cannot be read)."""
-    try:
-        return Measured(**json.loads(path(folder).read_text()))
-    except (OSError, ValueError, TypeError):
-        return None
+    """The record of ``folder``, or ``None`` when there is none (or it cannot be read).
+    A ``.measured.json`` left in the folder by an older FlowReel is read when the
+    project has none."""
+    for p in dict.fromkeys((path(folder), Path(folder) / FILE)):
+        try:
+            return Measured(**json.loads(p.read_text()))
+        except (OSError, ValueError, TypeError):
+            continue
+    return None
 
 
 def save(folder: str | Path, measured: Measured) -> Path:

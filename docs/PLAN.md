@@ -1496,7 +1496,7 @@ branch 1)
   coefficient round the wall; `film.yml` with a title card, two captions (one with maths, one
   anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
   the full build; optionally Slurm
-- [ ] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
+- [x] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
   of the finished film from `cylinder_crossflow` into `docs/tutorial/images/`; committed
   only once branch 2 has recorded that the licence allows it; the GIF on the index page
 - [x] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a

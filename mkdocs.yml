@@ -50,6 +50,8 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+      # anchors as GitHub makes them, so a link to a heading works on both
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed:

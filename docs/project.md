@@ -4,7 +4,8 @@ Phase 7, branch 1. A FlowReel project is a folder with a `flowreel.yml` in it. E
 file of one film lives there: the shots, the captions, the cards, the cameras, the film
 file, and a link to the data. The commands work inside it, from any of its folders, and
 put what they make in the same places every time. The rules are decided in the plan
-(Section 23, question 6); this page says what they mean in use.
+(Section 23, question 6); this page says what they mean in use. All of FlowReel's rules,
+these and the others, are listed in [rules](rules.md).
 
 ## Making one
 

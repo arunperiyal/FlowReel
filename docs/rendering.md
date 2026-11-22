@@ -30,9 +30,10 @@ must pickle (a class defined at the top level of a module does).
 | draft frames | `<out>/<shot name>@<W>x<H>/frame_00000.png` |
 | frame keys | `.keys.json` in each frame folder |
 | each frame's camera | `.views.json` in each frame folder: view, picture size and stretch, for [captions in the model](captions.md#points-in-the-model) |
-| cached surfaces | `<out>/.cache/surfaces/` |
+| cached surfaces | `.flowreel/cache/surfaces/` at the project root; `<out>/.cache/surfaces/` outside a project |
 
-`out` defaults to `frames`. A frame file is written under a temporary name and renamed,
+`out` defaults to `frames` (the commands use `frames/` at the project root,
+[projects](project.md)). A frame file is written under a temporary name and renamed,
 so a frame on disk is never half written, even when a render is stopped.
 
 ## Options of `render`
@@ -41,7 +42,7 @@ so a frame on disk is never half written, even when a render is stopped.
 |---|---|---|---|
 | `frames` | list of frame numbers (0-based) | all | `range(0, 120, 10)` |
 | `source` | a source object | the shot's own | `sources.create("vtk", path=..., body=...)` |
-| `views`, `tracks` | named views and camera tracks | `cameras.yml` beside the shot file | |
+| `views`, `tracks` | named views and camera tracks | the project's `cameras.yml` (beside the shot file outside a project) | |
 | `out` | folder | `frames` | `out="build/frames"` |
 | `jobs` | whole number, frames drawn at once | `1` | `jobs=16` |
 | `threads` | threads per job | `min(4, cores // jobs)`, at least 1 | `threads=2` |
@@ -107,7 +108,7 @@ options alone; render it with `force` after changing its data.
 
 A frozen shot (`time: {frozen: ...}`) shows one step in every frame, so its surfaces are
 the same in every frame. The first frame contours each `iso` surface and stores it in
-`<out>/.cache/surfaces/`; the others read it and never load the flow. The key is the
+the surface cache (`.flowreel/cache/surfaces/` at the project root); the others read it and never load the flow. The key is the
 source (paths resolved), step, its files' sizes and times, crop, the surface's options (`field`, `level`,
 `colour_by`, `wall_gap`, `gap_body`) and the code. A level that is a track gives one surface per distinct level.
 In a render with several jobs, the first frame is drawn alone, so the other jobs read the

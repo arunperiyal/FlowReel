@@ -141,8 +141,10 @@ it does nothing.
 ## A shot's camera
 
 The shot's `camera` mapping takes exactly one of `view`, `track` and `fit`; `follow` then
-moves that view onto a body. Views and tracks are read from the `cameras.yml` beside the
-shot file.
+moves that view onto a body. Views and tracks are read from the project's one `cameras.yml`,
+at its root, wherever the shot file is in the project ([projects](project.md)); outside a
+project the library reads the one beside the shot file. A `cameras.yml` left beside a
+shot below the root is an error that says to move it.
 
 | Key | Type | Default | Example |
 |---|---|---|---|

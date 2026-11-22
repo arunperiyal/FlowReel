@@ -1,7 +1,8 @@
 # Clips: each shot encoded once
 
 Phase 4, branch 4. Before the film is [joined](build.md), every shot becomes two clips in
-`clips/` beside the film file:
+`clips/` at the project root ([projects](project.md); beside the film file outside a
+project):
 
 - the **base clip**: the shot's picture alone, at the film's rate and size, exactly as
   long as [the timeline](film.md#the-timeline-filmtimeline) plans;
@@ -93,7 +94,7 @@ draws the same picture, so nothing is. `force` rebuilds everything asked for.
 from flowreel import film
 from flowreel.film.clips import Clips
 
-c = Clips(film.load("film.yml"))           # clips/ beside film.yml; force=True to rebuild
+c = Clips(film.load("film.yml"))           # clips/ at the project root; force=True to rebuild
 for s in c.line.shots:
     clip = c.finished(s.shot.name)
     print(s.shot.name, clip.frames, "built" if clip.built else "kept", clip.path)

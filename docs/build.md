@@ -23,7 +23,7 @@ preview film_480p.mp4
 
 | Argument | Default | Meaning |
 |---|---|---|
-| `folder` | `clips/` beside the film file | where clips are kept |
+| `folder` | `clips/` at the project root (beside the film file outside a project) | where clips are kept |
 | `force` | `False` | rebuild every clip, ignoring keys |
 | `mute` | `False` | leave the sound out |
 | `preview` | none | height in pixels of a preview copy to write too |

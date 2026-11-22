@@ -1434,7 +1434,7 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
   captions; a `cameras.yml` beside a shot file is an error that says to move it
 - [x] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
-- [ ] Tests on generated projects; help text; docs: project page
+- [x] Tests on generated projects; help text; docs: project page
 
 **Branch 2: `phase7/tutorial-data`** (pyvista's `cylinder_crossflow`; independent of
 branch 1)

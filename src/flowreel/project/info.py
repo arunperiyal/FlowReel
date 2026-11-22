@@ -56,13 +56,14 @@ def human(n: int) -> str:
 @dataclass
 class ShotEntry:
     """A shot file: its ``path`` (relative to the root), ``name`` and ``source`` as
-    written, the ``frames`` drawn in ``frames/<name>/`` and an ``error`` when it cannot
-    be read."""
+    written, the ``frames`` drawn in ``frames/<name>/``, the ``drafts`` in its draft
+    folders (``frames/<name>@<W>x<H>/``) and an ``error`` when it cannot be read."""
 
     path: str
     name: str | None = None
     source: str | None = None
     frames: int = 0
+    drafts: int = 0
     error: str | None = None
 
 
@@ -97,7 +98,8 @@ class ProjectInfo:
         lines.append(f"bodies:  {names(self.bodies)}")
         lines.append(f"shots:   {len(self.shots) or 'none'}")
         for s in self.shots:
-            what = s.error or f"{s.name}, {s.frames} frame{'s' * (s.frames != 1)} drawn"
+            what = s.error or (f"{s.name}, {s.frames} frame{'s' * (s.frames != 1)} drawn"
+                               + (f" ({s.drafts} in drafts)" if s.drafts else ""))
             lines.append(f"  {s.path}: {what}")
         lines.append(f"cameras: views {names(self.views)}; tracks {names(self.tracks)}")
         lines.append(f"film:    {self.film or 'none'}")
@@ -151,8 +153,8 @@ def info(root: str | Path) -> ProjectInfo:
         try:
             data = read_yaml(p)
             entry.name, entry.source = str(data.get("name", p.stem)), _source_text(data["source"])
-            frames = root / "frames" / entry.name
-            entry.frames = len(list(frames.glob("frame_*.png"))) if frames.is_dir() else 0
+            entry.frames = len(list((root / "frames" / entry.name).glob("frame_*.png")))
+            entry.drafts = len(list((root / "frames").glob(f"{entry.name}@*/frame_*.png")))
         except Exception as exc:
             entry.error = str(exc)
         out.shots.append(entry)

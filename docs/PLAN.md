@@ -1465,7 +1465,7 @@ branch 1)
   the flow, with `velocity` split into `U`, `V`, `W` and `pressure` as `p`, and
   `wall_cylinder` extruded the same way as the body `cylinder`; it writes the licence and
   citation beside it, and a second run downloads nothing
-- [ ] A generated stand-in with the same names, fields and steps at a small size, so
+- [x] A generated stand-in with the same names, fields and steps at a small size, so
   the tutorial's test runs without the network
 - [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
   set, its source, licence and how to cite it

@@ -1,6 +1,7 @@
 """Get the tutorial's data: pyvista's ``cylinder_crossflow``, made ready for FlowReel.
 
     python examples/tutorial/get_data.py [DIR]               download and convert
+    python examples/tutorial/get_data.py [DIR] --stand-in    a small generated copy, offline
 
 The files go in ``DIR/data/cylinder_crossflow/`` (``DIR`` defaults to the current
 folder, the tutorial's project folder). The script:
@@ -30,6 +31,10 @@ The result, read with ``vtk:data/cylinder_crossflow/flow.pvd`` and the body
         LICENSE        Apache-2.0, the licence of pyvista/data
         README.md      source, author, citation, checksums
 
+``--stand-in`` writes a small case in the same format, with the same names, blocks and
+fields, and converts it the same way. It is potential flow past a cylinder on a coarse
+mesh, not the real data, so tests and a first try need no network.
+
 A second run changes nothing: the conversion is redone only when the downloaded files
 have changed. This matters because FlowReel's frame keys include each data file's
 modification time, so rewriting the same data would cause every frame to be drawn again.
@@ -39,6 +44,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 import sys
 import urllib.request
 from pathlib import Path
@@ -175,6 +181,110 @@ def convert(case: Path, out: Path) -> dict:
             "cells": flow.n_cells, "wall faces": body.n_cells}
 
 
+# ---- the stand-in ----------------------------------------------------------------------
+
+def _ensight_text(f, text: str):
+    f.write(text.encode("ascii").ljust(80, b"\0")[:80])
+
+
+def write_stand_in(folder: Path, n_around: int = 48, n_out: int = 10) -> Path:
+    """Write a small EnSight Gold case like ``cylinder_Re35`` into ``folder``: the same
+    file and block names, the same fields on the points, the same domain and cylinder.
+
+    The mesh is an O-grid from the cylinder (diameter 1, centre (2.5, 0)) to the edge of
+    the domain (x 0 to 15, y -3.75 to 3.75): ``n_around`` cells around and ``n_out``
+    rings outwards. The rings are quadrilaterals, except the outermost ring, whose
+    quadrilaterals are split into triangles so that both kinds of cell are converted. The
+    flow is potential flow past the cylinder at 35 units of speed: no wake, but a
+    velocity and a pressure that vary over the whole domain. Returns the ``.case`` file."""
+    import numpy as np
+    cx, r, speed = 2.5, 0.5, 35.0
+    x0, x1, y0, y1 = 0.0, 15.0, -3.75, 3.75
+    theta = np.linspace(0, 2 * np.pi, n_around, endpoint=False)
+    direction = np.stack([np.cos(theta), np.sin(theta)], 1)
+    # where a ray from the centre leaves the domain
+    with np.errstate(divide="ignore"):
+        tx = np.where(direction[:, 0] > 0, (x1 - cx) / direction[:, 0], (x0 - cx) / direction[:, 0])
+        ty = np.where(direction[:, 1] > 0, y1 / direction[:, 1], y0 / direction[:, 1])
+    edge = np.array([cx, 0]) + direction * np.minimum(np.abs(tx), np.abs(ty))[:, None]
+    wall = np.array([cx, 0]) + r * direction
+    s = (np.linspace(0, 1, n_out + 1) ** 1.6)[:, None, None]       # finer near the wall
+    xy = ((1 - s) * wall[None] + s * edge[None]).reshape(-1, 2)        # ring by ring
+    pts = np.column_stack([xy, np.zeros(len(xy))]).astype(np.float32)
+
+    def at(ring, k):
+        return ring * n_around + k % n_around
+    quads, tris = [], []
+    for ring in range(n_out):
+        for k in range(n_around):
+            cell = [at(ring, k), at(ring, k + 1), at(ring + 1, k + 1), at(ring + 1, k)]
+            if ring == n_out - 1:
+                tris += [cell[:3], [cell[0], cell[2], cell[3]]]
+            else:
+                quads.append(cell)
+    wall_bars = [[at(0, k), at(0, k + 1)] for k in range(n_around)]
+    outer = [[at(n_out, k), at(n_out, k + 1)] for k in range(n_around)]
+    sides = {"inlet": [], "outlet": [], "outlet_top": [], "outlet_bottom": []}
+    for a, b in outer:
+        mx, my = (pts[a, :2] + pts[b, :2]) / 2
+        gaps = {"inlet": mx - x0, "outlet": x1 - mx, "outlet_top": y1 - my, "outlet_bottom": my - y0}
+        sides[min(gaps, key=gaps.get)].append([a, b])
+
+    # potential flow past a cylinder: u - i v = U (1 - r^2 / z^2), Bernoulli for p
+    z = (pts[:, 0] - cx) + 1j * pts[:, 1]
+    w = speed * (1 - r ** 2 / z ** 2)
+    velocity = np.column_stack([w.real, -w.imag, np.zeros(len(z))])
+    pressure = 0.5 * (speed ** 2 - (velocity ** 2).sum(1))
+    vorticity = np.zeros(len(z))
+
+    parts = [("fluid", np.arange(len(pts)), [("quad4", quads), ("tria3", tris)])]
+    for name, bars in [*sides.items(), ("wall_cylinder", wall_bars)]:
+        parts.append((name, np.unique(np.array(bars)), [("bar2", bars)]))
+
+    folder.mkdir(parents=True, exist_ok=True)
+    stem = folder / "cylinder_Re35"
+    with open(f"{stem}.geo", "wb") as f:
+        for line in ("C Binary", "FlowReel stand-in for cylinder_crossflow", "not real data",
+                     "node id assign", "element id assign"):
+            _ensight_text(f, line)
+        for number, (name, nodes, elements) in enumerate(parts, 1):
+            local = {g: i for i, g in enumerate(nodes)}
+            _ensight_text(f, "part")
+            f.write(struct.pack("<i", number))
+            _ensight_text(f, name)
+            _ensight_text(f, "coordinates")
+            f.write(struct.pack("<i", len(nodes)))
+            for axis in range(3):
+                f.write(pts[nodes, axis].astype("<f4").tobytes())
+            for kind, conn in elements:
+                if not conn:
+                    continue
+                _ensight_text(f, kind)
+                f.write(struct.pack("<i", len(conn)))
+                f.write((np.array([[local[g] for g in c] for c in conn]) + 1).astype("<i4").tobytes())
+
+    def variable(path, title, values):
+        with open(path, "wb") as f:
+            _ensight_text(f, title)
+            for number, (_, nodes, _) in enumerate(parts, 1):
+                _ensight_text(f, "part")
+                f.write(struct.pack("<i", number))
+                _ensight_text(f, "coordinates")
+                v = values[nodes]
+                for column in (v.T if v.ndim == 2 else [v]):
+                    f.write(column.astype("<f4").tobytes())
+    variable(f"{stem}.scl1", "Static Pressure", pressure)
+    variable(f"{stem}.scl2", "Vorticity Magnitude", vorticity)
+    variable(f"{stem}.vel", "Velocity", velocity)
+    case = folder / CASE
+    case.write_text(
+        "FORMAT\ntype:  ensight gold\nGEOMETRY\nmodel: cylinder_Re35.geo\nVARIABLE\n"
+        "scalar per node: pressure cylinder_Re35.scl1\n"
+        "scalar per node: vorticity_mag cylinder_Re35.scl2\n"
+        "vector per node: velocity cylinder_Re35.vel\n")
+    return case
+
+
 # ---- licence and README ------------------------------------------------------------------
 
 README = """# cylinder_crossflow
@@ -216,37 +326,59 @@ them by `examples/tutorial/get_data.py`:
 
 REAL = ("One steady step of a 2D flow past a cylinder of diameter 1 at a Reynolds number "
         "of 35: the wake holds two vortices attached behind the cylinder and does not shed.")
+STAND_IN = ("**A generated stand-in, not the real data.** It has the names, blocks and "
+            "fields of pyvista's `cylinder_crossflow`, on a coarse mesh, with potential "
+            "flow past the cylinder (no wake). It was written by `get_data.py --stand-in` "
+            "so the tutorial can be tried and tested without the network. What is said "
+            "below about the source is about the real data set.")
 
 
-def _write_notes(out: Path, ensight: Path, measured: dict):
+def _write_notes(out: Path, ensight: Path, measured: dict, stand_in: bool):
     sums = "\n".join(f"- `ensight/{name}`: `{sha256(ensight / name)}`" for name in FILES)
     facts = (f"Converted: {measured['points']} points, {measured['cells']} cells; the "
              f"cylinder's diameter measured as {measured['diameter']}.")
     (out / "README.md").write_text(README.format(
-        what=REAL, folder=FOLDER, commit=COMMIT,
+        what=STAND_IN if stand_in else REAL, folder=FOLDER, commit=COMMIT,
         span=measured["span"], span_d=SPAN, facts=facts, sums=sums))
 
 
-def get(folder: str | Path = ".", *, opener=urllib.request.urlopen, say=print) -> Path:
+def get(folder: str | Path = ".", *, stand_in: bool = False, opener=urllib.request.urlopen,
+        say=print) -> Path:
     """Put the tutorial data in ``folder/data/cylinder_crossflow/`` (see the module) and
-    return that folder. ``opener`` opens a URL (``urllib.request.urlopen``; tests pass
+    return that folder. With ``stand_in``, generate the small copy instead of
+    downloading. ``opener`` opens a URL (``urllib.request.urlopen``; tests pass
     another)."""
     out = Path(folder) / "data" / NAME
     ensight = out / "ensight"
-    got = [name for name in FILES
-           if fetch(BASE + FOLDER + name, ensight / name, FILES[name], opener)]
-    if fetch(LICENSE_URL, out / "LICENSE", LICENSE_SHA256, opener):
-        got.append("LICENSE")
-    say(f"downloaded {', '.join(got)}" if got else
-        f"{ensight}: all files there already, with the right checksums")
+    if stand_in:
+        stamp_old = _stamp(out)
+        if stamp_old is None or stamp_old.get("stand_in") is not True:
+            write_stand_in(ensight)
+            (out / "LICENSE").write_text(
+                "The stand-in was generated by FlowReel's examples/tutorial/get_data.py and\n"
+                "is under FlowReel's licence (MIT). The real data set is under Apache-2.0.\n")
+            say(f"wrote a stand-in case in {ensight}")
+        else:
+            say(f"{ensight}: the stand-in is there already")
+    else:
+        old = _stamp(out)
+        if old is not None and old.get("stand_in"):
+            raise RuntimeError(f"{out} holds the stand-in; remove the folder to download "
+                               f"the real data set")
+        got = [name for name in FILES
+               if fetch(BASE + FOLDER + name, ensight / name, FILES[name], opener)]
+        if fetch(LICENSE_URL, out / "LICENSE", LICENSE_SHA256, opener):
+            got.append("LICENSE")
+        say(f"downloaded {', '.join(got)}" if got else
+            f"{ensight}: all files there already, with the right checksums")
     sums = {name: sha256(ensight / name) for name in FILES}
-    stamp = {"span": SPAN, "sha256": sums}
+    stamp = {"stand_in": stand_in, "span": SPAN, "sha256": sums}
     if _stamp(out) == stamp and all((out / f).is_file() for f in
                                     ("flow.pvd", "flow_0.vtu", "cylinder.vtp", "README.md")):
         say(f"{out}: converted already; nothing changed")
         return out
     measured = convert(ensight / CASE, out)
-    _write_notes(out, ensight, measured)
+    _write_notes(out, ensight, measured, stand_in)
     (out / "converted.json").write_text(json.dumps(stamp, indent=2) + "\n")
     say(f"converted to {out}/flow.pvd ({measured['points']} points, {measured['cells']} "
         f"cells, span {measured['span']}) and {out}/cylinder.vtp")
@@ -265,10 +397,12 @@ def main(argv=None) -> int:
                                      epilog="Reference: docs/tutorial/data.md")
     parser.add_argument("folder", nargs="?", default=".", metavar="DIR",
                         help="the project folder (default the current one)")
+    parser.add_argument("--stand-in", action="store_true",
+                        help="generate a small copy instead of downloading (no network)")
     args = parser.parse_args(argv)
     try:
-        get(args.folder)
-    except (ChecksumError, ValueError, OSError) as exc:
+        get(args.folder, stand_in=args.stand_in)
+    except (ChecksumError, RuntimeError, ValueError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     return 0

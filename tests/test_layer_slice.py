@@ -36,6 +36,22 @@ def test_position_is_a_track():
     assert layer.values(5)["position"] == pytest.approx(0.5)
 
 
+
+def test_range_is_a_track_and_recolours_the_plane():
+    layer = make(range={"from": [0, 1], "to": [0, 0.25], "frames": [0, 10], "ease": "linear"})
+    assert layer.values(0)["range"] == (0.0, 1.0)
+    assert layer.values(10)["range"] == pytest.approx((0.0, 0.25))
+    wide, narrow = (layer.mesh(f, f.values)["rgba"] for f in (frame_for(layer, 0),
+                                                            frame_for(layer, 10)))
+    assert not np.array_equal(wide, narrow)
+    assert layer.key_fields(0) != layer.key_fields(10)       # each frame drawn again
+
+
+def test_a_plain_range_stays_put():
+    layer = make(range=[0, 2])
+    assert layer.values(0)["range"] == layer.values(50)["range"] == (0.0, 2.0)
+
+
 def test_fade_weak_makes_weak_values_transparent():
     cut = rgba_of(fade_weak=[0.1, 0.5])
     speed, alpha = np.asarray(cut["speed"]), cut["rgba"][:, 3]

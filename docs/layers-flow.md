@@ -51,11 +51,15 @@ A plane through the flow, coloured by `field`.
 | `normal` | `x`, `y`, `z`, required | | `x` |
 | `position` | track, length, required | | `{from: 0.02, to: 6.0, frames: [48, 72]}` |
 | `field` | field name, required | | `vorticity_x` |
-| `range`, `colormap` | as `iso` | `[-1, 1]`, `fire_ice` | `[-2.5, 2.5]` |
+| `range` | vector track, `[low, high]` | `[-1, 1]` | `{from: [-200, 200], to: [-20, 20], frames: [0, 48]}` |
+| `colormap` | as `iso` | `fire_ice` | `viridis` |
 | `opacity` | track | `1` | `{from: 0, to: 1, frames: [0, 2.4]}` |
 | `fade_weak` | `[low, high]` | none | `[0.05, 0.5]` |
 | `near_wall` | `[low, high]`, length | none | `[0.03, 0.1]` |
 | `mask_body` | body name | all bodies | `riser` |
+
+`range` may sweep: the plane is coloured afresh in every frame, so narrowing the range
+over a frozen step brings out weaker flow. `iso` and `body` keep a fixed range.
 
 `fade_weak`: opacity rises smoothly from 0 where `|field| <= low` to 1 where
 `|field| >= high`. `near_wall`: it rises the same way with the distance from the body, so

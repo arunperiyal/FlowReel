@@ -1435,6 +1435,9 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
 - [x] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
 - [x] Tests on generated projects; help text; docs: project page
+- [x] `docs/rules.md`: every rule FlowReel imposes on a project in one page, each with
+  its reason, what happens when it is broken and a link to the details; a new rule goes
+  there in the same PR (`.claude/rules/documentation.md`)
 
 **Branch 2: `phase7/tutorial-data`** (pyvista's `cylinder_crossflow`; independent of
 branch 1)

@@ -1467,7 +1467,7 @@ branch 1)
   citation beside it, and a second run downloads nothing
 - [x] A generated stand-in with the same names, fields and steps at a small size, so
   the tutorial's test runs without the network
-- [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
+- [x] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
   set, its source, licence and how to cite it
 
 **Branch 3: `phase7/docs-site`** (the website; independent of branches 1 and 2)

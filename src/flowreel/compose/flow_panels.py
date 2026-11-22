@@ -404,6 +404,8 @@ class SectionPanel(CutPanel):
         return A, B, *(np.ma.array(np.ma.getdata(c), mask=mask) for c in comps)
 
     def draw_streamlines(self, ax, tri, state, centre, half, density) -> None:
+        """Streamlines of the cut's in-plane velocity on ``ax``, over the view ``centre``
+        +- ``half``, at matplotlib's ``density``; nothing where the flow is still."""
         from matplotlib.colors import to_rgba
         A, B, va, vb = self.flow_grid(tri, state, centre, half)
         if np.ma.count(va) < 4 or not np.ma.abs(va).max() + np.ma.abs(vb).max() > 0:

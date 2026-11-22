@@ -1522,7 +1522,7 @@ branch 1)
   accepts without a row in the guide fails the test too (ten rows were added to the
   guide, for keys only its prose had named)
 - [x] Command reference generated from the help text, with the same test
-- [ ] `README.md` brought up to date (status, what it does, a still, install, links to
+- [x] `README.md` brought up to date (status, what it does, a still, install, links to
   the site and its tutorial); a docstring check over public modules (`.claude/rules/documentation.md`)
 
 **Branch 6: `phase7/tutorial-check`** (the check; needs all the others)

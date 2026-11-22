@@ -1,25 +1,37 @@
 # FlowReel
 
 Films of flow simulations from configuration files: rendered shots, 2D panels, layouts,
-captions with mathematics, freezes, sound and assembly.
+captions with mathematics, freezes, sound and assembly. Every picture is described by a
+YAML file, so a film can be made again, changed in one place, or rendered on a cluster.
 
-**Status:** planning. The design is in [docs/PLAN.md](docs/PLAN.md). The working
-prototype, the scripts that made a 2-minute film of vortex-induced vibration for the
-AFMS 2026 video competition, is in [prototype/afms/](prototype/afms/); the package in
-`src/flowreel/` is being written from it.
+![A frame of the tutorial's film: the flow past a cylinder, coloured by vorticity](docs/tutorial/images/04-camera.png)
 
-## What it will do
+**Documentation:** <https://arunperiyal.github.io/FlowReel/>, with
+[the tutorial](https://arunperiyal.github.io/FlowReel/tutorial/), a 20-second film from a
+public data set in eight short chapters. The same pages are in [docs/](docs/index.md).
 
-- Read simulation output through adapters: flexflow PLT files first, VTK series, and
-  parametric bodies made in code.
-- Compute derived fields from velocity (vorticity, Q, lambda2, wall shear), never trusting
-  stored derived fields that depend on the mesh.
-- Render shots whose every property can change along the shot: camera, iso level,
-  slice position, opacity, colour.
-- Compose layouts and 2D panels, with live plots drawn at the film's frame rate.
-- Build the film from one YAML file: cards, captions with `$...$` maths and arrows,
-  freezes, frame-rate changes, fades and music, with caches keyed by content.
-- Run headless on clusters, in parallel, with Slurm scripts written for it.
+**Status:** Phases 1 to 6 of [the plan](docs/PLAN.md) are done: FlowReel rebuilt the
+2-minute AFMS 2026 film of vortex-induced vibration from files, the same length with its
+text in place, and rendered its shots on a Slurm cluster. Phase 7, the documentation, is
+under way. The [prototype](prototype/afms/) the package was written from is kept for its
+golden-frame tests.
+
+## What it does
+
+- **Reads simulation output** through adapters: FlexFlow's PLT files, VTK series
+  (`.pvd`, `.vtu`) and bodies made in code. Long cases are read through windows.
+- **Computes derived fields from velocity and pressure only** (vorticity, Q, lambda2,
+  wall shear, forces), never trusting stored fields that depend on the mesh.
+- **Renders shots** whose every property can change along the shot: the camera (picked
+  by eye in a camera editor), iso levels, slice positions, colour ranges, opacity.
+  Frames are cached by their content, so a change redraws only what it changes.
+- **Composes layouts and panels:** shots side by side, and matplotlib plots drawn at
+  the film's rate, with a dot moving along each history.
+- **Builds the film from one YAML file:** cards, captions with `$...$` maths, arrows
+  pinned to points of the model, freezes, frame-rate changes, fades, music, chapters,
+  subtitles and a contact sheet.
+- **Runs headless on clusters:** off-screen rendering, and Slurm jobs sized from a
+  measured frame, written and submitted for you.
 
 ## Install
 

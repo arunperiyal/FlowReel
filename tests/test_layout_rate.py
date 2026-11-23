@@ -5,7 +5,7 @@ from PIL import Image
 
 from flowreel import compose
 from flowreel.compose.rate import output_positions, times_at
-from tests.test_layout_panels import setup
+from tests.test_layout_panels import layout_project
 
 
 def test_output_positions_between_frames_and_through_holds():
@@ -25,13 +25,13 @@ def test_times_at_interpolates_and_holds_at_the_ends():
 
 
 def test_without_output_the_tile_is_composed_like_any_panel(tmp_path):
-    folder, lay = setup(tmp_path, rate="output")
+    folder, lay = layout_project(tmp_path, rate="output")
     rep = compose.layout(lay, folder / "out", panels={"processes": False})
     assert rep.count("composed") == 3 and rep.overlays == []
 
 
 def test_with_output_the_panel_is_drawn_per_output_frame(tmp_path):
-    folder, lay = setup(tmp_path, rate="output")
+    folder, lay = layout_project(tmp_path, rate="output")
     output = output_positions(3, 3, holds=[(1, 2)])               # 7 + 2 output frames
     rep = compose.layout(lay, folder / "out", output=output, panels={"processes": False})
     assert rep.count("composed") == 3                              # the flow, at its rate
@@ -49,7 +49,7 @@ def test_with_output_the_panel_is_drawn_per_output_frame(tmp_path):
 
 
 def test_a_layout_of_output_panels_only_composes_nothing(tmp_path):
-    folder, lay = setup(tmp_path, rate="output")
+    folder, lay = layout_project(tmp_path, rate="output")
     from dataclasses import replace
     lay = replace(lay, tiles=lay.tiles[1:])
     rep = compose.layout(lay, folder / "out", output=[0, 0.5, 1], panels={"processes": False})
@@ -67,7 +67,7 @@ def dot_row(path, colour=(255, 0, 0)):
 
 def test_a_dot_drawn_between_two_flow_frames_lies_between_their_values(tmp_path):
     import yaml
-    folder, _ = setup(tmp_path)
+    folder, _ = layout_project(tmp_path)
     (folder / "motion.yml").write_text(yaml.safe_dump(
         {"type": "series", "size": [200, 150], "times": [0.0, 1.0, 2.0],
          "x": {"range": [0, 2]}, "y": {"range": [0, 4]}, "legend": False,

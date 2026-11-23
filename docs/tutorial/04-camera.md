@@ -14,9 +14,9 @@ $ flowreel camera edit shots/wake.yml --track approach
 
 A window opens on the shot's scene, seen from the view `main`.
 
-1. **The start.** Zoom in with the mouse wheel until the domain fills the window. Leave
-   the **Frame** slider at 0 and press `s`: the view is saved as the track's key at
-   frame 0.
+1. **The start.** `main` shows the whole domain, edge to edge. Zoom out a little with
+   the mouse wheel, so it has a margin. Leave the **Frame** slider at 0 and press `s`:
+   the view is saved as the track's key at frame 0.
 2. **The end.** Move the Frame slider to 96. Zoom in on the cylinder, and pan with a
    middle drag (or shift and left drag) until the cylinder sits a little left of
    centre, with the wake behind it. Press `s`.
@@ -33,7 +33,7 @@ and open it again.
 
 ```yaml
 views:
-  - {name: main, position: [7.5, 0, 35.63858440322167], focal: [7.5, 0, 0], up: [0, 1, 0], view_angle: 30}
+  - {name: main, position: [7.5, 0, 16.58431881165276], focal: [7.5, 0, 0], up: [0, 1, 0], view_angle: 30}
   - {name: approach_0000, position: [7.5, 0, 17.5], focal: [7.5, 0, 0], up: [0, 1, 0], view_angle: 30}
   - {name: approach_0096, position: [3.6, 0, 8.2], focal: [3.6, 0, 0], up: [0, 1, 0], view_angle: 30}
 tracks:

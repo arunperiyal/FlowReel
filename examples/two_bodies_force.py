@@ -6,7 +6,7 @@ Run from a checkout:
 
 It writes a small FlexFlow-style PLT file to a temporary folder: a unit cube of
 tetrahedra with a shear flow ``U = s z`` and two walls, the floor (triangles, "plate") and
-the ceiling (quadrilaterals, "lid"). The ``flexflow`` adapter finds the zones itself; the
+the ceiling (quadrilaterals, "lid"). The ``plt`` adapter finds the zones itself; the
 total force on each wall is then ``mu s`` times its area, along +x on the floor and -x on
 the ceiling. Nothing is rendered and no file is kept.
 """

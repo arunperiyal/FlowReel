@@ -27,7 +27,7 @@ SOURCE, flowreel.yml has only comments.
 before SOURCE is read, so SOURCE can name it there.
 
 positional arguments:
-  SOURCE              adapter:location, e.g. flexflow:CASE (optional)
+  SOURCE              adapter:location, e.g. plt:CASE or vtk:FILE (optional)
 
 options:
   -h, --help          show this help message and exit
@@ -40,7 +40,7 @@ options:
   --force             overwrite flowreel.yml (and replace a data link) if it exists
 
 examples:
-  flowreel project init flexflow:bare/BR0SG0U1P0     one body per surface zone
+  flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
   flowreel project init vtk:flow.pvd --body body.vtp --step 5000
   flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
                                                     the body named cylinder

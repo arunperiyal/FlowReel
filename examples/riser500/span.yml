@@ -3,7 +3,7 @@
 # with the supports of flowreel.yml. The span is drawn at a fiftieth of its length so
 # it fits the frame, the frame says so, and a ruled box gives true stations.
 name: span
-source: {adapter: flexflow, path: case}
+source: {adapter: plt, path: case}
 time: {steps: [0, 7]}
 camera: {view: whole}
 size: [640, 360]

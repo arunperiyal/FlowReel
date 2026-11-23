@@ -3,7 +3,7 @@
 type: strip
 size: [960, 270]
 times: [0, 0.5, 1.0, 1.5]
-source: {adapter: flexflow, path: case}
+source: {adapter: plt, path: case}
 body: cylinder
 side: y
 field: wall_shear

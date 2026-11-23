@@ -2,7 +2,7 @@
 # angle from data/pendulum.csv, its pivot on the riser's centre at station 250. The
 # window and the camera stay with that station, so a step reads 12 of the 500.
 name: pendulum
-source: {adapter: flexflow, path: case, margin: 1.0}
+source: {adapter: plt, path: case, margin: 1.0}
 time: {steps: [0, 7]}
 crop:
   around: {body: riser, station: 250}

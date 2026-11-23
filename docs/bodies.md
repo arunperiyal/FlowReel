@@ -5,7 +5,7 @@ runs, how thick it is, or how its ends are held. FlowReel does not look for that
 solver's other files. It is written once, in the project's `flowreel.yml`, and every
 shot uses the body by its name.
 
-Every body is a surface zone of the source (for flexflow, a surface zone of the PLT
+Every body is a surface zone of the source (for `plt`, a surface zone of the PLT
 file). A slender one, given an `axis`, is a **beam body**: it has a span, a diameter,
 stations and supports. Any other body (a ball, a wall) has a name, a zone and series
 only.

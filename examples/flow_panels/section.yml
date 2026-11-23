@@ -4,7 +4,7 @@
 type: section
 size: [960, 540]
 times: [0, 0.5, 1.0, 1.5]
-source: {adapter: flexflow, path: case}
+source: {adapter: plt, path: case}
 body: cylinder
 station: 2.0
 field: U

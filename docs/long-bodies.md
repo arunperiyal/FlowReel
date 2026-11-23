@@ -43,7 +43,7 @@ still works as before, and `outline: {bounds: crop}` draws whichever box the fra
 
 ## Reading only the window
 
-The `flexflow` adapter reads a crop through a **window**. A PLT file stores each
+The `plt` adapter reads a crop through a **window**. A PLT file stores each
 variable as one block of every node's values, so the window's nodes of the asked
 variables are read through a memory map, and nothing else leaves the disk. A body's
 wall is read the same way: only its own nodes.
@@ -62,14 +62,14 @@ wall is read the same way: only its own nodes.
 - **The result is the same** as reading the zone whole and cutting it, as long as the
   margin covers the motion. `window: false` reads whole, to compare.
 
-| Option of the `flexflow` source | Meaning | Default |
+| Option of the `plt` source | Meaning | Default |
 |---|---|---|
 | `window` | read a crop through a window | `true` |
 | `margin` | grow the window by this much on every side (length unit): at least the largest displacement | `0` |
 | `cache` | folder of the span index; `null` keeps it in memory only | `~/.cache/flowreel/windows` |
 
 ```yaml
-source: {adapter: flexflow, path: cases/riser500, margin: 2.0}
+source: {adapter: plt, path: cases/riser500, margin: 2.0}
 ```
 
 ## `stretch`
@@ -141,7 +141,7 @@ build once are the two numbers to look at.
 
 ## Memory
 
-`memory_per_step` of a cropped flexflow source counts the window's nodes and cells, not
+`memory_per_step` of a cropped `plt` source counts the window's nodes and cells, not
 the domain's, and `shot memory` prints it beside the measured peak. Before drawing,
 `shot render` estimates one job as 0.7 GB (Python, VTK and the reader) plus the data of
 the frame that reads the most, sampling a few frames of a travelling window. It refuses

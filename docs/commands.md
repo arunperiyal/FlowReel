@@ -463,7 +463,7 @@ has only comments.
 
 | Option | Default | Meaning |
 |---|---|---|
-| `SOURCE` | none | `adapter:location`: `flexflow:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
+| `SOURCE` | none | `adapter:location`: `plt:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
 | `--body [NAME=]FILE` | none | body file or pattern, for a source that reads it separately (`vtk`). Alone, `FILE` is the body `body`; `NAME=FILE` names it, and is given once per body: `--body cylinder=wall.vtp` |
 | `--step N` | the first | step whose surfaces are measured |
 | `--link PATH` | none | a symbolic link `DIR/data/<name of PATH>` to the data, made before `SOURCE` is read; data is never copied |

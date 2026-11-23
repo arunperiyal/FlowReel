@@ -1661,7 +1661,7 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
   FlexFlow's `.othd` and `.oisd` files stays as it is (Section 23, Data formats; one
   body only, Section 24, q. 4), described as a quick look at a FlexFlow case, not as the
   way
-- [ ] Docs: the sources page (`plt` first; `flexflow` as its other name), the commands
+- [x] Docs: the sources page (`plt` first; `flexflow` as its other name), the commands
   and project pages, the YAML and command references, the examples (`plt:` in place of
   `flexflow:`); `project info` prints the source as `plt:`
 

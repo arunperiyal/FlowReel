@@ -2,7 +2,7 @@
 # Each frame reads the window's part of the PLT file and nothing else. margin covers
 # the riser's motion (0.6 at most) so no cell is lost when it moves.
 name: travel
-source: {adapter: flexflow, path: case, margin: 1.0}
+source: {adapter: plt, path: case, margin: 1.0}
 time: {steps: [0, 7]}
 crop:
   around: {body: riser, station: {from: 20, to: 480, frames: [0, 7], ease: linear}}

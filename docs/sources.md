@@ -274,14 +274,18 @@ it whole and cropped, and builds the grooved cylinder at three stages of carving
 PYTHONPATH=src python examples/sources_vtk_geometry.py
 ```
 
-## The `flexflow` adapter
+## The `plt` adapter
 
-Reads a FlexFlow case folder with FlowReel's own reader for the solver's Tecplot binary
-files (`flowreel.sources.flexflow.plt`); FlexFlow itself is not needed.
+Reads a case folder of Tecplot binary PLT files (`#!TDV112`, block data) with FlowReel's
+own reader (`flowreel.sources.plt.reader`), whatever wrote them: no solver needs to be
+installed. A case is a folder of `<name>.<step>.plt` files, one a time step, in it or in
+a `binary/` folder in it; FlexFlow's cases are laid out so. The adapter's first name,
+`flexflow`, still works (`flexflow:CASE`, `flowreel.sources.flexflow`), so shots written
+with it need no change.
 
 ```python
-from flowreel.sources.flexflow import FlexflowSource
-src = FlexflowSource("cases/cylinder_12")
+from flowreel.sources.plt import PltSource
+src = PltSource("cases/cylinder_12")
 src.steps()                       # [5000, 5005, ...]
 flow = src.flow(5000, ["U", "V", "W", "p"], crop=None)
 wall = src.body(5000)
@@ -295,7 +299,7 @@ lift = src.series("force")
 | `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
 | `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
 | `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](long-bodies.md#reading-only-the-window) |
-| `name` | text | `flexflow` | label of the source |
+| `name` | text | `plt` | label of the source |
 
 - **Time** is the solution time stored in each file.
 - **Position:** the files hold the deformed mesh, so the flow and the body are at the
@@ -328,14 +332,14 @@ boundary layer over one spanwise cell, two steps), cut with `tools/cut_plt.py`.
 **What is tested on real output and what is not.** The real files available are one
 case: bricks with one quadrilateral wall. Tetrahedra, triangle walls, several wall zones
 and a file without a wall are tested on files generated with
-`flowreel.sources.flexflow.plt_write.write_plt`, which writes the layout the reader
+`flowreel.sources.plt.writer.write_plt`, which writes the layout the reader
 expects. That proves the adapter handles those layouts as FlowReel understands them; a
 quirk of the solver's writer on such meshes would only show on real output.
 
 ### Writing a PLT file
 
 ```python
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt.writer import write_plt
 write_plt("flow.1.plt", ["X", "Y", "Z", "U", "V", "W", "Pressure"], columns,
           [("fluid", 4, tets), ("wing", 2, triangles)], time=0.5)
 ```

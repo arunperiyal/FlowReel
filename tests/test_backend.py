@@ -32,21 +32,16 @@ def test_environment_sets_window_and_threads():
 
 
 @pytest.mark.parametrize("name", ["osmesa", "egl"])
-def test_installed_backend_makes_its_window(name, monkeypatch):
+def test_installed_backend_makes_its_window(name):
+    """Drawn in a fresh process, as jobs check draws: one process cannot load two
+    OpenGL libraries, and the tests' own windows are of one kind (conftest.py)."""
     if not B.installed(name):
         pytest.skip(f"{name} is not installed")
-    import pyvista as pv
-    monkeypatch.setenv(B.ENV, B.WINDOW_CLASS[name])
-    try:
-        plotter = pv.Plotter(off_screen=True, window_size=[32, 16])
-        plotter.add_mesh(pv.Sphere())
-        plotter.screenshot(return_img=True)
-    except (RuntimeError, OSError) as error:
-        pytest.skip(f"{name} cannot open a window here: {error}")
-    try:
-        assert B.window_class(plotter) == B.WINDOW_CLASS[name]
-    finally:
-        plotter.close()
+    from flowreel.jobs.check import try_backend
+    result = try_backend(name)
+    if result.status != "works":
+        pytest.skip(f"{name} cannot open a window here: {result.error}")
+    assert result.status == "works"
 
 
 def test_vtks_own_filters_are_used(monkeypatch):

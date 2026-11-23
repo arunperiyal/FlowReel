@@ -1647,15 +1647,47 @@ tutorial met; then the rest.
   the *Time step* slider still moves alone
 - [x] Tests (the editor's state, without a window), the camera editor page
 
-**Branch 9: `phase8/tutorial-unsteady`**
-- [ ] A public unsteady data set of vortex shedding whose licence allows it to be shown
+**Branch 9: `phase8/sources-plt`** (added 2026-11-23, asked by Arun: FlowReel reads PLT
+files without depending on FlexFlow, and takes time series from CSV; Section 24, q. 10)
+- [ ] The adapter that reads Tecplot binary PLT files is called `plt`: `plt:CASE` in a
+  shot, `{adapter: plt, path: ...}`, `project init plt:CASE`; its code moves to
+  `flowreel.sources.plt` and its class to `PltSource`. `flexflow` stays as a second name
+  of the same adapter, so the shots written so far (the AFMS film's) keep working, and
+  the old import path keeps working too
+- [ ] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
+  wrote them; the adapter's errors and docs name the files it wants, not the solver
+- [ ] Time series come from CSV files declared under a body in `flowreel.yml`
+  ([bodies](bodies.md#series)), the documented way for every source; the reading of
+  FlexFlow's `.othd` and `.oisd` files stays as it is (Section 23, Data formats; one
+  body only, Section 24, q. 4), described as a quick look at a FlexFlow case, not as the
+  way
+- [ ] Docs: the sources page (`plt` first; `flexflow` as its other name), the commands
+  and project pages, the YAML and command references, the examples (`plt:` in place of
+  `flexflow:`); `project info` prints the source as `plt:`
+
+**Branch 10: `phase8/tutorial-unsteady`**
+- [x] A public unsteady data set of vortex shedding whose licence allows it to be shown
   (as `cylinder_crossflow`'s does); if none is found, ask Arun before using generated
-  data instead
+  data instead. Chosen by Arun 2026-11-24: Boudina's "Numerical simulation data of a
+  two-dimensional flow around a fixed circular cylinder" (Zenodo record 5039610, DOI
+  10.5281/zenodo.5039610, CC BY 4.0; Polytechnique Montréal, solver Cadyf, Re = 100).
+  `fixed_cylinder_atRe100` (1.17 GB, MD5 `fb3135ad...`) is text: `Re Ur`, `Nt N`, then
+  per step its time and N lines `x y U V p`; 201 steps from t = 400 to 500, 82,872
+  nodes, no elements. `Re100_fixe00.reactions` (329 kB, MD5 `9eeb693d...`): `t Fx Fy
+  Mz` on the cylinder, t = 0 to 500. The data script downloads both with their
+  checksums, triangulates the nodes (the cylinder's inside left out), gives the 2D mesh
+  a span as the first tutorial's does, writes each step as a PLT file, and writes the
+  force as the body's CSV series
 - [ ] A second tutorial, its own pages under `docs/tutorial/`: time tracks, a freeze on a
   moving flow, and a render of many steps as a Slurm job array; its data script and
   its project under `examples/`, tested by following it as the first one is
+- [ ] Its flow is read as PLT files with `plt:`, and the body's time history (its
+  displacement, or the force on it) from a CSV file declared in `flowreel.yml`, drawn
+  in a panel beside the shot
+- [ ] The first tutorial names `plt:` beside `vtk:` where it lists the sources a project
+  can read (chapters 2 and 8)
 
-Branches are stacked in the order above. Branches 4 to 8 do not use each other's code;
+Branches are stacked in the order above. Branches 4 to 9 do not use each other's code;
 they could be done by agents in parallel, but each one regenerates the reference pages,
 so they are done one after another.
 
@@ -1733,6 +1765,7 @@ New ones are added here as the work raises them.
 | 7 | ~~Which public data set does the tutorial use?~~ **Decided 2026-11-22: pyvista's `cylinder_crossflow`** (`pyvista.examples.download_cylinder_crossflow`). Looked at: 0.7 MB of EnSight (`cylinder_Re35.case`), one steady step of a 2D flow past a cylinder of diameter 1 at Re 35, domain x 0 to 15, y -3.75 to 3.75, z 0; blocks `fluid` (14 831 points, quads and triangles) with `velocity`, `pressure` and `vorticity_mag` (the last not used, Section 6), the boundaries `inlet`, `outlet`, `outlet_top`, `outlet_bottom`, and the wall `wall_cylinder`. **Licence checked 2026-11-22 (branch 2): it may be shown.** The files are in `pyvista/data` (`Data/EnSight/CylinderCrossflow/`), added in June 2021 by Matthew Flamm, a PyVista maintainer, who made it with ANSYS Fluent 20.1 and exported it as EnSight Gold (pyvista/data PR 2). He says it "was not generated with accuracy as the goal ... and was not validated": good for pictures, not for numbers. It has no licence of its own, so the repository's applies: Apache-2.0, which allows copying, changing and showing it, a film and stills from it included, provided the licence and a notice go with any copy of the data. `get_data.py` writes both beside the data. | Phase 7, branch 2 |
 | 8 | ~~How is the documentation, and the tutorial in it, presented?~~ **Decided 2026-11-22** (asked before branch 2): (a) a website, MkDocs Material on GitHub Pages, rather than Markdown read on GitHub, a notebook or a walkthrough inside the shell; (b) it covers all of `docs/` in three parts, Tutorial, User guide and Reference, and leaves out `PLAN.md`; (c) `mkdocs build --strict` on every PR, deployed on every push to `main`; (d) the tutorial one page per chapter under `docs/tutorial/`; (e) a still at the end of each chapter and a short GIF of the finished film, rendered from `cylinder_crossflow` by a script, committed once its licence allows. | Phase 7, branches 3 and 4 |
 | 9 | matplotlib 3.11 lays text out a few pixels lower than 3.10 (its text layout changed; setting the old `text.hinting`, `text.kerning_factor` and `mathtext.default` does not bring it back), so captions, cards and panel labels no longer match the golden pictures drawn by the prototype. Until this is decided FlowReel declares `matplotlib<3.11` (Phase 8, branch 1). Lift the cap by placing text from the font's own metrics (the same on every version) and accepting new golden pictures drawn by FlowReel, or keep the prototype's pictures and the cap? | Before matplotlib 3.10 leaves conda-forge's newest builds |
+| 10 | ~~What is the adapter that reads PLT files called, and where do time series come from?~~ **Decided 2026-11-23** (Arun): the adapter is `plt`, named after the files it reads rather than the solver that wrote them, since FlowReel does not depend on FlexFlow; `flexflow` stays as its second name so existing shots keep working. Time series come from CSV files declared in `flowreel.yml`; FlexFlow's `.othd` and `.oisd` reading stays as Section 23 has it. Both go into the second tutorial. | Phase 8, branches 9 and 10 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

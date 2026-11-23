@@ -35,6 +35,14 @@ Reference: docs/guide/projects/project.md, docs/guide/projects/bodies.md and doc
     "info": """examples:
   flowreel project info                             the project of this folder
   flowreel project info films/afms""",
+    "sections": """examples:
+  flowreel project sections plt:data/bare --body bare --param mu=0.001
+                                                    every step, 48 sections, into series/
+  flowreel project sections plt:data/bare --body bare --param mu=0.001 --steps 5000 5600 -j 8
+  flowreel project sections vtk:run/flow.pvd --sections 96 -o series/riser_lift.csv
+
+Declare what it writes under the body in flowreel.yml (the command prints the lines)
+and draw it with a map panel. Reference: docs/guide/projects/bodies.md#series.""",
     "clean": """examples:
   flowreel project clean                            the caches (.flowreel/cache/)
   flowreel project clean --frames --dry-run         what removing the frames would free
@@ -157,6 +165,38 @@ class ProjectCommand(BaseCommand):
         n.add_argument("folder", nargs="?", metavar="DIR",
                        help="a folder in the project (default: use project:DIR, else here)")
 
+        s = actions.add_parser(
+            "sections", help="a body's sectional force along its axis, as a series",
+            description=textwrap.fill(
+                "Compute the force on equal sections of a body along its axis, step by "
+                "step, from the flow next to the wall (pressure and wall shear), and write "
+                "it as a series in long form: a CSV of time, section, fx, fy, fz per unit "
+                "length (and cx, cy, cz, divided by q D, when flowreel.yml gives rho and "
+                "u_inf under reference and the body its diameter), and a stations file. "
+                "Steps already in the CSV are kept, so a run cut short goes on where it "
+                "stopped.", 78),
+            epilog=EXAMPLES["sections"], formatter_class=argparse.RawDescriptionHelpFormatter)
+        s.add_argument("source", metavar="SOURCE", help="adapter:location, e.g. plt:data/bare")
+        s.add_argument("--body", metavar="NAME",
+                       help="the body, as flowreel.yml names it (default the one body)")
+        s.add_argument("--axis", choices=("x", "y", "z"),
+                       help="along which the sections are stacked (default the body's axis)")
+        s.add_argument("--sections", type=int, default=48, metavar="N",
+                       help="equal sections over the body's extent (default 48)")
+        s.add_argument("--steps", type=int, nargs=2, metavar=("FIRST", "LAST"),
+                       help="the saved steps from FIRST to LAST (default every one)")
+        s.add_argument("--every", type=int, default=1, metavar="N",
+                       help="every Nth of those steps (default 1)")
+        s.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
+                       help="a parameter of the wall fields: mu (dynamic viscosity, needed "
+                            "for the shear), p_inf (default 0)")
+        s.add_argument("--margin", type=float, default=0.5, metavar="L",
+                       help="flow read round the wall, length unit (default 0.5)")
+        s.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
+                       help="steps computed at once, each in its own process (default 1)")
+        s.add_argument("-o", "--out", metavar="FILE",
+                       help="the CSV (default series/<body>_sections.csv at the project root)")
+
         c = actions.add_parser(
             "clean", help="remove caches, frames or clips the project made",
             description=textwrap.fill(
@@ -205,6 +245,62 @@ class ProjectCommand(BaseCommand):
             ctx.out(f"nothing to remove ({', '.join(what)})")
         elif done.removed:
             ctx.out(f"{verb} {human(done.total)} in all")
+        return 0
+
+    def do_sections(self, args, ctx):
+        from flowreel.fields.basic import dynamic_pressure
+        from flowreel.project import load_project
+        from flowreel.project.measure import long_axis
+        from flowreel.project.names import declaration, declare, one_body
+        from flowreel.project.paths import PROJECT_FILE
+        from flowreel.project.sections import write
+        root = project_root(ctx)
+        project = load_project(root / PROJECT_FILE)
+        if args.sections < 1 or args.every < 1 or args.jobs < 1:
+            raise CommandError("--sections, --every and --jobs must be at least 1")
+        params = {}
+        for item in args.param:
+            key, sep, value = item.partition("=")
+            try:
+                params[key.strip()] = float(value)
+            except ValueError:
+                sep = ""
+            if not sep or not key.strip():
+                raise CommandError(f"--param expects KEY=NUMBER, got {item!r}")
+        source = declare(open_source(args.source), project)
+        try:
+            name = args.body or one_body(source)
+            steps = list(source.steps())
+            if args.steps:
+                first, last = args.steps
+                steps = [s for s in steps if first <= s <= last]
+                if not steps:
+                    raise CommandError(f"no saved step from {first} to {last}")
+            steps = steps[::args.every]
+            body = declaration(source, name)
+            axis = args.axis or (body.axis if body else None) or long_axis(source.body(steps[0], name))
+            if axis is None:
+                raise CommandError(f"no axis for {name!r}: declare it in flowreel.yml or "
+                                   f"give --axis")
+            ref = project.reference
+            q_d = (dynamic_pressure(ref["rho"], ref["u_inf"]) * body.diameter
+                   if body and body.diameter and {"rho", "u_inf"} <= set(ref) else None)
+            out = Path(args.out) if args.out else root / "series" / f"{name}_sections.csv"
+            csv, stations, n = write(source, name, out, axis=axis, sections=args.sections,
+                                     steps=steps, params=params, margin=args.margin,
+                                     q_d=q_d, jobs=args.jobs, say=ctx.out)
+        except TypeError as exc:                    # a wall field without its parameter
+            raise CommandError(f"{exc} (give it with --param, for example --param mu=0.001)") from None
+        except (LookupError, ValueError) as exc:
+            raise CommandError(str(exc.args[0]) if isinstance(exc, LookupError) and exc.args
+                               else str(exc)) from None
+        rel = lambda p: p.relative_to(root) if p.is_relative_to(root) else p
+        ctx.out(f"wrote {rel(csv)} ({n} new steps) and {rel(stations)}"
+                + ("" if q_d else "; no coefficients: give reference rho and u_inf in "
+                   "flowreel.yml and the body's diameter"))
+        ctx.out(f"declare it under bodies.{name} in flowreel.yml:\n"
+                f"    series:\n      sections:\n        file: {rel(csv)}\n"
+                f"        by: section\n        stations: {rel(stations)}")
         return 0
 
     def do_init(self, args, ctx):

@@ -1533,6 +1533,30 @@ branch 1)
 - [ ] By a new user: someone other than Arun makes a 20 s film from the tutorial; what
   they made and what they asked recorded here
 
+Rehearsal, 2026-11-23 (not the run above: done by Claude, who knows FlowReel, on
+airavata). A clean clone of main into a new environment, `flowreel_rehearsal`
+(`CONDA_ENV_NAME=... ./install.sh -y --no-alias`, so Arun's `flexflow_env` and shell
+were left alone): VTK 9.7.2 and pyvista 0.49.2 from conda-forge, the versions a new
+user gets. Real data; chapter 4 by its no-display route; the full-size renders on node1
+through `srun`. Computer time, reading left out: install 45 s; chapter 2, 65 s with the
+download; chapters 3 to 6, 8 to 21 s each; chapter 7, 2 min of rendering at -j 4 and
+24 s of `film check`; the build 4 s; the chain of chapter 8 on Slurm, under 2 min. The
+film came out at 20.00 s. What a reader would have stopped at, each fixed in a commit
+on this branch naming its chapter:
+
+- chapter 2: `project init`'s view `main` left the domain at 40% of the picture's
+  width; `project info` printed `source: none` and a film shot with no frames, where the
+  page said otherwise
+- chapter 3: two lines of VTK-m warning on every frame (conda-forge's VTK 9.7); the
+  page's picture was drawn from chapter 4's track, not from `main`
+- chapter 4: `--save-vtp` warned of a bad X server connection
+- chapter 7: matplotlib warned twice that it had no 'cursive' font
+- chapters 7 and 8: the pages said `film check` builds every clip; it builds those with
+  a caption, so the title's clip is built by the first `film build`
+- chapter 8: the render jobs stopped in 3 s, sized from the measured 0.63 GB a frame
+  but checked inside the job by the source's estimate of 0.7 GB; `jobs status` counted
+  a starting task twice and printed Slurm's fields raw
+
 Left out of Phase 7: translations, video tutorials, and a reference of the Python
 library generated from its docstrings (the site documents the commands and YAML files).
 

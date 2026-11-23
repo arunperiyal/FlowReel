@@ -283,6 +283,217 @@ class Contour(Layer):
             plotter.add_mesh(lines, color=v["colour"], **common)
 
 
+SEED_KINDS = ("line", "plane", "round")
+_SEED_KEYS = {"line": ("from", "to", "count"),
+              "plane": ("normal", "position", "lo", "hi", "counts"),
+              "round": ("body", "station", "radius", "count")}
+
+
+@register
+class Streamlines(Layer):
+    """Streamlines of the flow, traced from seed points both ways along the velocity.
+
+    Options: ``seeds`` (required), exactly one of ``line: {from: [x, y, z], to: [x, y,
+    z], count: N}`` (points spaced evenly, ends included), ``plane: {normal: x|y|z,
+    position: P, lo: [a, b], hi: [a, b], counts: [n, m]}`` (a grid on the plane; ``a``
+    and ``b`` are the two other axes in x, y, z order) or ``round: {body: NAME, station:
+    S, radius: R, count: N}`` (a ring about the body's axis at ``station``, ``radius``
+    times its diameter, default 0.75; the body may be left out when there is one);
+    ``length`` (length unit; default the flow's diagonal) is how far each line runs each
+    way; ``style`` ``lines`` (``width`` in pixels) or ``tubes`` (``radius``, length unit,
+    default 0.2 % of the diagonal); ``colour`` (track), or ``field`` with ``range`` and
+    ``colormap``; ``opacity`` (track); ``relative`` (default false): traced in the
+    velocity relative to the body, which moves at the speed of its centre between the
+    saved steps either side, as the section panel's streamlines are. ``true`` takes the
+    body and station of ``round`` seeds; with other seeds give ``{body: NAME, station:
+    S}``.
+    """
+
+    name = "streamlines"
+    needs_flow = True
+    options = (
+        Option("seeds", track=False, required=True, doc="line, plane or round",
+               example={"line": {"from": [-1.0, -0.5, 0.0], "to": [-1.0, 0.5, 0.0],
+                                 "count": 20}}),
+        Option("length", track=False, default=None,
+               doc="how far each line runs each way, length unit; default the diagonal"),
+        Option("style", "choice", choices=("lines", "tubes"), default="lines"),
+        Option("width", "number", default=2.0, doc="line width, pixels"),
+        Option("radius", track=False, default=None,
+               doc="tube radius, length unit; default 0.2% of the diagonal"),
+        Option("colour", "colour", default="#ffffff"),
+        Option("field", track=False, default=None, doc="colour the lines by this field"),
+        Option("range", "vector", default=(-1.0, 1.0), doc="[low, high] of the colour map"),
+        Option("colormap", track=False, default="fire_ice"),
+        Option("opacity", "number", default=1.0),
+        Option("relative", track=False, default=False,
+               doc="relative to the body: true (round seeds) or {body, station}"),
+    )
+
+    @classmethod
+    def check(cls, raw: dict, check) -> None:
+        seeds = check.at("seeds").mapping(raw["seeds"], SEED_KINDS)
+        given = [k for k in SEED_KINDS if k in seeds]
+        if len(given) != 1:
+            raise check.at("seeds").error(f"give exactly one of {', '.join(SEED_KINDS)}")
+        kind = given[0]
+        at = check.at("seeds", kind)
+        spec = at.mapping(seeds[kind], _SEED_KEYS[kind])
+        if kind == "line":
+            for key in ("from", "to"):
+                _point(spec, key, 3, at)
+            _count(spec, "count", at)
+        elif kind == "plane":
+            at.at("normal").choice(spec.get("normal"), ("x", "y", "z"))
+            at.at("position").number(spec.get("position"))
+            for key in ("lo", "hi"):
+                _point(spec, key, 2, at)
+            counts = spec.get("counts")
+            if not (isinstance(counts, list) and len(counts) == 2):
+                raise at.at("counts").error(f"expected [n, m], got {counts!r}")
+            for k, n in enumerate(counts):
+                if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+                    raise at.at("counts", k).error(f"expected a whole number >= 1, got {n!r}")
+        else:
+            if "station" not in spec:
+                raise at.error("'round' needs 'station' (where along the body's axis)")
+            at.at("station").number(spec["station"])
+            if spec.get("radius") is not None and at.at("radius").number(spec["radius"]) <= 0:
+                raise at.at("radius").error("must be positive")
+            _count(spec, "count", at)
+        for key in ("length", "radius"):
+            if raw.get(key) is not None and check.at(key).number(raw[key]) <= 0:
+                raise check.at(key).error("must be positive")
+        relative = raw.get("relative", False)
+        if isinstance(relative, dict):
+            rel = check.at("relative").mapping(relative, ("body", "station"))
+            if "station" not in rel:
+                raise check.at("relative").error("needs 'station' (where to take the body's speed)")
+            check.at("relative", "station").number(rel["station"])
+        elif not isinstance(relative, bool):
+            raise check.at("relative").error(
+                f"expected true, false or {{body, station}}, got {relative!r}")
+        elif relative and kind != "round":
+            raise check.at("relative").error(
+                "true takes the body and station of round seeds; give {body: NAME, "
+                "station: S} with line or plane seeds")
+
+    @staticmethod
+    def _ring(data, spec) -> np.ndarray:
+        from flowreel.project.measure import long_axis
+        from flowreel.project.names import declaration, one_body
+        from flowreel.scene.framing import body_centre
+        name = spec.get("body") or one_body(data.source)
+        surface = data.body(name)
+        body = declaration(data.source, name)
+        axis = (body.axis if body else None) or long_axis(surface) or "z"
+        station = float(spec["station"])
+        slab = 0.25 * body.diameter if body and body.diameter else None
+        centre = np.asarray(body_centre(surface, station, axis, slab), float)
+        k = "xyz".index(axis)
+        if body and body.diameter:
+            diameter = body.diameter
+        else:                                # measured: the section's width
+            from flowreel.project.measure import section
+            ring = np.delete(np.asarray(section(surface, station, axis, slab)) - centre, k, 1)
+            diameter = 2 * float(np.linalg.norm(ring, axis=1).max())
+        r = float(spec.get("radius") or 0.75) * diameter
+        n = int(spec.get("count", 24))
+        u, v = [i for i in range(3) if i != k]
+        angle = np.linspace(0, 2 * np.pi, n, endpoint=False)
+        out = np.tile(centre, (n, 1))
+        out[:, u] += r * np.cos(angle)
+        out[:, v] += r * np.sin(angle)
+        return out
+
+    def seed_points(self, data, seeds) -> np.ndarray:
+        """The seed points ``(n, 3)`` for the ``seeds`` option, at this frame."""
+        kind = next(k for k in SEED_KINDS if k in seeds)
+        spec = seeds[kind]
+        if kind == "line":
+            a, b = np.asarray(spec["from"], float), np.asarray(spec["to"], float)
+            t = np.linspace(0, 1, int(spec.get("count", 20)))[:, None]
+            return a + t * (b - a)
+        if kind == "plane":
+            k = "xyz".index(spec["normal"])
+            u, v = [i for i in range(3) if i != k]
+            (lo_a, lo_b), (hi_a, hi_b) = spec["lo"], spec["hi"]
+            n, m = spec["counts"]
+            A, B = np.meshgrid(np.linspace(lo_a, hi_a, n), np.linspace(lo_b, hi_b, m))
+            out = np.zeros((A.size, 3))
+            out[:, k], out[:, u], out[:, v] = float(spec["position"]), A.ravel(), B.ravel()
+            return out
+        return self._ring(data, spec)
+
+    def _body_speed(self, data, v) -> np.ndarray:
+        from flowreel.compose.flow_cut import body_velocity
+        from flowreel.project.measure import long_axis
+        from flowreel.project.names import declaration, one_body
+        relative, seeds = v["relative"], v["seeds"]
+        where = seeds["round"] if relative is True else relative
+        name = where.get("body") or one_body(data.source)
+        body = declaration(data.source, name)
+        axis = (body.axis if body else None) or long_axis(data.body(name)) or "z"
+        slab = 0.25 * body.diameter if body and body.diameter else None
+        return body_velocity(data.source, data.step, name, axis, float(where["station"]), slab)
+
+    def mesh(self, frame, v):
+        """The streamlines (``PolyData`` of lines), or ``None`` when none leaves a seed
+        inside the flow."""
+        import pyvista as pv
+        data = frame.data
+        data.need("velocity", *([v["field"]] if v.get("field") else []))
+        flow = data.flow
+        vectors = "velocity"
+        if v.get("relative"):
+            flow = flow.copy(deep=False)
+            flow.point_data["velocity_seen"] = (np.asarray(flow.point_data["velocity"])
+                                                - self._body_speed(data, v))
+            vectors = "velocity_seen"
+        diagonal = float(np.linalg.norm(np.subtract(flow.bounds[1::2], flow.bounds[::2])))
+        seeds = pv.PolyData(self.seed_points(data, v["seeds"]))
+        lines = flow.streamlines_from_source(
+            seeds, vectors=vectors, integration_direction="both",
+            max_length=float(v.get("length") or diagonal), initial_step_length=0.2,
+            max_step_length=0.25,
+            step_unit="cl", max_steps=20000, compute_vorticity=False)
+        if not lines.n_lines:
+            return None
+        if v["style"] == "tubes":
+            lines = lines.tube(radius=float(v.get("radius") or 0.002 * diagonal), n_sides=12)
+        return lines
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        lines = self.mesh(frame, v)
+        if lines is None:
+            return
+        common = dict(opacity=v["opacity"], show_scalar_bar=False)
+        if v["style"] == "lines":
+            common.update(line_width=v["width"], lighting=False)
+        else:
+            common.update(smooth_shading=True)
+        if v.get("field"):
+            plotter.add_mesh(lines, scalars=v["field"], cmap=colormap(v["colormap"]),
+                             clim=list(v["range"]), **common)
+        else:
+            plotter.add_mesh(lines, color=v["colour"], **common)
+
+
+def _point(spec: dict, key: str, n: int, at) -> None:
+    value = spec.get(key)
+    if not (isinstance(value, list) and len(value) == n):
+        raise at.at(key).error(f"expected {n} numbers, got {value!r}")
+    for k, x in enumerate(value):
+        at.at(key, k).number(x)
+
+
+def _count(spec: dict, key: str, at) -> None:
+    n = spec.get(key, 1)
+    if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+        raise at.at(key).error(f"expected a whole number >= 1, got {n!r}")
+
+
 @register
 class BodyLayer(Layer):
     """One wall surface, a list of them, or all, drawn solid or as a ghost.

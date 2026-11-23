@@ -1649,7 +1649,7 @@ tutorial met; then the rest.
 
 **Branch 9: `phase8/sources-plt`** (added 2026-11-23, asked by Arun: FlowReel reads PLT
 files without depending on FlexFlow, and takes time series from CSV; Section 24, q. 10)
-- [ ] The adapter that reads Tecplot binary PLT files is called `plt`: `plt:CASE` in a
+- [x] The adapter that reads Tecplot binary PLT files is called `plt`: `plt:CASE` in a
   shot, `{adapter: plt, path: ...}`, `project init plt:CASE`; its code moves to
   `flowreel.sources.plt` and its class to `PltSource`. `flexflow` stays as a second name
   of the same adapter, so the shots written so far (the AFMS film's) keep working, and

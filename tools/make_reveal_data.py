@@ -23,7 +23,7 @@ import pyvista as pv
 import yaml
 
 from flowreel.box import Box
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 ROOT = Path(__file__).resolve().parent.parent
 BOX = Box((4.0, -1.5, -1.0), (8.0, 2.5, 5.0))
@@ -32,7 +32,7 @@ SPACING = (0.2, 0.1, 0.1)
 
 def make_data(case: Path, step: int, out: Path) -> None:
     """Write ``flow_<step>.vti`` and ``body.vtp`` into ``out``."""
-    src = FlexflowSource(case)
+    src = PltSource(case)
     flow = src.flow(step, ["U", "V", "W"], BOX.expanded(0.5))
     dims = [int(round(s / d)) + 1 for s, d in zip(BOX.size, SPACING)]
     image = pv.ImageData(dimensions=dims, spacing=SPACING, origin=BOX.lo).sample(flow)

@@ -6,7 +6,7 @@ from flowreel.scene.errors import ConfigError
 from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import CropAround, from_dict
 from flowreel.scene.views import parse_view
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 from test_plt_window import NY, NZ, case  # noqa: F401  (the fixture)
 
@@ -26,7 +26,7 @@ AROUND = {"around": {"body": "floor", "station": {"from": 20, "to": 80, "frames"
 
 
 def test_the_crop_travels_with_the_body(case):  # noqa: F811
-    sc = Scene.make(shot(AROUND), FlexflowSource(case, cache=None), VIEWS)
+    sc = Scene.make(shot(AROUND), PltSource(case, cache=None), VIEWS)
     assert isinstance(sc.shot.crop, CropAround)
     for i, station in enumerate((20, 40, 60, 80)):
         box = sc.crop(i)
@@ -39,14 +39,14 @@ def test_the_crop_travels_with_the_body(case):  # noqa: F811
 
 def test_the_camera_takes_the_crops_station(case):  # noqa: F811
     sc = Scene.make(shot(AROUND, {"view": "side", "follow": True}),
-                    FlexflowSource(case, cache=None), VIEWS)
+                    PltSource(case, cache=None), VIEWS)
     for i, station in enumerate((20, 40, 60, 80)):
         assert sc.camera.view(i, sc.data(i)).focal == pytest.approx((station, -1.5, 0), abs=1e-6)
 
 
 def test_the_key_follows_the_box(case):  # noqa: F811
     from flowreel.scene.keys import frame_parts
-    sc = Scene.make(shot(AROUND), FlexflowSource(case, cache=None), VIEWS)
+    sc = Scene.make(shot(AROUND), PltSource(case, cache=None), VIEWS)
     assert frame_parts(sc, 0)["crop"] != frame_parts(sc, 1)["crop"]
 
 

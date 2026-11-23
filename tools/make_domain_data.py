@@ -30,7 +30,7 @@ import numpy as np
 import pyvista as pv
 
 from flowreel.box import Box
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 ROOT = Path(__file__).resolve().parent.parent
 BOX = Box((0.0, -1.5, -1.0), (12.0, 2.5, 6.0))
@@ -41,7 +41,7 @@ FRAMES, FRAME = 288, 224       # t = 0.78: outline half faded, wake 40% grown, c
 
 def make_data(case: Path, step: int, out: Path) -> None:
     """Write ``flow_<step>.vti``, ``body.vtp`` and ``domain.json`` into ``out``."""
-    src = FlexflowSource(case)
+    src = PltSource(case)
     flow = src.flow(step, ["U", "V", "W"], BOX.expanded(0.5))
     dims = [int(round(s / d)) + 1 for s, d in zip(BOX.size, SPACING)]
     image = pv.ImageData(dimensions=dims, spacing=SPACING, origin=BOX.lo).sample(flow)

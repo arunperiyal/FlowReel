@@ -18,13 +18,13 @@ from flowreel.scene.errors import ConfigError
 
 EXAMPLES = {
     "project": """examples:
-  flowreel project init flexflow:bare/BR0SG0U1P0
+  flowreel project init plt:bare/BR0SG0U1P0
   flowreel project init vtk:run/flow.pvd --body run/body_*.vtp -o films/afms
   flowreel project init -o films/afms --link /scratch/afms/run
 
 Reference: docs/project.md, docs/bodies.md and docs/commands.md.""",
     "init": """examples:
-  flowreel project init flexflow:bare/BR0SG0U1P0     one body per surface zone
+  flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
   flowreel project init vtk:flow.pvd --body body.vtp --step 5000
   flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
                                                     the body named cylinder
@@ -132,7 +132,7 @@ class ProjectCommand(BaseCommand):
                 "before SOURCE is read, so SOURCE can name it there.")),
             epilog=EXAMPLES["init"], formatter_class=argparse.RawDescriptionHelpFormatter)
         i.add_argument("source", metavar="SOURCE", nargs="?",
-                       help="adapter:location, e.g. flexflow:CASE (optional)")
+                       help="adapter:location, e.g. plt:CASE or vtk:FILE (optional)")
         i.add_argument("--body", metavar="[NAME=]FILE", action="append",
                        help="body file or pattern, for a source that reads it separately "
                             "(vtk); NAME=FILE names the body (default 'body'), and may be "

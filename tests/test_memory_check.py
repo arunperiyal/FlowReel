@@ -4,7 +4,7 @@ import pytest
 from flowreel.scene import memory
 from flowreel.scene.memory import BASE_BYTES, GB, NotEnoughMemory, check_fits, estimate_job
 from flowreel.scene.rendering import Scene, render
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 from conftest import ToySource
 from test_plt_window import BOX, NX, NY, NZ, case  # noqa: F401
@@ -47,7 +47,7 @@ def test_no_estimate_no_check():
 
 
 def test_a_windowed_estimate_follows_the_window(case):  # noqa: F811
-    src = FlexflowSource(case, cache=None)
+    src = PltSource(case, cache=None)
     whole, window = src.memory_per_step(None), src.memory_per_step(BOX)
     nodes, cells = 41 * (NY + 1) * (NZ + 1), 40 * NY * NZ
     assert window == pytest.approx(2 * (nodes * 7 * 4 + cells * 9 * 8) / 1e9)

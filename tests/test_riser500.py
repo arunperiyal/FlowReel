@@ -9,7 +9,7 @@ import pytest
 from flowreel.box import Box
 from flowreel.project import load_project
 from flowreel.project.measure import diameter, long_axis
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "examples" / "riser500"))
 import riser500_case as case  # noqa: E402
@@ -21,7 +21,7 @@ def folder(tmp_path_factory):
 
 
 def test_the_case_is_a_riser_500_long_and_a_second_body(folder):
-    source = FlexflowSource(folder / "case", cache=None)
+    source = PltSource(folder / "case", cache=None)
     assert source.steps() == list(range(case.STEPS))
     assert source.time(3) == pytest.approx(3 * case.DT)
     assert source.bodies() == ["cyl", "cyl2"] and source.volume == "fluid"
@@ -43,7 +43,7 @@ def test_the_project_declares_supports_tension_and_series(folder):
         (0.0, "pinned", False), (500.0, "roller", True)]
     assert bodies["pendulum"].virtual and bodies["pendulum"].attach.station == 250
     from flowreel.project.names import declare
-    source = declare(FlexflowSource(folder / "case", cache=None), load_project(folder))
+    source = declare(PltSource(folder / "case", cache=None), load_project(folder))
     disp = source.series("displacement", body="riser")
     assert disp.node.nunique() == case.PROBES
     assert (disp.station.min(), disp.station.max()) == (0, 500)
@@ -85,7 +85,7 @@ def test_the_window_reads_a_small_part_of_the_file(folder):
     from flowreel.scene.rendering import Scene
     travel = Scene.make(folder / "travel.yml")
     source = travel.source
-    whole = FlexflowSource(folder / "case", cache=None)
+    whole = PltSource(folder / "case", cache=None)
     total = 1000 * 8 * 8
     for i in (0, 4, 7):
         cells = travel.data(i).flow.n_cells
@@ -100,8 +100,8 @@ def test_the_window_reads_a_small_part_of_the_file(folder):
 def test_the_window_does_not_grow_with_the_span(folder, tmp_path):
     """The Phase 2B check: the same window costs the same in a case half as long."""
     half = case.write_case(tmp_path / "half", length=250.0, project=False)
-    long = FlexflowSource(folder / "case", cache=None, margin=1.0)
-    short = FlexflowSource(half / "case", cache=None, margin=1.0)
+    long = PltSource(folder / "case", cache=None, margin=1.0)
+    short = PltSource(half / "case", cache=None, margin=1.0)
     box = Box((90, -4, -4), (110, 4, 4))
     assert long.memory_per_step(box) == pytest.approx(short.memory_per_step(box))
     assert long.memory_per_step(None) == pytest.approx(2 * short.memory_per_step(None), rel=0.02)

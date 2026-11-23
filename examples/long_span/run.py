@@ -19,7 +19,7 @@ import numpy as np
 
 from flowreel.scene import render
 from flowreel.scene.rendering import Scene
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt.writer import write_plt
 
 HERE = Path(__file__).parent
 NX, NY, NZ, LENGTH = 800, 3, 3, 200.0

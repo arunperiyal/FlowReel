@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 
 from flowreel.sources import Source
-from flowreel.sources.flexflow import FlexflowSource
-from flowreel.sources.flexflow.plt import PltFile
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt import PltSource
+from flowreel.sources.plt.reader import PltFile
+from flowreel.sources.plt.writer import write_plt
 
 VARS = ["X", "Y", "Z", "U", "V", "W", "Pressure", "xVor", "QCriterion"]
 N = 4  # cells per side of the unit cube
@@ -43,7 +43,7 @@ def case(tmp_path, tets=True):
         write_plt(tmp_path / f"flow.{step}.plt", VARS, cols,
                   [("fluid", 4 if tets else 5, volume), ("plate", 2, plate), ("lid", 3, lid)],
                   time=10.0 * step)
-    return FlexflowSource(tmp_path)
+    return PltSource(tmp_path)
 
 
 def test_writer_round_trip(tmp_path):
@@ -103,14 +103,14 @@ def test_two_bodies_of_triangles_and_quads(tmp_path):
 
 def test_choosing_the_bodies(tmp_path):
     case(tmp_path)
-    assert FlexflowSource(tmp_path, body="lid").bodies() == ["lid"]
-    assert FlexflowSource(tmp_path, body=["lid", "plate"]).body(1).n_cells == 3 * N * N
+    assert PltSource(tmp_path, body="lid").bodies() == ["lid"]
+    assert PltSource(tmp_path, body=["lid", "plate"]).body(1).n_cells == 3 * N * N
 
 
 def test_a_file_without_a_wall_has_no_body(tmp_path):
     cols, volume, _, _ = cube(False)
     write_plt(tmp_path / "flow.1.plt", VARS, cols, [("fluid", 5, volume)])
-    src = FlexflowSource(tmp_path)
+    src = PltSource(tmp_path)
     assert src.bodies() == []
     with pytest.raises(LookupError):
         src.body(1)

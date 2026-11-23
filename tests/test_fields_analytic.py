@@ -1,4 +1,4 @@
-"""Derived fields against flows with known answers (docs/PLAN.md, Section 16).
+"""Derived fields against flows with known answers (plan/design.md, Section 16).
 
 All grids are generated here. The VTK point gradient is exact for a linear velocity
 (solid-body rotation, plane shear), so those tests use round-off tolerances everywhere,

@@ -1,5 +1,5 @@
 """The ``vtk`` adapter: a ``.pvd`` collection or a filename pattern, read with pyvista
-(docs/PLAN.md, Section 5.2)."""
+(plan/design.md, Section 5.2)."""
 from __future__ import annotations
 
 import glob

@@ -1,6 +1,6 @@
 """FlowReel: films of flow simulations from configuration files.
 
-The design is in docs/PLAN.md. Fonts bundled in fonts/ are Lato, under the SIL Open
+The design is in plan/ (plan/README.md). Fonts bundled in fonts/ are Lato, under the SIL Open
 Font Licence (fonts/OFL.txt).
 """
 from pathlib import Path

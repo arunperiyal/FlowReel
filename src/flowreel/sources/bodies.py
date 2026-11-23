@@ -1,4 +1,4 @@
-"""Parametric bodies for the ``geometry`` source (docs/PLAN.md, Section 5.3).
+"""Parametric bodies for the ``geometry`` source (plan/design.md, Section 5.3).
 
 A body is a function from keyword parameters to a ``pyvista.PolyData`` surface. It must
 be pure: the same parameters give the same surface, so a film can drive any parameter

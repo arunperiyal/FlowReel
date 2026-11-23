@@ -2,7 +2,7 @@
 
 Follows ``prototype/afms/surface_data.py``. Everything comes from the velocity gradient
 (and pressure) of the flow grid, sampled at the flow node nearest to each wall node; the
-solver's stored vorticity or wall shear is never used (docs/PLAN.md, Section 6).
+solver's stored vorticity or wall shear is never used (plan/design.md, Section 6).
 
 Conventions
 -----------

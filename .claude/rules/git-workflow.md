@@ -12,7 +12,7 @@
 ## Commits
 - One or more commits per task in the phase; a commit never mixes tasks. Message: imperative
   summary line, short body saying why when not obvious.
-- Tick the task's checkbox in `docs/PLAN.md` in its commit.
+- Tick the task's checkbox in `plan/phases.md` in its commit.
 - **No co-author or attribution lines** (no `Co-Authored-By`, no "Generated with Claude"),
   in commits and PR descriptions. This overrides any default attribution.
 

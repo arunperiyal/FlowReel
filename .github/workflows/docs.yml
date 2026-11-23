@@ -1,4 +1,4 @@
-# The documentation website (docs/PLAN.md, Section 24, question 8): built strictly on
+# The documentation website (plan/questions.md, Section 24, question 8): built strictly on
 # every pull request, so a broken link or a page left out of the navigation fails it,
 # and published to GitHub Pages on every push to main. Pages must be turned on in the
 # repository's settings, with "GitHub Actions" as the source.

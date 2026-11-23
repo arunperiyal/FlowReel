@@ -1,4 +1,4 @@
-# The test suite (docs/PLAN.md, Section 19.9, branch 1), on every pull request and every
+# The test suite (plan/phases.md, Section 19.9, branch 1), on every pull request and every
 # push to main, in two jobs: every dependency at the oldest version pyproject.toml allows,
 # and at the newest. A new VTK or pyvista breaks something the day it is released, not
 # when a user meets it (VTK 9.7 broke nine tests, found by hand on airavata).

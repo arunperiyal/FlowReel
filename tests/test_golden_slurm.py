@@ -8,7 +8,7 @@ a node.
 - A render cut short (only its first task runs) is submitted again with ``--missing``:
   only the frames left are drawn, and none drawn before is touched.
 
-The run on airavata's node1 is recorded in docs/PLAN.md under Phase 5's done line.
+The run on airavata's node1 is recorded in plan/phases.md under Phase 5's done line.
 """
 import json
 import os

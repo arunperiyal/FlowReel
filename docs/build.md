@@ -262,5 +262,5 @@ flowreel film check --at caption
 ```
 
 Its lengths per shot are compared with the prototype's film and its contact sheet with
-the prototype's film at the same times; the results are recorded in `docs/PLAN.md`
-(Section 19.5).
+the prototype's film at the same times; the results are recorded in the plan
+(`plan/phases.md`, Section 19.5).

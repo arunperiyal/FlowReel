@@ -3,7 +3,7 @@
 `flowreel.fields` computes every derived quantity from **velocity and pressure only**.
 A solver's stored vorticity, Q or wall shear is never used: in flexflow's PLT files those
 are nodal sums that grow with the number of elements at a node, which made the wall shear
-4.6 times too large on bricks and 18.5 times on tetrahedra (`docs/PLAN.md`, Section 6).
+4.6 times too large on bricks and 18.5 times on tetrahedra (`plan/design.md`, Section 6).
 A grid may carry arrays named `vorticity` or `Q`; they are ignored.
 
 ## Computing fields

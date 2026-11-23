@@ -30,11 +30,12 @@ def nav_pages(items):
                 yield value
 
 
-def test_every_page_but_the_plan_is_in_the_navigation():
+def test_every_page_is_in_the_navigation():
+    """Every page in docs/ is on the site; the plan is in plan/, outside it."""
     pages = set(nav_pages(config()["nav"]))
     on_disk = {str(p.relative_to(ROOT / "docs")) for p in (ROOT / "docs").rglob("*.md")}
-    assert "PLAN.md" not in pages and "PLAN.md" in config()["exclude_docs"]
-    assert pages == on_disk - {"PLAN.md"}
+    assert pages == on_disk
+    assert not (ROOT / "docs" / "PLAN.md").exists() and (ROOT / "plan" / "README.md").is_file()
 
 
 def test_ci_installs_the_pinned_mkdocs_material():

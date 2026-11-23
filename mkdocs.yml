@@ -1,4 +1,4 @@
-# The documentation website (docs/PLAN.md, Section 24, question 8). Build it with
+# The documentation website (plan/questions.md, Section 24, question 8). Build it with
 #   pip install -e ".[docs]" && mkdocs serve
 # and check it as CI does with: mkdocs build --strict
 site_name: FlowReel
@@ -9,10 +9,6 @@ repo_name: arunperiyal/FlowReel
 edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
-
-# The plan is the design, read in the repository, not part of the user's documentation.
-exclude_docs: |
-  PLAN.md
 
 validation:
   nav:

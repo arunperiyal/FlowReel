@@ -13,7 +13,7 @@ public data set in eight short chapters, and
 moves, read from PLT files with its force from CSV. The same pages are in
 [docs/](docs/index.md).
 
-**Status:** Phases 1 to 6 of [the plan](docs/PLAN.md) are done: FlowReel rebuilt the
+**Status:** Phases 1 to 6 of [the plan](plan/README.md) are done: FlowReel rebuilt the
 2-minute AFMS 2026 film of vortex-induced vibration from files, the same length with its
 text in place, and rendered its shots on a Slurm cluster. Phase 7, the documentation, is
 under way. The [prototype](prototype/afms/) the package was written from is kept for its

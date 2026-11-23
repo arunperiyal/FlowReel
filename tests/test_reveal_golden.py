@@ -3,7 +3,7 @@
 ``tests/data/reveal/golden.png`` was drawn by the prototype's own functions
 (``tools/make_reveal_data.py``) from the small vtk data next to it. The pictures are
 compared with a tolerance, because anti-aliasing and float round-off differ by a few
-grey levels on a few edge pixels between runs, drivers and VTK versions (docs/PLAN.md,
+grey levels on a few edge pixels between runs, drivers and VTK versions (plan/design.md,
 Section 21). Measured when written: 0.02% of pixels differ at all, the largest by 13.
 """
 from pathlib import Path

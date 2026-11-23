@@ -56,5 +56,5 @@ mkdocs build --strict   # as every pull request does: a broken link or anchor, o
                         # page left out of the navigation, fails it
 ```
 
-A new page goes in the `nav` of `mkdocs.yml`. The design, `docs/PLAN.md`, stays out of
-the site. FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).
+A new page goes in the `nav` of `mkdocs.yml`. The design is in `plan/` at the
+repository's root, outside the site. FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).

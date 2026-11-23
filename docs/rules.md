@@ -3,7 +3,7 @@
 FlowReel holds every project to a few rules. They are collected on this page so you can
 learn them in one place instead of finding them one error at a time. Each rule gives its
 reason and what happens when it is broken, and links to the page with the details. The
-rules are decided in the plan (`docs/PLAN.md`, Section 23). When a new rule is added, it
+rules are decided in the plan (`plan/decisions.md`, Section 23). When a new rule is added, it
 goes on this page in the same change.
 
 ## Projects

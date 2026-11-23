@@ -2,7 +2,7 @@
 
 - Every public module, class and function has a docstring: what it does, arguments, return,
   units and coordinate conventions for fields. Keep them short.
-- User-facing documentation lives in `docs/`; the design stays in `docs/PLAN.md`.
+- User-facing documentation lives in `docs/`; the design stays in `plan/`.
 - A feature is not done until its docs are updated in the same PR: command help text,
   YAML option reference, and an example under `examples/` using generated data.
 - Examples must run from a clean checkout without private data, logos or licensed music.

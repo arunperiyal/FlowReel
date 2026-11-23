@@ -51,7 +51,16 @@ a GPU, OSMesa on the CPU, or X. `flowreel shot render --backend osmesa` forces o
 $ flowreel --help
 ```
 
-lists the command groups: `shot`, `camera`, `compose`, `film`, `project` and `jobs`.
-Every command has `--help` with examples, for instance `flowreel project init --help`.
+lists the command groups: `shot`, `camera`, `compose`, `film`, `project` and `jobs`,
+and `doctor`. Every command has `--help` with examples, for instance
+`flowreel project init --help`.
+
+```text
+$ flowreel doctor
+```
+
+checks what FlowReel runs on: the packages and their versions, ffmpeg, drawing without a
+display, and the font. Its last line should read `everything FlowReel needs is here`;
+anything marked `!` says what is wrong ([doctor](../commands.md#doctor)).
 
 Next: [the project and the data](02-project.md).

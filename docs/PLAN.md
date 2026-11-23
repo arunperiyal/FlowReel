@@ -1586,13 +1586,13 @@ tutorial met; then the rest.
 - [x] The README says how the tests run, and where CI runs them
 
 **Branch 2: `phase8/checks-doctor`**
-- [ ] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the
+- [x] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the
   code, read by the doctor and by the CI workflow's test that the two agree
-- [ ] `flowreel doctor`: Python, FlowReel, VTK, pyvista, matplotlib, ffmpeg (version and
+- [x] `flowreel doctor`: Python, FlowReel, VTK, pyvista, matplotlib, ffmpeg (version and
   filters), each said tested or not; the off-screen back ends (`jobs check`); the
   bundled fonts; and, inside a project, its root and what `project info` says; exit
   status 1 when something FlowReel needs is missing
-- [ ] Help, docs (commands page, a line in the install chapter of the tutorial), the
+- [x] Help, docs (commands page, a line in the install chapter of the tutorial), the
   reference regenerated
 
 **Branch 3: `phase8/shots-fit`**

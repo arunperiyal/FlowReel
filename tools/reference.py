@@ -37,18 +37,21 @@ def command_groups():
     os.environ["COLUMNS"] = str(COLUMNS)          # argparse wraps to this width
     from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
+    from flowreel.cli.doctor import DoctorCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
     from flowreel.cli.project import ProjectCommand
     from flowreel.cli.shot import ShotCommand
     groups = []
     for cls in (ProjectCommand, ShotCommand, CameraCommand, ComposeCommand, FilmCommand,
-                JobsCommand):
+                JobsCommand, DoctorCommand):
         parser = argparse.ArgumentParser(prog="flowreel")
         group = cls().setup_parser(parser.add_subparsers())
         actions = [a for a in group._actions if isinstance(a, argparse._SubParsersAction)]
         helps = [(name, sub.format_help().rstrip())
                  for a in actions for name, sub in a.choices.items()]
+        if not actions:                       # a command with no actions: its own help
+            helps = [("", group.format_help().rstrip())]
         groups.append((cls.name, cls.description, helps))
     return groups
 
@@ -63,7 +66,8 @@ def commands_page() -> str:
     for name, description, helps in command_groups():
         lines += [f"## `{name}`", "", description + ".", ""]
         for action, text in helps:
-            lines += [f"### `flowreel {name} {action}`", "", "```text", text, "```", ""]
+            lines += [f"### `{f'flowreel {name} {action}'.rstrip()}`", "", "```text", text,
+                      "```", ""]
     return "\n".join(lines).rstrip() + "\n"
 
 

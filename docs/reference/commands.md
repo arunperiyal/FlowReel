@@ -789,3 +789,28 @@ examples:
   flowreel jobs status                       the jobs submitted from this folder
   flowreel jobs status 1310 1311             these jobs
 ```
+
+## `doctor`
+
+Check what FlowReel runs on: packages, ffmpeg, drawing, fonts, project.
+
+### `flowreel doctor`
+
+```text
+usage: flowreel doctor [-h] [--no-draw] [--timeout S]
+
+Report the versions of Python, FlowReel and the packages it uses (VTK and pyvista against the versions the tests run on), the ffmpeg it finds, which off-screen back ends draw, the font, and the project this folder is in. Exit status 1 when something stops a film.
+
+options:
+  -h, --help   show this help message and exit
+  --no-draw    leave out the off-screen drawing (a few seconds a back end)
+  --timeout S  seconds each back end may take to draw (default 60)
+
+examples:
+  flowreel doctor                  everything, drawing a test picture with each back end
+  flowreel doctor --no-draw        quicker: no drawing
+  flowreel doctor > doctor.txt     to send with a question
+
+Marks: ! stops a film (exit status 1), ? worth knowing (an untested version).
+Reference: docs/commands.md.
+```

@@ -603,8 +603,9 @@ FlowReel:
    python      3.12.12 at /home/you/miniconda3/envs/flexflow_env/bin/python
 packages:
    numpy       2.4.2 (needs 1.26 or newer)
-   pyvista     0.49.2, tested (0.44 to 0.49)
- ? vtk         9.8.0, newer than tested (9.3 to 9.7): untested, may draw differently
+   pyvista     0.49.2, tested (0.47 to 0.49)
+ ? vtk         9.8.0, newer than tested (9.5 to 9.7): untested, may draw differently
+   matplotlib  3.10.9, tested (3.8 to 3.10)
    ...
 ffmpeg:
    ffmpeg      8.0.1 at /home/you/miniconda3/envs/flexflow_env/bin/ffmpeg, with the encoder and filters FlowReel uses
@@ -621,9 +622,9 @@ project:
 everything FlowReel needs is here
 ```
 
-Each package is checked against the minimum FlowReel declares. VTK and pyvista, which
-decide what a frame looks like, are also checked against the oldest and newest versions
-the tests run on in CI: a newer one works as far as anyone knows, but has not been
+Each package is checked against the minimum FlowReel declares. VTK, pyvista and
+matplotlib, which decide what a frame or a caption looks like, are also checked against
+the oldest and newest versions the tests run on in CI: a newer one works as far as anyone knows, but has not been
 tested (`?`). A package older than the minimum, no ffmpeg FlowReel can use, or no back
 end that draws (`!`) stops a film, and the exit status is 1. The drawing is the test of
 [`jobs check`](#jobs-partitions-jobs-check-jobs-status); `--no-draw` leaves it out.

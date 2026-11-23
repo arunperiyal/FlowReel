@@ -1,10 +1,29 @@
 """Shared fixtures: small generated flows, never real data."""
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
 import pyvista as pv
 
 from flowreel.box import Box
+
+# Messages wrap at the terminal's width, or at 80 columns without one (CI, a job log);
+# the tests read them at one width everywhere.
+os.environ["COLUMNS"] = "1000"
+
+
+def _one_window_class() -> None:
+    """Every window of a test process of the kind FlowReel's renders choose: VTK cannot
+    load two OpenGL libraries in one process (OSMesa for a render, X for a plain pyvista
+    plotter under a display), and crashes when a test makes the second."""
+    from flowreel.scene import backend
+    chosen = backend.choose("auto")
+    if chosen is not None:
+        os.environ.setdefault(backend.ENV, backend.WINDOW_CLASS[chosen])
+
+
+_one_window_class()
 
 
 class ToySource:

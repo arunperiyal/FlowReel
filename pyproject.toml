@@ -10,20 +10,26 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE", "src/flowreel/fonts/OFL.txt"]
+# Each minimum is tested in CI (.github/workflows/tests.yml, the oldest job); where no
+# other reason sets it, it is the first release with wheels for Python 3.12. VTK 9.5 is
+# the first whose wheels render off screen in worker processes without crashing (9.3 has
+# no OSMesa or EGL; 9.4.2's render workers die with OSMesa); pyvista 0.47 the first with
+# extract_points(pass_cell_ids=) and extract_surface(algorithm=). matplotlib is held
+# below 3.11, which lays text out a few pixels lower (docs/PLAN.md, Section 24, q. 9).
 dependencies = [
-    "numpy",
-    "pandas>=2",
-    "scipy",
-    "pyvista>=0.44",
-    "vtk>=9.3",
-    "matplotlib>=3.8",
-    "Pillow>=10",
-    "PyYAML>=6",
+    "numpy>=1.26",
+    "pandas>=2.1.1",
+    "scipy>=1.11.2",
+    "pyvista>=0.47",
+    "vtk>=9.5",
+    "matplotlib>=3.8,<3.11",
+    "Pillow>=10.1",
+    "PyYAML>=6.0.1",
     "shellkit @ git+https://github.com/arunperiyal/shellkit.git",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7.4"]
 # the documentation website: mkdocs build --strict (mkdocs.yml)
 docs = ["mkdocs-material==9.8.1"]
 

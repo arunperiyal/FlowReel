@@ -1,0 +1,54 @@
+# The test suite (docs/PLAN.md, Section 19.9, branch 1), on every pull request and every
+# push to main, in two jobs: every dependency at the oldest version pyproject.toml allows,
+# and at the newest. A new VTK or pyvista breaks something the day it is released, not
+# when a user meets it (VTK 9.7 broke nine tests, found by hand on airavata).
+#
+# Frames are drawn off screen with Mesa (OSMesa or EGL on the CPU), as on a cluster node;
+# Xvfb gives the tests that open a window a display. ffmpeg comes from the runner's
+# packages.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.versions }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - versions: oldest
+            resolution: lowest-direct
+          - versions: newest
+            resolution: highest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: System packages
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends ffmpeg xvfb \
+              libgl1 libglx-mesa0 libgl1-mesa-dri libosmesa6 libegl1 libegl-mesa0 \
+              libxrender1 libxcursor1 libxft2 libxinerama1
+      - name: FlowReel and its dependencies (${{ matrix.versions }})
+        run: |
+          pip install -q uv
+          uv pip install --system --resolution ${{ matrix.resolution }} -e ".[dev]" "pytest-xdist>=3.5"
+          python -c "import vtk, pyvista, numpy, matplotlib; print('vtk', vtk.__version__, 'pyvista', pyvista.__version__, 'numpy', numpy.__version__, 'matplotlib', matplotlib.__version__)"
+      - name: Tests
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" python -m pytest -q -n auto --dist loadfile -rfEs

@@ -83,6 +83,23 @@ and the filters it needs once, and an error names the file it found. Other progr
 install their own copies, which can come first on the path; Tecplot 360's
 `bin/ffmpeg` (4.3) is one, and is too old.
 
+## Tests
+
+```bash
+conda activate flexflow_env
+python -m pytest -q
+```
+
+The suite makes its own small data; it needs no case files. Frames are drawn off screen
+(OSMesa or EGL), so it runs over `ssh` and on a cluster node; tests that need a back end
+the machine lacks are skipped and say why. It takes a few minutes; with `pytest-xdist`
+installed, `python -m pytest -q -n auto --dist loadfile` spreads it over the cores.
+
+CI (`.github/workflows/tests.yml`) runs it on every pull request and push to `main`,
+twice: with every dependency at the oldest version `pyproject.toml` allows, and at the
+newest. A new release of VTK or pyvista that breaks FlowReel then fails a check the day
+it is out. The minimums, and why each is what it is, are in `pyproject.toml`.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).

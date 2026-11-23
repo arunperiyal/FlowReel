@@ -70,6 +70,32 @@ checked before any clip is built.
 building or joining the rest. The whole film is still laid out, since a caption can run
 across a cut. The clip is the one the full build will use, so it is kept for it.
 
+## Building as you edit: `--watch`
+
+```text
+$ flowreel film build --watch --preview 540
+shot      planned  measured
+...
+built in 4.0 s
+watching /home/you/films/cylinder for changes (Ctrl-C to stop)
+```
+
+`--watch` builds, then builds again each time a file the film may be made from changes:
+the film file, a card, a caption file, a frame folder (a shot rendered again), a layout
+or a sound. Only the clips whose inputs changed are made again, so a caption edited is
+in the film in seconds. It stops at Ctrl-C.
+
+It does not read the film file to learn what to watch: it looks at every file under the
+film file's folder, by size and time of change, once a second. That leaves out what the
+build writes (`clips/`, `.flowreel/`, the films and subtitles beside the film file) and
+folders reached through a link, such as `data/`. A change starts a build once the files
+have stood still for half a second, so a shot still being rendered is not built half
+way, and a change made during a build starts another when it ends. A build that fails,
+on a film file left half edited, says why and waits for the next change.
+
+`--watch` builds here, never as a Slurm job, and refuses `--force`, which would make
+every clip again on every change.
+
 ## Subtitles: `film.srt`
 
 A whole build also writes the captions as SubRip subtitles, `film.srt` beside the film

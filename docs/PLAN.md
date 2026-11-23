@@ -1666,9 +1666,18 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
   `flexflow:`); `project info` prints the source as `plt:`
 
 **Branch 10: `phase8/tutorial-unsteady`**
-- [ ] A public unsteady data set of vortex shedding whose licence allows it to be shown
+- [x] A public unsteady data set of vortex shedding whose licence allows it to be shown
   (as `cylinder_crossflow`'s does); if none is found, ask Arun before using generated
-  data instead
+  data instead. Chosen by Arun 2026-11-24: Boudina's "Numerical simulation data of a
+  two-dimensional flow around a fixed circular cylinder" (Zenodo record 5039610, DOI
+  10.5281/zenodo.5039610, CC BY 4.0; Polytechnique Montréal, solver Cadyf, Re = 100).
+  `fixed_cylinder_atRe100` (1.17 GB, MD5 `fb3135ad...`) is text: `Re Ur`, `Nt N`, then
+  per step its time and N lines `x y U V p`; 201 steps from t = 400 to 500, 82,872
+  nodes, no elements. `Re100_fixe00.reactions` (329 kB, MD5 `9eeb693d...`): `t Fx Fy
+  Mz` on the cylinder, t = 0 to 500. The data script downloads both with their
+  checksums, triangulates the nodes (the cylinder's inside left out), gives the 2D mesh
+  a span as the first tutorial's does, writes each step as a PLT file, and writes the
+  force as the body's CSV series
 - [ ] A second tutorial, its own pages under `docs/tutorial/`: time tracks, a freeze on a
   moving flow, and a render of many steps as a Slurm job array; its data script and
   its project under `examples/`, tested by following it as the first one is

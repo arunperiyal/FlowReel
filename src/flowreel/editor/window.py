@@ -151,13 +151,17 @@ class EditorWindow:
         self._show(self.state.next_step())
 
     def set_frame(self, value: float) -> None:
-        """The *Frame* slider."""
+        """The *Frame* slider; it moves the *Time step* slider to the step the frame
+        shows."""
         if not self._ready:
             return
-        self.state.set_frame(value)
+        moved = self.state.set_frame(value)
         if self._frame_slider is not None:       # set from code: move the slider too
             self._frame_slider.GetRepresentation().SetValue(self.state.frame)
-        self._status()
+        if moved:
+            self._show(self.state.step)
+        else:
+            self._status()
 
     def set_step(self, value: float) -> None:
         """The *Time step* slider: a position in the list of steps."""

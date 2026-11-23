@@ -1643,7 +1643,7 @@ tutorial met; then the rest.
 **Branch 8: `phase8/editor-slider`**
 - [x] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
   saved, replaced or undone
-- [ ] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
+- [x] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
   the *Time step* slider still moves alone
 - [ ] Tests (the editor's state, without a window), the camera editor page
 

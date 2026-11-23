@@ -1614,7 +1614,7 @@ tutorial met; then the rest.
   "Try" in chapter 6 of the tutorial: the pressure's contour lines over the sweep shot
 
 **Branch 5: `phase8/layers-streamlines`**
-- [ ] A `streamlines` layer: seeds on a `line` (two points and a count), a `plane` (a
+- [x] A `streamlines` layer: seeds on a `line` (two points and a count), a `plane` (a
   rectangle and counts) or `round` a body (a ring at a station); traced in the frame's
   velocity both ways to a length; drawn as `lines` or `tubes`, in one colour or coloured
   by a field

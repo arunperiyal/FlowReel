@@ -33,7 +33,8 @@ wrote flowreel.yml: 1 body (cylinder); fill in the supports
 ```
 
 The **source** is `vtk:` and a file: the `vtk` adapter reads the `.pvd` collection of
-flow files. The **body**, the cylinder's wall, is in a file of its own, and
+flow files (a folder of PLT files would be `plt:` and the folder, as in the
+[second tutorial](unsteady/index.md)). The **body**, the cylinder's wall, is in a file of its own, and
 `cylinder=` names it. `project init` made the folders for what you will write
 (`shots/`, `text/`, `cards/`, `assets/`), a starting `film.yml`, a `cameras.yml` with one
 view of the whole domain, and `flowreel.yml`:

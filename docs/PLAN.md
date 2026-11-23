@@ -1684,7 +1684,7 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
 - [x] Its flow is read as PLT files with `plt:`, and the body's time history (its
   displacement, or the force on it) from a CSV file declared in `flowreel.yml`, drawn
   in a panel beside the shot
-- [ ] The first tutorial names `plt:` beside `vtk:` where it lists the sources a project
+- [x] The first tutorial names `plt:` beside `vtk:` where it lists the sources a project
   can read (chapters 2 and 8)
 
 Branches are stacked in the order above. Branches 4 to 9 do not use each other's code;

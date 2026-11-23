@@ -50,8 +50,8 @@ def test_a_file_already_there_is_not_downloaded_again(gd, tmp_path):
 def faces_point_out(grid):
     """Whether every face of every cell, in VTK's face order, points away from the cell.
 
-    Checked from the points rather than with ``compute_cell_sizes``: the sign VTK gives a
-    wedge's volume flipped in VTK 9.7, while its faces (what is drawn) did not."""
+    VTK 9.7 changed which order of a wedge's points is right side out; the faces come
+    from the installed VTK, so this checks the conversion against the VTK it ran with."""
     centres = grid.cell_centers().points
     for i in range(grid.n_cells):
         for face in grid.get_cell(i).faces:
@@ -104,6 +104,16 @@ def test_a_second_run_changes_nothing(gd, tmp_path):
     gd.get(tmp_path, stand_in=True, say=lines.append)
     assert any("nothing changed" in line for line in lines)
     assert {p: p.stat().st_mtime_ns for p in out.rglob("*") if p.is_file()} == before
+
+
+def test_a_new_vtk_with_the_other_wedge_order_converts_again(gd, tmp_path, monkeypatch):
+    gd.get(tmp_path, stand_in=True, say=quiet)
+    other = {"clockwise": "counter-clockwise", "counter-clockwise": "clockwise"}
+    monkeypatch.setattr(gd, "wedge_base", lambda now=gd.wedge_base(): other[now])
+    lines = []
+    out = gd.get(tmp_path, stand_in=True, say=lines.append)
+    assert any(line.startswith("converted to") for line in lines)
+    assert not faces_point_out(pv.read(out / "flow_0.vtu"))    # built for the other VTK
 
 
 def test_download_then_rerun_downloads_nothing(gd, tmp_path, monkeypatch):

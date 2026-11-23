@@ -66,7 +66,9 @@ layers expect cells with volume. So the script:
 
 - **Gives the 2D mesh a span:** one cell across, 0.1 diameter wide, from z = -0.05 to
   z = 0.05. Triangles become wedges and quadrilaterals become hexahedra, so a slice at
-  z = 0 cuts through the middle of every cell. The fields are the same on both faces, so
+  z = 0 cuts through the middle of every cell. VTK 9.7 changed the order of a wedge's points
+  (which way round its base goes), so the script asks the installed VTK and converts
+  again if it changes. The fields are the same on both faces, so
   every z-derivative is zero, as it is in 2D.
 - **Renames the fields:** `velocity` is split into `U`, `V` and `W` (`W` is zero), and
   `pressure` becomes `p`.

@@ -1634,7 +1634,7 @@ tutorial met; then the rest.
   makes a new rule, and an example
 
 **Branch 7: `phase8/film-watch`**
-- [ ] `film build --watch`: build, then build again each time the film file, a card, a
+- [x] `film build --watch`: build, then build again each time the film file, a card, a
   text file or a frame folder it uses changes (polled, no new dependency), until
   Ctrl-C; a build that fails says why and waits for the next change
 - [ ] Tests (a change to a caption builds again, only that shot's clip is made), help,

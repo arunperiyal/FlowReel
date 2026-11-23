@@ -31,6 +31,7 @@ Reference: docs/commands.md.""",
   flowreel film build --preview 720 --crf 23 a better preview copy
   flowreel film build --only compare         one shot alone, as film_compare.mp4
   flowreel film build --force                build every clip again
+  flowreel film build --watch --preview 540  again on each change, until Ctrl-C
   flowreel film build --submit --after 1312  as a Slurm job, after the composes""",
     "check": """examples:
   flowreel film check                        a still at the middle of each caption
@@ -110,6 +111,9 @@ class FilmCommand(BaseCommand):
                        help="also write film_<HEIGHT>p.mp4, scaled to HEIGHT pixels (even)")
         b.add_argument("--crf", type=int, metavar="N",
                        help="quality of the preview copy, 0 to 51, lower is better (default 28)")
+        b.add_argument("--watch", action="store_true",
+                       help="build, then build again each time a file the film may be made "
+                            "from changes, until Ctrl-C")
         _clips_arg(b)
         from flowreel.cli.jobs import add_slurm_args
         add_slurm_args(b)
@@ -200,6 +204,10 @@ class FilmCommand(BaseCommand):
         from flowreel.film.build import PREVIEW_CRF, build
         if args.crf is not None and args.preview is None:
             raise CommandError("--crf sets the preview copy's quality; give --preview too")
+        if args.watch and slurm_wanted(args):
+            raise CommandError("--watch builds here, not as a Slurm job")
+        if args.watch and args.force:
+            raise CommandError("--watch with --force would build every clip on every change")
         if slurm_wanted(args):
             from flowreel.cli.jobs import job_path
             cmd = ["flowreel", "film", "build", job_path(args.film), "-j", str(args.jobs)]
@@ -209,14 +217,26 @@ class FilmCommand(BaseCommand):
                     cmd += [flag, str(value)]
             cmd += [f for f, on in (("--mute", args.mute), ("--force", args.force)) if on]
             return run_single(ctx, "film", cmd, "film", args)
-        start = time.perf_counter()
-        built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
-                      preview=args.preview,
-                      crf=PREVIEW_CRF if args.crf is None else args.crf, only=args.only,
-                      panels={"jobs": args.jobs})
-        for line in built.table():
-            ctx.out(line)
-        ctx.out(f"built in {time.perf_counter() - start:.1f} s")
+
+        def once():
+            start = time.perf_counter()
+            built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
+                          preview=args.preview,
+                          crf=PREVIEW_CRF if args.crf is None else args.crf, only=args.only,
+                          panels={"jobs": args.jobs})
+            for line in built.table():
+                ctx.out(line)
+            ctx.out(f"built in {time.perf_counter() - start:.1f} s")
+
+        if not args.watch:
+            once()
+            return 0
+        from flowreel.film.watch import watch
+        try:
+            watch(args.film, once, say=ctx.out,
+                  skip=() if args.clips is None else (Path(args.clips),))
+        except KeyboardInterrupt:
+            ctx.out("stopped watching")
         return 0
 
     def do_check(self, args, ctx):

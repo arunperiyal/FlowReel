@@ -115,13 +115,16 @@ def load_surfaces(plotter, folder: str | Path) -> list:
 
 
 def save_shot_surfaces(shot, folder: str | Path, steps=None, source=None, *, views=None,
-                       tracks=None) -> list[int]:
+                       tracks=None, backend: str = "auto") -> list[int]:
     """Save the scene of ``shot`` (a shot file or :class:`~flowreel.scene.shot.Shot`) at
     each of ``steps`` (default: every step the shot shows) into ``folder``, with the
     shot's first view and background in ``folder/scene.json``; returns the steps saved.
     Each step is drawn off-screen with the layer values of the first frame showing it,
-    as the editor draws it."""
+    as the editor draws it, with ``backend`` chosen as for a render (so no display is
+    asked for)."""
     import pyvista as pv
+    from flowreel.scene import backend as backend_mod
+    from flowreel.scene.rendering import _environment
     from flowreel.editor.scenes import ShotScenes
     from flowreel.scene.rendering import Scene
     scenes = ShotScenes(Scene.make(shot, source, views, tracks))
@@ -131,14 +134,15 @@ def save_shot_surfaces(shot, folder: str | Path, steps=None, source=None, *, vie
         raise ValueError(f"steps {unknown} are not in the shot (its steps: {scenes.steps})")
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
-    for step in steps:
-        plotter = pv.Plotter(off_screen=True, window_size=list(scenes.scene.size))
-        try:
-            scenes.build(plotter, step)
-            plotter.render()
-            save_surfaces(plotter, step_folder(folder, step))
-        finally:
-            plotter.close()
+    with _environment(backend_mod.environment(backend_mod.choose(backend))):
+        for step in steps:
+            plotter = pv.Plotter(off_screen=True, window_size=list(scenes.scene.size))
+            try:
+                scenes.build(plotter, step)
+                plotter.render()
+                save_surfaces(plotter, step_folder(folder, step))
+            finally:
+                plotter.close()
     first = scenes.first_view
     (folder / SCENE_FILE).write_text(json.dumps({
         "first_view": {"position": first.position, "focal": first.focal, "up": first.up,

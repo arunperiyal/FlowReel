@@ -1654,7 +1654,7 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
   `flowreel.sources.plt` and its class to `PltSource`. `flexflow` stays as a second name
   of the same adapter, so the shots written so far (the AFMS film's) keep working, and
   the old import path keeps working too
-- [ ] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
+- [x] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
   wrote them; the adapter's errors and docs name the files it wants, not the solver
 - [ ] Time series come from CSV files declared under a body in `flowreel.yml`
   ([bodies](bodies.md#series)), the documented way for every source; the reading of

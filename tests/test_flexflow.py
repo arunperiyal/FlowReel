@@ -175,3 +175,8 @@ def test_the_adapter_is_plt_and_flexflow_is_its_first_name():
     plt, old = create("plt", path=str(CASE)), create("flexflow", path=str(CASE))
     assert type(plt) is type(old) is PltSource is FlexflowSource
     assert plt.steps() == old.steps() and plt.name == "plt"
+
+
+def test_a_folder_without_plt_files_says_what_it_wants(tmp_path):
+    with pytest.raises(FileNotFoundError, match=r"no <name>\.<step>\.plt files in .*binary/"):
+        PltSource(tmp_path)

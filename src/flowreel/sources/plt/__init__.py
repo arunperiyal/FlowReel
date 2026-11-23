@@ -79,7 +79,8 @@ class PltSource:
             if m:
                 self._files[int(m.group(1))] = f
         if not self._files:
-            raise FileNotFoundError(f"no <name>.<step>.plt files in {folder}")
+            raise FileNotFoundError(f"no <name>.<step>.plt files in {folder} (a case is a "
+                                    f"folder of them, or of a binary/ folder of them)")
         with self._open(self.steps()[0]) as plt:
             names = [z["name"] for z in plt.zones]
             if volume is None:

@@ -1472,14 +1472,14 @@ branch 1)
 
 **Branch 3: `phase7/docs-site`** (the website; independent of branches 1 and 2)
 - [x] Question 8, decided 2026-11-22 (Section 24), recorded in Section 23
-- [ ] `mkdocs.yml`: the Material theme, search, tabs, notes (admonitions) and copy
+- [x] `mkdocs.yml`: the Material theme, search, tabs, notes (admonitions) and copy
   buttons on code; navigation in three parts, Tutorial, User guide and Reference, with
   `PLAN.md` left out; a `docs` extra in `pyproject.toml` (`mkdocs-material`, pinned)
-- [ ] Every existing page builds under `--strict`: broken links and anchors fixed, every
+- [x] Every existing page builds under `--strict`: broken links and anchors fixed, every
   page in the navigation; the pages still read on GitHub
-- [ ] `.github/workflows/docs.yml`: `mkdocs build --strict` on every PR, deployed to GitHub
+- [x] `.github/workflows/docs.yml`: `mkdocs build --strict` on every PR, deployed to GitHub
   Pages on every push to `main` (Pages turned on in the repository's settings by Arun)
-- [ ] A test that builds the site strictly when `mkdocs` is installed (skipped otherwise);
+- [x] A test that builds the site strictly when `mkdocs` is installed (skipped otherwise);
   docs: building the site locally, and where it is published
 
 **Branch 4: `phase7/tutorial`** (the tutorial; needs branches 1, 2 and 3)

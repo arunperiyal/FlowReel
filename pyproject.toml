@@ -24,6 +24,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+# the documentation website: mkdocs build --strict (mkdocs.yml)
+docs = ["mkdocs-material==9.8.1"]
 
 [project.scripts]
 flowreel = "flowreel.cli:main"

@@ -1,0 +1,91 @@
+# The documentation website (docs/PLAN.md, Section 24, question 8). Build it with
+#   pip install -e ".[docs]" && mkdocs serve
+# and check it as CI does with: mkdocs build --strict
+site_name: FlowReel
+site_description: Films of flow simulations from configuration files
+site_url: https://arunperiyal.github.io/FlowReel/
+repo_url: https://github.com/arunperiyal/FlowReel
+repo_name: arunperiyal/FlowReel
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+
+# The plan is the design, read in the repository, not part of the user's documentation.
+exclude_docs: |
+  PLAN.md
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: info
+    unrecognized_links: warn
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle: {icon: material/brightness-7, name: Dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle: {icon: material/brightness-4, name: Light mode}
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+      # anchors as GitHub makes them, so a link to a heading works on both
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
+  - Tutorial:
+      - The data: tutorial/data.md
+  - User guide:
+      - Projects: project.md
+      - Rules: rules.md
+      - Sources: sources.md
+      - Bodies: bodies.md
+      - Derived fields: fields.md
+      - Shot files: shots.md
+      - Flow layers: layers-flow.md
+      - Layers without flow data: layers-markers.md
+      - Cameras and lights: cameras.md
+      - Tracks: tracks.md
+      - The camera editor: camera-editor.md
+      - Rendering and caching: rendering.md
+      - Long bodies: long-bodies.md
+      - Rendering on Slurm: slurm.md
+      - Compose: compose.md
+      - Layouts: layouts.md
+      - Panels: panels.md
+      - Captions and shapes: captions.md
+      - Cards: cards.md
+      - The film file: film.md
+      - Clips: clips.md
+      - Building the film: build.md
+      - The reveal look: reveal.md
+  - Reference:
+      - Commands: commands.md

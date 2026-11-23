@@ -267,8 +267,10 @@ class VtkSource:
             return PRESSURE
         return next((k for k in sizes if k.lower() == "pressure"), None)
 
-    def _plan(self, field: str) -> tuple[str, ...]:
-        """How to build ``field``: the file arrays it needs, as ``(kind, name, ...)``."""
+    def _plan(self, field: str, explain: bool = True) -> tuple[str, ...]:
+        """How to build ``field``: the file arrays it needs, as ``(kind, name, ...)``.
+        Raises ``KeyError``; with ``explain`` its message lists what is available
+        (:meth:`fields` asks without, since it is what lists them)."""
         sizes = self._array_sizes()
 
         def need(array):
@@ -297,6 +299,8 @@ class VtkSource:
                 return ("array", need(pressure))
         elif field in sizes and field not in self._claimed():
             return ("array", field)
+        if not explain:
+            raise KeyError(field)
         raise KeyError(f"{self.name}: cannot provide {field!r}; available: {self.fields()}")
 
     def _claimed(self) -> set[str]:
@@ -310,7 +314,7 @@ class VtkSource:
         out = []
         for f in (*VELOCITY_COMPONENTS, VELOCITY, PRESSURE):
             try:
-                self._plan(f)
+                self._plan(f, explain=False)
             except KeyError:
                 continue
             out.append(f)

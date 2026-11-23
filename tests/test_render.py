@@ -6,6 +6,7 @@ from PIL import Image
 from flowreel.scene import render, render_frame
 from flowreel.scene.camera import shot_camera
 from flowreel.scene.errors import ConfigError
+from flowreel.scene import layers as L
 from flowreel.scene.layers import FrameData
 from flowreel.scene.shot import from_dict
 from flowreel.scene.views import parse_view
@@ -162,3 +163,23 @@ def test_a_source_mapping_passes_options_and_resolves_paths(tmp_path, monkeypatc
     assert seen["body"] == "grooved_cylinder"                 # a name, not a file
     with pytest.raises(ConfigError, match="missing key 'adapter'"):
         toy_shot(source={"path": "x"})
+
+
+def test_a_shots_layers_read_the_pressure_when_they_need_it(toy_source):
+    """A frame read only U, V and W, so no layer of a shot could show the pressure
+    (the tutorial's 'Try p' in chapter 3 failed): the scene now reads p as well when a
+    layer's field needs it, and only then."""
+    from flowreel.scene.layers import flow_fields
+    from flowreel.scene.rendering import Scene
+    slice_of = lambda field: {"type": "slice", "normal": "z", "position": 0.5,
+                              "field": field, "range": [-1, 1]}
+    for field in ("p", "pressure"):
+        scene = Scene.make(toy_shot(layers=[slice_of(field)]), toy_source, VIEWS)
+        assert "p" in scene.fields
+        f = scene.data(0)
+        assert "p" in f.flow.point_data
+        layer = scene.shot.layers[0]
+        assert layer.mesh(L.Frame(0, 0, 0.0, f, layer.values(0)), layer.values(0)).n_points
+    speed = Scene.make(toy_shot(layers=[slice_of("speed")]), toy_source, VIEWS)
+    assert speed.fields == ("U", "V", "W")
+    assert flow_fields(toy_source, []) == ("U", "V", "W")

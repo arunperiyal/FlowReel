@@ -224,3 +224,15 @@ def test_several_bodies_from_blocks(tmp_path):
 def test_one_body_is_named_and_no_body_is_empty(series):
     assert VtkSource(series / "wake_*.vtu", body=series / "body.vtp").bodies() == ["body"]
     assert VtkSource(series / "wake_*.vtu").bodies() == []
+
+
+def test_files_without_pressure_list_their_fields(tmp_path):
+    """Asking for the fields of files with no pressure recursed without end: the error
+    for the missing pressure listed the fields, which asked for the pressure again."""
+    g = pv.ImageData(dimensions=(3, 3, 3)).cast_to_unstructured_grid()
+    g.point_data["velocity"] = np.zeros((g.n_points, 3))
+    g.save(tmp_path / "flow_0.vtu")
+    src = VtkSource(tmp_path / "flow_*.vtu")
+    assert src.fields() == ["U", "V", "W", "velocity"]
+    with pytest.raises(KeyError, match="cannot provide 'p'; available: .*velocity"):
+        src.flow(0, ["p"], None)

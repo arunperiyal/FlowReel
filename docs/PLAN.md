@@ -1602,7 +1602,7 @@ tutorial met; then the rest.
 - [x] The shots that use `fit` checked: no test shot taken from the prototype does (their
   golden frames stay as they are); the shot commands example, whose `margin: 0.9`
   tightened the sphere, now fills the picture with `margin: 1.05`
-- [ ] Docs (cameras page, the YAML reference) and the shot template
+- [x] Docs (cameras page, the YAML reference) and the shot template
 
 **Branch 4: `phase8/layers-contour`**
 - [ ] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a

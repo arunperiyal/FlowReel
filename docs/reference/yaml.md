@@ -35,6 +35,7 @@ Guide: [shots](../shots.md).
 | `camera.fit` | `domain`, `crop` or `{x: [lo, hi], y: ..., z: ...}` |  | `{fit: domain, direction_of: main}` | [cameras](../cameras.md#a-shots-camera) |
 | `camera.direction_of` | a view name; with `fit`, required |  | `direction_of: main` | [cameras](../cameras.md#a-shots-camera) |
 | `camera.margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` | [cameras](../cameras.md#a-shots-camera) |
+| `camera.shape` | `picture` or `sphere`; with `fit` | `picture` | `shape: sphere` | [cameras](../cameras.md#a-shots-camera) |
 | `camera.follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body |  | `{view: close, follow: riser, station: 6}` | [cameras](../cameras.md#a-shots-camera) |
 | `camera.station` | track, length unit along `axis`; with `follow`, required |  | `{from: 2, to: 10, frames: [0, 120]}` | [cameras](../cameras.md#a-shots-camera) |
 | `camera.axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else its measured long axis, else `z` | `axis: x` | [cameras](../cameras.md#a-shots-camera) |

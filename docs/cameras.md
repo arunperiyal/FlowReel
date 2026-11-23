@@ -153,6 +153,7 @@ shot below the root is an error that says to move it.
 | `fit` | `domain`, `crop` or `{x: [lo, hi], y: ..., z: ...}` | | `{fit: domain, direction_of: main}` |
 | `direction_of` | a view name; with `fit`, required | | `direction_of: main` |
 | `margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` |
+| `shape` | `picture` or `sphere`; with `fit` | `picture` | `shape: sphere` |
 | `follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body | | `{view: close, follow: riser, station: 6}` |
 | `station` | track, length unit along `axis`; with `follow`, required | | `{from: 2, to: 10, frames: [0, 120]}` |
 | `axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else its measured long axis, else `z` | `axis: x` |
@@ -164,9 +165,17 @@ camera keeps still while the body vibrates.
 ## Framing
 
 - **`fit`**: `camera: {fit: domain, direction_of: main, margin: 1.1}` places the camera
-  along a view's direction far enough to show a box. It fits the box's bounding sphere
-  (safe for any aspect, with some spare room) times `margin`. Perspective: distance
-  `r*margin / sin(view_angle/2)`; parallel: `parallel_scale = r*margin`.
+  along a view's direction far enough to show a box, `margin` times as large. With
+  `shape: picture` (the default) the box fills the shot's picture: its corners just in
+  frame across or up, whichever is tighter for the shot's `size`, so a flat domain seen
+  face on fills it, and a picture taller than wide still holds it. With
+  `shape: sphere` the camera fits the box's bounding sphere instead, as FlowReel framed
+  before Phase 8: spare room round the box, and the same distance whatever the view's
+  direction, so a camera turning about the box keeps it whole. The sphere's angle is
+  the view's vertical one, so in a picture narrower than it is tall it is cut at the
+  sides. Perspective: the
+  sphere's distance is `r*margin / sin(view_angle/2)`; parallel: `parallel_scale =
+  r*margin`.
 - **`follow`**: `camera: {follow: riser, station: 6.0}` puts the focal point on the
   body's centre at that station, keeping the view's direction and distance. The centre
   is the mean of the surface points within a slab of the station, along the body's axis

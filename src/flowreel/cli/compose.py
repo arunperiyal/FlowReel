@@ -21,7 +21,7 @@ EXAMPLES = {
   flowreel compose layout compare.yml
   flowreel compose layout compare.yml --scale 0.5
 
-Reference: docs/commands.md.""",
+Reference: docs/guide/commands.md.""",
     "layout": """examples:
   flowreel compose layout compare.yml             every frame, into frames/compare/
   flowreel compose layout compare.yml --scale 0.5 a half-size draft, frames/compare@960x540/

@@ -1,6 +1,6 @@
 """The second tutorial's pictures, from its project built on the real data.
 
-    python examples/tutorial_unsteady/stills.py PROJECT [-o docs/tutorial/unsteady/images]
+    python examples/tutorial_unsteady/stills.py PROJECT [-o docs/tutorials/unsteady/images]
 
 ``PROJECT`` is the tutorial's project at the end of chapter 4: the shot rendered at full
 size, the panel and the layout composed, ``film.mp4`` and ``contact.png`` built. The
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).parent
-IMAGES = HERE.parent.parent / "docs" / "tutorial" / "unsteady" / "images"
+IMAGES = HERE.parent.parent / "docs" / "tutorials" / "unsteady" / "images"
 sys.path.insert(0, str(HERE.parent / "tutorial"))
 from stills import WIDTH, frame, row  # noqa: E402  (the first tutorial's helpers)
 
@@ -55,7 +55,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("project", metavar="PROJECT", help="the tutorial project, built")
     parser.add_argument("-o", "--out", default=str(IMAGES), metavar="DIR",
-                        help="where the pictures go (default docs/tutorial/unsteady/images/)")
+                        help="where the pictures go (default docs/tutorials/unsteady/images/)")
     args = parser.parse_args(argv)
     try:
         for path in stills(args.project, args.out):

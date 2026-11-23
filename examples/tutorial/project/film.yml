@@ -1,8 +1,8 @@
-# The tutorial's film: 20 seconds, silent. Reference: docs/film.md.
+# The tutorial's film: 20 seconds, silent. Reference: docs/guide/film/film.md.
 output: film.mp4
 fps: 24
 size: [1920, 1080]
-# no audio: the film is silent (docs/film.md#audio adds a track)
+# no audio: the film is silent (docs/guide/film/film.md#audio adds a track)
 shots:
   - {name: title, card: cards/title.yml, seconds: 3, fade: [0.5, 0.5]}
   - name: wake                        # 120 frames at 24 a second: 5 s, and a 2 s freeze

@@ -6,20 +6,22 @@ laptop or on a cluster, and builds the film from one more file, with its cards,
 captions, freezes and sound. Every picture can be made again from the files that
 describe it.
 
-![A frame of the tutorial's film](tutorial/images/04-camera.png)
+![A frame of the tutorial's film](tutorials/steady/images/04-camera.png)
 
 ## Where to start
 
-**[The tutorial](tutorial/index.md)** makes a 20-second film of the flow past a
+Two [tutorials](tutorials/index.md), in order:
+
+**[The tutorial](tutorials/steady/index.md)** makes a 20-second film of the flow past a
 cylinder from a public data set, in eight short chapters, from installing FlowReel to
 the finished film. Start there.
 
-**[The second tutorial](tutorial/unsteady/index.md)** films a flow that moves: vortex
+**[The second tutorial](tutorials/unsteady/index.md)** films a flow that moves: vortex
 shedding behind a cylinder at a Reynolds number of 100, read from PLT files, with the
 drag and lift drawn beside it from a CSV file, and rendered on a cluster. It follows
 the first.
 
-![The second tutorial's film](tutorial/unsteady/images/film.gif)
+![The second tutorial's film](tutorials/unsteady/images/film.gif)
 
 ## The user guide
 
@@ -27,11 +29,11 @@ Each part of FlowReel, in the order a film is made:
 
 | Part | Pages |
 |---|---|
-| Projects and data | [projects](project.md), [the rules](rules.md) every project follows, [sources](sources.md) of data, [bodies](bodies.md), [derived fields](fields.md) |
-| Shots | [shot files](shots.md), [flow layers](layers-flow.md), [layers without flow data](layers-markers.md), [tracks](tracks.md) (values that change along a shot), [cameras](cameras.md), [the camera editor](camera-editor.md) |
-| Rendering | [rendering and caching](rendering.md), [long bodies](long-bodies.md), [Slurm](slurm.md) |
-| Composing | [compose](compose.md), [layouts](layouts.md), [panels](panels.md) |
-| The film | [the film file](film.md), [captions and shapes](captions.md), [cards](cards.md), [clips](clips.md), [building the film](build.md) |
+| Projects and data | [projects](guide/projects/project.md), [the rules](guide/projects/rules.md) every project follows, [sources](guide/projects/sources.md) of data, [bodies](guide/projects/bodies.md), [derived fields](guide/projects/fields.md) |
+| Shots | [shot files](guide/shots/shots.md), [flow layers](guide/shots/layers-flow.md), [layers without flow data](guide/shots/layers-markers.md), [tracks](guide/shots/tracks.md) (values that change along a shot), [cameras](guide/shots/cameras.md), [the camera editor](guide/shots/camera-editor.md) |
+| Rendering | [rendering and caching](guide/rendering/rendering.md), [long bodies](guide/rendering/long-bodies.md), [Slurm](guide/rendering/slurm.md) |
+| Composing | [compose](guide/composing/compose.md), [layouts](guide/composing/layouts.md), [panels](guide/composing/panels.md) |
+| The film | [the film file](guide/film/film.md), [captions and shapes](guide/film/captions.md), [cards](guide/film/cards.md), [clips](guide/film/clips.md), [building the film](guide/film/build.md) |
 
 ## The reference
 
@@ -56,5 +58,5 @@ mkdocs build --strict   # as every pull request does: a broken link or anchor, o
                         # page left out of the navigation, fails it
 ```
 
-A new page goes in the `nav` of `mkdocs.yml`. The design, `docs/PLAN.md`, stays out of
-the site. FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).
+A new page goes in the `nav` of `mkdocs.yml`. The design is in `plan/` at the
+repository's root, outside the site. FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).

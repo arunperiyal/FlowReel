@@ -1,5 +1,5 @@
 # cameras.yml written by `flowreel project init`: every shot and caption of
-# the project reads its views and tracks here. Reference: docs/cameras.md;
+# the project reads its views and tracks here. Reference: docs/guide/shots/cameras.md;
 # pick views and tracks with `flowreel camera edit`.
 views:
   - {name: main, position: [7.5, 0, 16.58431881165276], focal: [7.5, 0, 0], up: [0, 1, 0], view_angle: 30}   # the whole domain of vtk:data/cylinder_crossflow/flow.pvd, from +z

@@ -171,7 +171,7 @@ def test_film_check_warns(tmp_path, monkeypatch):
     drawn_frames(tmp_path / "f", 6)
     caption = {**DOT, "lines": ["Look here"], "at": [0.0, 0.75], "place": {"model": [-5.5, 0, 0]}}
     film_file(tmp_path, [{"name": "a", "frames": "f", "rate": {"fps": 8}, "text": [caption]}])
-    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/guide/projects/project.md)
     monkeypatch.chdir(tmp_path)
     status, out, err = Shell(tmp_path / "store").run("film check --at every:0.5 --width 80")
     assert status == 0, err

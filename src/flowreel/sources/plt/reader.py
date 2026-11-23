@@ -1,6 +1,6 @@
 """Reader for FlexFlow Tecplot binary (.plt, "#!TDV112") output.
 
-FlowReel's own copy of the AFMS prototype's ``fxplt.py`` (docs/PLAN.md, Sections 14 and
+FlowReel's own copy of the AFMS prototype's ``fxplt.py`` (plan/design.md, Sections 14 and
 20). Added here: each zone keeps its ``strand`` and solution ``time`` from the header, and
 :meth:`PltFile.read_variable` reads one variable without loading the rest.
 

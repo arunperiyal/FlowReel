@@ -1,4 +1,4 @@
-"""The ``Source`` interface every data adapter implements (docs/PLAN.md, Section 5.1)."""
+"""The ``Source`` interface every data adapter implements (plan/design.md, Section 5.1)."""
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable

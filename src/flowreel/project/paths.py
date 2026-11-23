@@ -57,7 +57,7 @@ def require_root(start: str | Path | None = None) -> Path:
             f"{where} is not in a FlowReel project (no {PROJECT_FILE} there or in any "
             f"folder above). Make one with 'flowreel project init' in the project's "
             f"folder (for example: flowreel project init vtk:run/flow.pvd), or cd into "
-            f"one. Reference: docs/project.md")
+            f"one. Reference: docs/guide/projects/project.md")
     return root
 
 

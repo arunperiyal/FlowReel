@@ -11,364 +11,364 @@ one `type` of panel.
 
 ## Shot file: `shots/NAME.yml`
 
-Guide: [shots](../shots.md).
+Guide: [guide/shots/shots](../guide/shots/shots.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `name` | string | required | `name: bare_reveal` | [shots](../shots.md#keys) |
-| `source` | `adapter:location`, or a mapping of the adapter's options with `adapter` | required | `source: vtk:run/flow.pvd` | [shots](../shots.md#keys) |
-| `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` | [shots](../shots.md#keys) |
-| `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` | [shots](../shots.md#keys) |
-| `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` | [shots](../shots.md#keys) |
-| `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](../long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` | [shots](../shots.md#keys) |
-| `background` | colour | `black` | `background: '#101010'` | [shots](../shots.md#keys) |
-| `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` | [shots](../shots.md#keys) |
-| `lights` | `default`, `raking` or a list (see [cameras](../cameras.md#lights)) | none: VTK's own light kit | `lights: raking` | [shots](../shots.md#keys) |
-| `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](../long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` | [shots](../shots.md#keys) |
-| `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](../captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` | [shots](../shots.md#keys) |
-| `layers` | list of layers, drawn bottom first, at least one | required | see below | [shots](../shots.md#keys) |
-| `time.steps`, `.every` |  |  | `steps: [first, last]`, `every` (whole number, default 1) | [shots](../shots.md#time) |
-| `time.frozen`, `.frames` |  |  | `frozen: step`, `frames` (default 1) | [shots](../shots.md#time) |
-| `time.keys`, `.ease` |  |  | `keys: [[frame, step], ...]`, `ease` (default `linear`), `frames` | [shots](../shots.md#time) |
-| `camera.view` | a view name |  | `camera: {view: main}` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.track` | a camera track name |  | `camera: {track: carve}` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.fit` | `domain`, `crop` or `{x: [lo, hi], y: ..., z: ...}` |  | `{fit: domain, direction_of: main}` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.direction_of` | a view name; with `fit`, required |  | `direction_of: main` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.shape` | `picture` or `sphere`; with `fit` | `picture` | `shape: sphere` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body |  | `{view: close, follow: riser, station: 6}` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.station` | track, length unit along `axis`; with `follow`, required |  | `{from: 2, to: 10, frames: [0, 120]}` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else its measured long axis, else `z` | `axis: x` | [cameras](../cameras.md#a-shots-camera) |
-| `camera.motion` | boolean; with `follow` | `true` | `motion: false` | [cameras](../cameras.md#a-shots-camera) |
-| `watermark.image` | file |  | a picture (PNG with transparency is best), kept **outside** the repository; it must exist | [captions](../captions.md#the-watermark) |
-| `watermark.text` | string |  | a line of text in Lato; give `image` or `text` | [captions](../captions.md#the-watermark) |
-| `watermark.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `lower_right` | 2% of the picture's height from the edges | [captions](../captions.md#the-watermark) |
-| `watermark.place` | `[x, y]` |  | its upper left corner, instead of `corner` | [captions](../captions.md#the-watermark) |
-| `watermark.size` | number | `32` | pixels high: an image's height, or the text's font size (as a caption's `size`) | [captions](../captions.md#the-watermark) |
-| `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency | [captions](../captions.md#the-watermark) |
-| `watermark.colour` | colour | `'#f2f2f2'` | of text | [captions](../captions.md#the-watermark) |
+| `name` | string | required | `name: bare_reveal` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `source` | `adapter:location`, or a mapping of the adapter's options with `adapter` | required | `source: vtk:run/flow.pvd` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](../guide/rendering/long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `background` | colour | `black` | `background: '#101010'` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `lights` | `default`, `raking` or a list (see [cameras](../guide/shots/cameras.md#lights)) | none: VTK's own light kit | `lights: raking` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](../guide/rendering/long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](../guide/film/captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `layers` | list of layers, drawn bottom first, at least one | required | see below | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `time.steps`, `.every` |  |  | `steps: [first, last]`, `every` (whole number, default 1) | [guide/shots/shots](../guide/shots/shots.md#time) |
+| `time.frozen`, `.frames` |  |  | `frozen: step`, `frames` (default 1) | [guide/shots/shots](../guide/shots/shots.md#time) |
+| `time.keys`, `.ease` |  |  | `keys: [[frame, step], ...]`, `ease` (default `linear`), `frames` | [guide/shots/shots](../guide/shots/shots.md#time) |
+| `camera.view` | a view name |  | `camera: {view: main}` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.track` | a camera track name |  | `camera: {track: carve}` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.fit` | `domain`, `crop` or `{x: [lo, hi], y: ..., z: ...}` |  | `{fit: domain, direction_of: main}` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.direction_of` | a view name; with `fit`, required |  | `direction_of: main` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.shape` | `picture` or `sphere`; with `fit` | `picture` | `shape: sphere` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body |  | `{view: close, follow: riser, station: 6}` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.station` | track, length unit along `axis`; with `follow`, required |  | `{from: 2, to: 10, frames: [0, 120]}` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else its measured long axis, else `z` | `axis: x` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `camera.motion` | boolean; with `follow` | `true` | `motion: false` | [guide/shots/cameras](../guide/shots/cameras.md#a-shots-camera) |
+| `watermark.image` | file |  | a picture (PNG with transparency is best), kept **outside** the repository; it must exist | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.text` | string |  | a line of text in Lato; give `image` or `text` | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `lower_right` | 2% of the picture's height from the edges | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.place` | `[x, y]` |  | its upper left corner, instead of `corner` | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.size` | number | `32` | pixels high: an image's height, or the text's font size (as a caption's `size`) | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.colour` | colour | `'#f2f2f2'` | of text | [guide/film/captions](../guide/film/captions.md#the-watermark) |
 
 ## Cameras: `cameras.yml`
 
-Guide: [cameras](../cameras.md).
+Guide: [guide/shots/cameras](../guide/shots/cameras.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `views[].name` | string, unique, required in `views:` |  | `name: main` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].position` | `[x, y, z]` | required | `position: [-19, 13, -5]` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].focal` | `[x, y, z]`, not equal to `position` | required | `focal: [6, 0, 8.5]` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].up` | `[x, y, z]`, not parallel to the viewing direction | `[0, 1, 0]` | `up: [0, 0, -1]` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].view_angle` | vertical field of view, 0 to 180 | `30` | `view_angle: 40` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].parallel` | boolean | `false` | `parallel: true` | [cameras](../cameras.md#views-camerasyml) |
-| `views[].parallel_scale` | half the frame height; required when `parallel` | `1` | `parallel_scale: 10.6` | [cameras](../cameras.md#views-camerasyml) |
-| `tracks.NAME.frames` | whole number >= 1 | the last key's frame | `frames: 288` | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.path` | `linear` or `spline` | `linear` | `path: spline` | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.ease` | a track easing (`linear`, `smooth`, `in`, `out`, `in_out`, `hold`) | `smooth` | `ease: in_out` | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.keys` | list of `{frame, view, ease}`; frames increasing; at least one | required |  | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.keys[].frame` | number | required | `frame: 218` | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.keys[].view` | a view name | required | `view: carve_close` | [cameras](../cameras.md#camera-tracks) |
-| `tracks.NAME.keys[].ease` | a track easing, for the segment from this key to the next | the track's `ease` | `ease: hold` | [cameras](../cameras.md#camera-tracks) |
+| `views[].name` | string, unique, required in `views:` |  | `name: main` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].position` | `[x, y, z]` | required | `position: [-19, 13, -5]` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].focal` | `[x, y, z]`, not equal to `position` | required | `focal: [6, 0, 8.5]` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].up` | `[x, y, z]`, not parallel to the viewing direction | `[0, 1, 0]` | `up: [0, 0, -1]` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].view_angle` | vertical field of view, 0 to 180 | `30` | `view_angle: 40` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].parallel` | boolean | `false` | `parallel: true` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `views[].parallel_scale` | half the frame height; required when `parallel` | `1` | `parallel_scale: 10.6` | [guide/shots/cameras](../guide/shots/cameras.md#views-camerasyml) |
+| `tracks.NAME.frames` | whole number >= 1 | the last key's frame | `frames: 288` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.path` | `linear` or `spline` | `linear` | `path: spline` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.ease` | a track easing (`linear`, `smooth`, `in`, `out`, `in_out`, `hold`) | `smooth` | `ease: in_out` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.keys` | list of `{frame, view, ease}`; frames increasing; at least one | required |  | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.keys[].frame` | number | required | `frame: 218` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.keys[].view` | a view name | required | `view: carve_close` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
+| `tracks.NAME.keys[].ease` | a track easing, for the segment from this key to the next | the track's `ease` | `ease: hold` | [guide/shots/cameras](../guide/shots/cameras.md#camera-tracks) |
 
 ## Project: `flowreel.yml`
 
-Guide: [bodies](../bodies.md).
+Guide: [guide/projects/bodies](../guide/projects/bodies.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `bodies.NAME.zone` | the source's surface zone (a name from `source.bodies()`) | the body's name | `zone: cyl` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME.axis` | `x`, `y` or `z`: the span direction; makes it a beam body | none: not a beam | `axis: x` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME.diameter` | positive number, source length unit: symbols and stations scale with it; beam bodies only | measured from the surface when needed | `diameter: 1.0` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME.ends` | list of supports (below); beam bodies only | none | `[{at: 0, support: clamped}]` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME.series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME (virtual).virtual` |  | required | `true` | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).shape` |  | required | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).params` |  | the shape's defaults | the shape's parameters, fixed | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).attach` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).drive` |  | none | the shape's parameters as [series tracks](../tracks.md#series-as-a-track); `body` defaults to this virtual body | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [bodies](../bodies.md#a-body) |
-| `bodies.NAME.attach.body`, `.station`, `.point`, `.offset` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [bodies](../bodies.md#virtual-bodies) |
-| `bodies.NAME.ends[].at` | number, length unit | required | the station along the axis | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].support` | one of the supports above | required | how the body is held there | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].tension` | bool | `false` | held by top tension (a riser) | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].stiffness` | positive number | required for `spring` | the spring's stiffness | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].mark` | bool | `false` | `free`: draw a thin ring at the station | [bodies](../bodies.md#supports) |
-| `bodies.NAME.ends[].direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | [bodies](../bodies.md#supports) |
-| `bodies.NAME.series.NAME.file` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [bodies](../bodies.md#series) |
-| `bodies.NAME.series.NAME.time` |  | `time` | name of the time column | [bodies](../bodies.md#series) |
-| `bodies.NAME.series.NAME.columns` |  | the file's own | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | [bodies](../bodies.md#series) |
-| `bodies.NAME.series.NAME.by` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [bodies](../bodies.md#series) |
-| `bodies.NAME.series.NAME.stations` |  | none | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | [bodies](../bodies.md#series) |
-| `reference.rho` | number > 0 | none | density, in the source's units | [project](../project.md#reference-values) |
-| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units | [project](../project.md#reference-values) |
-| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` | [project](../project.md#reference-values) |
+| `bodies.NAME.zone` | the source's surface zone (a name from `source.bodies()`) | the body's name | `zone: cyl` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.axis` | `x`, `y` or `z`: the span direction; makes it a beam body | none: not a beam | `axis: x` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.diameter` | positive number, source length unit: symbols and stations scale with it; beam bodies only | measured from the surface when needed | `diameter: 1.0` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.ends` | list of supports (below); beam bodies only | none | `[{at: 0, support: clamped}]` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME (virtual).virtual` |  | required | `true` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).shape` |  | required | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).params` |  | the shape's defaults | the shape's parameters, fixed | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).attach` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).drive` |  | none | the shape's parameters as [series tracks](../guide/shots/tracks.md#series-as-a-track); `body` defaults to this virtual body | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.attach.body`, `.station`, `.point`, `.offset` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME.ends[].at` | number, length unit | required | the station along the axis | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].support` | one of the supports above | required | how the body is held there | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].tension` | bool | `false` | held by top tension (a riser) | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].stiffness` | positive number | required for `spring` | the spring's stiffness | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].mark` | bool | `false` | `free`: draw a thin ring at the station | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.series.NAME.file` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.time` |  | `time` | name of the time column | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.columns` |  | the file's own | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.by` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.stations` |  | none | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `reference.rho` | number > 0 | none | density, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
+| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
+| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` | [guide/projects/project](../guide/projects/project.md#reference-values) |
 
 ## Layout: `NAME.yml (compose layout)`
 
-Guide: [layouts](../layouts.md).
+Guide: [guide/composing/layouts](../guide/composing/layouts.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `name` | string | the file's name without `.yml` | the output folder, `OUT/<name>/` | [layouts](../layouts.md#a-layout-file) |
-| `size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [layouts](../layouts.md#a-layout-file) |
-| `background` | colour | `black` | a colour name or `'#rrggbb'`; shows in gaps and bars | [layouts](../layouts.md#a-layout-file) |
-| `grid` | `[rows, cols]` | none | place the tiles automatically (below) | [layouts](../layouts.md#a-layout-file) |
-| `gap` | whole number | `0` | pixels between grid cells; only with `grid` | [layouts](../layouts.md#a-layout-file) |
-| `missing` | `error` or `hold` | `error` | what a tile without frame *i* does (below) | [layouts](../layouts.md#a-layout-file) |
-| `tiles` | list | required | the tiles: `frames`, `stations` and `panel` entries | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].frames` | path | required | folder of `frame_NNNNN.png` | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].stations` | list | required | the tiles: `frames`, `stations` and `panel` entries | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].panel` | path | required | the panel file, from the layout file's folder | [layouts](../layouts.md#panel-tiles-panel) |
-| `tiles[].rate` | `flow` or `output` | `flow` | `output`: drawn at the film's output frames (below) | [layouts](../layouts.md#panel-tiles-panel) |
-| `tiles[].at` | `[x, y]` | required without `grid` | upper left corner, pixels | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].along` | `row`, `column` | `row` | how the tiles split the area; not with `grid` | [layouts](../layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].fit` | `contain`, `cover`, `stretch` | `contain` | how a frame of another shape fills the tile | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].label` | text or mapping | none | text over the tile | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].stations.shot` | path | required | the shot file, from the layout's folder | [layouts](../layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].stations.at` | list of numbers | required | stations, in the body's length unit | [layouts](../layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].label.text` | string | required | the words | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].label.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `upper_left` | where | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].label.size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [layouts](../layouts.md#a-layout-file) |
-| `tiles[].label.colour` | colour | `'#ffffff'` |  | [layouts](../layouts.md#a-layout-file) |
+| `name` | string | the file's name without `.yml` | the output folder, `OUT/<name>/` | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `background` | colour | `black` | a colour name or `'#rrggbb'`; shows in gaps and bars | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `grid` | `[rows, cols]` | none | place the tiles automatically (below) | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `gap` | whole number | `0` | pixels between grid cells; only with `grid` | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `missing` | `error` or `hold` | `error` | what a tile without frame *i* does (below) | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles` | list | required | the tiles: `frames`, `stations` and `panel` entries | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].frames` | path | required | folder of `frame_NNNNN.png` | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].stations` | list | required | the tiles: `frames`, `stations` and `panel` entries | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].panel` | path | required | the panel file, from the layout file's folder | [guide/composing/layouts](../guide/composing/layouts.md#panel-tiles-panel) |
+| `tiles[].rate` | `flow` or `output` | `flow` | `output`: drawn at the film's output frames (below) | [guide/composing/layouts](../guide/composing/layouts.md#panel-tiles-panel) |
+| `tiles[].at` | `[x, y]` | required without `grid` | upper left corner, pixels | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].along` | `row`, `column` | `row` | how the tiles split the area; not with `grid` | [guide/composing/layouts](../guide/composing/layouts.md#one-shot-at-several-stations-stations) |
+| `tiles[].fit` | `contain`, `cover`, `stretch` | `contain` | how a frame of another shape fills the tile | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].label` | text or mapping | none | text over the tile | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].stations.shot` | path | required | the shot file, from the layout's folder | [guide/composing/layouts](../guide/composing/layouts.md#one-shot-at-several-stations-stations) |
+| `tiles[].stations.at` | list of numbers | required | stations, in the body's length unit | [guide/composing/layouts](../guide/composing/layouts.md#one-shot-at-several-stations-stations) |
+| `tiles[].label.text` | string | required | the words | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].label.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `upper_left` | where | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].label.size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
+| `tiles[].label.colour` | colour | `'#ffffff'` |  | [guide/composing/layouts](../guide/composing/layouts.md#a-layout-file) |
 
 ## Panel: `NAME.yml (compose panel)`
 
-Guide: [panels](../panels.md).
+Guide: [guide/composing/panels](../guide/composing/panels.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `type` | `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` | required | the kind of panel | [panels](../panels.md#a-panel-file) |
-| `name` | string | the file's name without `.yml` | the output folder | [panels](../panels.md#a-panel-file) |
-| `size` | `[width, height]` | `[640, 360]` | pixels (the figure is drawn at 100 dots per inch) | [panels](../panels.md#a-panel-file) |
-| `times` | list of numbers, or `{shot: FILE}` | required | the time of each frame | [panels](../panels.md#a-panel-file) |
-| `style` | mapping, file, or `{from: FILE, ...}` | the defaults below | how it looks | [panels](../panels.md#a-panel-file) |
-| `style.font` | string | `Lato` | text font family; the bundled Lato is always available | [panels](../panels.md#style) |
-| `style.font_size` | number | `17` | points; at 100 dots per inch a point is 1.39 pixels | [panels](../panels.md#style) |
-| `style.maths` | `dejavusans`, `dejavuserif`, `cm`, `stix`, `stixsans` | `dejavusans` | font for text between `$`, such as `'$C_L$'` | [panels](../panels.md#style) |
-| `style.background` | colour | `black` | the figure and the axes | [panels](../panels.md#style) |
-| `style.text` | colour | `'#b4bec8'` | labels and tick numbers | [panels](../panels.md#style) |
-| `style.grid` | colour | `'#3a4046'` | grid lines and the axes' edges | [panels](../panels.md#style) |
-| `style.line_width` | number | `2.2` | points | [panels](../panels.md#style) |
-| `style.grid_width` | number | `0.8` | points | [panels](../panels.md#style) |
-| `style.dot_size` | number | `8` | the current-time dot's diameter, points | [panels](../panels.md#style) |
-| `style.colours` | list of colours | five film colours | given in turn to lines that name none | [panels](../panels.md#style) |
-| `style.pad` | number | `0.12` | share of a data range added above and below, for ranges found from the data | [panels](../panels.md#style) |
-| `<cuts>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
-| `<cuts>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
-| `<cuts>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
-| `<cuts>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.axes` | two of `x`, `y`, `z` | the other two axes, in the order x, y, z | the plane's axes across and up the picture: `[z, y]` puts a flow along z to the right | [panels](../panels.md#cuts-across-a-body) |
-| `<cuts>.depth` | number | 1 diameter | half-thickness of the slab read, length unit | [panels](../panels.md#cuts-across-a-body) |
-| `<cuts>.half` | number or `[across, up]` | 1.5 diameters | half-size of the view, length unit | [panels](../panels.md#cuts-across-a-body) |
-| `<cuts>.centre` | `[across, up]` | the body's centre at the station, in each frame | a view that stays put, in the source's coordinates | [panels](../panels.md#cuts-across-a-body) |
-| `<cuts>.body_colour` | colour | `'#c8ccd0'` | the bodies' fill | [panels](../panels.md#cuts-across-a-body) |
-| `<cuts>.stations` | list of numbers | required | one cut each, left to right | [panels](../panels.md#cuts) |
-| `<cuts>.label` | string | none | the line's name in the legend | [panels](../panels.md#where-the-data-comes-from) |
-| `<cuts>.gap` | number | `0.008` | space between cuts, share of the figure's width | [panels](../panels.md#cuts) |
-| `<locator>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
-| `<locator>.shape` | `{series, column, scale, offset, amplify, colour}` | none | the body's displacement history at many points | [panels](../panels.md#locator) |
-| `<locator>.supports` | bool | `true` | the declared ends: pinned ▲, roller ●, clamped ■, spring ✕, prescribed ◆, free only with `mark`; `tension` adds an arrow | [panels](../panels.md#locator) |
-| `<locator>.windows` | list of `{shot, colour, label}` | none | shots whose crops are marked | [panels](../panels.md#locator) |
-| `<locator>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [panels](../panels.md#series) |
-| `<locator>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [panels](../panels.md#phase) |
-| `<locator>.colour` | colour | the style's colours in turn |  | [panels](../panels.md#where-the-data-comes-from) |
-| `<locator>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [panels](../panels.md#series) |
-| `<map>.rows` | list of `{label, range, lines}` | required (or `y` and `lines` for one row) |  | [panels](../panels.md#series) |
-| `<map>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [panels](../panels.md#series) |
-| `<map>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [panels](../panels.md#phase) |
-| `<map>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
-| `<map>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
-| `<map>.colorbar` | `{label, fraction, pad}` or `false` | `{fraction: 0.025, pad: 0.02}` | matplotlib's colour bar settings | [panels](../panels.md#map) |
-| `<map>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [panels](../panels.md#series) |
-| `<map>.title_size` | number | 1.3 times the style's `font_size` | points | [panels](../panels.md#map) |
-| `<phase>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [panels](../panels.md#series) |
-| `<phase>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [panels](../panels.md#phase) |
-| `<phase>.colour` | colour | the style's colours in turn |  | [panels](../panels.md#where-the-data-comes-from) |
-| `<phase>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [panels](../panels.md#series) |
-| `<section>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
-| `<section>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
-| `<section>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
-| `<section>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.axes` | two of `x`, `y`, `z` | the other two axes, in the order x, y, z | the plane's axes across and up the picture: `[z, y]` puts a flow along z to the right | [panels](../panels.md#cuts-across-a-body) |
-| `<section>.depth` | number | 1 diameter | half-thickness of the slab read, length unit | [panels](../panels.md#cuts-across-a-body) |
-| `<section>.half` | number or `[across, up]` | 1.5 diameters | half-size of the view, length unit | [panels](../panels.md#cuts-across-a-body) |
-| `<section>.centre` | `[across, up]` | the body's centre at the station, in each frame | a view that stays put, in the source's coordinates | [panels](../panels.md#cuts-across-a-body) |
-| `<section>.body_colour` | colour | `'#c8ccd0'` | the bodies' fill | [panels](../panels.md#cuts-across-a-body) |
-| `<section>.station` | number or track | required | where along the body to cut; a track (keyed on frames) travels | [panels](../panels.md#section) |
-| `<section>.streamlines` | mapping or `false` | on, as below |  | [panels](../panels.md#section) |
-| `<section>.inset` | mapping or none | none | the close view | [panels](../panels.md#section) |
-| `<series>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [panels](../panels.md#series) |
-| `<series>.rows` | list of `{label, range, lines}` | required (or `y` and `lines` for one row) |  | [panels](../panels.md#series) |
-| `<series>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [panels](../panels.md#phase) |
-| `<series>.lines` | list of lines ([where the data comes from](../panels.md#where-the-data-comes-from)) | required | the row's lines; `lines` alone with `y` for a panel of one row | [panels](../panels.md#series) |
-| `<series>.legend` | bool | `true` | the first row's labelled lines, in their colours, above it | [panels](../panels.md#series) |
-| `<series>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [panels](../panels.md#series) |
-| `<strip>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
-| `<strip>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
-| `<strip>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
-| `<strip>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.side` | `x`, `-x`, `y`, `-y`, `z`, `-z` | required | the side the eye is on; not the body's axis | [panels](../panels.md#strip) |
-| `<strip>.component` | `x`, `y`, `z` | none | the part of a vector field drawn; required for one | [panels](../panels.md#strip) |
-| `<strip>.span` | `[low, high]` | the whole body | the part of the span shown, along the body's axis | [panels](../panels.md#strip) |
-| `<strip>.zero` | `{colour, width}` or `false` | `{colour: '#f2f2f2', width: 2.5}` | the zero line; width in points | [panels](../panels.md#strip) |
-| `<strip>.margin` | number | half a diameter | the flow read round the body, length unit | [panels](../panels.md#strip) |
-| `<strip>.aspect` | `auto` or `equal` | `auto` | `equal` keeps lengths true; `auto` fills the panel, which a long body needs | [panels](../panels.md#strip) |
-| `<series>.lines[].body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.lines[].series` | string | required | the series' name under the body | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.lines[].column` | string | the series' only value column | the column, as renamed by `columns` | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.lines[].scale`, `.offset` | number | `1`, `0` | the value drawn is `value * scale + offset` | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.lines[].label` | string | none | the line's name in the legend | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.lines[].colour` | colour | the style's colours in turn |  | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.x.label` | string | none | the line's name in the legend | [panels](../panels.md#where-the-data-comes-from) |
-| `<series>.x.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
-| `<series>.margins.left`, `.right`, `.top`, `.bottom`, `.space` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [panels](../panels.md#series) |
-| `<section>.streamlines.relative` | bool | `true` | take away the body's velocity | [panels](../panels.md#section) |
-| `<section>.streamlines.density` | number | `1.6` | matplotlib's `streamplot` density in the main view | [panels](../panels.md#section) |
-| `<section>.streamlines.colour`, `.opacity`, `.width`, `.arrow` |  | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size | [panels](../panels.md#section) |
-| `<section>.streamlines.resolution` | integer | `200` | points each way of the grid the velocity is taken to | [panels](../panels.md#section) |
-| `<section>.inset.offset` | `[across, up]` | `[0, 0]` | its centre, from the body's centre, length unit | [panels](../panels.md#section) |
-| `<section>.inset.half` | number or pair | 0.2 diameters | its half-size | [panels](../panels.md#section) |
-| `<section>.inset.at` | `[left, bottom, width, height]` | `[0.58, 0.2, 0.38, 0.6]` | where it is in the figure; the main view moves to `[0.04, 0.08, 0.5, 0.84]` | [panels](../panels.md#section) |
-| `<section>.inset.density` | number | `2.4` | streamline density in the inset | [panels](../panels.md#section) |
-| `<section>.inset.box` | colour | `'#f2f2f2'` | its box on the main view | [panels](../panels.md#section) |
-| `<strip>.zero.colour` | colour | the style's colours in turn |  | [panels](../panels.md#where-the-data-comes-from) |
-| `<strip>.zero.width` |  | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size | [panels](../panels.md#section) |
+| `type` | `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` | required | the kind of panel | [guide/composing/panels](../guide/composing/panels.md#a-panel-file) |
+| `name` | string | the file's name without `.yml` | the output folder | [guide/composing/panels](../guide/composing/panels.md#a-panel-file) |
+| `size` | `[width, height]` | `[640, 360]` | pixels (the figure is drawn at 100 dots per inch) | [guide/composing/panels](../guide/composing/panels.md#a-panel-file) |
+| `times` | list of numbers, or `{shot: FILE}` | required | the time of each frame | [guide/composing/panels](../guide/composing/panels.md#a-panel-file) |
+| `style` | mapping, file, or `{from: FILE, ...}` | the defaults below | how it looks | [guide/composing/panels](../guide/composing/panels.md#a-panel-file) |
+| `style.font` | string | `Lato` | text font family; the bundled Lato is always available | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.font_size` | number | `17` | points; at 100 dots per inch a point is 1.39 pixels | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.maths` | `dejavusans`, `dejavuserif`, `cm`, `stix`, `stixsans` | `dejavusans` | font for text between `$`, such as `'$C_L$'` | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.background` | colour | `black` | the figure and the axes | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.text` | colour | `'#b4bec8'` | labels and tick numbers | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.grid` | colour | `'#3a4046'` | grid lines and the axes' edges | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.line_width` | number | `2.2` | points | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.grid_width` | number | `0.8` | points | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.dot_size` | number | `8` | the current-time dot's diameter, points | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.colours` | list of colours | five film colours | given in turn to lines that name none | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `style.pad` | number | `0.12` | share of a data range added above and below, for ranges found from the data | [guide/composing/panels](../guide/composing/panels.md#style) |
+| `<cuts>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<cuts>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<cuts>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<cuts>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.axes` | two of `x`, `y`, `z` | the other two axes, in the order x, y, z | the plane's axes across and up the picture: `[z, y]` puts a flow along z to the right | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<cuts>.depth` | number | 1 diameter | half-thickness of the slab read, length unit | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<cuts>.half` | number or `[across, up]` | 1.5 diameters | half-size of the view, length unit | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<cuts>.centre` | `[across, up]` | the body's centre at the station, in each frame | a view that stays put, in the source's coordinates | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<cuts>.body_colour` | colour | `'#c8ccd0'` | the bodies' fill | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<cuts>.stations` | list of numbers | required | one cut each, left to right | [guide/composing/panels](../guide/composing/panels.md#cuts) |
+| `<cuts>.label` | string | none | the line's name in the legend | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<cuts>.gap` | number | `0.008` | space between cuts, share of the figure's width | [guide/composing/panels](../guide/composing/panels.md#cuts) |
+| `<locator>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<locator>.shape` | `{series, column, scale, offset, amplify, colour}` | none | the body's displacement history at many points | [guide/composing/panels](../guide/composing/panels.md#locator) |
+| `<locator>.supports` | bool | `true` | the declared ends: pinned ▲, roller ●, clamped ■, spring ✕, prescribed ◆, free only with `mark`; `tension` adds an arrow | [guide/composing/panels](../guide/composing/panels.md#locator) |
+| `<locator>.windows` | list of `{shot, colour, label}` | none | shots whose crops are marked | [guide/composing/panels](../guide/composing/panels.md#locator) |
+| `<locator>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<locator>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [guide/composing/panels](../guide/composing/panels.md#phase) |
+| `<locator>.colour` | colour | the style's colours in turn |  | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<locator>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<map>.rows` | list of `{label, range, lines}` | required (or `y` and `lines` for one row) |  | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<map>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<map>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [guide/composing/panels](../guide/composing/panels.md#phase) |
+| `<map>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<map>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<map>.colorbar` | `{label, fraction, pad}` or `false` | `{fraction: 0.025, pad: 0.02}` | matplotlib's colour bar settings | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<map>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<map>.title_size` | number | 1.3 times the style's `font_size` | points | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<phase>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<phase>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [guide/composing/panels](../guide/composing/panels.md#phase) |
+| `<phase>.colour` | colour | the style's colours in turn |  | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<phase>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<section>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<section>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<section>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<section>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.axes` | two of `x`, `y`, `z` | the other two axes, in the order x, y, z | the plane's axes across and up the picture: `[z, y]` puts a flow along z to the right | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<section>.depth` | number | 1 diameter | half-thickness of the slab read, length unit | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<section>.half` | number or `[across, up]` | 1.5 diameters | half-size of the view, length unit | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<section>.centre` | `[across, up]` | the body's centre at the station, in each frame | a view that stays put, in the source's coordinates | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<section>.body_colour` | colour | `'#c8ccd0'` | the bodies' fill | [guide/composing/panels](../guide/composing/panels.md#cuts-across-a-body) |
+| `<section>.station` | number or track | required | where along the body to cut; a track (keyed on frames) travels | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.streamlines` | mapping or `false` | on, as below |  | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset` | mapping or none | none | the close view | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<series>.x` | `{label, range}` | the panel's first to last time | the shared time axis | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<series>.rows` | list of `{label, range, lines}` | required (or `y` and `lines` for one row) |  | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<series>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [guide/composing/panels](../guide/composing/panels.md#phase) |
+| `<series>.lines` | list of lines ([where the data comes from](../guide/composing/panels.md#where-the-data-comes-from)) | required | the row's lines; `lines` alone with `y` for a panel of one row | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<series>.legend` | bool | `true` | the first row's labelled lines, in their colours, above it | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<series>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<strip>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<strip>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<strip>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<strip>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.view` | `[left, bottom, width, height]` | the whole panel | where the picture is, as shares of the figure | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.side` | `x`, `-x`, `y`, `-y`, `z`, `-z` | required | the side the eye is on; not the body's axis | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<strip>.component` | `x`, `y`, `z` | none | the part of a vector field drawn; required for one | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<strip>.span` | `[low, high]` | the whole body | the part of the span shown, along the body's axis | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<strip>.zero` | `{colour, width}` or `false` | `{colour: '#f2f2f2', width: 2.5}` | the zero line; width in points | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<strip>.margin` | number | half a diameter | the flow read round the body, length unit | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<strip>.aspect` | `auto` or `equal` | `auto` | `equal` keeps lengths true; `auto` fills the panel, which a long body needs | [guide/composing/panels](../guide/composing/panels.md#strip) |
+| `<series>.lines[].body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].series` | string | required | the series' name under the body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].column` | string | the series' only value column | the column, as renamed by `columns` | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].scale`, `.offset` | number | `1`, `0` | the value drawn is `value * scale + offset` | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].label` | string | none | the line's name in the legend | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].colour` | colour | the style's colours in turn |  | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.x.label` | string | none | the line's name in the legend | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.x.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
+| `<series>.margins.left`, `.right`, `.top`, `.bottom`, `.space` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
+| `<section>.streamlines.relative` | bool | `true` | take away the body's velocity | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.streamlines.density` | number | `1.6` | matplotlib's `streamplot` density in the main view | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.streamlines.colour`, `.opacity`, `.width`, `.arrow` |  | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.streamlines.resolution` | integer | `200` | points each way of the grid the velocity is taken to | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset.offset` | `[across, up]` | `[0, 0]` | its centre, from the body's centre, length unit | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset.half` | number or pair | 0.2 diameters | its half-size | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset.at` | `[left, bottom, width, height]` | `[0.58, 0.2, 0.38, 0.6]` | where it is in the figure; the main view moves to `[0.04, 0.08, 0.5, 0.84]` | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset.density` | number | `2.4` | streamline density in the inset | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<section>.inset.box` | colour | `'#f2f2f2'` | its box on the main view | [guide/composing/panels](../guide/composing/panels.md#section) |
+| `<strip>.zero.colour` | colour | the style's colours in turn |  | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<strip>.zero.width` |  | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size | [guide/composing/panels](../guide/composing/panels.md#section) |
 
 ## Film: `film.yml`
 
-Guide: [film](../film.md).
+Guide: [guide/film/film](../guide/film/film.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `output` | path | `film.mp4` | the film written | [film](../film.md#the-film-file) |
-| `fps` | whole number | `24` | frames a second of the film | [film](../film.md#the-film-file) |
-| `size` | `[width, height]` | `[1920, 1080]` | pixels | [film](../film.md#the-film-file) |
-| `style` | mapping | below | fonts, colours, caption defaults | [film](../film.md#the-film-file) |
-| `audio` | a track, or a list of them | none | below | [film](../film.md#the-film-file) |
-| `watermark` | mapping | none | below | [film](../film.md#the-film-file) |
-| `shots` | list | required | the shots, in order | [film](../film.md#the-film-file) |
-| `style.font`, `.maths` | `font`, `dejavusans`, `dejavuserif`, `cm`, `stix`, `stixsans` | `font` | maths in the text's own font (as the AFMS film), or a matplotlib maths font | [film](../film.md#style) |
-| `style.colours` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [film](../film.md#style) |
-| `style.caption` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [film](../film.md#style) |
-| `style.colours.text`, `.muted` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [film](../film.md#style) |
-| `style.caption.size` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [film](../film.md#style) |
-| `style.caption.shadow` | bool | the style's (`true`) | a soft shadow behind the text | [film](../film.md#captions) |
-| `style.caption.box` | bool | the style's (`false`) | a dark panel behind the text | [film](../film.md#captions) |
-| `style.caption.fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [film](../film.md#shots) |
-| `style.caption.margin` | number | `80` | pixels from the edge for `top` and `bottom` | [film](../film.md#style) |
-| `style.caption.align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [film](../film.md#captions) |
-| `style.caption.spacing` | number | `1.3` | line spacing, times the size | [film](../film.md#style) |
-| `audio[].file` | path | required | the sound file, from the film file's folder | [film](../film.md#audio) |
-| `audio[].offset` | seconds | `0` | where in the file to start playing | [film](../film.md#audio) |
-| `audio[].start` | seconds | `0` | when in the film the track starts | [film](../film.md#audio) |
-| `audio[].volume` | number | `1` | gain; `1` is as recorded | [film](../film.md#audio) |
-| `audio[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [film](../film.md#shots) |
-| `audio[].licence` | text | none | a note, not used | [film](../film.md#audio) |
-| `watermark.image` | file |  | a picture (PNG with transparency is best), kept **outside** the repository; it must exist | [captions](../captions.md#the-watermark) |
-| `watermark.text` | string |  | a line of text in Lato; give `image` or `text` | [captions](../captions.md#the-watermark) |
-| `watermark.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `lower_right` | 2% of the picture's height from the edges | [captions](../captions.md#the-watermark) |
-| `watermark.place` | `[x, y]` |  | its upper left corner, instead of `corner` | [captions](../captions.md#the-watermark) |
-| `watermark.size` | number | `32` | pixels high: an image's height, or the text's font size (as a caption's `size`) | [captions](../captions.md#the-watermark) |
-| `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency | [captions](../captions.md#the-watermark) |
-| `watermark.colour` | colour | `'#f2f2f2'` | of text | [captions](../captions.md#the-watermark) |
-| `watermark.shots` | list of names |  | film level only: show it on these shots | [captions](../captions.md#the-watermark) |
-| `watermark.seconds` | `[start, end]` |  | film level only: show it between these film seconds | [captions](../captions.md#the-watermark) |
-| `watermark.cards` | bool | `false` | film level only: show it on cards too | [captions](../captions.md#the-watermark) |
-| `shots[].frames` |  |  |  | [film](../film.md#shots) |
-| `shots[].layout` |  |  |  | [film](../film.md#shots) |
-| `shots[].card` |  |  |  | [film](../film.md#shots) |
-| `shots[].hold_last_of` |  |  |  | [film](../film.md#shots) |
-| `shots[].name` | string | required | unique in the film; captions, holds and `--only` name the shot by it | [film](../film.md#shots) |
-| `shots[].seconds` |  |  |  | [film](../film.md#shots) |
-| `shots[].rate` |  |  |  | [film](../film.md#shots) |
-| `shots[].freezes` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [film](../film.md#shots) |
-| `shots[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [film](../film.md#shots) |
-| `shots[].fade_out_at` | number | so the fade ends with the shot | start the fade out early; what follows is black, so a caption can sit on it | [film](../film.md#shots) |
-| `shots[].text` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [film](../film.md#shots) |
-| `shots[].overlays` | bool | `true` | a hold of a layout shot: with its `rate: output` panels | [film](../film.md#shots) |
-| `shots[].chapter` | `TITLE` or `{title, at}` | none | the shot starts a chapter, `at` seconds into the finished shot (`0`); see [chapters](../build.md#chapters) | [film](../film.md#shots) |
-| `shots[].rate.fps` | whole number | `24` | frames a second of the film | [film](../film.md#the-film-file) |
-| `shots[].rate.to_output` | `{fps, to_output}` | `{fps: <film fps>}` | the shot's own frames a second, and how they are made up to the film's: `interpolate` (motion-compensated), `repeat` or `blend` | [film](../film.md#shots) |
-| `shots[].freezes[].at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [film](../film.md#captions) |
-| `shots[].freezes[].hold` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [film](../film.md#shots) |
-| `shots[].freezes[].text` | a text file, or captions written in place | none | the shot's captions | [film](../film.md#shots) |
-| `shots[].chapter.title` | text, or `{title, at}` | none | a one-line title | [build](../build.md#chapters) |
-| `shots[].chapter.at` | seconds | `0` | where in the finished shot (freezes included) it starts; must be inside the shot | [build](../build.md#chapters) |
+| `output` | path | `film.mp4` | the film written | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `fps` | whole number | `24` | frames a second of the film | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `size` | `[width, height]` | `[1920, 1080]` | pixels | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `style` | mapping | below | fonts, colours, caption defaults | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `audio` | a track, or a list of them | none | below | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `watermark` | mapping | none | below | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `shots` | list | required | the shots, in order | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `style.font`, `.maths` | `font`, `dejavusans`, `dejavuserif`, `cm`, `stix`, `stixsans` | `font` | maths in the text's own font (as the AFMS film), or a matplotlib maths font | [guide/film/film](../guide/film/film.md#style) |
+| `style.colours` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [guide/film/film](../guide/film/film.md#style) |
+| `style.caption` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [guide/film/film](../guide/film/film.md#style) |
+| `style.colours.text`, `.muted` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [guide/film/film](../guide/film/film.md#style) |
+| `style.caption.size` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [guide/film/film](../guide/film/film.md#style) |
+| `style.caption.shadow` | bool | the style's (`true`) | a soft shadow behind the text | [guide/film/film](../guide/film/film.md#captions) |
+| `style.caption.box` | bool | the style's (`false`) | a dark panel behind the text | [guide/film/film](../guide/film/film.md#captions) |
+| `style.caption.fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/film/film](../guide/film/film.md#shots) |
+| `style.caption.margin` | number | `80` | pixels from the edge for `top` and `bottom` | [guide/film/film](../guide/film/film.md#style) |
+| `style.caption.align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [guide/film/film](../guide/film/film.md#captions) |
+| `style.caption.spacing` | number | `1.3` | line spacing, times the size | [guide/film/film](../guide/film/film.md#style) |
+| `audio[].file` | path | required | the sound file, from the film file's folder | [guide/film/film](../guide/film/film.md#audio) |
+| `audio[].offset` | seconds | `0` | where in the file to start playing | [guide/film/film](../guide/film/film.md#audio) |
+| `audio[].start` | seconds | `0` | when in the film the track starts | [guide/film/film](../guide/film/film.md#audio) |
+| `audio[].volume` | number | `1` | gain; `1` is as recorded | [guide/film/film](../guide/film/film.md#audio) |
+| `audio[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/film/film](../guide/film/film.md#shots) |
+| `audio[].licence` | text | none | a note, not used | [guide/film/film](../guide/film/film.md#audio) |
+| `watermark.image` | file |  | a picture (PNG with transparency is best), kept **outside** the repository; it must exist | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.text` | string |  | a line of text in Lato; give `image` or `text` | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `lower_right` | 2% of the picture's height from the edges | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.place` | `[x, y]` |  | its upper left corner, instead of `corner` | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.size` | number | `32` | pixels high: an image's height, or the text's font size (as a caption's `size`) | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.colour` | colour | `'#f2f2f2'` | of text | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.shots` | list of names |  | film level only: show it on these shots | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.seconds` | `[start, end]` |  | film level only: show it between these film seconds | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `watermark.cards` | bool | `false` | film level only: show it on cards too | [guide/film/captions](../guide/film/captions.md#the-watermark) |
+| `shots[].frames` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].layout` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].card` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].hold_last_of` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].name` | string | required | unique in the film; captions, holds and `--only` name the shot by it | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].seconds` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].rate` |  |  |  | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].freezes` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].fade_out_at` | number | so the fade ends with the shot | start the fade out early; what follows is black, so a caption can sit on it | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].text` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].overlays` | bool | `true` | a hold of a layout shot: with its `rate: output` panels | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].chapter` | `TITLE` or `{title, at}` | none | the shot starts a chapter, `at` seconds into the finished shot (`0`); see [chapters](../guide/film/build.md#chapters) | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].rate.fps` | whole number | `24` | frames a second of the film | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `shots[].rate.to_output` | `{fps, to_output}` | `{fps: <film fps>}` | the shot's own frames a second, and how they are made up to the film's: `interpolate` (motion-compensated), `repeat` or `blend` | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].freezes[].at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [guide/film/film](../guide/film/film.md#captions) |
+| `shots[].freezes[].hold` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].freezes[].text` | a text file, or captions written in place | none | the shot's captions | [guide/film/film](../guide/film/film.md#shots) |
+| `shots[].chapter.title` | text, or `{title, at}` | none | a one-line title | [guide/film/build](../guide/film/build.md#chapters) |
+| `shots[].chapter.at` | seconds | `0` | where in the finished shot (freezes included) it starts; must be inside the shot | [guide/film/build](../guide/film/build.md#chapters) |
 
 ## Captions: `text/NAME.yml, or a shot's text`
 
-Guide: [film](../film.md).
+Guide: [guide/film/film](../guide/film/film.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `lines` | list of strings, or one | required | one string per line; `$...$` is mathematics | [film](../film.md#captions) |
-| `at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [film](../film.md#captions) |
-| `place` | `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]` | `bottom` | `[x, y]` is the text's upper left corner in pixels; `[centre, y]` centres it across with its top at `y` | [film](../film.md#captions) |
-| `size` | `[width, height]` | `[1920, 1080]` | pixels | [film](../film.md#the-film-file) |
-| `align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [film](../film.md#captions) |
-| `colour` | colour | the style's text colour |  | [film](../film.md#captions) |
-| `box` | bool | the style's (`false`) | a dark panel behind the text | [film](../film.md#captions) |
-| `shadow` | bool | the style's (`true`) | a soft shadow behind the text | [film](../film.md#captions) |
-| `fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [film](../film.md#shots) |
-| `shapes` | list | none | 2D shapes on the frame: `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight` ([their keys](../captions.md#shapes)) | [film](../film.md#captions) |
-| `id` | string | none | a name for the caption, for other commands | [film](../film.md#captions) |
-| `[].place, a point in the model.model` | `[x, y, z]`, the source's units; required |  | `model: [6, 0.42, 0.18]` | [captions](../captions.md#points-in-the-model) |
-| `[].place, a point in the model.offset` | `[dx, dy]` pixels, `y` down, added after projection | `[0, 0]` | `offset: [40, -60]` | [captions](../captions.md#points-in-the-model) |
-| `[].place, a point in the model.view` | a view of the project's `cameras.yml` | the frame's own camera | `view: main` | [captions](../captions.md#points-in-the-model) |
-| `[].place, a point in the model.track` | a camera track of the same file, taken at the frame's number | the frame's own camera | `track: carve` | [captions](../captions.md#points-in-the-model) |
-| `[].shapes[].arrow.from`, `.to`, `.width`, `.head`, `.colour` |  | `width: 4`, `head: 4.5 × width` | a line with a filled head at `to`, `head` pixels long and half as wide | [captions](../captions.md#shapes) |
-| `[].shapes[].line.from`, `.to`, `.width`, `.colour` |  | `width: 4` | a straight line | [captions](../captions.md#shapes) |
-| `[].shapes[].box.from`, `.to`, `.width`, `.radius`, `.fill`, `.colour` |  | `width: 4`, `radius: 0`, no fill | a rectangle, corners rounded by `radius` | [captions](../captions.md#shapes) |
-| `[].shapes[].circle.centre`, `.radius`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | a circle | [captions](../captions.md#shapes) |
-| `[].shapes[].ellipse.centre`, `.radii`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | an ellipse with its axes along `x` and `y` | [captions](../captions.md#shapes) |
-| `[].shapes[].bracket.from`, `.to`, `.depth`, `.width`, `.colour` |  | `depth: 20`, `width: 4` | a square bracket: a back from `from` to `to`, with tips `depth` pixels long | [captions](../captions.md#shapes) |
-| `[].shapes[].dimension.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | `offset: 0`, `width: 2`, `head: 14`, `size: 0.8 × the caption's` | a measured length: a line with heads at both ends, moved `offset` pixels away with lines back to the ends, and `value` (text, `$...$` allowed) beside its middle | [captions](../captions.md#shapes) |
-| `[].shapes[].highlight.from`, `.to`, `.dim`, `.radius` |  | `dim: 0.6`, `radius: 0` | the picture darkened outside a box, by `dim` (0: not at all, 1: black) | [captions](../captions.md#shapes) |
-| `[].shapes[].label.at`, `.text`, `.size`, `.colour` |  | `size: 0.8 × the caption's` | `text` (`$...$` allowed) centred on the point `at` | [captions](../captions.md#shapes) |
-| `[].shapes[].label3d.at`, `.text`, `.offset`, `.size`, `.colour` |  | `offset: [0, 0]` | a `label` at a point of the model, moved `offset` pixels on screen | [captions](../captions.md#shapes) |
-| `[].shapes[].dimension3d.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured | [captions](../captions.md#shapes) |
+| `lines` | list of strings, or one | required | one string per line; `$...$` is mathematics | [guide/film/film](../guide/film/film.md#captions) |
+| `at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [guide/film/film](../guide/film/film.md#captions) |
+| `place` | `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]` | `bottom` | `[x, y]` is the text's upper left corner in pixels; `[centre, y]` centres it across with its top at `y` | [guide/film/film](../guide/film/film.md#captions) |
+| `size` | `[width, height]` | `[1920, 1080]` | pixels | [guide/film/film](../guide/film/film.md#the-film-file) |
+| `align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [guide/film/film](../guide/film/film.md#captions) |
+| `colour` | colour | the style's text colour |  | [guide/film/film](../guide/film/film.md#captions) |
+| `box` | bool | the style's (`false`) | a dark panel behind the text | [guide/film/film](../guide/film/film.md#captions) |
+| `shadow` | bool | the style's (`true`) | a soft shadow behind the text | [guide/film/film](../guide/film/film.md#captions) |
+| `fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/film/film](../guide/film/film.md#shots) |
+| `shapes` | list | none | 2D shapes on the frame: `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight` ([their keys](../guide/film/captions.md#shapes)) | [guide/film/film](../guide/film/film.md#captions) |
+| `id` | string | none | a name for the caption, for other commands | [guide/film/film](../guide/film/film.md#captions) |
+| `[].place, a point in the model.model` | `[x, y, z]`, the source's units; required |  | `model: [6, 0.42, 0.18]` | [guide/film/captions](../guide/film/captions.md#points-in-the-model) |
+| `[].place, a point in the model.offset` | `[dx, dy]` pixels, `y` down, added after projection | `[0, 0]` | `offset: [40, -60]` | [guide/film/captions](../guide/film/captions.md#points-in-the-model) |
+| `[].place, a point in the model.view` | a view of the project's `cameras.yml` | the frame's own camera | `view: main` | [guide/film/captions](../guide/film/captions.md#points-in-the-model) |
+| `[].place, a point in the model.track` | a camera track of the same file, taken at the frame's number | the frame's own camera | `track: carve` | [guide/film/captions](../guide/film/captions.md#points-in-the-model) |
+| `[].shapes[].arrow.from`, `.to`, `.width`, `.head`, `.colour` |  | `width: 4`, `head: 4.5 × width` | a line with a filled head at `to`, `head` pixels long and half as wide | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].line.from`, `.to`, `.width`, `.colour` |  | `width: 4` | a straight line | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].box.from`, `.to`, `.width`, `.radius`, `.fill`, `.colour` |  | `width: 4`, `radius: 0`, no fill | a rectangle, corners rounded by `radius` | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].circle.centre`, `.radius`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | a circle | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].ellipse.centre`, `.radii`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | an ellipse with its axes along `x` and `y` | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].bracket.from`, `.to`, `.depth`, `.width`, `.colour` |  | `depth: 20`, `width: 4` | a square bracket: a back from `from` to `to`, with tips `depth` pixels long | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].dimension.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | `offset: 0`, `width: 2`, `head: 14`, `size: 0.8 × the caption's` | a measured length: a line with heads at both ends, moved `offset` pixels away with lines back to the ends, and `value` (text, `$...$` allowed) beside its middle | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].highlight.from`, `.to`, `.dim`, `.radius` |  | `dim: 0.6`, `radius: 0` | the picture darkened outside a box, by `dim` (0: not at all, 1: black) | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].label.at`, `.text`, `.size`, `.colour` |  | `size: 0.8 × the caption's` | `text` (`$...$` allowed) centred on the point `at` | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].label3d.at`, `.text`, `.offset`, `.size`, `.colour` |  | `offset: [0, 0]` | a `label` at a point of the model, moved `offset` pixels on screen | [guide/film/captions](../guide/film/captions.md#shapes) |
+| `[].shapes[].dimension3d.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured | [guide/film/captions](../guide/film/captions.md#shapes) |
 
 ## Card: `cards/NAME.yml`
 
-Guide: [cards](../cards.md).
+Guide: [guide/film/cards](../guide/film/cards.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `size` | `[width, height]` | `[1920, 1080]` | the size the card's pixels are written for; a film of another size scales the whole card | [cards](../cards.md#the-card-file) |
-| `background` | colour | `black` |  | [cards](../cards.md#the-card-file) |
-| `background_image` | file | none | a picture scaled to cover the card and centred, beneath the blocks | [cards](../cards.md#the-card-file) |
-| `blocks` | list | required | the blocks, top to bottom (below) | [cards](../cards.md#the-card-file) |
-| `blocks[].y` | pixels | none | the block's top, from the card's top | [cards](../cards.md#where-a-block-goes) |
-| `blocks[].gap` | pixels | `0` | the block's top, below the end of the block before it; used without `y` | [cards](../cards.md#where-a-block-goes) |
-| `blocks[] (image).image`, `.height`, `.width` |  | the file's own size | a picture, scaled keeping its shape, with its transparency | [cards](../cards.md#blocks) |
-| `blocks[] (title).title`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 60`, `spacing: 1.3 × size`, `regular`, the film's text colour | the title | [cards](../cards.md#blocks) |
-| `blocks[] (divider).divider`, `.thickness`, `.colour` |  | `320`, `2`, the film's muted colour | a horizontal line | [cards](../cards.md#blocks) |
-| `blocks[] (names).names`, `.heading`, `.size`, `.spacing`, `.weight`, `.colour`, `.heading_size`, `.heading_gap`, `.heading_weight`, `.heading_colour` |  | `size: 42`, `spacing: 58`, `light`, text colour; heading `28`, `44`, `regular`, muted colour | a heading (optional) and a list of names under it | [cards](../cards.md#blocks) |
-| `blocks[] (text).text`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 24`, `spacing: 1.3 × size`, `regular`, the film's muted colour | small print: a licence, a credit, a date | [cards](../cards.md#blocks) |
+| `size` | `[width, height]` | `[1920, 1080]` | the size the card's pixels are written for; a film of another size scales the whole card | [guide/film/cards](../guide/film/cards.md#the-card-file) |
+| `background` | colour | `black` |  | [guide/film/cards](../guide/film/cards.md#the-card-file) |
+| `background_image` | file | none | a picture scaled to cover the card and centred, beneath the blocks | [guide/film/cards](../guide/film/cards.md#the-card-file) |
+| `blocks` | list | required | the blocks, top to bottom (below) | [guide/film/cards](../guide/film/cards.md#the-card-file) |
+| `blocks[].y` | pixels | none | the block's top, from the card's top | [guide/film/cards](../guide/film/cards.md#where-a-block-goes) |
+| `blocks[].gap` | pixels | `0` | the block's top, below the end of the block before it; used without `y` | [guide/film/cards](../guide/film/cards.md#where-a-block-goes) |
+| `blocks[] (image).image`, `.height`, `.width` |  | the file's own size | a picture, scaled keeping its shape, with its transparency | [guide/film/cards](../guide/film/cards.md#blocks) |
+| `blocks[] (title).title`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 60`, `spacing: 1.3 × size`, `regular`, the film's text colour | the title | [guide/film/cards](../guide/film/cards.md#blocks) |
+| `blocks[] (divider).divider`, `.thickness`, `.colour` |  | `320`, `2`, the film's muted colour | a horizontal line | [guide/film/cards](../guide/film/cards.md#blocks) |
+| `blocks[] (names).names`, `.heading`, `.size`, `.spacing`, `.weight`, `.colour`, `.heading_size`, `.heading_gap`, `.heading_weight`, `.heading_colour` |  | `size: 42`, `spacing: 58`, `light`, text colour; heading `28`, `44`, `regular`, muted colour | a heading (optional) and a list of names under it | [guide/film/cards](../guide/film/cards.md#blocks) |
+| `blocks[] (text).text`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 24`, `spacing: 1.3 × size`, `regular`, the film's muted colour | small print: a licence, a credit, a date | [guide/film/cards](../guide/film/cards.md#blocks) |
 
 ## Shot layers
 
 Each item of a shot's `layers:` has a `type` and that type's options. Types,
 defaults and words come from the layers' own declarations (`Option`), as
 `flowreel shot template --layers TYPE` writes them. A *track* may change
-along the shot ([tracks](../tracks.md)).
+along the shot ([tracks](../guide/shots/tracks.md)).
 
 ### `axes`
 
-Guide: [layers-markers](../layers-markers.md#axes).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#axes).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -391,7 +391,7 @@ Guide: [layers-markers](../layers-markers.md#axes).
 
 ### `body`
 
-Guide: [layers-flow](../layers-flow.md#body).
+Guide: [guide/shots/layers-flow](../guide/shots/layers-flow.md#body).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -412,7 +412,7 @@ Guide: [layers-flow](../layers-flow.md#body).
 
 ### `centreline`
 
-Guide: [layers-markers](../layers-markers.md#centreline).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#centreline).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -440,7 +440,7 @@ Guide: [layers-markers](../layers-markers.md#centreline).
 
 ### `contour`
 
-Guide: [layers-flow](../layers-flow.md#contour).
+Guide: [guide/shots/layers-flow](../guide/shots/layers-flow.md#contour).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -456,7 +456,7 @@ Guide: [layers-flow](../layers-flow.md#contour).
 
 ### `geometry`
 
-Guide: [layers-markers](../layers-markers.md#geometry).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#geometry).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -476,7 +476,7 @@ Guide: [layers-markers](../layers-markers.md#geometry).
 
 ### `glyphs`
 
-Guide: [layers-markers](../layers-markers.md#glyphs).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#glyphs).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -494,7 +494,7 @@ Guide: [layers-markers](../layers-markers.md#glyphs).
 
 ### `iso`
 
-Guide: [layers-flow](../layers-flow.md#iso).
+Guide: [guide/shots/layers-flow](../guide/shots/layers-flow.md#iso).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -518,7 +518,7 @@ Guide: [layers-flow](../layers-flow.md#iso).
 
 ### `markers3d`
 
-Guide: [layers-markers](../layers-markers.md#markers3d).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#markers3d).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -539,7 +539,7 @@ Guide: [layers-markers](../layers-markers.md#markers3d).
 
 ### `outline`
 
-Guide: [layers-markers](../layers-markers.md#outline).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#outline).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -550,7 +550,7 @@ Guide: [layers-markers](../layers-markers.md#outline).
 
 ### `slice`
 
-Guide: [layers-flow](../layers-flow.md#slice).
+Guide: [guide/shots/layers-flow](../guide/shots/layers-flow.md#slice).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -566,7 +566,7 @@ Guide: [layers-flow](../layers-flow.md#slice).
 
 ### `streamlines`
 
-Guide: [layers-flow](../layers-flow.md#streamlines).
+Guide: [guide/shots/layers-flow](../guide/shots/layers-flow.md#streamlines).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|
@@ -584,7 +584,7 @@ Guide: [layers-flow](../layers-flow.md#streamlines).
 
 ### `supports`
 
-Guide: [layers-markers](../layers-markers.md#supports).
+Guide: [guide/shots/layers-markers](../guide/shots/layers-markers.md#supports).
 
 | Option | Type | Default | Meaning |
 |---|---|---|---|

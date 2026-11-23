@@ -1,14 +1,14 @@
 """The tutorial's pictures: a still for each chapter and a short GIF of the film.
 
-    python examples/tutorial/stills.py PROJECT [-o docs/tutorial/images]
+    python examples/tutorial/stills.py PROJECT [-o docs/tutorials/steady/images]
 
 ``PROJECT`` is a tutorial project at the end of chapter 8: its frames rendered at full
 size, ``film.mp4`` and ``contact.png`` built. The pictures are made from those files,
 so they show what a reader's own project shows, from the real data set
 (``cylinder_crossflow``, Apache-2.0: its licence allows them to be shown and kept in
-the repository; docs/tutorial/data.md).
+the repository; docs/tutorials/steady/data.md).
 
-Written into ``-o`` (default ``docs/tutorial/images/`` of this repository):
+Written into ``-o`` (default ``docs/tutorials/steady/images/`` of this repository):
 
 | File | Chapter | What |
 |---|---|---|
@@ -30,7 +30,7 @@ from pathlib import Path
 from PIL import Image
 
 HERE = Path(__file__).parent
-IMAGES = HERE.parent.parent / "docs" / "tutorial" / "images"
+IMAGES = HERE.parent.parent / "docs" / "tutorials" / "steady" / "images"
 WIDTH = 960
 GIF = {"width": 480, "fps": 8}
 
@@ -100,7 +100,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("project", metavar="PROJECT", help="the tutorial project, built")
     parser.add_argument("-o", "--out", default=str(IMAGES), metavar="DIR",
-                        help="where the pictures go (default docs/tutorial/images/)")
+                        help="where the pictures go (default docs/tutorials/steady/images/)")
     args = parser.parse_args(argv)
     try:
         for path in stills(args.project, args.out):

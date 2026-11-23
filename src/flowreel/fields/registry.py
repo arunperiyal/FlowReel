@@ -1,4 +1,4 @@
-"""Registry of derived fields and the ``compute`` entry point (docs/PLAN.md, Section 6).
+"""Registry of derived fields and the ``compute`` entry point (plan/design.md, Section 6).
 
 A field is a function ``func(grid, *needs, **params)``. ``needs`` are the values of other
 registered fields, in the order declared; ``params`` are the function's keyword-only

@@ -20,7 +20,7 @@ EXAMPLES = {
   flowreel jobs check
   flowreel jobs status
 
-Reference: docs/slurm.md and docs/commands.md.""",
+Reference: docs/guide/rendering/slurm.md and docs/guide/commands.md.""",
     "partitions": """examples:
   flowreel jobs partitions                   every cluster, this one marked
   flowreel jobs partitions --cluster airavata""",
@@ -36,7 +36,7 @@ Reference: docs/slurm.md and docs/commands.md.""",
 def add_slurm_args(parser, render: bool = False) -> None:
     """``--slurm FILE``, ``--submit`` and the job's size, for a command that can run as a
     Slurm job (``render``: also the options of a job array)."""
-    g = parser.add_argument_group("Slurm (run as a job on a cluster; docs/slurm.md)")
+    g = parser.add_argument_group("Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md)")
     g.add_argument("--slurm", metavar="FILE",
                    help="write a Slurm job script to FILE instead of running here")
     g.add_argument("--submit", action="store_true",

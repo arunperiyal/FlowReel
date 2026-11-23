@@ -2,7 +2,7 @@
 
 - Every public module, class and function has a docstring: what it does, arguments, return,
   units and coordinate conventions for fields. Keep them short.
-- User-facing documentation lives in `docs/`; the design stays in `docs/PLAN.md`.
+- User-facing documentation lives in `docs/`; the design stays in `plan/`.
 - A feature is not done until its docs are updated in the same PR: command help text,
   YAML option reference, and an example under `examples/` using generated data.
 - Examples must run from a clean checkout without private data, logos or licensed music.
@@ -11,6 +11,6 @@
 - Note the physical meaning and sign convention of every derived field (vorticity, Q,
   lambda2, wall shear, forces).
 - A new rule imposed on users (something a project must do, or an error that enforces
-  it) goes in `docs/rules.md` in the same PR: the rule, why, what happens when broken,
+  it) goes in `docs/guide/projects/rules.md` in the same PR: the rule, why, what happens when broken,
   and a link to its page.
 - Phase 7 produces the tutorial; until then, keep a running `docs/` page per finished phase.

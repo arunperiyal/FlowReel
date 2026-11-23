@@ -24,7 +24,7 @@ the near wake (default x from -3 to 15, y from -5 to 5, in diameters): about 1 G
 all. ``--stand-in`` writes a small generated flow in the record's own format and
 converts it, for a machine without the network; it is not the real data.
 
-Reference: docs/tutorial/unsteady/data.md.
+Reference: docs/tutorials/unsteady/data.md.
 """
 from __future__ import annotations
 
@@ -314,7 +314,7 @@ def get(folder: str | Path = ".", *, every: int = EVERY, box=BOX, stand_in: bool
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
-                                     epilog="Reference: docs/tutorial/unsteady/data.md")
+                                     epilog="Reference: docs/tutorials/unsteady/data.md")
     parser.add_argument("folder", nargs="?", default=".", metavar="PROJECT",
                         help="the project folder (default the current one)")
     parser.add_argument("--every", type=int, default=EVERY, metavar="N",

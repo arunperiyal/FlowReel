@@ -14,7 +14,7 @@ matters to the lengths). The prototype's own functions give what the film must b
 - the opening card drawn by ``make_film.opening_card`` (its logo a generated one)
   matches FlowReel's drawing of ``cards/opening.yml``.
 
-The rebuild from the real frames is run on the workstation (``docs/PLAN.md``, under
+The rebuild from the real frames is run on the workstation (``plan/phases.md``, under
 Phase 4's done line).
 """
 import sys

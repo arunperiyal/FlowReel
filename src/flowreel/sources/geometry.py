@@ -1,5 +1,5 @@
 """The ``geometry`` adapter: a parametric body built in code, with no flow data
-(docs/PLAN.md, Section 5.3)."""
+(plan/design.md, Section 5.3)."""
 from __future__ import annotations
 
 import inspect

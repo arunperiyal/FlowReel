@@ -1,7 +1,8 @@
 # FlowReel
 
-Python package (`src/flowreel/`) for building flow-visualisation films. Design: `docs/PLAN.md`
-(decisions in Section 23, do not reopen). Hand-over notes: `SESSION.md`.
+Python package (`src/flowreel/`) for building flow-visualisation films. Design: `plan/`
+(start at `plan/README.md`; decisions in Section 23, do not reopen). Hand-over notes:
+`SESSION.md`.
 
 ## Essentials
 - Environment: `flexflow_env` (Python 3.12). Install with `pip install --no-deps -e .`.
@@ -11,11 +12,11 @@ Python package (`src/flowreel/`) for building flow-visualisation films. Design: 
 - `prototype/afms/` is a read-only reference for golden-frame tests.
 
 ## Rules (read the relevant file before acting)
-- @.claude/rules/planning.md: phases, checkboxes in `docs/PLAN.md`
+- @.claude/rules/planning.md: phases, checkboxes in `plan/phases.md`
 - @.claude/rules/git-workflow.md: branches, commits, stacked PRs, agents, no co-author lines
 - @.claude/rules/documentation.md: documentation guidelines
 - @.claude/rules/session-notes.md: `SESSION.md` is updated only on request
 
 ## Skills
 - `stacked-pr`: create and maintain a stack of branches and PRs for a phase
-- `phase-plan`: split a phase into tasks and branches in `docs/PLAN.md`
+- `phase-plan`: split a phase into tasks and branches in `plan/phases.md`

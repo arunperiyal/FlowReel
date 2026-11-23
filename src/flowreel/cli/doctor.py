@@ -11,7 +11,7 @@ EXAMPLES = """examples:
   flowreel doctor > doctor.txt     to send with a question
 
 Marks: ! stops a film (exit status 1), ? worth knowing (an untested version).
-Reference: docs/commands.md."""
+Reference: docs/guide/commands.md."""
 
 
 class DoctorCommand(BaseCommand):

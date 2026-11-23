@@ -48,14 +48,14 @@ EXAMPLES = {
   flowreel shot render carve.yml -j 16
 
 In the shell, `use shot:carve.yml` and the shot can be left out.
-Reference: docs/commands.md.""",
+Reference: docs/guide/commands.md.""",
     "render": """examples:
   flowreel shot render carve.yml -j 16            every frame, 16 at a time
   flowreel shot render carve.yml --frames 0:48:4  frames 0, 4, ... 48
   flowreel shot render carve.yml --scale 0.5      a half-size draft, in frames/carve@960x540/
   flowreel shot render carve.yml --force          draw again even if nothing changed
   flowreel shot render carve.yml --submit         as a Slurm job array, sized from a
-                                                  measured frame (docs/slurm.md)
+                                                  measured frame (docs/guide/rendering/slurm.md)
   flowreel shot render carve.yml --slurm carve.sh --max-running 2   write the script only
   flowreel shot render carve.yml --submit --missing                 only frames not drawn""",
     "preview": """examples:

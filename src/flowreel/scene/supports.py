@@ -251,7 +251,7 @@ class Supports(Layer):
         declared = getattr(source, "declared", None)
         if declared is None:
             raise ValueError("supports: no bodies are declared; declare their ends in "
-                             "flowreel.yml (docs/bodies.md)")
+                             "flowreel.yml (docs/guide/projects/bodies.md)")
         spec = self.raw.get("body", "all")
         if spec == "all":
             return [b for b in declared.values() if b.ends]

@@ -22,7 +22,7 @@ from flowreel.sources.plt.series import SERIES
 #: The files' variable names for the standard ones (as FlexFlow writes them).
 NAMES = {"U": "U", "V": "V", "W": "W", "p": "Pressure"}
 #: Stored derived fields, never provided: they are nodal sums that depend on the mesh
-#: (docs/PLAN.md, Section 6). Compute them with flowreel.fields instead.
+#: (plan/design.md, Section 6). Compute them with flowreel.fields instead.
 NOT_PROVIDED = ("xVor", "yVor", "zVor", "QCriterion")
 _CELL = {(3, 4): pv.CellType.QUAD, (2, 3): pv.CellType.TRIANGLE,
          (4, 4): pv.CellType.TETRA, (5, 8): pv.CellType.HEXAHEDRON}

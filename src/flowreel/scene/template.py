@@ -17,8 +17,8 @@ from flowreel.scene import axes as _axes  # noqa: F401
 from flowreel.scene.layers import available, layer_type
 
 HEADER = """\
-# Shot file written by `flowreel shot template`. Reference: docs/shots.md; layers:
-# docs/layers-flow.md and docs/layers-markers.md; tracks: docs/tracks.md.
+# Shot file written by `flowreel shot template`. Reference: docs/guide/shots/shots.md; layers:
+# docs/guide/shots/layers-flow.md and docs/guide/shots/layers-markers.md; tracks: docs/guide/shots/tracks.md.
 {name_line}
 source: vtk:flow.pvd                  # adapter:location, or {{adapter: vtk, path: ..., body: ...}}
 time: {{frozen: 0, frames: 48}}         # or {{steps: [first, last], every: 1}} or {{keys: [[frame, step], ...]}}

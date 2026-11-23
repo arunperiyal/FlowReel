@@ -66,7 +66,7 @@ def body_block(zone: str, surface) -> str:
         lines += [_line("    # ends:", "how it is held: " + ", ".join(SUPPORTS)),
                   f"    #   - {{at: {_num(lo)}, support: clamped}}",
                   f"    #   - {{at: {_num(hi)}, support: clamped}}"]
-    lines += [_line("    # series:", "time histories as CSV (docs/bodies.md)"),
+    lines += [_line("    # series:", "time histories as CSV (docs/guide/projects/bodies.md)"),
               f"    #   displacement: {{file: data/{zone}_displacement.csv}}"]
     return "\n".join(lines)
 
@@ -78,11 +78,11 @@ def bodies_yaml(source, step: int | None = None, label: str | None = None) -> st
     zones = source.bodies()
     if not zones:
         raise LookupError(f"{source.name}: the source has no surface zone to declare; "
-                          "write bodies: by hand (docs/bodies.md)")
+                          "write bodies: by hand (docs/guide/projects/bodies.md)")
     step = source.steps()[0] if step is None else step
     head = [f"# flowreel.yml written by `flowreel project init` from {label or source.name}"
             f" at step {step}.",
-            "# Reference: docs/bodies.md. Axes and diameters are measured; supports and",
+            "# Reference: docs/guide/projects/bodies.md. Axes and diameters are measured; supports and",
             "# series are left to fill (uncomment and edit).",
             "bodies:"]
     blocks = [body_block(z, source.body(step, z)) for z in zones]
@@ -90,7 +90,7 @@ def bodies_yaml(source, step: int | None = None, label: str | None = None) -> st
 
 
 EMPTY = """# flowreel.yml written by `flowreel project init` without a source.
-# Reference: docs/project.md and docs/bodies.md. Declare the bodies here, or run
+# Reference: docs/guide/projects/project.md and docs/guide/projects/bodies.md. Declare the bodies here, or run
 # `flowreel project init SOURCE --force` to measure them from the source.
 # bodies:
 #   cylinder: {zone: wall, axis: z, diameter: 1.0}
@@ -130,7 +130,7 @@ def gitignore_text(old: str = "") -> str:
     if not missing:
         return old
     head = "" if not old else old if old.endswith("\n") else old + "\n"
-    return head + "# Made by FlowReel (docs/project.md): generated output and linked data\n" \
+    return head + "# Made by FlowReel (docs/guide/projects/project.md): generated output and linked data\n" \
         + "\n".join(missing) + "\n"
 
 
@@ -147,7 +147,7 @@ def cameras_text(source=None, label: str | None = None) -> str:
         view = fit(view, source.bounds(), margin=1.05, aspect=16 / 9)
         note = f"the whole domain of {label or getattr(source, 'name', 'the source')}, from +z"
     return ("# cameras.yml written by `flowreel project init`: every shot and caption of\n"
-            "# the project reads its views and tracks here. Reference: docs/cameras.md;\n"
+            "# the project reads its views and tracks here. Reference: docs/guide/shots/cameras.md;\n"
             "# pick views and tracks with `flowreel camera edit`.\n"
             f"views:\n  - {view_line(view)}   # {note}\n")
 

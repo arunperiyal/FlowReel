@@ -1,4 +1,4 @@
-# The documentation website (docs/PLAN.md, Section 24, question 8). Build it with
+# The documentation website (plan/questions.md, Section 24, question 8). Build it with
 #   pip install -e ".[docs]" && mkdocs serve
 # and check it as CI does with: mkdocs build --strict
 site_name: FlowReel
@@ -9,10 +9,6 @@ repo_name: arunperiyal/FlowReel
 edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
-
-# The plan is the design, read in the repository, not part of the user's documentation.
-exclude_docs: |
-  PLAN.md
 
 validation:
   nav:
@@ -61,56 +57,58 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Tutorial:
-      - tutorial/index.md
-      - 1. Install: tutorial/01-install.md
-      - 2. The project and the data: tutorial/02-project.md
-      - 3. A first shot: tutorial/03-first-shot.md
-      - 4. The camera: tutorial/04-camera.md
-      - 5. A second shot: tutorial/05-sweep.md
-      - 6. A panel: tutorial/06-panel.md
-      - 7. The film file: tutorial/07-film.md
-      - 8. Building the film: tutorial/08-build.md
-      - The data: tutorial/data.md
-  - Second tutorial:
-      - tutorial/unsteady/index.md
-      - 1. The data and the project: tutorial/unsteady/01-data.md
-      - 2. A shot that moves: tutorial/unsteady/02-shot.md
-      - 3. The force beside it: tutorial/unsteady/03-panel.md
-      - 4. The film: tutorial/unsteady/04-film.md
-      - 5. On a cluster: tutorial/unsteady/05-cluster.md
-      - The data: tutorial/unsteady/data.md
+  - Tutorials:
+      - tutorials/index.md
+      - A steady flow:
+          - tutorials/steady/index.md
+          - 1. Install: tutorials/steady/01-install.md
+          - 2. The project and the data: tutorials/steady/02-project.md
+          - 3. A first shot: tutorials/steady/03-first-shot.md
+          - 4. The camera: tutorials/steady/04-camera.md
+          - 5. A second shot: tutorials/steady/05-sweep.md
+          - 6. A panel: tutorials/steady/06-panel.md
+          - 7. The film file: tutorials/steady/07-film.md
+          - 8. Building the film: tutorials/steady/08-build.md
+          - The data: tutorials/steady/data.md
+      - A flow that moves:
+          - tutorials/unsteady/index.md
+          - 1. The data and the project: tutorials/unsteady/01-data.md
+          - 2. A shot that moves: tutorials/unsteady/02-shot.md
+          - 3. The force beside it: tutorials/unsteady/03-panel.md
+          - 4. The film: tutorials/unsteady/04-film.md
+          - 5. On a cluster: tutorials/unsteady/05-cluster.md
+          - The data: tutorials/unsteady/data.md
   - User guide:
       - Projects and data:
-          - Projects: project.md
-          - Rules: rules.md
-          - Sources: sources.md
-          - Bodies: bodies.md
-          - Derived fields: fields.md
+          - Projects: guide/projects/project.md
+          - Rules: guide/projects/rules.md
+          - Sources: guide/projects/sources.md
+          - Bodies: guide/projects/bodies.md
+          - Derived fields: guide/projects/fields.md
       - Shots:
-          - Shot files: shots.md
-          - Flow layers: layers-flow.md
-          - Layers without flow data: layers-markers.md
-          - Tracks: tracks.md
-          - Cameras and lights: cameras.md
-          - The camera editor: camera-editor.md
+          - Shot files: guide/shots/shots.md
+          - Flow layers: guide/shots/layers-flow.md
+          - Layers without flow data: guide/shots/layers-markers.md
+          - Tracks: guide/shots/tracks.md
+          - Cameras and lights: guide/shots/cameras.md
+          - The camera editor: guide/shots/camera-editor.md
       - Rendering:
-          - Rendering and caching: rendering.md
-          - Long bodies: long-bodies.md
-          - Rendering on Slurm: slurm.md
+          - Rendering and caching: guide/rendering/rendering.md
+          - Long bodies: guide/rendering/long-bodies.md
+          - Rendering on Slurm: guide/rendering/slurm.md
       - Composing:
-          - Compose: compose.md
-          - Layouts: layouts.md
-          - Panels: panels.md
+          - Compose: guide/composing/compose.md
+          - Layouts: guide/composing/layouts.md
+          - Panels: guide/composing/panels.md
       - The film:
-          - The film file: film.md
-          - Captions and shapes: captions.md
-          - Cards: cards.md
-          - Clips: clips.md
-          - Building the film: build.md
+          - The film file: guide/film/film.md
+          - Captions and shapes: guide/film/captions.md
+          - Cards: guide/film/cards.md
+          - Clips: guide/film/clips.md
+          - Building the film: guide/film/build.md
       - Worked example:
-          - The reveal look: reveal.md
+          - The reveal look: guide/reveal.md
   - Reference:
-      - Commands, by example: commands.md
+      - Commands, by example: guide/commands.md
       - Every command and option: reference/commands.md
       - YAML keys: reference/yaml.md

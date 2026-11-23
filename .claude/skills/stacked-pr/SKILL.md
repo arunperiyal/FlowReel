@@ -7,7 +7,7 @@ description: Create or maintain a stack of branches and stacked PRs for a FlowRe
 
 Follow `.claude/rules/git-workflow.md`.
 
-1. List the phase's branches from `docs/PLAN.md` in dependency order.
+1. List the phase's branches from `plan/phases.md` in dependency order.
 2. Create the first branch from `main`, each next one from the previous branch:
    `git switch -c phaseN/<kind>-<topic> <previous>`.
 3. Per task: implement, test, commit (one commit per task, checkbox ticked, no co-author line).

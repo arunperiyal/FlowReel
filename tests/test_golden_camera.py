@@ -83,7 +83,7 @@ def pick(folder: Path) -> None:
 @pytest.fixture(scope="module")
 def session(tmp_path_factory):
     folder = tmp_path_factory.mktemp("camera")
-    (folder / "flowreel.yml").write_text("")                # a project (docs/project.md)
+    (folder / "flowreel.yml").write_text("")                # a project (docs/guide/projects/project.md)
     first = SESSION["keys"][0]
     (folder / "cameras.yml").write_text(
         "views:\n  - {name: start, position: %s, focal: %s, up: %s, view_angle: %s}\n"

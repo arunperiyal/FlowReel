@@ -1,5 +1,5 @@
 """Layers that need no flow data: ``outline``, ``glyphs``, ``markers3d``, ``geometry``
-(plan Section 7.2). Options marked *track* take a number or keys (docs/tracks.md);
+(plan Section 7.2). Options marked *track* take a number or keys (docs/guide/shots/tracks.md);
 positions and lengths are in the source's unit, line widths in pixels.
 """
 from __future__ import annotations

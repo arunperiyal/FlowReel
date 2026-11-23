@@ -30,7 +30,7 @@ EXAMPLES = {
   flowreel camera preview approach wake.yml
 
 Every action reads and writes one cameras.yml: -c FILE, else the project's, at its
-root. Reference: docs/commands.md, docs/camera-editor.md.""",
+root. Reference: docs/guide/commands.md, docs/guide/shots/camera-editor.md.""",
     "edit": """examples:
   flowreel camera edit wake.yml --track approach     a window on the shot's first step
   flowreel camera edit wake.yml --track approach --film film.yml   with the captions' points

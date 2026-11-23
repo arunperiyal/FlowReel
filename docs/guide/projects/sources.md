@@ -1,0 +1,351 @@
+# Sources
+
+A **source** gives FlowReel the data of one simulation. Everything else (fields, scenes,
+films) talks to the `Source` interface in `flowreel.sources`, so adding a file format means
+adding an adapter, nothing more.
+
+## What a source provides
+
+| Method | Returns |
+|---|---|
+| `steps()` | saved step numbers, ascending |
+| `time(step)` | physical time of the step |
+| `fields()` | names of the point fields available |
+| `flow(step, fields, crop)` | `pyvista.UnstructuredGrid` with those fields, cropped to a `Box` or `None` |
+| `bodies()` | names of the wall surfaces the source holds (empty if none) |
+| `body(step, name=None)` | the wall surface `name` (`PolyData`), deformed to that step; without a name, every body in one surface |
+| `bounds()` | `Box` of the whole domain |
+| `series(name)` | `pandas.DataFrame` with a `time` column plus values |
+| `memory_per_step(crop)` | estimated GB for one step, used to choose the number of jobs |
+
+## Naming and units
+
+- Velocity is `U`, `V`, `W` (or the vector `velocity`); pressure is `p`. Adapters map their
+  own names onto these.
+- Units are the source's own. A `scales:` block in `flowreel.yml` may declare
+  `length: D`, `velocity: U` for labels.
+- Derived fields (vorticity, Q, lambda2, wall shear, ...) are **not** provided by sources;
+  they are computed from velocity and pressure.
+
+## Bodies
+
+A source can hold any number of wall surfaces of any shape: a cylinder, a wing and its
+flap, a sphere. Each has a name, so a layer or a force can address one body while a
+whole-scene layer takes them all:
+
+```python
+src.bodies()               # ["wing", "flap"]
+src.body(5000, "flap")     # one body
+src.body(5000)             # both, as one surface
+```
+
+An unknown name raises `KeyError` listing the names; a source without a body raises
+`LookupError`. Nothing in FlowReel assumes the body is a cylinder or has a span: only
+`sectional_force` asks for an axis, and `wall_force` needs none (see `docs/guide/projects/fields.md`).
+
+These are the source's own zone names. A project's `flowreel.yml` can give them other
+names and add what the files cannot say (axis, diameter, supports, series); shots then
+use the declared names ([bodies](bodies.md)).
+
+## Cropping
+
+`Box(lo, hi)` is an axis-aligned box. Adapters apply the crop while reading where the format
+allows it, so a frame never holds the whole domain when it needs only a region.
+`Box.from_bounds` and `Box.to_bounds` convert from and to VTK's
+`(xmin, xmax, ymin, ymax, zmin, zmax)` order.
+
+## Registering an adapter
+
+```python
+from flowreel import sources
+sources.register("mycode", MySource)   # factory called with the source's options
+src = sources.create("mycode", path="case/")
+```
+
+Packages can instead declare the entry-point group `flowreel.sources`:
+
+```toml
+[project.entry-points."flowreel.sources"]
+mycode = "mypackage.adapter:MySource"
+```
+
+`sources.available()` lists all adapters; an unknown name raises `KeyError` with that list.
+
+## The `vtk` adapter
+
+Reads a series of VTK files with pyvista: `flowreel.sources.vtk.VtkSource`. It is the
+common denominator of research codes and ParaView exports, and it lets tests and examples
+use small generated files.
+
+```python
+from flowreel import sources
+wake = sources.create("vtk", path="out/wake_*.vtu", body="out/cylinder.vtp", dt=0.01)
+wake.steps()                               # [100, 200, 300], from the filenames
+wake.flow(200, ["U", "V", "W", "p"], Box((-1, -1, 0), (1, 1, 2)))
+```
+
+### Location, steps and time
+
+| `path` is | steps | time of a step |
+|---|---|---|
+| a `.pvd` collection | `0, 1, 2, ...` in time order | the `timestep` written in the `.pvd` |
+| a pattern, `out/wake_*.vtu` | the number the wildcard matches (`wake_0200.vtu` is step 200) | the step number, or `step * dt` |
+| one file | `0` | `0` |
+
+A `.pvd` numbers its steps by position because its files need not carry a number; a
+pattern uses the number in the name so that a step means the same as in the solver's
+output. A `.pvd` with several files at one time (parts) is refused: point it at one file
+per step, such as a `.pvtu`.
+
+### Options
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `path` | string | required | `.pvd` file, pattern or single file. Example: `out/wake_*.vtu` |
+| `names` | mapping | `{}` | Standard name to the array's name in the files. Keys: `U`, `V`, `W`, `velocity`, `p`. Example: `{velocity: vel, p: P}` or `{U: ux, V: uy, W: uz}` |
+| `body` | string or mapping | none | Wall surface: one file (used at every step), or a pattern or `.pvd` matched to the flow by step number; the body is then called `body`. A mapping gives several named bodies. Examples: `out/cylinder_*.vtp`, `{wing: out/wing.vtp, flap: out/flap_*.vtp}` |
+| `body_block` | string, integer or list | none | Block holding the body, by name or index: in the `body` files if `body` is given, otherwise in the flow files, which are then multiblock (`.vtm`). A list gives several bodies from the flow files, named after their blocks. Examples: `wall`, `[wing, flap]` |
+| `flow_block` | string or integer | the only block that is not `body_block` | Block holding the flow in multiblock flow files. Example: `fluid` |
+| `dt` | number | `1` | Time of one step: `time = step * dt`. With a `.pvd` it replaces the file's times. Example: `0.01` |
+| `times` | list or mapping | none | Explicit times: one per step in ascending step order, or `{step: time}`. Overrides `dt` and the `.pvd`. Example: `[0.0, 0.5, 1.5]` |
+| `name` | string | `vtk` | Label of the source |
+
+### Names
+
+Without `names`, the adapter looks at the first step's arrays:
+
+- `U`, `V`, `W`: scalar arrays of those names if present; otherwise the components of a
+  three-component array called `velocity` (any case), or of a three-component `U`
+  (OpenFOAM's convention).
+- `velocity`: that vector, or `U`, `V`, `W` stacked.
+- `p`: an array `p`, or `pressure` (any case).
+- Any other array is offered under its own name. Sources do not vouch for stored derived
+  fields; FlowReel computes its own from velocity and pressure.
+
+`fields()` lists what can be provided, standard names first. Fields are point fields: an
+array stored on cells is averaged to the points.
+
+### Crop and memory
+
+VTK's XML formats cannot read part of a mesh, so the adapter does the next best thing. It
+reads **only the arrays the requested fields need**, crops at once, and only then builds
+the fields. The crop keeps the cells with **every node inside** the box (edges included),
+as the prototype does, so a cropped region never has ragged half-cells at its border. A
+crop that keeps nothing returns an empty grid without arrays.
+
+`memory_per_step(crop)` reads the first step's mesh without arrays, counts the points and
+cells the crop keeps, and allows 8 bytes for every coordinate, connectivity entry and
+array value in the files. It is an upper bound for a request of fewer fields. The whole
+step is in memory for a moment while it is cropped; that peak is `memory_per_step(None)`.
+
+`bounds()` is the bounding box of the first step. `series(name)` raises `KeyError`: VTK
+files carry no time series. `body(step)` raises `LookupError` when neither `body` nor
+`body_block` was given; a body stored as volume cells is reduced to its outer surface.
+
+## The `geometry` adapter
+
+A body built in code, for shots that need no data (the carving shot):
+`flowreel.sources.geometry.GeometrySource`.
+
+```python
+carve = sources.create("geometry", body="grooved_cylinder",
+                       params={"grooves": 4, "turns": 1.0}, frames=288)
+carve.body(0)                    # the surface from the source's parameters
+carve.build(cut_front=3.2)       # the same body with one parameter changed
+```
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `body` | string | required | Name of a registered body. Example: `grooved_cylinder` |
+| `params` | mapping | `{}` | The body's parameters, as plain values. A name the body does not take raises `TypeError` when the source is made. Example: `{grooves: 3, depth: 0.1}` |
+| `frames` | integer | `1` | Number of steps; `steps()` is `0 .. frames - 1`. Example: `288` |
+| `dt` | number | `1` | Time of one step: `time = step * dt`. Example: `0.0417` |
+| `name` | string | `geometry` | Label of the source |
+
+There is no flow: `fields()` is empty, `flow(...)` raises `LookupError` saying so, and
+`series(name)` raises `KeyError`. `bounds()` and `memory_per_step()` describe the body
+built from the source's parameters.
+
+**Parameters and animation.** A body is a pure function of its parameters, so the same
+values always give the same surface and a frame can be cached by them. `body(step)` does
+not depend on the step. A shot animates a parameter by calling `build(**overrides)` with
+that frame's values; this is the hook the tracks of the scene will use, which keeps the
+source free of any notion of animation.
+
+### Registering a body
+
+```python
+import pyvista as pv
+from flowreel.sources.bodies import register_body
+
+@register_body("smooth_cylinder")
+def smooth_cylinder(span=12.0, radius=0.5):
+    return pv.Cylinder(center=(span / 2, 0, 0), direction=(1, 0, 0),
+                       radius=radius, height=span)
+```
+
+`available_bodies()` lists the names and `get_body(name)` returns the function.
+
+Registered with FlowReel: `grooved_cylinder` (below), and `pendulum`, `spring` and
+`mass`, the shapes of virtual bodies ([bodies](bodies.md#virtual-bodies)), which are
+drawn from their origin and can be used here too.
+
+### Body `grooved_cylinder`
+
+A cylinder along **x**, from `x = 0` to `x = span`, with helical or straight grooves,
+whole or in segments. Angles around
+the axis are measured as `atan2(y, z)`. All lengths share one unit; the defaults are the
+AFMS helical case in diameters. With the defaults it gives the same surface as
+`prototype/afms/render_carve.py`.
+
+| Parameter | Type | Default | Meaning |
+|---|---|---|---|
+| `span` | number | `12.0` | Length of the cylinder |
+| `radius` | number | `0.5` | Radius of the uncut surface |
+| `grooves` | integer | `4` | Number of grooves, equally spaced around the body; `0` gives a smooth cylinder |
+| `depth` | number | `0.08` | Radial depth at the middle of a groove |
+| `width` | number | `0.2` | Chord width of a groove at the surface |
+| `turns` | number | `1.0` | Turns each groove makes over the span; negative for the other hand, `0` for straight grooves |
+| `phase` | number, degrees | `45.0` | Angle of the first groove at `x = 0` |
+| `length` | number or none | none | Length along the span of one segment of a groove; none for grooves that run the whole span. Example: `1.5` |
+| `gap` | number | `0.0` | Length along the span between two segments of one groove; needs `length`. Example: `0.5` |
+| `stagger` | number | `0.0` | Shift of each groove's segments from the previous groove's, as a fraction of `length + gap`; needs `length`. Example: `0.5`, neighbours half a period apart |
+| `cut_front` | number or none | none | Carving progress: grooves exist for `x < cut_front`. None means fully carved. Example: run it from `-0.3` to `span + 0.3` |
+| `cut_length` | number | `0.25` | Distance behind the front over which a groove reaches full depth |
+| `glow_length` | number | `0.8` | Distance behind the front over which a new cut counts as fresh |
+| `edge` | number, radians | `0.012` | Angle over which a groove wall turns, to keep it smooth to the eye; a segment's ends turn over the same arc, `edge * radius` along the span |
+| `samples` | pair of integers | `(721, 1441)` | Points along the span and around the body. Example: `(241, 361)` for a draft |
+| `caps` | boolean | `true` | Close the two ends |
+
+The surface carries two point arrays, both from 0 to 1, so the look stays the renderer's
+choice (the prototype baked colours into the mesh):
+
+- `groove`: how far the point is cut; 1 on a groove floor, 0 on the uncut surface.
+- `fresh`: 1 just behind the cutting front, fading to 0 over `glow_length`; all 0 when
+  `cut_front` is none. Use it for the glow behind the cutters.
+
+While the front is on the span (`0 <= cut_front <= span`), the surface also carries field
+data `cutters`: one point per groove where it meets the front, on the uncut radius. With
+grooves in segments, only the grooves whose segment the front is on have a cutter; when
+the front is in every groove's gap there are none, and the field data is absent. The
+geometry layer's `markers` draws the cutters there (see `docs/guide/shots/layers-markers.md`).
+
+`flowreel.sources.bodies.groove_angle(x, k, span=, grooves=, turns=, phase=)` gives the
+angle in radians of groove `k` at `x`, for placing a cutter or an arrow on a groove.
+`on_segment(x, k, length=, gap=, stagger=)` says whether `x` is on a segment of groove
+`k`, and `segment_start(k, ...)` where its segments start within one period.
+
+### Grooves in segments
+
+Grooves need not run the whole span. `length` cuts each groove into segments of that
+length along the span, `gap` apart; groove 0's first segment starts at `x = 0`.
+`stagger` shifts each next groove's segments along by that fraction of a period
+(`length + gap`), so with 0.5 neighbouring grooves alternate like bricks in a wall.
+With `turns: 0` these are **staggered spanwise grooves**: `grooves` of them evenly spaced
+round the body, each of `width`, `depth` and segment `length`:
+
+```yaml
+params: {grooves: 6, turns: 0, width: 0.16, depth: 0.06, length: 1.5, gap: 0.5, stagger: 0.5}
+```
+
+With `turns` other than 0 the segments follow the helix; `length` and `gap` are still
+measured along the axis. A segment's ends are rounded as its sides are, over
+`edge * radius` either side of the end, so a sharp end needs `edge: 0` or enough samples
+along the span to show it (`samples[0]`: the defaults put a point every 0.017 along 12).
+Carving works as before: the front cuts each segment as it reaches it.
+
+![Six staggered spanwise grooves: carving, carved, close in](../../images/grooves.png)
+
+`examples/grooves/` is this shot: the front carves the segments from end to end, with a
+cutter on each segment it is cutting, and the camera closes in. `run.py` draws the three
+frames above:
+
+```bash
+python examples/grooves/run.py grooves.png
+flowreel shot preview examples/grooves/shot.yml
+```
+
+## Example
+
+`examples/sources_vtk_geometry.py` writes a small VTK series to a temporary folder, reads
+it whole and cropped, and builds the grooved cylinder at three stages of carving:
+
+```bash
+PYTHONPATH=src python examples/sources_vtk_geometry.py
+```
+
+## The `plt` adapter
+
+Reads a case folder of Tecplot binary PLT files (`#!TDV112`, block data) with FlowReel's
+own reader (`flowreel.sources.plt.reader`), whatever wrote them: no solver needs to be
+installed. A case is a folder of `<name>.<step>.plt` files, one a time step, in it or in
+a `binary/` folder in it; FlexFlow's cases are laid out so. The adapter's first name,
+`flexflow`, still works (`flexflow:CASE`, `flowreel.sources.flexflow`), so shots written
+with it need no change.
+
+```python
+from flowreel.sources.plt import PltSource
+src = PltSource("cases/cylinder_12")
+src.steps()                       # [5000, 5005, ...]
+flow = src.flow(5000, ["U", "V", "W", "p"], crop=None)
+wall = src.body(5000)
+lift = src.series("force")
+```
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `path` | path | required | the case folder; PLT files are `binary/<name>.<step>.plt`, or in the folder itself |
+| `volume` | text | found in the file | name of the volume zone; default the first zone of tetrahedra or bricks |
+| `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
+| `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
+| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](../rendering/long-bodies.md#reading-only-the-window) |
+| `name` | text | `plt` | label of the source |
+
+- **Time** is the solution time stored in each file.
+- **Position:** the files hold the deformed mesh, so the flow and the body are at the
+  step's position; `dispX`, `dispY`, `dispZ` give the displacement.
+- **Fields:** `U`, `V`, `W`, `p` (the file's `Pressure`) and the other stored variables
+  (`dispX`, `dispY`, `dispZ`, `eddy`, `orderPar`). The stored `xVor`, `yVor`, `zVor` and
+  `QCriterion` are **not provided**: they are nodal sums that depend on the mesh. Ask
+  `flowreel.fields` for vorticity and Q instead.
+- **Crop** keeps the cells with every node inside the box. It is read through a window:
+  only the box's nodes of the asked variables leave the disk ([long
+  bodies](../rendering/long-bodies.md#reading-only-the-window)).
+- **Series:** a body's time histories come from CSV files declared in `flowreel.yml`
+  ([bodies](bodies.md#series)), for any number of bodies and whatever wrote them. As a
+  quick look at a FlexFlow case with one body, the adapter also reads FlexFlow's own:
+  `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
+  `dy`, `dz`; `probe` is the row in the file, from 0) and `force` from
+  `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a
+  coefficient). Where restarts repeat a time, the later file wins. A file holding
+  several groups (`othId` probe sets or `osgId` surfaces, one per body) is refused with
+  a `ValueError` rather than mixed: export each group as CSV with FlexFlow Analyzer and
+  declare it under its body.
+
+- **Zones are found, not assumed.** The adapter reads the zone list of the first file, so
+  a case needs no options whatever its zones are called: `src.volume` and `src.bodies()`
+  say what it found. A name that is not in the file raises `KeyError` listing the zones.
+
+The test data in `tests/data/flexflow_case/` is a small piece of real output (half of the
+boundary layer over one spanwise cell, two steps), cut with `tools/cut_plt.py`.
+
+**What is tested on real output and what is not.** The real files available are one
+case: bricks with one quadrilateral wall. Tetrahedra, triangle walls, several wall zones
+and a file without a wall are tested on files generated with
+`flowreel.sources.plt.writer.write_plt`, which writes the layout the reader
+expects. That proves the adapter handles those layouts as FlowReel understands them; a
+quirk of the solver's writer on such meshes would only show on real output.
+
+### Writing a PLT file
+
+```python
+from flowreel.sources.plt.writer import write_plt
+write_plt("flow.1.plt", ["X", "Y", "Z", "U", "V", "W", "Pressure"], columns,
+          [("fluid", 4, tets), ("wing", 2, triangles)], time=0.5)
+```
+
+`columns` is one array per variable over the nodes; each zone is `(name, type,
+connectivity)` with Tecplot's type code (2 triangle, 3 quadrilateral, 4 tetrahedron,
+5 brick) and 0-based connectivity into the nodes. The first zone stores the variables and
+the others share them, as FlexFlow writes a wall next to the volume. It exists to cut
+test files (`tools/cut_plt.py`) and to generate them; it is not an export format.

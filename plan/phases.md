@@ -869,6 +869,21 @@ files organised)
   `commands.md` and the worked example in `docs/guide/`; every link, the commands' help,
   the reference generator and the tests follow
 
+**Branch 12: `phase8/series-sections`** (added 2026-11-24, asked by Arun: the AFMS
+film made from the cases alone needs each case's sectional lift along the span, which
+only the prototype's `surface_data.py` computed)
+- [ ] `flowreel project sections SOURCE --body NAME`: the force on a body's sections along
+  its axis, step by step, from the flow (the `sectional_force` field: the wall's pressure
+  and shear, `--param mu=...`), written as a series in long form: a CSV of `time, section,
+  fx, fy, fz` per unit length (and `cx, cy, cz`, divided by `q D`, when the project gives
+  `rho` and `u_inf` and the body its diameter) and a stations file of `section, station`;
+  `--sections N`, `--steps FIRST LAST`, `--every N`, `-j N`; a step already in the file
+  is kept, so a run cut short goes on where it stopped; it prints the lines that declare
+  the series under the body
+- [ ] Tests on generated data (a known wall traction gives known sectional forces; a second
+  run adds only the new steps), docs (the bodies page's series, the commands page, the
+  reference), and an example
+
 Branches are stacked in the order above. Branches 4 to 9 do not use each other's code;
 they could be done by agents in parallel, but each one regenerates the reference pages,
 so they are done one after another.

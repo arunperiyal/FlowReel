@@ -206,7 +206,7 @@ class EditorWindow:
         renderer = self.plotter.renderer
         old = getattr(self, "_tick_actor", None)
         if old is not None:
-            renderer.RemoveActor2D(old)
+            renderer.RemoveViewProp(old)
             self._tick_actor = None
         xs = tick_positions(self.state.key_frames(), self.state.frames)
         if not xs:
@@ -225,7 +225,7 @@ class EditorWindow:
         prop = actor.GetProperty()
         prop.SetColor(pv.Color(TICK).float_rgb)
         prop.SetLineWidth(3)
-        renderer.AddActor2D(actor)
+        renderer.AddViewProp(actor)
         self._tick_actor = actor
 
     def _widgets(self) -> None:

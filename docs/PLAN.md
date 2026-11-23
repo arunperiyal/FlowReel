@@ -1624,7 +1624,7 @@ tutorial met; then the rest.
   gives closed loops), docs, the YAML reference, the template and an example
 
 **Branch 6: `phase8/project-reference`**
-- [ ] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
+- [x] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
   read with the project; an unknown key is an error, as everywhere
 - [ ] Layers and panels that take `params: {rho, u_inf}` use the project's values when
   they give none (a value given in the shot still wins); `length` scales lengths shown

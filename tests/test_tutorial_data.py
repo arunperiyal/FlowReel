@@ -47,6 +47,20 @@ def test_a_file_already_there_is_not_downloaded_again(gd, tmp_path):
     assert calls == []
 
 
+def faces_point_out(grid):
+    """Whether every face of every cell, in VTK's face order, points away from the cell.
+
+    Checked from the points rather than with ``compute_cell_sizes``: the sign VTK gives a
+    wedge's volume flipped in VTK 9.7, while its faces (what is drawn) did not."""
+    centres = grid.cell_centers().points
+    for i in range(grid.n_cells):
+        for face in grid.get_cell(i).faces:
+            p = face.points
+            if np.dot(np.cross(p[1] - p[0], p[2] - p[0]), p.mean(axis=0) - centres[i]) <= 0:
+                return False
+    return True
+
+
 def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_path):
     out = gd.get(tmp_path, stand_in=True, say=quiet)
     assert out == tmp_path / "data" / "cylinder_crossflow"
@@ -57,8 +71,7 @@ def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_
     assert set(np.unique(flow.celltypes)) == {gd.WEDGE, gd.HEXAHEDRON}
     assert sorted(flow.point_data) == ["U", "V", "W", "p"]      # vorticity_mag left out
     assert flow.bounds[4:] == pytest.approx((-0.05, 0.05))      # 0.1 diameter of span
-    volumes = flow.compute_cell_sizes(length=False, area=False)["Volume"]
-    assert (volumes > 0).all()                                   # no cell turned inside out
+    assert faces_point_out(flow)                                 # no cell turned inside out
     body = pv.read(out / "cylinder.vtp")
     assert body.bounds[1] - body.bounds[0] == pytest.approx(1.0, abs=1e-3)
     assert body.n_open_edges == 0                                # capped: seen end-on, solid

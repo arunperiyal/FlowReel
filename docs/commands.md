@@ -330,7 +330,7 @@ $ flowreel compose panel lift.yml -j 4
 
 ```text
 flowreel film build [FILM] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
-                    [--crf N] [--clips DIR] [-j N]
+                    [--crf N] [--watch] [--clips DIR] [-j N]
 ```
 
 Builds the [film](film.md): every shot's [finished clip](clips.md), kept when its key
@@ -346,6 +346,7 @@ shot's planned and measured length and whether its clip was built or kept.
 | `--force` | off | build every clip again, even when its key did not change |
 | `--preview HEIGHT` | none | also write `film_<HEIGHT>p.mp4`, scaled to HEIGHT pixels (even, at most the film's) |
 | `--crf N` | `28` | quality of the preview copy, 0 to 51, lower is better and larger; needs `--preview` |
+| `--watch` | off | build, then build again on each change to a file the film may be made from, until Ctrl-C ([building as you edit](build.md#building-as-you-edit---watch)) |
 | `--clips DIR` | `clips/` at the project root | folder of the clips |
 | `-j N`, `--jobs N` | `1` | processes drawing a layout's `rate: output` panels |
 

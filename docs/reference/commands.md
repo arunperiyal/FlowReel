@@ -556,9 +556,9 @@ Build a film and check it.
 
 ```text
 usage: flowreel film build [-h] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
-                           [--crf N] [--clips DIR] [-j N] [--slurm FILE] [--submit]
-                           [--cluster NAME] [--partition NAME] [--time T] [--mem SIZE]
-                           [--cpus N] [--after JOBID]
+                           [--crf N] [--watch] [--clips DIR] [-j N] [--slurm FILE]
+                           [--submit] [--cluster NAME] [--partition NAME] [--time T]
+                           [--mem SIZE] [--cpus N] [--after JOBID]
                            [FILM]
 
 Build every shot's finished clip (clips whose key did not change are kept),
@@ -577,6 +577,8 @@ options:
   --force           build every clip again, even when its key did not change
   --preview HEIGHT  also write film_<HEIGHT>p.mp4, scaled to HEIGHT pixels (even)
   --crf N           quality of the preview copy, 0 to 51, lower is better (default 28)
+  --watch           build, then build again each time a file the film may be made from
+                    changes, until Ctrl-C
   --clips DIR       folder of the clips (default clips/ at the project root)
   -j N, --jobs N    processes drawing a layout's live panels (default 1)
 
@@ -598,6 +600,7 @@ examples:
   flowreel film build --preview 720 --crf 23 a better preview copy
   flowreel film build --only compare         one shot alone, as film_compare.mp4
   flowreel film build --force                build every clip again
+  flowreel film build --watch --preview 540  again on each change, until Ctrl-C
   flowreel film build --submit --after 1312  as a Slurm job, after the composes
 ```
 

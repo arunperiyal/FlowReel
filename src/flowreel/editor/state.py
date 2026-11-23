@@ -91,6 +91,10 @@ class EditorState:
         """Move the frame slider (clamped to the track)."""
         self.frame = min(max(int(round(frame)), 0), self.frames - 1)
 
+    def key_frames(self) -> list[int]:
+        """The frames that have a saved key, in order."""
+        return sorted(self.keys)
+
     def next_step(self) -> int:
         """Show the next time step (after the last, the first); returns it."""
         self.step_index = (self.step_index + 1) % len(self.steps)

@@ -1641,7 +1641,7 @@ tutorial met; then the rest.
   the build page and the reference
 
 **Branch 8: `phase8/editor-slider`**
-- [ ] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
+- [x] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
   saved, replaced or undone
 - [ ] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
   the *Time step* slider still moves alone

@@ -1,6 +1,6 @@
 # Cards
 
-Phase 4, branch 3. A card is a still shot, such as an opening title or the credits at the
+A card is a still shot, such as an opening title or the credits at the
 end. It is a file of blocks placed down a background, not code, so a different
 competition's layout is a different file (plan Section 10.5). A film names it as a shot:
 
@@ -48,6 +48,11 @@ Each block is centred across the card by its measured width. Its top is either:
 
 - `y`: pixels from the card's top, or
 - `gap`: pixels below the **end** of the block before it (default `0`; it may be negative).
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `y` | pixels | none | the block's top, from the card's top |
+| `gap` | pixels | `0` | the block's top, below the end of the block before it; used without `y` |
 
 A block ends where what it draws ends: an image's height; a divider's `thickness`; lines
 times their `spacing`; for names, the `heading_gap` (if there is a heading) plus the names

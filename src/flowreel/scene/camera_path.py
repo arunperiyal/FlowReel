@@ -91,10 +91,15 @@ def _catmull(points, i: int, t: float) -> np.ndarray:
                   + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)
 
 
+#: The keys of a track in ``cameras.yml``, and of each of its ``keys``.
+TRACK_KEYS = ("frames", "path", "ease", "keys")
+TRACK_KEY_KEYS = ("frame", "view", "ease")
+
+
 def parse_track(spec, views: dict[str, View], check: Checker | None = None) -> CameraTrack:
     """Build a :class:`CameraTrack`; every key names a view in ``views``."""
     check = check or Checker()
-    spec = check.mapping(spec, ("frames", "path", "ease", "keys"), required=("keys",))
+    spec = check.mapping(spec, TRACK_KEYS, required=("keys",))
     path = check.at("path").choice(spec.get("path", "linear"), PATHS)
     ease = check.at("ease").choice(spec.get("ease", "smooth"), EASE_NAMES)
     frames = spec.get("frames")
@@ -103,7 +108,7 @@ def parse_track(spec, views: dict[str, View], check: Checker | None = None) -> C
     keys = []
     for i, item in enumerate(check.at("keys").sequence(spec["keys"], 1)):
         where = check.at("keys", i)
-        item = where.mapping(item, ("frame", "view", "ease"), required=("frame", "view"))
+        item = where.mapping(item, TRACK_KEY_KEYS, required=("frame", "view"))
         keys.append((where.at("frame").number(item["frame"]),
                      where.at("view").choice(item["view"], list(views)),
                      None if "ease" not in item

@@ -101,21 +101,25 @@ class EditorWindow:
         return True
 
     def save(self) -> None:
+        """Key ``s``: the camera's view becomes the track's key at the Frame slider."""
         name = self.state.save(self.view())
         self.message = f"saved {name} at frame {self.state.frame}"
         self._status()
 
     def undo(self) -> None:
+        """Key ``u``: go back one change."""
         self.message = "undone" if self.state.undo() else "nothing to undo"
         self._status()
 
     def replace(self) -> None:
+        """Key ``r``: the key nearest the Frame slider takes the camera's view."""
         frame = self.state.replace(self.view())
         self.message = ("no view to replace yet: s saves one" if frame is None
                         else f"replaced the view at frame {frame}")
         self._status()
 
     def play(self) -> None:
+        """Key ``p``: play the track, then return to the view there was."""
         views = self.state.play()
         if not views:
             self.message = "no view saved yet: s saves one"
@@ -132,6 +136,7 @@ class EditorWindow:
         self._status()
 
     def next_step(self) -> None:
+        """Key ``n``: show the next time step."""
         self._show(self.state.next_step())
 
     def set_frame(self, value: float) -> None:

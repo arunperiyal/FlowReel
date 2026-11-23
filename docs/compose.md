@@ -1,7 +1,7 @@
 # Compose
 
-Phase 3 builds `compose`: several folders of frames and matplotlib panels put together
-in one picture (plan Section 9). The pieces have their own pages:
+`compose` puts several folders of frames and matplotlib panels together in one
+picture (plan Section 9). The pieces have their own pages:
 
 | Page | What |
 |---|---|
@@ -31,12 +31,12 @@ flowreel compose panel liftmap.yml -j 4 # frames/liftmap/
 
 `python examples/compare/run.py DIR` writes the generated cases and composes both, then
 composes the comparison again with a film's output frames (three per wake frame, with
-a freeze), as the film build of Phase 4 will.
+a freeze), as the film build does.
 
 ## The check
 
-Phase 3 is done when those two frames, composed from files by `flowreel compose`,
-match frames drawn by the prototype's own code (`tests/test_golden_compose.py`):
+Those two frames, composed from files by `flowreel compose`, are checked against
+frames drawn by the prototype's own code (`tests/test_golden_compose.py`):
 
 - `tools/make_compare_golden.py` has the prototype's `compose_compare.py` stack the two
   wakes and draw its plots at a time between two samples, laid on as its
@@ -46,7 +46,7 @@ match frames drawn by the prototype's own code (`tests/test_golden_compose.py`):
 
 Only the inputs are the prototype's to read: the generated data, and the case names,
 colours and labels it takes from `film_text.toml`. Both frames match to within the
-limits of Phase 2's golden tests: the comparison pixel for pixel, the lift map within
+limits of the golden shot tests: the comparison pixel for pixel, the lift map within
 a thousandth of a grey level on average. A frame near each golden one (two wake frames
 earlier, three map frames earlier) fails the same limits, and so do the comparison's
 plots on their own.

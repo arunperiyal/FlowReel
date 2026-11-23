@@ -209,6 +209,7 @@ class Removed:
 
     @property
     def total(self) -> int:
+        """Bytes removed (or, in a dry run, that would be) in all."""
         return sum(n for _, n in self.removed)
 
 

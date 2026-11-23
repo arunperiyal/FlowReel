@@ -1,16 +1,39 @@
 # FlowReel
 
-FlowReel makes films of flow simulations from configuration files. You describe each
-shot (the data, the fields, the layers, the camera) in YAML, and FlowReel renders the
-frames and builds the film with its captions, cards and sound.
+FlowReel makes films of flow simulations from configuration files. Each shot (the data,
+the fields, the layers, the camera) is a YAML file. FlowReel renders the frames, on a
+laptop or on a cluster, and builds the film from one more file, with its cards,
+captions, freezes and sound. Every picture can be made again from the files that
+describe it.
 
-- **New to FlowReel?** Start with [the tutorial](tutorial/index.md): a 20-second film
-  of the flow past a cylinder, from a public data set, in eight short chapters.
-- **The user guide** explains each part, starting with [projects](project.md) and
-  [the rules](rules.md) every project follows.
-- **The reference** lists every [command](commands.md).
+![A frame of the tutorial's film](tutorial/images/04-camera.png)
 
-FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).
+## Where to start
+
+**[The tutorial](tutorial/index.md)** makes a 20-second film of the flow past a
+cylinder from a public data set, in eight short chapters, from installing FlowReel to
+the finished film. Start there.
+
+## The user guide
+
+Each part of FlowReel, in the order a film is made:
+
+| Part | Pages |
+|---|---|
+| Projects and data | [projects](project.md), [the rules](rules.md) every project follows, [sources](sources.md) of data, [bodies](bodies.md), [derived fields](fields.md) |
+| Shots | [shot files](shots.md), [flow layers](layers-flow.md), [layers without flow data](layers-markers.md), [tracks](tracks.md) (values that change along a shot), [cameras](cameras.md), [the camera editor](camera-editor.md) |
+| Rendering | [rendering and caching](rendering.md), [long bodies](long-bodies.md), [Slurm](slurm.md) |
+| Composing | [compose](compose.md), [layouts](layouts.md), [panels](panels.md) |
+| The film | [the film file](film.md), [captions and shapes](captions.md), [cards](cards.md), [clips](clips.md), [building the film](build.md) |
+
+## The reference
+
+- **[Commands](reference/commands.md):** every command and option, from the commands'
+  own help.
+- **[YAML keys](reference/yaml.md):** every key of every file FlowReel reads, with its
+  type and default, linked to the guide page that explains it.
+
+Both are generated from the code, so they cannot drift from it.
 
 ## This site
 
@@ -27,4 +50,4 @@ mkdocs build --strict   # as every pull request does: a broken link or anchor, o
 ```
 
 A new page goes in the `nav` of `mkdocs.yml`. The design, `docs/PLAN.md`, stays out of
-the site.
+the site. FlowReel is open source (MIT) on [GitHub](https://github.com/arunperiyal/FlowReel).

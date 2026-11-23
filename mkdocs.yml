@@ -73,28 +73,36 @@ nav:
       - 8. Building the film: tutorial/08-build.md
       - The data: tutorial/data.md
   - User guide:
-      - Projects: project.md
-      - Rules: rules.md
-      - Sources: sources.md
-      - Bodies: bodies.md
-      - Derived fields: fields.md
-      - Shot files: shots.md
-      - Flow layers: layers-flow.md
-      - Layers without flow data: layers-markers.md
-      - Cameras and lights: cameras.md
-      - Tracks: tracks.md
-      - The camera editor: camera-editor.md
-      - Rendering and caching: rendering.md
-      - Long bodies: long-bodies.md
-      - Rendering on Slurm: slurm.md
-      - Compose: compose.md
-      - Layouts: layouts.md
-      - Panels: panels.md
-      - Captions and shapes: captions.md
-      - Cards: cards.md
-      - The film file: film.md
-      - Clips: clips.md
-      - Building the film: build.md
-      - The reveal look: reveal.md
+      - Projects and data:
+          - Projects: project.md
+          - Rules: rules.md
+          - Sources: sources.md
+          - Bodies: bodies.md
+          - Derived fields: fields.md
+      - Shots:
+          - Shot files: shots.md
+          - Flow layers: layers-flow.md
+          - Layers without flow data: layers-markers.md
+          - Tracks: tracks.md
+          - Cameras and lights: cameras.md
+          - The camera editor: camera-editor.md
+      - Rendering:
+          - Rendering and caching: rendering.md
+          - Long bodies: long-bodies.md
+          - Rendering on Slurm: slurm.md
+      - Composing:
+          - Compose: compose.md
+          - Layouts: layouts.md
+          - Panels: panels.md
+      - The film:
+          - The film file: film.md
+          - Captions and shapes: captions.md
+          - Cards: cards.md
+          - Clips: clips.md
+          - Building the film: build.md
+      - Worked example:
+          - The reveal look: reveal.md
   - Reference:
-      - Commands: commands.md
+      - Commands, by example: commands.md
+      - Every command and option: reference/commands.md
+      - YAML keys: reference/yaml.md

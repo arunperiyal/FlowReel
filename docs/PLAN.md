@@ -1511,14 +1511,18 @@ branch 1)
   command, and checks the film is 20 s with the captions in place
 
 **Branch 5: `phase7/docs-reference`** (the guide and reference; needs branches 1 and 3)
-- [ ] `docs/index.md`, the site's first page: where to start (the tutorial), the user
+- [x] `docs/index.md`, the site's first page: where to start (the tutorial), the user
   guide and the reference; the per-phase pages renamed as guide chapters, in reading order
   in the site's navigation
-- [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
+- [x] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
   card, `flowreel.yml`) with type, default and example, generated from the schema modules
-  and the `template` commands, with a test that fails when the page is out of date
-- [ ] Command reference generated from the help text, with the same test
-- [ ] `README.md` brought up to date (status, what it does, a still, install, links to
+  and the `template` commands, with a test that fails when the page is out of date. Done
+  2026-11-23: the keys come from the lists the code checks each file against, and each
+  key's type, default and meaning from its row in the guide page, so a key the code
+  accepts without a row in the guide fails the test too (ten rows were added to the
+  guide, for keys only its prose had named)
+- [x] Command reference generated from the help text, with the same test
+- [x] `README.md` brought up to date (status, what it does, a still, install, links to
   the site and its tutorial); a docstring check over public modules (`.claude/rules/documentation.md`)
 
 **Branch 6: `phase7/tutorial-check`** (the check; needs all the others)

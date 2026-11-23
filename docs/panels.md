@@ -106,6 +106,7 @@ sample. Before the first sample and after the last, the value is held.
 | `x` | `{label, range}` | the panel's first to last time | the shared time axis |
 | `rows` | list of `{label, range, lines}` | required (or `y` and `lines` for one row) | |
 | `rows[].range` | `[low, high]` | from all its lines' values, padded by `pad` | |
+| `rows[].lines`, `lines` | list of lines ([where the data comes from](#where-the-data-comes-from)) | required | the row's lines; `lines` alone with `y` for a panel of one row |
 | `legend` | bool | `true` | the first row's labelled lines, in their colours, above it |
 | `margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height |
 

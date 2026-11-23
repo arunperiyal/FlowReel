@@ -1,8 +1,8 @@
 # Captions, shapes and the watermark, drawn
 
-Phase 4, branch 2. A caption written in a text file (see [the film file](film.md#captions))
+A caption written in a text file (see [the film file](film.md#captions))
 becomes one transparent picture the size of the film, which the build lays over its
-shot with its own fades (branch 4). The film's watermark is drawn the same way. This page
+shot with its own fades ([clips](clips.md)). The film's watermark is drawn the same way. This page
 says how they are drawn, the keys of the 2D shapes, and the watermark of a shot file.
 
 All positions and sizes are **pixels of the film**: `(0, 0)` is the upper left corner,
@@ -80,7 +80,7 @@ shadow. Each is in the caption's colour unless it gives `colour`.
 | `highlight` | `from`, `to`; `dim`, `radius` | `dim: 0.6`, `radius: 0` | the picture darkened outside a box, by `dim` (0: not at all, 1: black) |
 | `label` | `at`, `text`; `size`, `colour` | `size: 0.8 × the caption's` | `text` (`$...$` allowed) centred on the point `at` |
 | `label3d` | `at: [x, y, z]`, `text`; `offset: [dx, dy]`, `size`, `colour` | `offset: [0, 0]` | a `label` at a point of the model, moved `offset` pixels on screen |
-| `dimension3d` | `from: [x, y, z]`, `to: [x, y, z]`; as `dimension` | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured |
+| `dimension3d` | `from: [x, y, z]`, `to: [x, y, z]`; `value`, `offset`, `width`, `head`, `size`, `colour` as `dimension` | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured |
 
 - **Which side.** A bracket's `depth` and a dimension's `offset` are measured to the
   **left of the direction from `from` to `to`**. For a shape drawn left to right, left

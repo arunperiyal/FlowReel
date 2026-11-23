@@ -1,6 +1,6 @@
 # Clips: each shot encoded once
 
-Phase 4, branch 4. Before the film is [joined](build.md), every shot becomes two clips in
+Before the film is [joined](build.md), every shot becomes two clips in
 `clips/` at the project root ([projects](project.md); beside the film file outside a
 project):
 

@@ -50,13 +50,14 @@ Each shot has a `name` (unique) and is one of four kinds:
 
 | Kind | Key | Lasts |
 |---|---|---|
-| frames | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
-| layout | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
-| card | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
-| hold | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
+| `frames` | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
+| `layout` | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
+| `card` | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
+| `hold_last_of` | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
+| `name` | string | required | unique in the film; captions, holds and `--only` name the shot by it |
 | `seconds` | number | required for cards and holds | how long the still shows; not allowed on frames and layouts |
 | `rate` | `{fps, to_output}` | `{fps: <film fps>}` | the shot's own frames a second, and how they are made up to the film's: `interpolate` (motion-compensated), `repeat` or `blend` |
 | `freezes` | list of `{at, hold, text}` | none | stop on a frame for a while (below) |
@@ -116,8 +117,9 @@ text file of its own, so the person writing the words never edits `film.yml`:
 - **Quote a line with a colon.** `Outlet: p = 0` unquoted is a mapping to YAML; the
   error says to write `'Outlet: p = 0'`. Single quotes also keep `$12D \times 30D$`
   as written.
-- Places in the model (`{model: [x, y, z], view: V}`) come with the camera editor in
-  Phase 6.
+- **Places in the model.** A caption's `place` and a shape's points may be points of
+  the model, `{model: [x, y, z]}`, which follow the camera
+  ([points in the model](captions.md#points-in-the-model)).
 
 How captions are drawn (measured text, shadow or box, the shapes' keys) is on
 [captions, shapes and the watermark](captions.md).

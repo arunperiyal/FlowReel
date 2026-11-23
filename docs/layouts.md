@@ -186,8 +186,8 @@ With `output`:
 A `series` panel interpolates its values in time, so the dot of an output frame between
 two flow frames lies between their values, where the flow is at that moment. Without
 `output`, as in a preview of the layout, a `rate: output` tile is drawn and composed
-like any panel tile. The film build (Phase 4) passes `output` once it knows its rates
-and freezes.
+like any panel tile. The film build passes `output`, since it knows the rates and
+freezes.
 
 ## Composing: `compose.layout`
 

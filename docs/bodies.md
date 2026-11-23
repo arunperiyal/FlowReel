@@ -169,7 +169,17 @@ How the solver holds the structure is not in its files. It is written under the 
 | `prescribed` | moved by the solver along `direction` | `direction: y` or `[0, 1, 0]` (required) |
 
 Any support takes `tension: true`, for a riser held by top tension. Two supports cannot
-share a station. The `supports` layer draws them ([layers](layers-markers.md#supports)):
+share a station.
+
+| Key of an end | Type | Default | Meaning |
+|---|---|---|---|
+| `at` | number, length unit | required | the station along the axis |
+| `support` | one of the supports above | required | how the body is held there |
+| `tension` | bool | `false` | held by top tension (a riser) |
+| `free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides |
+| `stiffness` | positive number | required for `spring` | the spring's stiffness |
+| `mark` | bool | `false` | `free`: draw a thin ring at the station |
+| `direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | The `supports` layer draws them ([layers](layers-markers.md#supports)):
 
 ![Every support symbol on a short beam](images/supports.png)
 

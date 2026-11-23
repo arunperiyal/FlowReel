@@ -18,6 +18,10 @@ from typing import Any, Callable
 from flowreel import tracks as tracks_mod
 from flowreel.scene.errors import Checker
 
+from flowreel.scene.backend import plain_vtk_filters
+
+plain_vtk_filters()           # every layer cuts with VTK's own filters (see there)
+
 _MISSING = object()
 
 

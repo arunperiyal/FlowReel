@@ -26,6 +26,9 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from flowreel.box import Box
+from flowreel.scene.backend import plain_vtk_filters
+
+plain_vtk_filters()           # the panel cuts with VTK's own filters (see there)
 
 AXES = "xyz"
 

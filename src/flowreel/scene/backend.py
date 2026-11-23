@@ -65,6 +65,19 @@ def choose(backend: str = "auto") -> str | None:
     return None
 
 
+def plain_vtk_filters() -> None:
+    """Turn off VTK-m's (Viskores') stand-ins for VTK's filters, where this VTK has them.
+
+    Some builds of VTK 9.7 (conda-forge's) put a VTK-m slice in place of VTK's cutter.
+    It cannot give the polygons FlowReel asks for, so it warns and falls back on every
+    cut; turned off, every VTK cuts with its own filter and gives the same cells."""
+    try:
+        from vtkmodules.vtkAcceleratorsVTKmFilters import vtkmFilterOverrides
+    except ImportError:
+        return
+    vtkmFilterOverrides.SetEnabled(False)
+
+
 def environment(backend: str | None, threads: int | None = None) -> dict[str, str]:
     """Environment variables that select ``backend`` and cap threads at ``threads``.
 

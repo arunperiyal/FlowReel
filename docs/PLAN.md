@@ -1624,12 +1624,13 @@ tutorial met; then the rest.
   gives closed loops), docs, the YAML reference, the template and an example
 
 **Branch 6: `phase8/project-reference`**
-- [ ] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
+- [x] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
   read with the project; an unknown key is an error, as everywhere
-- [ ] Layers and panels that take `params: {rho, u_inf}` use the project's values when
-  they give none (a value given in the shot still wins); `length` scales lengths shown
-  in diameters (the axes layer's ticks, a panel's axes)
-- [ ] Docs (the project page, the fields page, the YAML reference), the rules page if it
+- [x] Layers and panels that take `params: {rho, u_inf}` use the project's values when
+  they give none (a value given in the panel still wins; a shot's layer has no
+  `params`); `length` is the unit of the axes layer's `unit: diameters` when it names no
+  body (panels show no lengths in diameters)
+- [x] Docs (the project page, the fields page, the YAML reference), the rules page if it
   makes a new rule, and an example
 
 **Branch 7: `phase8/film-watch`**

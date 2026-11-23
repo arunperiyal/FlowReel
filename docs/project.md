@@ -26,7 +26,7 @@ saved surfaces and `cameras.yml`, to run `camera edit`). Options: [commands](com
 
 ```text
 afms/
-├── flowreel.yml      bodies (and later the project's defaults); edited by hand
+├── flowreel.yml      bodies and reference values; edited by hand
 ├── film.yml          the film: shots in order, captions, sound
 ├── cameras.yml       every view and camera track of the project
 ├── shots/            shot files
@@ -41,7 +41,7 @@ afms/
 
 | Path | Written by | Kept in git | Notes |
 |---|---|---|---|
-| `flowreel.yml` | you (`project init` starts it) | yes | marks the project root; [bodies](bodies.md) |
+| `flowreel.yml` | you (`project init` starts it) | yes | marks the project root; [bodies](bodies.md), [reference values](#reference-values) |
 | `film.yml` | you (`project init` writes `film template`'s) | yes | [film](film.md) |
 | `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](cameras.md) |
 | `shots/`, `text/`, `cards/`, `assets/` | you | yes | the names are a convention; files anywhere in the project work |
@@ -60,6 +60,31 @@ its machinery. Nothing in `.flowreel/` needs editing, and deleting it costs only
 **Why the data is linked.** A case is often hundreds of gigabytes on scratch storage,
 and belongs to the simulation rather than the film. The link records where it is
 without copying it, and `data/` is left out of git so the repository never holds it.
+
+## Reference values
+
+The flow's reference values, given once in `flowreel.yml` for every shot and panel of
+the project:
+
+```yaml
+reference:
+  rho: 1000.0                         # density
+  u_inf: 0.5                          # free-stream speed
+  length: 0.05                        # the length lengths are shown in
+```
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `reference.rho` | number > 0 | none | density, in the source's units |
+| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units |
+| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` |
+
+Each is optional. `rho` and `u_inf` are the parameters of the
+[pressure and skin-friction coefficients](fields.md): with them here, a shot's layer can
+draw `pressure_coefficient` (a layer has no `params` of its own), and a panel takes them
+when its `params` do not give them (the panel's own win). Without them, drawing a
+coefficient is an error naming the missing values. The values are part of each frame's
+key, so changing them draws the frames that use them again.
 
 ## Finding the project
 

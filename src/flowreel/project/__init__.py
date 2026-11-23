@@ -1,8 +1,10 @@
 """A FlowReel project: a folder with ``flowreel.yml`` (plan Section 3).
 
 ``flowreel.yml`` holds what belongs to the project rather than to one shot. So far that
-is ``bodies:`` (:mod:`flowreel.project.bodies`); paths, defaults and ``scales:`` come
-with the phases that use them. A shot finds its project by looking for
+is ``bodies:`` (:mod:`flowreel.project.bodies`) and ``reference:``, the flow's
+reference values (:data:`REFERENCE_KEYS`: density, free-stream speed and a length), given
+once for every shot and panel; paths, defaults and ``scales:`` come with the phases
+that use them. A shot finds its project by looking for
 ``flowreel.yml`` in its own folder and then in each folder above it; where the
 project's other files and its output go is :mod:`flowreel.project.paths`.
 """
@@ -16,7 +18,11 @@ from flowreel.project.bodies import Body, End, Series, parse_bodies
 from flowreel.project.paths import PROJECT_FILE, find_root
 from flowreel.scene.errors import Checker
 
-KEYS = ("bodies",)
+KEYS = ("bodies", "reference")
+#: The keys of ``reference:``: ``rho`` (density) and ``u_inf`` (free-stream speed), the
+#: parameters of the pressure and skin-friction coefficients; ``length``, the length a
+#: shot's axes divide by with ``unit: diameters`` when they name no body.
+REFERENCE_KEYS = ("rho", "u_inf", "length")
 
 __all__ = ["PROJECT_FILE", "Project", "Body", "End", "Series", "load_project", "find_project",
            "project_for"]
@@ -24,11 +30,13 @@ __all__ = ["PROJECT_FILE", "Project", "Body", "End", "Series", "load_project", "
 
 @dataclass(frozen=True)
 class Project:
-    """A loaded ``flowreel.yml``: its ``file`` (``None`` when built in code), ``folder``
-    and the declared ``bodies`` by name."""
+    """A loaded ``flowreel.yml``: its ``file`` (``None`` when built in code), ``folder``,
+    the declared ``bodies`` by name and the ``reference`` values given (a subset of
+    :data:`REFERENCE_KEYS`, each a positive number)."""
 
     file: Path | None = None
     bodies: dict = field(default_factory=dict)
+    reference: dict = field(default_factory=dict)
 
     @property
     def folder(self) -> Path | None:
@@ -46,7 +54,20 @@ def load_project(path: str | Path) -> Project:
     data = read_yaml(path)
     data = check.mapping({} if data is None else data, KEYS)
     path = path.resolve()
-    return Project(path, parse_bodies(data.get("bodies"), check.at("bodies"), path.parent))
+    return Project(path, parse_bodies(data.get("bodies"), check.at("bodies"), path.parent),
+                   parse_reference(data.get("reference"), check.at("reference")))
+
+
+def parse_reference(value, check: Checker) -> dict:
+    """``reference:`` checked: a mapping of :data:`REFERENCE_KEYS`, each positive."""
+    if value is None:
+        return {}
+    out = {}
+    for key, number in check.mapping(value, REFERENCE_KEYS).items():
+        out[key] = check.at(key).number(number)
+        if out[key] <= 0:
+            raise check.at(key).error(f"must be positive, got {out[key]:g}")
+    return out
 
 
 def find_project(start: str | Path) -> Path | None:

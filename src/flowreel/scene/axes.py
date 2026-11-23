@@ -247,10 +247,13 @@ class Axes(Layer):
         return [(NAMES.index(a), str(lab), c) for a, lab, c in zip(names, labels, colours)]
 
     def diameter(self, data, origin_body: str | None = None) -> float:
-        """The unit length: 1, or the diameter of ``body`` (``origin_body`` for arrows
-        at a body's end; the one body when neither is given)."""
+        """The unit length: 1, or the diameter of ``body``; with no ``body`` named, the
+        project's ``reference: {length}`` when given, else the diameter of
+        ``origin_body`` (arrows at a body's end) or of the one body."""
         if self.raw.get("unit", "model") == "model":
             return 1.0
+        if not self.raw.get("body") and data.reference.get("length"):
+            return float(data.reference["length"])
         from flowreel.project.measure import diameter
         from flowreel.project.names import declaration, one_body
         name = self.raw.get("body") or origin_body or one_body(data.source)

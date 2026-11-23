@@ -192,6 +192,7 @@ def file_types():
     from flowreel.compose.series_panel import AXIS_KEYS, LINE_KEYS, MARGIN_KEYS
     from flowreel.compose.style import KEYS as STYLE_KEYS
     from flowreel.film import anchors, cards, schema, shapes, text
+    from flowreel import project
     from flowreel.project import bodies
     from flowreel.scene import camera_path, shot, views
     import flowreel.compose.phase_panel  # noqa: F401  (registers panel types)
@@ -229,6 +230,7 @@ def file_types():
             ("bodies.NAME.attach", bodies.ATTACH_KEYS, "bodies.md"),
             ("bodies.NAME.ends[]", bodies.END_KEYS + supports, "bodies.md"),
             ("bodies.NAME.series.NAME", bodies.SERIES_KEYS, "bodies.md"),
+            ("reference", project.REFERENCE_KEYS, "project.md#reference-values"),
         ]),
         ("Layout", "NAME.yml (compose layout)", "layouts.md", [
             ("", layout_file.KEYS, "layouts.md"),

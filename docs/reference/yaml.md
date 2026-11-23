@@ -99,6 +99,9 @@ Guide: [bodies](../bodies.md).
 | `bodies.NAME.series.NAME.columns` |  | the file's own | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | [bodies](../bodies.md#series) |
 | `bodies.NAME.series.NAME.by` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [bodies](../bodies.md#series) |
 | `bodies.NAME.series.NAME.stations` |  | none | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | [bodies](../bodies.md#series) |
+| `reference.rho` | number > 0 | none | density, in the source's units | [project](../project.md#reference-values) |
+| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units | [project](../project.md#reference-values) |
+| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` | [project](../project.md#reference-values) |
 
 ## Layout: `NAME.yml (compose layout)`
 
@@ -154,7 +157,7 @@ Guide: [panels](../panels.md).
 | `<cuts>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
 | `<cuts>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
 | `<cuts>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<cuts>.params` | mapping of numbers | none | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear` | [panels](../panels.md#where-the-flow-comes-from) |
+| `<cuts>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
 | `<cuts>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
 | `<cuts>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
 | `<cuts>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |
@@ -190,7 +193,7 @@ Guide: [panels](../panels.md).
 | `<section>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
 | `<section>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
 | `<section>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<section>.params` | mapping of numbers | none | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear` | [panels](../panels.md#where-the-flow-comes-from) |
+| `<section>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
 | `<section>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
 | `<section>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
 | `<section>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |
@@ -212,7 +215,7 @@ Guide: [panels](../panels.md).
 | `<strip>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [panels](../panels.md#where-the-flow-comes-from) |
 | `<strip>.body` | string | the one body with that series | the declared body | [panels](../panels.md#where-the-data-comes-from) |
 | `<strip>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../fields.md)) | [panels](../panels.md#where-the-flow-comes-from) |
-| `<strip>.params` | mapping of numbers | none | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear` | [panels](../panels.md#where-the-flow-comes-from) |
+| `<strip>.params` | mapping of numbers | the project's [`reference`](../project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [panels](../panels.md#where-the-flow-comes-from) |
 | `<strip>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [panels](../panels.md#map) |
 | `<strip>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [panels](../panels.md#map) |
 | `<strip>.levels` | integer | `41` | contour levels from `low` to `high` | [panels](../panels.md#where-the-flow-comes-from) |

@@ -1586,7 +1586,7 @@ tutorial met; then the rest.
 - [ ] The README says how the tests run, and where CI runs them
 
 **Branch 2: `phase8/checks-doctor`**
-- [ ] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the
+- [x] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the
   code, read by the doctor and by the CI workflow's test that the two agree
 - [ ] `flowreel doctor`: Python, FlowReel, VTK, pyvista, matplotlib, ffmpeg (version and
   filters), each said tested or not; the off-screen back ends (`jobs check`); the

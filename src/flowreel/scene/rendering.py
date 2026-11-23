@@ -350,10 +350,13 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
     cache = surface_cache(shot, out)
     scene = Scene.make(shot, source, views, tracks, size, cache=cache)
     indices = _frames(frames, scene.plan.n_frames, shot)
-    if check_memory:
-        from flowreel.scene.memory import check_fits
-        check_fits(scene, indices, jobs if processes else 1)
     folder = frame_folder(out, shot, size)
+    if check_memory:
+        from flowreel.jobs import measured as measured_mod
+        from flowreel.scene.memory import check_fits
+        record = measured_mod.load(folder)
+        check_fits(scene, indices, jobs if processes else 1,
+                   measured=record.peak_bytes if record else None)
     folder.mkdir(parents=True, exist_ok=True)
     threads = threads or default_threads(jobs)
     chosen = backend_mod.choose(backend)

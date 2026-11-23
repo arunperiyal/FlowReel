@@ -95,11 +95,13 @@ def estimate_job(scene, frames=None, samples: int = 5) -> int | None:
 
 
 def check_fits(scene, frames, jobs: int, available: int | None = None,
-               headroom: float = HEADROOM) -> int | None:
-    """Raise :class:`NotEnoughMemory` when ``jobs`` jobs of :func:`estimate_job` do not
-    fit in ``headroom`` of the ``available`` memory (default :func:`available_memory`),
-    saying what does. Returns the estimate per job (``None``: no estimate, no check)."""
-    per_job = estimate_job(scene, frames)
+               headroom: float = HEADROOM, measured: int | None = None) -> int | None:
+    """Raise :class:`NotEnoughMemory` when ``jobs`` jobs do not fit in ``headroom`` of
+    the ``available`` memory (default :func:`available_memory`), saying what does. A job
+    needs ``measured`` bytes, the peak measured for these frames, when given (a Slurm
+    job is sized from it, so it must be checked by it too), else :func:`estimate_job`.
+    Returns the bytes per job (``None``: no estimate, no check)."""
+    per_job = measured or estimate_job(scene, frames)
     if per_job is None:
         return None
     available = available_memory() if available is None else available

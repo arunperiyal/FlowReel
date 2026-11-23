@@ -20,20 +20,21 @@ def test_frames_spec():
 
 
 def test_a_bare_reveal():
-    """121 frames; 16 cores, 16 jobs of 0.7 GB (0.875 GB at 80%): 14 GB; 128 frames a
+    """121 frames; 16 cores, 16 jobs of 0.7 GB (0.875 GB at 80%) and 0.7 GB for the render
+    itself: 15 GB; 128 frames a
     task -> one task; 8 rounds of 6 s with a 1.5 margin and 10 minutes to start."""
     plan = plan_render(list(range(121)), BARE, AIRAVATA)
-    assert (plan.cpus, plan.jobs, plan.threads, plan.memory) == (16, 16, 1, 14 * GB)
+    assert (plan.cpus, plan.jobs, plan.threads, plan.memory) == (16, 16, 1, 15 * GB)
     assert plan.runs == [list(range(121))]
     assert plan.estimate == 8 * 6.0 and plan.time == round(48 * 1.5 + 600)
     assert plan.partition.name == "part1" and plan.max_running is None
     assert "121 frames in 1 task of up to 121 frames" in plan.text()
-    assert "each task: 16 cores, 14G, -j 16 --threads 1, 00:11:12 on airavata part1" in plan.text()
+    assert "each task: 16 cores, 15G, -j 16 --threads 1, 00:11:12 on airavata part1" in plan.text()
 
 
 def test_many_frames_go_in_runs_and_at_most_n_at_once():
     plan = plan_render(list(range(600)), HELICAL, AIRAVATA, cpus=32, max_running=3)
-    assert plan.jobs == 32 and plan.memory == 88 * GB            # 32 x 2.75 GB
+    assert plan.jobs == 32 and plan.memory == 89 * GB            # 32 x 2.75 GB + 0.7
     assert [len(r) for r in plan.runs] == [256, 256, 88]
     assert plan.runs[1][0] == 256 and plan.max_running == 3
     assert plan.text().startswith("600 frames in 3 tasks of up to 256 frames, 3 at once")
@@ -41,15 +42,15 @@ def test_many_frames_go_in_runs_and_at_most_n_at_once():
 
 def test_memory_given_limits_the_jobs():
     plan = plan_render(list(range(100)), HELICAL, AIRAVATA, cpus=32, memory=20 * GB)
-    assert plan.jobs == 7 and plan.memory == 20 * GB             # 20 / 2.75
-    with pytest.raises(ValueError, match="one frame needs about 3G .* asked 2G"):
+    assert plan.jobs == 7 and plan.memory == 20 * GB             # (20 - 0.7) / 2.75
+    with pytest.raises(ValueError, match="one frame needs about 4G .* asked 2G"):
         plan_render([0], HELICAL, AIRAVATA, memory=2 * GB)
 
 
 def test_more_jobs_than_a_node_holds_are_cut_down():
     big = Measured(int(10 * GB), 30.0, 1, 1, "node1", "x")
     plan = plan_render(list(range(50)), big, AIRAVATA, cpus=64)
-    assert plan.jobs == 10 and plan.memory == 125 * GB           # 125 / 12.5
+    assert plan.jobs == 9 and plan.memory == 114 * GB            # (125 - 0.7) / 12.5
 
 
 def test_time_given_and_long_frames():

@@ -6,8 +6,8 @@
 - **per task:** ``cpus`` cores and ``memory``; ``jobs`` frames drawn at once
   (``flowreel shot render -j``) at ``threads`` threads each. Jobs are as many as the
   cores take at ``threads`` each, and no more than the memory holds (each needs the
-  measured peak, with :data:`HEADROOM`). Memory left out is asked for to fit those jobs,
-  rounded up to a whole GB.
+  measured peak, with :data:`HEADROOM`). Memory left out is asked for to fit those jobs
+  and the render's own process (:data:`PARENT`), rounded up to a whole GB.
 - **tasks:** consecutive runs of frames, about :data:`ROUNDS` frames per job each, so a
   task loads Python and VTK once for many frames, and a task cut short loses little.
   At most ``max_running`` tasks run at once, so a render takes part of a shared node.
@@ -27,6 +27,9 @@ from flowreel.jobs.partitions import Cluster, Partition, format_memory, format_t
 
 GB = 1024 ** 3
 HEADROOM = 0.8        # jobs use at most this share of a task's memory
+#: The render's own process (Python, VTK and the scene), which runs beside its jobs and
+#: whose memory the render's check (flowreel.scene.memory.check_fits) finds in use.
+PARENT = int(0.7 * GB)
 ROUNDS = 8            # frames per job in a task
 MARGIN = 1.5          # time asked for, over the measured time
 START = 600           # seconds a task needs besides drawing (start, imports, opening data)
@@ -115,21 +118,22 @@ def plan_render(frames: list[int], measured: Measured | None, cluster: Cluster, 
                   if p.shared), default=CPUS)
     cpus = cpus or min(CPUS, widest)
     need = measured.peak_bytes / HEADROOM          # memory one job needs
-    if memory is not None and memory < need:
-        raise ValueError(f"one frame needs about {format_memory(_ceil_gb(need))} (peak "
-                         f"{measured.peak_bytes / GB:.2f} GB, used to {HEADROOM:.0%}); asked "
+    if memory is not None and memory < need + PARENT:
+        raise ValueError(f"one frame needs about {format_memory(_ceil_gb(need + PARENT))} "
+                         f"(peak {measured.peak_bytes / GB:.2f} GB, used to {HEADROOM:.0%}, "
+                         f"and {PARENT / GB:.1f} GB for the render itself); asked "
                          f"{format_memory(memory)} a task")
     jobs = max(1, min(cpus // threads, len(frames),
-                      math.floor(memory / need) if memory is not None else cpus))
+                      math.floor((memory - PARENT) / need) if memory is not None else cpus))
     cap = fixed.memory if fixed and fixed.memory else max(
         (p.memory for p in cluster.partitions.values() if p.shared and p.memory), default=None)
     if memory is None:
-        memory = _ceil_gb(need * jobs)
+        memory = _ceil_gb(need * jobs + PARENT)
         if cap is not None and memory > cap:           # fewer jobs on a smaller node
-            jobs = max(1, math.floor(cap / need))
-            memory = _ceil_gb(need * jobs)
+            jobs = max(1, math.floor((cap - PARENT) / need))
+            memory = _ceil_gb(need * jobs + PARENT)
             if memory > cap:
-                raise ValueError(f"one frame needs about {format_memory(_ceil_gb(need))}, "
+                raise ValueError(f"one frame needs about {format_memory(_ceil_gb(need + PARENT))}, "
                                  f"more than a node of {cluster.name} has")
     seconds = measured.seconds * measured.threads / threads     # threads speed drawing
     longest = (fixed or max((p for p in cluster.partitions.values() if p.shared),

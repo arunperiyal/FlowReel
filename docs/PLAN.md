@@ -1620,7 +1620,7 @@ tutorial met; then the rest.
   by a field
 - [x] `relative: true`: traced in the velocity relative to a moving body, as the section
   panel's streamlines are
-- [ ] Tests on generated data (a uniform flow gives straight lines along it; a vortex
+- [x] Tests on generated data (a uniform flow gives straight lines along it; a vortex
   gives closed loops), docs, the YAML reference, the template and an example
 
 **Branch 6: `phase8/project-reference`**

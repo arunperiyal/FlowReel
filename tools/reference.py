@@ -383,7 +383,7 @@ def yaml_page() -> tuple[str, list[str]]:
         cls = layer_type(name)
         if not cls.__module__.startswith("flowreel."):
             continue                            # registered by a test, say
-        page = "layers-flow.md" if name in ("iso", "slice", "contour", "body") else "layers-markers.md"
+        page = "layers-flow.md" if name in ("iso", "slice", "contour", "streamlines", "body") else "layers-markers.md"
         lines += [f"### `{name}`", "", f"Guide: [{page[:-3]}](../{page}#{_slug(name)}).", "",
                   "| Option | Type | Default | Meaning |", "|---|---|---|---|"]
         for opt in cls.options:

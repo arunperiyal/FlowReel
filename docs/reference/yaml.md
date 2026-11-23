@@ -561,6 +561,24 @@ Guide: [layers-flow](../layers-flow.md#slice).
 | `near_wall` | fixed |  |  |
 | `mask_body` | fixed |  |  |
 
+### `streamlines`
+
+Guide: [layers-flow](../layers-flow.md#streamlines).
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `seeds` | fixed |  | required; line, plane or round |
+| `length` | fixed |  | how far each line runs each way, length unit; default the diagonal |
+| `style` | track (choice) | `lines` | one of `lines`, `tubes` |
+| `width` | track | `2.0` | line width, pixels |
+| `radius` | fixed |  | tube radius, length unit; default 0.2% of the diagonal |
+| `colour` | track (colour) | `'#ffffff'` |  |
+| `field` | fixed |  | colour the lines by this field |
+| `range` | track (vector) | `[-1.0, 1.0]` | [low, high] of the colour map |
+| `colormap` | fixed | `fire_ice` |  |
+| `opacity` | track | `1.0` |  |
+| `relative` | fixed | `false` | relative to the body: true (round seeds) or {body, station} |
+
 ### `supports`
 
 Guide: [layers-markers](../layers-markers.md#supports).

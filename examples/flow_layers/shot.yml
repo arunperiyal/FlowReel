@@ -1,4 +1,5 @@
-# A body, a section, its contour lines and a surface on generated data (see run.py).
+# A body, a section, its contour lines, streamlines and a surface on generated data
+# (see run.py).
 # The vortex tube grows along z while the section sweeps across it.
 name: flow_layers
 source: toy:generated
@@ -21,6 +22,11 @@ layers:
     levels: [0.25, 0.5, 0.75]
     colour: "#ffffff"
     width: 1.5
+  - type: streamlines                 # round the vortex, from a line of seeds
+    seeds: {line: {from: [0.2, 0.0, 0.0], to: [0.8, 0.0, 0.0], count: 4}}
+    style: tubes
+    radius: 0.01
+    colour: "#e8b04a"
   - type: iso
     field: speed
     level: 0.5

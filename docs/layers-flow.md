@@ -97,6 +97,40 @@ layers:
      colour: '#ffffff', width: 1.5, opacity: 0.7}
 ```
 
+## `streamlines`
+
+Lines along the velocity, traced both ways from seed points: the path the flow takes
+past a body, or round a vortex.
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `seeds` | one of `line`, `plane`, `round` (below), required | | `{line: {from: [-2, -1, 0], to: [-2, 1, 0], count: 20}}` |
+| `length` | length | the flow's diagonal | `8.0` |
+| `style` | `lines` or `tubes` | `lines` | `tubes` |
+| `width` | track, pixels; with `lines` | `2` | `1.5` |
+| `radius` | length; with `tubes` | 0.2 % of the diagonal | `0.01` |
+| `colour` | track, colour | `#ffffff` | `"#e8b04a"` |
+| `field` | field name; colours the lines by it | none: `colour` | `speed` |
+| `range` | vector track, `[low, high]`; with `field` | `[-1, 1]` | `[0, 1.2]` |
+| `colormap` | as `iso`; with `field` | `fire_ice` | `viridis` |
+| `opacity` | track | `1` | `0.8` |
+| `relative` | `false`, `true` or `{body, station}` | `false` | `true` |
+
+The seeds:
+
+| Seeds | Keys | Example |
+|---|---|---|
+| `line` | `from`, `to` (points), `count` (ends included) | `{from: [-2, -1, 0], to: [-2, 1, 0], count: 20}` |
+| `plane` | `normal` (`x`, `y` or `z`), `position`, `lo` and `hi` (corners on the plane, the two other axes in x, y, z order), `counts` (`[n, m]`) | `{normal: z, position: 0, lo: [-2, -1], hi: [-2, 1], counts: [1, 20]}` |
+| `round` | `body` (left out when there is one), `station` along its axis, `radius` (times its diameter, default `0.75`), `count` | `{body: cylinder, station: 0, radius: 0.6, count: 24}` |
+
+Each line runs `length` each way from its seed, or stops where it leaves the flow or the
+flow stops. `relative: true` traces the lines in the velocity relative to the body, so a
+moving body's wake is drawn as the body sees it, as the [section panel](panels.md)
+draws its streamlines. The body's speed comes from its centre at the saved steps either
+side; `true` takes the body and station of `round` seeds, and with other seeds give
+`{body: NAME, station: S}`.
+
 ## `body`
 
 | Key | Type | Default | Example |

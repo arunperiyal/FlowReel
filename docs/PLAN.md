@@ -1577,7 +1577,7 @@ checks first, so every later branch is tested on old and new VTK; then the two g
 tutorial met; then the rest.
 
 **Branch 1: `phase8/ci-tests`**
-- [ ] A workflow that runs `pytest` on every PR and push to main, on Python 3.12, in two
+- [x] A workflow that runs `pytest` on every PR and push to main, on Python 3.12, in two
   jobs: the oldest versions FlowReel declares (`vtk`, `pyvista` and the rest at their
   minimums) and the newest; OSMesa from the runner's packages for off-screen drawing,
   ffmpeg from them too; the reference-image tests run, not skipped

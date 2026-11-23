@@ -142,16 +142,19 @@ def _last_line(done: subprocess.CompletedProcess) -> str:
         for line in reversed((stream or "").splitlines()):
             if line.startswith(MARK):
                 return line[len(MARK):].strip()
+    said = ""
     for stream in (done.stderr, done.stdout):
         lines = [line.strip() for line in (stream or "").splitlines() if line.strip()]
         if lines:
-            return lines[-1]
-    if done.returncode < 0:
+            said = lines[-1]
+            break
+    if done.returncode < 0:          # a crash (VTK 9.7 crashes on a missing window class)
         try:
-            return f"killed by {signal.Signals(-done.returncode).name}"
+            killed = f"killed by {signal.Signals(-done.returncode).name}"
         except ValueError:
-            return f"killed by signal {-done.returncode}"
-    return f"exit code {done.returncode}"
+            killed = f"killed by signal {-done.returncode}"
+        return f"{killed}; last said: {said}" if said else killed
+    return said or f"exit code {done.returncode}"
 
 
 def main(argv: list[str] | None = None) -> int:

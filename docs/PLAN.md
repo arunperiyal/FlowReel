@@ -1596,7 +1596,7 @@ tutorial met; then the rest.
   reference regenerated
 
 **Branch 3: `phase8/shots-fit`**
-- [ ] `camera: {fit: ...}` fits the box to the shot's picture (`fit(..., aspect=)`), the
+- [x] `camera: {fit: ...}` fits the box to the shot's picture (`fit(..., aspect=)`), the
   shot's size passed to the camera; a new key `shape: picture` (default) or `sphere`
   (the old fit, safe for any turn of the camera)
 - [ ] The test shots taken from the prototype (their golden frames are the prototype's own

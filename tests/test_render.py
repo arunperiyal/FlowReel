@@ -88,7 +88,8 @@ def test_a_shot_file_opens_its_own_source(tmp_path):
 # --- camera -------------------------------------------------------------------------
 
 def camera(spec, **kw):
-    return shot_camera(toy_shot(camera=spec), VIEWS, kw.get("tracks"), rest_step=0)
+    extra = {"size": kw["size"]} if "size" in kw else {}
+    return shot_camera(toy_shot(camera=spec, **extra), VIEWS, kw.get("tracks"), rest_step=0)
 
 
 def test_camera_track_fit_and_follow(toy_source):
@@ -107,8 +108,31 @@ def test_camera_track_fit_and_follow(toy_source):
     assert followed.focal == pytest.approx((0, 0, station), abs=1e-6)
 
 
+def test_fit_fills_the_shots_picture_or_fits_the_sphere(toy_source):
+    """``shape: picture`` (the default) fits the box to the shot's own shape, so a wide
+    picture brings the camera closer than a tall one; ``shape: sphere`` is the same for
+    both."""
+    from flowreel.scene.framing import fit
+    data = FrameData(toy_source, 0)
+    spec = {"fit": "domain", "direction_of": "side"}
+    wide = camera(spec, size=[1920, 1080]).view(0, data)
+    tall = camera(spec, size=[270, 1080]).view(0, data)     # 1:4, width-limited
+    box = toy_source.bounds()
+    assert wide.position == pytest.approx(fit(VIEWS["side"], box, 1.1, 1920 / 1080).position)
+    assert wide.distance < tall.distance
+    sphere = [camera({**spec, "shape": "sphere"}, size=s).view(0, data) for s in ([1920, 1080], [270, 1080])]
+    assert sphere[0].position == pytest.approx(sphere[1].position)
+    assert sphere[0].position == pytest.approx(fit(VIEWS["side"], box, 1.1).position)
+    assert sphere[0].distance > wide.distance
+    # VTK's view angle is vertical: in a picture narrower than tall the sphere is cut off
+    # at the sides, where the picture fit still holds the box
+    assert sphere[1].distance < tall.distance
+
+
 @pytest.mark.parametrize("spec, message", [
     ({}, "has no camera"),
+    ({"fit": "domain", "direction_of": "side", "shape": "circle"}, "shape"),
+    ({"view": "main", "shape": "sphere"}, "only with 'fit'"),
     ({"view": "main", "track": "pan"}, "exactly one"),
     ({"view": "mian"}, "did you mean 'main'"),
     ({"fit": "domain"}, "needs 'direction_of'"),

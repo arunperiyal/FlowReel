@@ -16,8 +16,9 @@ def fit(view: View, box: Box, margin: float = 1.1, aspect: float | None = None) 
 
     The focal point moves to the box centre and the viewing direction and ``up`` are
     kept. Without ``aspect``, the box is replaced by its bounding sphere (radius ``r``,
-    so the fit is safe for any frame aspect and any rotation, at the price of some spare
-    room), enlarged by ``margin`` (> 0, default 1.1). Perspective: distance
+    so the fit holds for any rotation and any picture at least as wide as it is tall, at
+    the price of some spare room; VTK's view angle is vertical, so a narrower picture
+    cuts the sphere at its sides), enlarged by ``margin`` (> 0, default 1.1). Perspective: distance
     ``r*margin / sin(angle/2)``. Parallel: the position distance is kept and
     ``parallel_scale`` becomes ``r*margin``.
 

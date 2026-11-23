@@ -5,7 +5,8 @@
 
     camera: {view: main}                                  # a named view
     camera: {track: carve}                                # a camera track
-    camera: {fit: domain, direction_of: main, margin: 1.1}
+    camera: {fit: domain, direction_of: main, margin: 1.1}   # filling the picture
+    camera: {fit: crop, direction_of: main, shape: sphere}  # its bounding sphere
     camera: {view: close, follow: riser, station: {from: 2, to: 10, frames: [0, 120]},
              axis: x, motion: false}
 
@@ -28,6 +29,9 @@ from flowreel.project.names import declaration, one_body
 from flowreel.scene.views import View, load_views
 
 BASES = ("view", "track", "fit")
+#: How ``fit`` fits its box: to the ``picture`` (filling the shot's own shape), or by its
+#: bounding ``sphere`` (spare room, but the same for any turn of the camera).
+SHAPES = ("picture", "sphere")
 
 
 class ShotCamera:
@@ -37,11 +41,13 @@ class ShotCamera:
     and camera tracks. :meth:`view` takes the frame index and its
     :class:`~flowreel.scene.layers.FrameData` (``fit`` reads the domain or crop,
     ``follow`` the body). ``rest_step`` is the step whose body ``motion: false``
-    follows (the shot's first frame).
+    follows (the shot's first frame). ``aspect`` is the picture's width over its height,
+    which ``fit`` fills with ``shape: picture`` (the default).
     """
 
     def __init__(self, spec: dict, views: dict[str, View], tracks: dict[str, CameraTrack],
-                 check: Checker, rest_step: int | None = None, crop=None, stretch=None):
+                 check: Checker, rest_step: int | None = None, crop=None, stretch=None,
+                 aspect: float | None = None):
         given = [k for k in BASES if k in spec]
         if len(given) != 1:
             raise check.error(f"give exactly one of {', '.join(BASES)}"
@@ -64,7 +70,9 @@ class ShotCamera:
             self.margin = check.at("margin").number(spec.get("margin", 1.1))
             if self.margin <= 0:
                 raise check.at("margin").error(f"must be positive, got {self.margin:g}")
-        for key in ("direction_of", "margin"):
+            self.shape = check.at("shape").choice(spec.get("shape", "picture"), SHAPES)
+            self.aspect = aspect if self.shape == "picture" else None
+        for key in ("direction_of", "margin", "shape"):
             if key in spec and self.base != "fit":
                 raise check.at(key).error("is used only with 'fit'")
         follow_spec = spec.get("follow")
@@ -107,7 +115,7 @@ class ShotCamera:
                 from flowreel.box import Box
                 s = self.stretch
                 box = Box(tuple(a * k for a, k in zip(box.lo, s)), tuple(a * k for a, k in zip(box.hi, s)))
-            view = fit(self.view_, box, self.margin)
+            view = fit(self.view_, box, self.margin, self.aspect)
         else:
             view = self.view_
         if self.follows:
@@ -154,5 +162,7 @@ def shot_camera(shot, views: dict[str, View] | None = None,
         views = load_views(path)
         if tracks is None:
             tracks = load_tracks(path, views)
+    width, height = shot.size
     return ShotCamera(shot.camera, views, tracks or {}, check, rest_step, shot.crop,
-                      None if shot.stretch is None else shot.stretch.scale)
+                      None if shot.stretch is None else shot.stretch.scale,
+                      aspect=width / height)

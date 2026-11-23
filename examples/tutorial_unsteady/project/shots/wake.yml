@@ -1,0 +1,8 @@
+name: wake
+source: plt:../data/cylinder_re100
+time: {keys: [[0, 4000], [100, 4100], [220, 4160]]}   # then four frames a step: half speed
+camera: {fit: domain, direction_of: main}
+size: [1280, 720]
+layers:
+  - {type: slice, normal: z, position: 0.0, field: vorticity_z, range: [-3, 3]}
+  - {type: body, body: cylinder, colour: '#c8ccd0'}

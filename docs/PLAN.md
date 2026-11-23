@@ -1678,10 +1678,10 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
   checksums, triangulates the nodes (the cylinder's inside left out), gives the 2D mesh
   a span as the first tutorial's does, writes each step as a PLT file, and writes the
   force as the body's CSV series
-- [ ] A second tutorial, its own pages under `docs/tutorial/`: time tracks, a freeze on a
+- [x] A second tutorial, its own pages under `docs/tutorial/`: time tracks, a freeze on a
   moving flow, and a render of many steps as a Slurm job array; its data script and
   its project under `examples/`, tested by following it as the first one is
-- [ ] Its flow is read as PLT files with `plt:`, and the body's time history (its
+- [x] Its flow is read as PLT files with `plt:`, and the body's time history (its
   displacement, or the force on it) from a CSV file declared in `flowreel.yml`, drawn
   in a panel beside the shot
 - [ ] The first tutorial names `plt:` beside `vtk:` where it lists the sources a project

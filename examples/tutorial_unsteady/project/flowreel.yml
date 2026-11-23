@@ -1,0 +1,8 @@
+bodies:
+  cylinder:
+    zone: cylinder
+    axis: z                           # the span: this 2D flow was given a thin one along z
+    diameter: 1.0
+    series:
+      force: {file: data/cylinder_re100/force.csv}   # time, fx, fy, mz
+reference: {rho: 1.0, u_inf: 1.0}     # the record's units: D, U and the density are 1

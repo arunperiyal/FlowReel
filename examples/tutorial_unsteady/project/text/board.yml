@@ -1,0 +1,8 @@
+- lines: ['Vorticity: orange turns anticlockwise, blue clockwise']
+  at: [0.4, 2.8]
+  place: [60, 70]                     # pixels from the upper left: over the shot's side
+  align: left
+- lines: ['Slowed down to half the speed']
+  at: [6.5, 9.0]
+  place: [60, 70]
+  align: left

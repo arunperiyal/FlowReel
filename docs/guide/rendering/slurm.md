@@ -5,7 +5,7 @@ it to `sbatch`, so nothing is written by hand. This page covers the pieces under
 the clusters FlowReel knows, the job it asks for, and the script it writes. The commands
 that use them, `shot render --slurm FILE --submit` and the same for `compose` and `film
 build`, and `jobs partitions | check | status`, are on the
-[commands page](commands.md#slurm-options).
+[commands page](../commands.md#slurm-options).
 
 The first cluster is airavata's `node1`: 128 cores, 125 GB, no GPU. It draws off-screen
 with Mesa EGL on the CPU, as the prototype's renders did (checked 2026-11-21: a frame of

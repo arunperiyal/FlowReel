@@ -57,7 +57,7 @@ source:
   body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
 ```
 
-The paths in a shot are relative to the shot file, here in `shots/` ([rules](../../rules.md)).
+The paths in a shot are relative to the shot file, here in `shots/` ([rules](../../guide/projects/rules.md)).
 
 ## What the conversion does, and why
 
@@ -73,7 +73,7 @@ layers expect cells with volume. So the script:
 - **Renames the fields:** `velocity` is split into `U`, `V` and `W` (`W` is zero), and
   `pressure` becomes `p`.
 - **Drops `vorticity_mag`:** FlowReel computes every derived field from velocity and
-  pressure only, and never uses a solver's stored one ([rules](../../rules.md), [fields](../../fields.md)).
+  pressure only, and never uses a solver's stored one ([rules](../../guide/projects/rules.md), [fields](../../guide/projects/fields.md)).
 - **Extrudes `wall_cylinder`** in the same way into the surface `cylinder.vtp`, the body,
   and closes it with a flat cap at each end, its faces turned outwards. Without the caps
   it would be an open tube, and a camera looking along it, as the tutorial's does, would

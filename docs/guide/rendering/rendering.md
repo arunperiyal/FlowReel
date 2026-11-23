@@ -29,11 +29,11 @@ must pickle (a class defined at the top level of a module does).
 | frames at the shot's size | `<out>/<shot name>/frame_00000.png` |
 | draft frames | `<out>/<shot name>@<W>x<H>/frame_00000.png` |
 | frame keys | `.keys.json` in each frame folder |
-| each frame's camera | `.views.json` in each frame folder: view, picture size and stretch, for [captions in the model](captions.md#points-in-the-model) |
+| each frame's camera | `.views.json` in each frame folder: view, picture size and stretch, for [captions in the model](../film/captions.md#points-in-the-model) |
 | cached surfaces | `.flowreel/cache/surfaces/` at the project root; `<out>/.cache/surfaces/` outside a project |
 
 `out` defaults to `frames` (the commands use `frames/` at the project root,
-[projects](project.md)). A frame file is written under a temporary name and renamed,
+[projects](../projects/project.md)). A frame file is written under a temporary name and renamed,
 so a frame on disk is never half written, even when a render is stopped.
 
 ## Options of `render`

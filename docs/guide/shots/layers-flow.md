@@ -1,11 +1,11 @@
 # Flow layers: `iso`, `slice`, `body`
 
 Code: `flowreel.scene.flow_layers`. Each layer is one entry of a shot's `layers:` list
-(`docs/shots.md`). Options marked *track* take a number or keys (`docs/tracks.md`).
+(`docs/guide/shots/shots.md`). Options marked *track* take a number or keys (`docs/guide/shots/tracks.md`).
 Colours are hex strings. `colormap` is `fire_ice` (black at the middle, so weak flow fades
 into a black background; blue-white for negative, orange-white for positive) or any
 matplotlib name. Lengths are in the source's unit. Derived fields (`lambda2`, `Q`,
-`vorticity_x`, `speed`, ...) are described in `docs/fields.md`.
+`vorticity_x`, `speed`, ...) are described in `docs/guide/projects/fields.md`.
 
 ## `iso`
 
@@ -126,7 +126,7 @@ The seeds:
 
 Each line runs `length` each way from its seed, or stops where it leaves the flow or the
 flow stops. `relative: true` traces the lines in the velocity relative to the body, so a
-moving body's wake is drawn as the body sees it, as the [section panel](panels.md)
+moving body's wake is drawn as the body sees it, as the [section panel](../composing/panels.md)
 draws its streamlines. The body's speed comes from its centre at the saved steps either
 side; `true` takes the body and station of `round` seeds, and with other seeds give
 `{body: NAME, station: S}`.
@@ -151,7 +151,7 @@ side; `true` takes the body and station of `round` seeds, and with other seeds g
 
 `ghost` draws the body at a third of its opacity and without highlights, so the flow shows
 through it, with an outline `edge_width` pixels wide in its colour. Virtual bodies
-([bodies](bodies.md#virtual-bodies)) are ghosts unless `style` is given, and have no
+([bodies](../projects/bodies.md#virtual-bodies)) are ghosts unless `style` is given, and have no
 wall: `field` on one is an error. With `field`, the surface takes the colour of that field: an array already on
 the body, or a derived field computed on the flow and sampled onto the surface (the flow
 is then loaded). `zero_contour` draws the line where `field` is 0; with a wall shear
@@ -168,4 +168,4 @@ the [`centreline`](layers-markers.md#centreline) may amplify in any shot.
 
 `examples/flow_layers/` writes a small generated vortex case and draws a shot with the
 three layers: `python examples/flow_layers/run.py`. The full reveal shot is
-`tests/data/reveal/reveal.yml` (`docs/reveal.md`).
+`tests/data/reveal/reveal.yml` (`docs/guide/reveal.md`).

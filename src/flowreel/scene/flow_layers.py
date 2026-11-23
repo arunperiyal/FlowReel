@@ -1,6 +1,6 @@
 """Layers that draw the flow: ``iso``, ``slice`` and ``body`` (plan Section 7.2).
 
-Every option marked "track" may be a number or keys (docs/tracks.md). Colours are sRGB
+Every option marked "track" may be a number or keys (docs/guide/shots/tracks.md). Colours are sRGB
 hex strings. ``colormap`` is ``fire_ice`` (black at the middle, so weak flow fades into a
 black background) or a matplotlib name.
 """

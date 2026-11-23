@@ -29,17 +29,17 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` |
 | `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` |
-| `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
+| `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](../rendering/long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
 | `background` | colour | `black` | `background: '#101010'` |
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |
 | `lights` | `default`, `raking` or a list (see [cameras](cameras.md#lights)) | none: VTK's own light kit | `lights: raking` |
-| `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` |
-| `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` |
+| `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](../rendering/long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` |
+| `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](../film/captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
 
 `source` in its short form gives the adapter one location (a path, or a body name for
 `geometry`). When the adapter needs more, write the mapping form: `adapter` plus the
-adapter's options ([sources](sources.md)), for example
+adapter's options ([sources](../projects/sources.md)), for example
 `source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}`. A relative `path`, and a
 relative `body` file for any adapter but `geometry`, is taken from the shot file's
 folder, so a shot and its data can move together.
@@ -48,9 +48,9 @@ folder, so a shot and its data can move together.
 a small box also means less memory. `camera` takes a view, a camera track or a fit, and
 may follow a body; its keys are in [cameras](cameras.md#a-shots-camera). Body names in
 layers and in `follow` are those declared in the project's `flowreel.yml`, or the
-source's own zone names ([bodies](bodies.md)). Without
+source's own zone names ([bodies](../projects/bodies.md)). Without
 `lights` the shot keeps VTK's own light kit, which the reveal's golden frame was drawn
-with. To render a shot, see [rendering](rendering.md).
+with. To render a shot, see [rendering](../rendering/rendering.md).
 
 ## Time
 
@@ -68,7 +68,7 @@ time runs at a constant rate. Between two saved steps it takes the nearer one, a
 tie takes the earlier, so a frame never shows the flow later than asked.
 
 A frozen shot (all frames on one step) lets the renderer contour once and reuse the
-surfaces ([rendering](rendering.md#frozen-shots-contour-once)).
+surfaces ([rendering](../rendering/rendering.md#frozen-shots-contour-once)).
 
 ## Layers
 

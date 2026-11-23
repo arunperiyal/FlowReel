@@ -1,7 +1,7 @@
 # Clips: each shot encoded once
 
 Before the film is [joined](build.md), every shot becomes two clips in
-`clips/` at the project root ([projects](project.md); beside the film file outside a
+`clips/` at the project root ([projects](../projects/project.md); beside the film file outside a
 project):
 
 - the **base clip**: the shot's picture alone, at the film's rate and size, exactly as

@@ -93,7 +93,7 @@ length: {series: force, body: riser, column: fy, scale: 0.5}       # an arrow's 
 height: {series: displacement, body: riser, column: dy, station: 250, offset: 2}
 ```
 
-A number may come from a body's time series ([bodies](bodies.md#series)): the value of
+A number may come from a body's time series ([bodies](../projects/bodies.md#series)): the value of
 `column` at the frame's time, interpolated linearly between samples, held at the first
 and last sample outside them, then `value * scale + offset`. Nothing more: no
 expressions. The frame's time is the time of the step it shows, so in a frozen shot a

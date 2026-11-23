@@ -4,7 +4,7 @@ A window that shows a shot's scene and collects the views you pick into a camera
 `cameras.yml`. It is the one window FlowReel has (plan Section 2): everything else is
 files, and the editor's only output is a file too. Code: `flowreel.editor`.
 
-Open it with [`flowreel camera edit SHOT.yml --track NAME`](commands.md#camera-edit), or
+Open it with [`flowreel camera edit SHOT.yml --track NAME`](../commands.md#camera-edit), or
 from Python (below).
 
 ## Picking a track
@@ -29,7 +29,7 @@ VTK's own meaning of these four letters (`s` surface, `r` reset camera, `u` user
 `q` quit, `f` fly to the point under the mouse).
 
 The line at the top says how many views are saved, the frame and the step, and what the
-last key did. The film's points in the model (captions and shapes [anchored](captions.md#points-in-the-model)
+last key did. The film's points in the model (captions and shapes [anchored](../film/captions.md#points-in-the-model)
 to the shot's frames) are shown as small yellow markers with their caption's first line,
 so a view can leave room for the words.
 

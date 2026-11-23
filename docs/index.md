@@ -29,11 +29,11 @@ Each part of FlowReel, in the order a film is made:
 
 | Part | Pages |
 |---|---|
-| Projects and data | [projects](project.md), [the rules](rules.md) every project follows, [sources](sources.md) of data, [bodies](bodies.md), [derived fields](fields.md) |
-| Shots | [shot files](shots.md), [flow layers](layers-flow.md), [layers without flow data](layers-markers.md), [tracks](tracks.md) (values that change along a shot), [cameras](cameras.md), [the camera editor](camera-editor.md) |
-| Rendering | [rendering and caching](rendering.md), [long bodies](long-bodies.md), [Slurm](slurm.md) |
-| Composing | [compose](compose.md), [layouts](layouts.md), [panels](panels.md) |
-| The film | [the film file](film.md), [captions and shapes](captions.md), [cards](cards.md), [clips](clips.md), [building the film](build.md) |
+| Projects and data | [projects](guide/projects/project.md), [the rules](guide/projects/rules.md) every project follows, [sources](guide/projects/sources.md) of data, [bodies](guide/projects/bodies.md), [derived fields](guide/projects/fields.md) |
+| Shots | [shot files](guide/shots/shots.md), [flow layers](guide/shots/layers-flow.md), [layers without flow data](guide/shots/layers-markers.md), [tracks](guide/shots/tracks.md) (values that change along a shot), [cameras](guide/shots/cameras.md), [the camera editor](guide/shots/camera-editor.md) |
+| Rendering | [rendering and caching](guide/rendering/rendering.md), [long bodies](guide/rendering/long-bodies.md), [Slurm](guide/rendering/slurm.md) |
+| Composing | [compose](guide/composing/compose.md), [layouts](guide/composing/layouts.md), [panels](guide/composing/panels.md) |
+| The film | [the film file](guide/film/film.md), [captions and shapes](guide/film/captions.md), [cards](guide/film/cards.md), [clips](guide/film/clips.md), [building the film](guide/film/build.md) |
 
 ## The reference
 

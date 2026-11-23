@@ -22,7 +22,7 @@ EXAMPLES = {
   flowreel project init vtk:run/flow.pvd --body run/body_*.vtp -o films/afms
   flowreel project init -o films/afms --link /scratch/afms/run
 
-Reference: docs/project.md, docs/bodies.md and docs/commands.md.""",
+Reference: docs/guide/projects/project.md, docs/guide/projects/bodies.md and docs/guide/commands.md.""",
     "init": """examples:
   flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
   flowreel project init vtk:flow.pvd --body body.vtp --step 5000

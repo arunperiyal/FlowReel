@@ -11,6 +11,6 @@
 - Note the physical meaning and sign convention of every derived field (vorticity, Q,
   lambda2, wall shear, forces).
 - A new rule imposed on users (something a project must do, or an error that enforces
-  it) goes in `docs/rules.md` in the same PR: the rule, why, what happens when broken,
+  it) goes in `docs/guide/projects/rules.md` in the same PR: the rule, why, what happens when broken,
   and a link to its page.
 - Phase 7 produces the tutorial; until then, keep a running `docs/` page per finished phase.

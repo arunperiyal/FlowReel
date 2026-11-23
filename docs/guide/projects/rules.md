@@ -49,12 +49,12 @@ the current folder, as usual.
 **7. Logos, pictures and music you use stay outside FlowReel's repository.** Keep them
 in your project's `assets/`. Use only what you have the right to use. *Why:* FlowReel is
 public, and a film's logos and licensed tracks belong to that film.
-[Cards](cards.md), [captions](captions.md)
+[Cards](../film/cards.md), [captions](../film/captions.md)
 
 **8. Unknown keys are errors.** Every YAML file is checked when it is read. A misspelt key
 or choice stops the command with the file, the key path and the nearest valid name.
 *Why:* a key that was silently ignored would leave a film that looks wrong, with
-nothing saying why. [Shot errors](shots.md#errors)
+nothing saying why. [Shot errors](../shots/shots.md#errors)
 
 ## The flow
 
@@ -67,14 +67,14 @@ made the wall shear 4.6 times too large on bricks and 18.5 times on tetrahedra.
 **10. The flow is never interpolated in time.** A frame shows a saved step: the nearest
 one, or the earlier at a tie. *Why:* an in-between flow would be made up, and showing
 the earlier step means a frame never shows the flow later than asked.
-[Time](shots.md#time), [panels](panels.md#where-the-flow-comes-from)
+[Time](../shots/shots.md#time), [panels](../composing/panels.md#where-the-flow-comes-from)
 
 **11. A panel's colour range is given, not found from the data.** A panel coloured by a
 field must be given its range. *Why:* a range taken from each frame would change from frame to frame,
 so a colour would not mean the same value all through the film.
-[Panels](panels.md#where-the-flow-comes-from)
+[Panels](../composing/panels.md#where-the-flow-comes-from)
 
 **12. A shot's frame rate divides the film's.** In a film at 24 frames a second, a shot
 may run at 8 or 12 frames a second, but not at 7. *Why:* each flow frame then lasts a
 whole number of output frames, so live plots over a layout stay in step.
-[Shots of a film](film.md#shots)
+[Shots of a film](../film/film.md#shots)

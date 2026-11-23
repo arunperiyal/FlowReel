@@ -52,5 +52,5 @@ def test_the_site_builds_strictly(tmp_path):
         cwd=ROOT, capture_output=True, text=True, timeout=300,
         env={**os.environ, "NO_MKDOCS_2_WARNING": "1"})
     assert done.returncode == 0, done.stderr[-3000:]
-    assert (tmp_path / "site" / "rules" / "index.html").is_file()
+    assert (tmp_path / "site" / "guide" / "projects" / "rules" / "index.html").is_file()
     assert not (tmp_path / "site" / "PLAN").exists()

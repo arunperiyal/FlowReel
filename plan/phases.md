@@ -82,7 +82,7 @@ per task; tick the box in that commit.
 
 **Phase 1 is done when** all field tests pass and the reveal frame rendered from vtk
 data matches the prototype's. **Done 2026-11-13:** the field tests pass and the reveal
-frame matches (`docs/reveal.md`).
+frame matches (`docs/guide/reveal.md`).
 
 ### 19.2 Phase 2 tasks
 
@@ -291,7 +291,7 @@ phase; Phase 4's rebuilt AFMS film checks them.
 
 **Phase 3 is done when** the comparison and lift-map frames, composed from files by
 `flowreel compose`, match golden frames drawn by the prototype's own code. **Done
-2026-11-19:** both match (`tests/test_golden_compose.py`, `docs/compose.md`): the
+2026-11-19:** both match (`tests/test_golden_compose.py`, `docs/guide/composing/compose.md`): the
 comparison pixel for pixel, the lift map within 0.001 grey levels on average, and a
 nearby frame of each fails the same limits.
 
@@ -485,7 +485,7 @@ branch 4 needs 3, and branch 5 needs all.
 - [x] Import: a view from a ParaView state (`.pvsm` XML and `.py` trace) and from a
   flexflow `cam.yml`, for `camera import`
 - [x] Tests on generated files (round trip, segment easing, orbit geometry, small
-  ParaView states written in the test); docs: `docs/cameras.md`
+  ParaView states written in the test); docs: `docs/guide/shots/cameras.md`
 
 **Branch 2: `phase6/annotations-anchored`** (independent of branch 1)
 
@@ -510,7 +510,7 @@ repeat in the caption.
   (text at a pixel point), the 2D shape they become
 - [x] Draft sizes: anchors follow frames drawn with `--scale` (their recorded size) and
   `film build --preview` (scaled from the film); tests on a generated film (an arrow on a
-  camera track, checked against `project()`); docs: `docs/captions.md`
+  camera track, checked against `project()`); docs: `docs/guide/film/captions.md`
 
 **Branch 3: `phase6/camera-editor`** (needs branches 1 and 2)
 - [x] Editor state without a window: views collected with their frames; save, undo,
@@ -618,7 +618,7 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
 - [x] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
 - [x] Tests on generated projects; help text; docs: project page
-- [x] `docs/rules.md`: every rule FlowReel imposes on a project in one page, each with
+- [x] `docs/guide/projects/rules.md`: every rule FlowReel imposes on a project in one page, each with
   its reason, what happens when it is broken and a link to the details; a new rule goes
   there in the same PR (`.claude/rules/documentation.md`)
 
@@ -826,7 +826,7 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
 - [x] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
   wrote them; the adapter's errors and docs name the files it wants, not the solver
 - [x] Time series come from CSV files declared under a body in `flowreel.yml`
-  ([bodies](../docs/bodies.md#series)), the documented way for every source; the reading of
+  ([bodies](../docs/guide/projects/bodies.md#series)), the documented way for every source; the reading of
   FlexFlow's `.othd` and `.oisd` files stays as it is (Section 23, Data formats; one
   body only, Section 24, q. 4), described as a quick look at a FlexFlow case, not as the
   way
@@ -864,7 +864,7 @@ files organised)
   `docs/PLAN.md` rewritten to the file that holds its section
 - [x] The tutorials side by side: `docs/tutorials/steady/` (the first) and
   `docs/tutorials/unsteady/`, under `docs/tutorials/index.md`
-- [ ] The user guide in folders by part, as the site's navigation groups it:
+- [x] The user guide in folders by part, as the site's navigation groups it:
   `docs/guide/projects/`, `shots/`, `rendering/`, `composing/`, `film/`, with
   `commands.md` and the worked example in `docs/guide/`; every link, the commands' help,
   the reference generator and the tests follow

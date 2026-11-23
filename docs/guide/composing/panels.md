@@ -60,7 +60,7 @@ Lato has no maths glyphs; DejaVu Sans sits well beside it.
 
 The `series`, `phase`, `map` and `locator` panels read time histories declared for bodies in the project's `flowreel.yml`
 (the nearest one at or above the panel file), under the body's `series`
-([bodies](bodies.md)). A line names its series and, unless one body declares a series
+([bodies](../projects/bodies.md)). A line names its series and, unless one body declares a series
 of that name, its body:
 
 | Key | Type | Default | Meaning |
@@ -138,11 +138,11 @@ pair up correctly.
 
 ## Histories along a long body: `map` and `locator`
 
-![The locator over the map, frame 5 of the riser example](images/span_panels.png)
+![The locator over the map, frame 5 of the riser example](../../images/span_panels.png)
 
 These two read a history at many points along a body: a series declared with `by` (the
 column that numbers the points) and `stations` (where each point is along the body),
-such as the riser's probes ([bodies](bodies.md), [long bodies](long-bodies.md)). A
+such as the riser's probes ([bodies](../projects/bodies.md), [long bodies](../rendering/long-bodies.md)). A
 runnable example on the generated riser case is `examples/riser500/panels.py`, which
 drew the picture above.
 
@@ -229,7 +229,7 @@ needs this to say where the window is.
 
 ## Panels from flow data: `section`, `cuts` and `strip`
 
-![A section, cuts at three stations and a strip, frame 2 of the flow example](images/flow_panels.png)
+![A section, cuts at three stations and a strip, frame 2 of the flow example](../../images/flow_panels.png)
 
 These three read the flow itself, not histories. A runnable example on a generated case
 (a cylinder moving across a ring of flow whose fields are known exactly) is
@@ -241,8 +241,8 @@ These three read the flow itself, not histories. A runnable example on a generat
 |---|---|---|---|
 | `source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder |
 | `body` | string | the one body | the body, by its name in `flowreel.yml` or its zone |
-| `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](fields.md)) |
-| `params` | mapping of numbers | the project's [`reference`](project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
+| `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../projects/fields.md)) |
+| `params` | mapping of numbers | the project's [`reference`](../projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
 | `range` | `[low, high]` | required | the colours' range; values outside it take the end colours |
 | `colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name |
 | `levels` | integer | `41` | contour levels from `low` to `high` |
@@ -263,7 +263,7 @@ These three read the flow itself, not histories. A runnable example on a generat
 (declared in `flowreel.yml`, or its long axis), at a station along it. Only a slab of
 the step round the cut is read: `depth` each side of the plane, and the view plus
 `depth` in the plane. The slab is the source's crop, so a PLT file is read through a
-window ([long bodies](long-bodies.md)), and a cut of a riser 500 diameters long reads
+window ([long bodies](../rendering/long-bodies.md)), and a cut of a riser 500 diameters long reads
 a few diameters of it. A cell is read when it lies wholly in the slab, so `depth` must
 be larger than a cell; a cut that finds no cell says so.
 
@@ -378,7 +378,7 @@ friction changes sign where the flow leaves the wall).
   (`wall_shear`, `skin_friction`, `wall_pressure`, `wall_traction`; per wall cell,
   averaged to the points), or a flow field sampled on the wall (`speed`). Wall fields
   are computed from the flow inside the body's box grown by `margin`, which must hold
-  the cells next to the wall. Their sign convention is in [fields](fields.md): wall
+  the cells next to the wall. Their sign convention is in [fields](../projects/fields.md): wall
   shear points the way the fluid next to the wall moves relative to it.
 - **One side.** Only the half of the body facing the eye is drawn: the triangles whose
   centre lies on the eye's side of the body's centre at their station.

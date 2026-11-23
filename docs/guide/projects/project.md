@@ -20,7 +20,7 @@ wrote afms/flowreel.yml: 1 body (cylinder); fill in the supports
 `--link` is done first, so `SOURCE` can read the data through the link. `SOURCE` may be
 left out: `flowreel project init` alone makes the folders and a `flowreel.yml` with only
 comments, which is enough to make a folder a project (for example on a laptop with only
-saved surfaces and `cameras.yml`, to run `camera edit`). Options: [commands](commands.md#project-init).
+saved surfaces and `cameras.yml`, to run `camera edit`). Options: [commands](../commands.md#project-init).
 
 ## What is in it
 
@@ -42,8 +42,8 @@ afms/
 | Path | Written by | Kept in git | Notes |
 |---|---|---|---|
 | `flowreel.yml` | you (`project init` starts it) | yes | marks the project root; [bodies](bodies.md), [reference values](#reference-values) |
-| `film.yml` | you (`project init` writes `film template`'s) | yes | [film](film.md) |
-| `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](cameras.md) |
+| `film.yml` | you (`project init` writes `film template`'s) | yes | [film](../film/film.md) |
+| `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](../shots/cameras.md) |
 | `shots/`, `text/`, `cards/`, `assets/` | you | yes | the names are a convention; files anywhere in the project work |
 | `data/` | `project init --link` | no | symbolic links to the data |
 | `frames/`, `clips/` | `shot render`, `compose`, `film build` | no | removed by `project clean --frames`, `--clips` |
@@ -99,7 +99,7 @@ Outside a project the commands stop:
 $ flowreel shot render wake.yml
 Error: /home/a/wake.yml is not in a FlowReel project (no flowreel.yml there or in any
 folder above). Make one with 'flowreel project init' in the project's folder (for
-example: flowreel project init vtk:run/flow.pvd), or cd into one. Reference: docs/project.md
+example: flowreel project init vtk:run/flow.pvd), or cd into one. Reference: docs/guide/projects/project.md
 ```
 
 `project init`, `shot template`, `film template` and the `jobs` commands work anywhere.

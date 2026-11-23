@@ -41,7 +41,7 @@ bodies:
 ```
 
 `flowreel project init SOURCE` writes this block with one body per surface zone, its
-axis and diameter measured, and the supports left to fill ([commands](commands.md#project-init)).
+axis and diameter measured, and the supports left to fill ([commands](../commands.md#project-init)).
 
 ## A body
 
@@ -102,7 +102,7 @@ bodies:
 | `shape` | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | required |
 | `params` | the shape's parameters, fixed | the shape's defaults |
 | `attach` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | `{point: [0, 0, 0]}` |
-| `drive` | the shape's parameters as [series tracks](tracks.md#series-as-a-track); `body` defaults to this virtual body | none |
+| `drive` | the shape's parameters as [series tracks](../shots/tracks.md#series-as-a-track); `body` defaults to this virtual body | none |
 | `series` | its CSV series, as for any body | none |
 
 - **Nothing is computed.** FlowReel draws the solver's result at each step's time: it
@@ -179,9 +179,9 @@ share a station.
 | `free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides |
 | `stiffness` | positive number | required for `spring` | the spring's stiffness |
 | `mark` | bool | `false` | `free`: draw a thin ring at the station |
-| `direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | The `supports` layer draws them ([layers](layers-markers.md#supports)):
+| `direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | The `supports` layer draws them ([layers](../shots/layers-markers.md#supports)):
 
-![Every support symbol on a short beam](images/supports.png)
+![Every support symbol on a short beam](../../images/supports.png)
 
 A new kind is a symbol function registered with
 `flowreel.scene.supports.register_support(name, keys=..., required=...)`, which also

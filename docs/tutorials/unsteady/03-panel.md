@@ -18,7 +18,7 @@ legend: false
 ```
 
 A `series` panel draws a body's time histories, one row of axes each, on one time
-axis ([panels](../../panels.md#series)). Each line runs from the start of the series up
+axis ([panels](../../guide/composing/panels.md#series)). Each line runs from the start of the series up
 to the frame's time and ends at a dot, so the force is drawn as the flow beside it
 moves.
 
@@ -35,7 +35,7 @@ $ flowreel compose panel panels/force.yml
 ## Side by side
 
 The panel goes beside the shot in a **layout**, which tiles folders of frames into one
-picture a frame ([layouts](../../layouts.md)). Write `layouts/board.yml`:
+picture a frame ([layouts](../../guide/composing/layouts.md)). Write `layouts/board.yml`:
 
 ```yaml
 size: [1920, 1080]

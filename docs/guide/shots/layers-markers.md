@@ -2,7 +2,7 @@
 
 Code: `flowreel.scene.marker_layers` (`supports`: `flowreel.scene.supports`;
 `centreline`: `flowreel.scene.centreline`). Entries of a shot's `layers:` list
-(`docs/shots.md`). *Track* options take a number or keys (`docs/tracks.md`). Colours are
+(`docs/guide/shots/shots.md`). *Track* options take a number or keys (`docs/guide/shots/tracks.md`). Colours are
 hex strings; lengths and positions are in the source's unit; line widths in pixels. None
 of these needs the flow, except `glyphs` with `direction: velocity`; a shot made only of
 them (such as one on a `geometry` source) loads no flow.
@@ -78,7 +78,7 @@ arrow (3.5 D long) uses `tip_length: 0.18, tip_radius: 0.08, shaft_radius: 0.03`
 
 ## `geometry`
 
-A body built from a registered body function (`docs/sources.md`), with its parameters as
+A body built from a registered body function (`docs/guide/projects/sources.md`), with its parameters as
 tracks: the groove depth, the carved length, the radius.
 
 | Key | Type | Default | Example |
@@ -127,7 +127,7 @@ while they do not change.
 ## `supports`
 
 How the declared bodies are held, drawn at their ends. The ends are not options of the
-layer: they are written once under each body in `flowreel.yml` ([bodies](bodies.md#supports)),
+layer: they are written once under each body in `flowreel.yml` ([bodies](../projects/bodies.md#supports)),
 so every shot of the project draws the same supports. Each symbol stands at the body's
 centre at its station **in that frame**, so it moves with a vibrating body, and is sized
 in **diameters** (the declared diameter, else measured), so it looks the same on a body
@@ -154,7 +154,7 @@ made perpendicular to the body's axis; the symbol's base sits on that side.
   opacity: {from: 1.0, to: 0.0, frames: [189, 258]}
 ```
 
-![Every support symbol on a short beam](images/supports.png)
+![Every support symbol on a short beam](../../images/supports.png)
 
 The domain shot of the reference film draws its two clamps this way
 (`tests/data/domain/`); `examples/supports/run.py` draws the picture above.
@@ -184,7 +184,7 @@ its two ends.
 | `ambient`, `specular`, `smooth` | tracks, the material | `0.2`, `0.3`, `true` | |
 
 **From probes.** `from: probes` reads no flow file: each station of the body's history
-at many points ([bodies](bodies.md#series), with `by` and `stations`) is put on the rest
+at many points ([bodies](../projects/bodies.md#series), with `by` and `stations`) is put on the rest
 axis (through `origin`, along the body's declared `axis`) and moved by its displacement
 at the frame's time. A shot of the span's motion over thousands of steps then costs the
 CSV and nothing else. The body must be declared with an `axis`.
@@ -247,7 +247,7 @@ are drawn over the model, never hidden by it.
 | `origin` | `arrows` only, required: `[x, y, z]`, or `{body: NAME, end: 0 \| 1}` for the centre of the body's low (0) or high (1) end along its axis | | `{body: riser, end: 0}` |
 | `length` | track, `arrows`: length of an arrow, in `unit` | `1` | `3` |
 | `unit` | `model` or `diameters` (`arrows` and `ruled`) | `model` | `diameters` |
-| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the project's [`reference.length`](project.md#reference-values) when given, else the `origin`'s body or the one body | | `riser` |
+| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the project's [`reference.length`](../projects/project.md#reference-values) when given, else the `origin`'s body or the one body | | `riser` |
 | `bounds` | `ruled` only: a box ([boxes](#boxes-bounds-and-in)) | `domain` | `{x: [0, 12], y: [-1.5, 1.5], z: [-1.5, 1.5]}` |
 | `ticks` | `ruled` only: spacing in `unit`, or `auto` | `auto` | `0.5` |
 
@@ -274,7 +274,7 @@ each direction's title reads `x / D`.
 - {type: axes, corner: upper_right}   # and a triad
 ```
 
-![The three styles: a ruled box, arrows beyond the body, a triad; from the front and from above](images/axes.png)
+![The three styles: a ruled box, arrows beyond the body, a triad; from the front and from above](../../images/axes.png)
 
 `examples/axes/` draws all three round the generated grooved cylinder while the camera
 goes half way round; from above, `y` points at the camera and is not ruled.

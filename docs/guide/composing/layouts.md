@@ -100,7 +100,7 @@ tiles:
 ```
 
 A `stations` entry makes one tile per station, from one shot of a long body (see
-[long bodies](long-bodies.md)). The shot must move with a station: it crops around a
+[long bodies](../rendering/long-bodies.md)). The shot must move with a station: it crops around a
 body (`crop: {around: ...}`) or its camera follows one (`camera: {follow: ...}`). For
 each station, FlowReel takes a copy of the shot with that station, fixed, in the crop's
 `around` and in the camera's `station` (when the camera gives its own; otherwise the

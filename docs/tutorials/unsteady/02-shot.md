@@ -16,12 +16,12 @@ layers:
 - **`time: {keys: ...}`** is a time track: frame 0 shows step 4000, frame 100 step
   4100, frame 220 step 4160. In between, each frame shows the saved step nearest the
   time asked, never a blend of two: FlowReel does not make up flow between saved steps
-  ([rules](../../rules.md)). The saved steps are 2 apart, so the first 100 frames show
+  ([rules](../../guide/projects/rules.md)). The saved steps are 2 apart, so the first 100 frames show
   each for two frames, 0.1 time units a frame, and the last 120 for four: the flow runs
-  at half the speed. A track's `ease` shapes the change ([tracks](../../tracks.md)).
+  at half the speed. A track's `ease` shapes the change ([tracks](../../guide/shots/tracks.md)).
 - **`camera: {fit: domain, direction_of: main}`** frames the whole near wake to the
   shot's own shape, looking the way `main` looks, down z
-  ([cameras](../../cameras.md)).
+  ([cameras](../../guide/shots/cameras.md)).
 - **The slice** is the spanwise vorticity, computed from the velocity.
 
 ```text

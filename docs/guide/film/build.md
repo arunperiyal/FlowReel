@@ -3,7 +3,7 @@
 `film.build` turns a [film file](film.md) into `film.mp4`: every
 shot's [finished clip](clips.md), joined in order, with the film's sound under it.
 From the command line it is `flowreel film build`, and the checks below are `film
-check`, `film lengths`, `film srt` and `film chapters` ([commands](commands.md#film-build)).
+check`, `film lengths`, `film srt` and `film chapters` ([commands](../commands.md#film-build)).
 
 ```python
 from flowreel.film.build import build
@@ -130,7 +130,7 @@ set the sheet's layout. The stills come from the finished clips, built when miss
 no join is needed.
 
 ![A contact sheet every 0.25 s of a small film: the freeze holds one frame, the caption
-runs across the cut](images/contact.png)
+runs across the cut](../../images/contact.png)
 
 ## Chapters
 
@@ -204,9 +204,9 @@ sh examples/film_commands/run.sh /tmp/film_commands_example
 
 `examples/film_project/run.py` builds a silent film from a project folder of generated
 data, with what a real film uses: an opening card, the comparison of two cases as a
-[layout](layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
+[layout](../composing/layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
 text, the last frame held with its plots under a closing line, and a watermark of text.
-The cases and their wake frames come from the [comparison example](compose.md)
+The cases and their wake frames come from the [comparison example](../composing/compose.md)
 (`examples/compare/case_data.py`).
 
 ```bash

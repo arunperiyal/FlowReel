@@ -14,13 +14,13 @@ flowreel jobs status
 
 The first `--submit` of a shot measures one frame on a node, and sizes the job array
 from it: how many frames each task draws, at how many at once, in how much memory
-([Slurm](../../slurm.md)). The tasks draw consecutive runs of frames, and a task that
+([Slurm](../../guide/rendering/slurm.md)). The tasks draw consecutive runs of frames, and a task that
 stops part way is submitted again as it is: frames drawn already are kept.
 
 ## What next
 
 - Your own simulation: `flowreel project init plt:CASE` for PLT files, `vtk:` for VTK
-  files ([sources](../../sources.md)), and each body's histories as CSV under it in
-  `flowreel.yml` ([bodies](../../bodies.md#series)).
-- More panels beside a shot: [panels](../../panels.md); a moving body followed by the
-  camera: [cameras](../../cameras.md).
+  files ([sources](../../guide/projects/sources.md)), and each body's histories as CSV under it in
+  `flowreel.yml` ([bodies](../../guide/projects/bodies.md#series)).
+- More panels beside a shot: [panels](../../guide/composing/panels.md); a moving body followed by the
+  camera: [cameras](../../guide/shots/cameras.md).

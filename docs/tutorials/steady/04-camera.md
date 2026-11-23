@@ -2,7 +2,7 @@
 
 A camera **view** is a position, a point looked at (the focal point), an up direction and
 an angle of view. A **track** moves the camera from view to view over a shot's frames.
-Both live in the project's one `cameras.yml`, at its root ([cameras](../../cameras.md)).
+Both live in the project's one `cameras.yml`, at its root ([cameras](../../guide/shots/cameras.md)).
 You could type the numbers, but it is easier to pick views by eye in the **camera
 editor**.
 
@@ -53,7 +53,7 @@ frame 96, the last key's view holds to the end of the shot.
 **No display?** On a cluster or over `ssh` the editor cannot open a window. Either run
 it on a machine with a display (`flowreel shot render shots/wake.yml --frames 0
 --save-vtp vtp` saves the scene to open there with `camera edit --vtp vtp`; see
-[the camera editor](../../camera-editor.md)), or copy the views and the track above into
+[the camera editor](../../guide/shots/camera-editor.md)), or copy the views and the track above into
 your `cameras.yml`.
 
 ## Use the track

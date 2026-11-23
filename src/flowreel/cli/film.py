@@ -23,7 +23,7 @@ EXAMPLES = {
   flowreel film build --preview 480
   flowreel film build --only compare
 
-Reference: docs/commands.md.""",
+Reference: docs/guide/commands.md.""",
     "build": """examples:
   flowreel film build                        the film, from ./film.yml
   flowreel film build talk.yml --mute        without its sound

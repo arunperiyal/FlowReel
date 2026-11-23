@@ -51,7 +51,7 @@ Each shot has a `name` (unique) and is one of four kinds:
 | Kind | Key | Lasts |
 |---|---|---|
 | `frames` | `frames: FOLDER` (of `frame_NNNNN.png`, as `shot render` writes) | its frames at its rate, plus its freezes |
-| `layout` | `layout: FILE` ([layouts](layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
+| `layout` | `layout: FILE` ([layouts](../composing/layouts.md)); its `rate: output` panels are drawn at the film's rate | as a frames shot, with the layout's frame count |
 | `card` | `card: FILE` (a still card: [cards](cards.md)) | `seconds` |
 | `hold_last_of` | `hold_last_of: SHOT` (the last frame of a frames or layout shot) | `seconds` |
 
@@ -210,5 +210,5 @@ panels, without composing it); `timeline(f, counts={"compare": 121})` gives coun
 instead. Every caption and freeze is checked against its shot's length, and errors
 name the film file and the shot's key path. A placed shot's `positions(fps)` are its
 output frames as positions among its own frames, between shown frames and still
-through freezes, which [`compose.layout(output=...)`](layouts.md#panels-at-the-output-rate-rate-output)
+through freezes, which [`compose.layout(output=...)`](../composing/layouts.md#panels-at-the-output-rate-rate-output)
 takes to draw live plots.

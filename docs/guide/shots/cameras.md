@@ -63,7 +63,7 @@ no overshoot control; add a key to tame a bend). A perspective and a parallel vi
 blend, so the track switches at the later key. A shot uses it with `camera: {track: carve}`.
 
 To pick a track's views by eye rather than type them, use the
-[camera editor](camera-editor.md). The [camera commands](commands.md#camera-commands)
+[camera editor](camera-editor.md). The [camera commands](../commands.md#camera-commands)
 (`camera path`, `orbit`, `import`, `project`, `preview`) call the functions below.
 
 ## Writing cameras.yml
@@ -142,7 +142,7 @@ it does nothing.
 
 The shot's `camera` mapping takes exactly one of `view`, `track` and `fit`; `follow` then
 moves that view onto a body. Views and tracks are read from the project's one `cameras.yml`,
-at its root, wherever the shot file is in the project ([projects](project.md)); outside a
+at its root, wherever the shot file is in the project ([projects](../projects/project.md)); outside a
 project the library reads the one beside the shot file. A `cameras.yml` left beside a
 shot below the root is an error that says to move it.
 
@@ -183,7 +183,7 @@ camera keeps still while the body vibrates.
   the declared diameter, else 2% of the body's length but no more than a quarter of its
   width, so a long body is cut thin. With `motion: false` the centre is taken from the
   body at rest, so a vibrating body stays visibly moving. `station` may be a track. The
-  name is a body declared in the project's `flowreel.yml` ([bodies](bodies.md)) or a
+  name is a body declared in the project's `flowreel.yml` ([bodies](../projects/bodies.md)) or a
   zone of the source; `follow: true` takes the one body there is (the only declared one,
   else the source's only zone).
 

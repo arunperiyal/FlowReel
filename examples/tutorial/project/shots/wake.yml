@@ -1,5 +1,5 @@
 # The first shot: the flow coloured by its vorticity, the camera moving in from the
-# whole domain to the cylinder. Reference: docs/shots.md, docs/layers-flow.md.
+# whole domain to the cylinder. Reference: docs/guide/shots/shots.md, docs/guide/shots/layers-flow.md.
 name: wake
 source:
   adapter: vtk
@@ -12,7 +12,7 @@ layers:
   - type: slice                       # the plane z = 0, through the middle of the span
     normal: z
     position: 0.0
-    field: vorticity_z                # computed from the velocity (docs/fields.md)
+    field: vorticity_z                # computed from the velocity (docs/guide/projects/fields.md)
     range: [-60, 60]
   - type: body
     body: cylinder

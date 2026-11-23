@@ -24,7 +24,7 @@ CAMERAS = ("views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up
 def sh(tmp_path, monkeypatch):
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
-    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/guide/projects/project.md)
     monkeypatch.chdir(tmp_path)
     return Shell(tmp_path / "store")
 

@@ -2,7 +2,7 @@
 
 A shot is drawn in 3D by VTK. A **panel** is a 2D figure drawn by matplotlib, one per
 frame: a plot of a history with a dot moving along it, or, as here, a cut through the
-flow drawn as filled contours ([panels](../../panels.md)). Panels go into frame folders like
+flow drawn as filled contours ([panels](../../guide/composing/panels.md)). Panels go into frame folders like
 shots, so the film uses them the same way.
 
 Make the folder `panels/` and write `panels/pressure.yml`:
@@ -31,7 +31,7 @@ streamlines: {relative: false}        # the cylinder does not move
   pressure coefficient, `pressure_coefficient` with `params: {rho, u_inf}`, but this data
   set does not say what its density is, so the plain pressure is the honest choice.
 - **`range`** must be given for a panel: a range taken from each frame would change from
-  frame to frame ([rules](../../rules.md)).
+  frame to frame ([rules](../../guide/projects/rules.md)).
 - **`centre` and `half`** fix the view: centred 1.5 diameters behind the cylinder, 3.2
   across and 1.8 up each way, so the wake is in the picture.
 - **`streamlines: {relative: false}`**: streamlines are normally drawn as seen from a
@@ -54,7 +54,7 @@ show the two vortices that stay attached at this Reynolds number: the flow turns
 on itself there and never leaves.
 
 **Try** the pressure in the shot as well: lines of equal pressure over the sweep's
-vorticity, with a [`contour`](../../layers-flow.md#contour) layer on the same plane. Add it
+vorticity, with a [`contour`](../../guide/shots/layers-flow.md#contour) layer on the same plane. Add it
 to the end of `shots/sweep.yml`'s layers, after the slice:
 
 ```yaml

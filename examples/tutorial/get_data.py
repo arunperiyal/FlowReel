@@ -15,7 +15,7 @@ folder, the tutorial's project folder). The script:
    diameter wide, centred on z = 0. Triangles become wedges and quadrilaterals become
    hexahedra. The velocity is split into ``U``, ``V``, ``W`` and the pressure is stored
    as ``p``. The solver's ``vorticity_mag`` is dropped: FlowReel derives every field
-   from velocity and pressure (docs/fields.md). The wall ``wall_cylinder`` is extruded
+   from velocity and pressure (docs/guide/projects/fields.md). The wall ``wall_cylinder`` is extruded
    the same way into the surface ``cylinder.vtp``, closed at both ends, so that a camera
    looking along the cylinder sees a solid body, not into an open tube.
 3. Writes ``LICENSE`` and ``README.md`` beside the data, saying where it comes from and

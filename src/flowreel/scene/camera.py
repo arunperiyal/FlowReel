@@ -1,5 +1,5 @@
 """The camera of a shot: its ``camera`` mapping turned into a view per frame
-(plan Section 7.4; the keys are in docs/cameras.md).
+(plan Section 7.4; the keys are in docs/guide/shots/cameras.md).
 
 .. code-block:: yaml
 

@@ -7,7 +7,7 @@ picture (plan Section 9). The pieces have their own pages:
 |---|---|
 | [Layouts](layouts.md) | tiles of frame folders, shots at several `stations`, panel tiles, `rate: output` |
 | [Panels](panels.md) | figures drawn per frame: `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` |
-| [Commands](commands.md#compose-layout) | `flowreel compose layout` and `flowreel compose panel` |
+| [Commands](../commands.md#compose-layout) | `flowreel compose layout` and `flowreel compose panel` |
 
 ## The AFMS comparison and lift map, from files
 

@@ -36,14 +36,14 @@ $ flowreel shot preview shots/wake.yml
 
 Or start FlowReel's shell with `flowreel` alone and type the commands without the
 `flowreel` in front. The shell remembers a project, so you can leave its folder out
-(`use project:DIR`). See [commands](../../commands.md#the-shell).
+(`use project:DIR`). See [commands](../../guide/commands.md#the-shell).
 
 ## Rendering without a display
 
 FlowReel draws its frames off screen, so a machine without a display (a cluster node, an
 `ssh` session) renders the same frames. It picks the first back end that works: EGL on
 a GPU, OSMesa on the CPU, or X. `flowreel shot render --backend osmesa` forces one. See
-[rendering](../../rendering.md).
+[rendering](../../guide/rendering/rendering.md).
 
 ## Check
 
@@ -61,6 +61,6 @@ $ flowreel doctor
 
 checks what FlowReel runs on: the packages and their versions, ffmpeg, drawing without a
 display, and the font. Its last line should read `everything FlowReel needs is here`;
-anything marked `!` says what is wrong ([doctor](../../commands.md#doctor)).
+anything marked `!` says what is wrong ([doctor](../../guide/commands.md#doctor)).
 
 Next: [the project and the data](02-project.md).

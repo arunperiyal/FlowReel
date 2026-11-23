@@ -41,7 +41,7 @@ src.body(5000)             # both, as one surface
 
 An unknown name raises `KeyError` listing the names; a source without a body raises
 `LookupError`. Nothing in FlowReel assumes the body is a cylinder or has a span: only
-`sectional_force` asks for an axis, and `wall_force` needs none (see `docs/fields.md`).
+`sectional_force` asks for an axis, and `wall_force` needs none (see `docs/guide/projects/fields.md`).
 
 These are the source's own zone names. A project's `flowreel.yml` can give them other
 names and add what the files cannot say (axis, diameter, supports, series); shots then
@@ -228,7 +228,7 @@ While the front is on the span (`0 <= cut_front <= span`), the surface also carr
 data `cutters`: one point per groove where it meets the front, on the uncut radius. With
 grooves in segments, only the grooves whose segment the front is on have a cutter; when
 the front is in every groove's gap there are none, and the field data is absent. The
-geometry layer's `markers` draws the cutters there (see `docs/layers-markers.md`).
+geometry layer's `markers` draws the cutters there (see `docs/guide/shots/layers-markers.md`).
 
 `flowreel.sources.bodies.groove_angle(x, k, span=, grooves=, turns=, phase=)` gives the
 angle in radians of groove `k` at `x`, for placing a cutter or an arrow on a groove.
@@ -254,7 +254,7 @@ measured along the axis. A segment's ends are rounded as its sides are, over
 along the span to show it (`samples[0]`: the defaults put a point every 0.017 along 12).
 Carving works as before: the front cuts each segment as it reaches it.
 
-![Six staggered spanwise grooves: carving, carved, close in](images/grooves.png)
+![Six staggered spanwise grooves: carving, carved, close in](../../images/grooves.png)
 
 `examples/grooves/` is this shot: the front carves the segments from end to end, with a
 cutter on each segment it is cutting, and the camera closes in. `run.py` draws the three
@@ -298,7 +298,7 @@ lift = src.series("force")
 | `volume` | text | found in the file | name of the volume zone; default the first zone of tetrahedra or bricks |
 | `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
 | `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
-| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](long-bodies.md#reading-only-the-window) |
+| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](../rendering/long-bodies.md#reading-only-the-window) |
 | `name` | text | `plt` | label of the source |
 
 - **Time** is the solution time stored in each file.
@@ -310,7 +310,7 @@ lift = src.series("force")
   `flowreel.fields` for vorticity and Q instead.
 - **Crop** keeps the cells with every node inside the box. It is read through a window:
   only the box's nodes of the asked variables leave the disk ([long
-  bodies](long-bodies.md#reading-only-the-window)).
+  bodies](../rendering/long-bodies.md#reading-only-the-window)).
 - **Series:** a body's time histories come from CSV files declared in `flowreel.yml`
   ([bodies](bodies.md#series)), for any number of bodies and whatever wrote them. As a
   quick look at a FlexFlow case with one body, the adapter also reads FlexFlow's own:

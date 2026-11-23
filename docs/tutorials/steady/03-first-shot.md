@@ -28,7 +28,7 @@ layers:
   - type: slice                       # the plane z = 0, through the middle of the span
     normal: z
     position: 0.0
-    field: vorticity_z                # computed from the velocity (docs/fields.md)
+    field: vorticity_z                # computed from the velocity (docs/guide/projects/fields.md)
     range: [-60, 60]
   - type: body
     body: cylinder
@@ -38,7 +38,7 @@ layers:
 What each part means:
 
 - **`source`** is the data, as in `project init`, written out in full so it can name the
-  body. Paths in a file are relative to that file, here `shots/` ([rules](../../rules.md)),
+  body. Paths in a file are relative to that file, here `shots/` ([rules](../../guide/projects/rules.md)),
   so the data is `../data/...`.
 - **`time: {frozen: 0, frames: 120}`** shows step 0 for 120 frames. This data set has
   one step: the flow is steady. A frozen shot is cheap, because the flow is read and cut
@@ -46,7 +46,7 @@ What each part means:
   chapter.
 - **The `slice` layer** is the plane z = 0, through the middle of the slab, coloured by
   `vorticity_z`: how fast the fluid spins about the z axis. FlowReel computes it from
-  the velocity. It never uses a solver's stored vorticity ([fields](../../fields.md)).
+  the velocity. It never uses a solver's stored vorticity ([fields](../../guide/projects/fields.md)).
   `range` is the value at each end of the colour map. With the default map, `fire_ice`,
   zero is black, negative values are blue and positive ones orange. Positive is
   anticlockwise.

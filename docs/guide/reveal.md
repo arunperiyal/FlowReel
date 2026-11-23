@@ -38,7 +38,7 @@ layers:
 
 The prototype drove everything from one "progress" number through smoothstep ramps; here
 each ramp is its own track. The greying mixes colours in display values, not linear light,
-as the prototype does, so that the pictures match. Layer options: `docs/layers-flow.md`.
+as the prototype does, so that the pictures match. Layer options: `docs/guide/shots/layers-flow.md`.
 
 ```python
 from flowreel.scene import render_frame

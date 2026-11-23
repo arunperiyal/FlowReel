@@ -31,7 +31,7 @@ wrote flowreel.yml: 1 body (cylinder); fill in the supports
 The source is **`plt:`** and a folder: the `plt` source reads a folder of
 `<name>.<step>.plt` files (in it, or in a `binary/` folder in it), whatever wrote
 them, and takes the step from the name and the time from the file. It finds the volume
-and the wall zones by their cells: here `fluid` and `cylinder` ([sources](../../sources.md#the-plt-adapter)).
+and the wall zones by their cells: here `fluid` and `cylinder` ([sources](../../guide/projects/sources.md#the-plt-adapter)).
 Your own solver's PLT files are read the same way.
 
 ## The body and its force
@@ -54,10 +54,10 @@ reference: {rho: 1.0, u_inf: 1.0}     # the record's units: D, U and the density
 - **`series`**: the body's time histories, each a CSV file with a `time` column.
   `force.csv` holds `time, fx, fy, mz`, the drag, the lift and the moment the
   solver wrote. A series is declared under its body, so a case with several bodies gives
-  each its own files ([bodies](../../bodies.md#series)). Any program that writes CSV
+  each its own files ([bodies](../../guide/projects/bodies.md#series)). Any program that writes CSV
   will do.
 - **`reference`**: the flow's density and speed, here 1 as the record's units are, for
-  fields such as the pressure coefficient ([reference values](../../project.md#reference-values)).
+  fields such as the pressure coefficient ([reference values](../../guide/projects/project.md#reference-values)).
 
 ```text
 $ flowreel project info

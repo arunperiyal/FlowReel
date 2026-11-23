@@ -96,7 +96,7 @@ def body_target(source, body: str | None, station: float, step: int | None = Non
 
     ``body`` is a name declared in ``flowreel.yml`` or a zone of the source, ``None`` for
     the one body there is. The axis is ``axis``, else the declared one, else the body's
-    measured long axis, else ``z``, as ``follow`` takes it (docs/cameras.md).
+    measured long axis, else ``z``, as ``follow`` takes it (docs/guide/shots/cameras.md).
     """
     from flowreel.project.measure import long_axis
     from flowreel.project.names import declaration, one_body

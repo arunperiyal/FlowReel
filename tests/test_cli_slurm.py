@@ -20,7 +20,7 @@ def fake(path, body):
 def sh(tmp_path, monkeypatch):
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
-    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/guide/projects/project.md)
     bin_ = tmp_path / "bin"
     bin_.mkdir()
     calls = tmp_path / "calls.txt"

@@ -21,7 +21,7 @@ built in 2.3 s
 `film build` makes each shot's **finished clip** (its frames at the film's rate, its
 fades and its captions) and joins the clips into `film.mp4`. The clips `film check`
 built are kept, since nothing changed: every clip has a key, and only a clip whose
-frames, text or settings changed is made again ([clips](../../clips.md)). The title card
+frames, text or settings changed is made again ([clips](../../guide/film/clips.md)). The title card
 has no caption, so `film check` did not need its clip, and it is built now. `--preview 540`
 also writes `film_540p.mp4`, a small copy that is quick to send round for comments.
 
@@ -75,7 +75,7 @@ flowreel film build --submit --after 1320 --after 1321 --after 1322 --preview 54
 flowreel jobs status
 ```
 
-The first render of a shot measures a frame before it sizes the job. [Slurm](../../slurm.md)
+The first render of a shot measures a frame before it sizes the job. [Slurm](../../guide/rendering/slurm.md)
 says how a render is split into tasks, and how to describe a cluster FlowReel does not
 know yet.
 
@@ -83,10 +83,10 @@ know yet.
 
 - The [second tutorial](../unsteady/index.md) films a flow that moves: vortex shedding,
   read from PLT files, with the force on the cylinder beside it from a CSV file.
-- The [user guide](../../project.md) explains each part in full: the
-  [layers](../../layers-flow.md), [cameras](../../cameras.md), [panels](../../panels.md),
-  [layouts](../../layouts.md) that put shots and panels side by side, and
-  [the film file](../../film.md).
-- The [rules](../../rules.md) every project follows, on one page.
+- The [user guide](../../guide/projects/project.md) explains each part in full: the
+  [layers](../../guide/shots/layers-flow.md), [cameras](../../guide/shots/cameras.md), [panels](../../guide/composing/panels.md),
+  [layouts](../../guide/composing/layouts.md) that put shots and panels side by side, and
+  [the film file](../../guide/film/film.md).
+- The [rules](../../guide/projects/rules.md) every project follows, on one page.
 - Your own data: `flowreel project init` takes a folder of PLT files (`plt:CASE`), VTK
-  files (`vtk:`) or a body made in code (`geometry:`); see [sources](../../sources.md).
+  files (`vtk:`) or a body made in code (`geometry:`); see [sources](../../guide/projects/sources.md).

@@ -1608,7 +1608,7 @@ tutorial met; then the rest.
 - [x] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a
   slice (`normal`, `position`, as the slice layer), in one `colour` or coloured by the
   field with a `colormap`, `width` in pixels; levels and range may be tracks
-- [ ] Tests on generated data: the lines lie on the slice at the asked values, and a
+- [x] Tests on generated data: the lines lie on the slice at the asked values, and a
   frame draws them
 - [ ] Docs (flow layers page, the YAML reference, the shot template), an example, and a
   "Try" in chapter 6 of the tutorial: the pressure's contour lines over the sweep shot

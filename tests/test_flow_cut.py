@@ -7,7 +7,7 @@ import pytest
 
 from flowreel.box import Box
 from flowreel.compose import flow_cut as fc
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "examples" / "flow_panels"))
 import cylinder_case as case  # noqa: E402
@@ -16,7 +16,7 @@ import cylinder_case as case  # noqa: E402
 @pytest.fixture(scope="module")
 def source(tmp_path_factory):
     folder = case.write_case(tmp_path_factory.mktemp("cylinder"))
-    return FlexflowSource(folder / "case", cache=None)
+    return PltSource(folder / "case", cache=None)
 
 
 class Counting:

@@ -3,7 +3,7 @@
 Needs no data: the flow is u = (-y, x, 0) on a small grid, the body a sphere. Run it
 from anywhere; pictures go to ./flow_layers_<frame>.png. The data is made up here
 (the same toy used by the tests); with real output you would give the shot a
-``vtk:`` or ``flexflow:`` source instead.
+``vtk:`` or ``plt:`` source instead.
 """
 from pathlib import Path
 

@@ -8,7 +8,7 @@ gradient across the plane, so they are computed before cutting), cuts it, and re
 a :class:`Cut`: a triangulation in the plane's two axes and the fields at its points.
 
 The box is the source's ``crop``, so a long source read through a window
-(``flexflow``'s PLT reader) loads only the nodes near the cut.
+(the ``plt`` adapter's reader) loads only the nodes near the cut.
 
 The plane's two axes are ``across`` and ``up`` in the picture. By default they are the
 other two axes in the order x, y, z (a cut normal to x shows y across and z up);

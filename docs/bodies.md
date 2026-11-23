@@ -5,7 +5,7 @@ runs, how thick it is, or how its ends are held. FlowReel does not look for that
 solver's other files. It is written once, in the project's `flowreel.yml`, and every
 shot uses the body by its name.
 
-Every body is a surface zone of the source (for flexflow, a surface zone of the PLT
+Every body is a surface zone of the source (for `plt`, a surface zone of the PLT
 file). A slender one, given an `axis`, is a **beam body**: it has a span, a diameter,
 stations and supports. Any other body (a ball, a wall) has a name, a zone and series
 only.
@@ -209,7 +209,8 @@ disp = source.series("displacement")              # the one body that declares i
 
 `series(name, body=...)` reads the CSV declared under that body, once per process.
 Without `body` it takes the one declared body with a series of that name, or else the
-source's own series (flexflow's OTHD and OISD files, for one-body cases). The result is
+source's own series (the `plt` adapter reads FlexFlow's OTHD and OISD files: a quick
+look at a one-body FlexFlow case, not the way to declare a series). The result is
 a `pandas.DataFrame`: `time` first, in ascending order, then (with `by`) the point
 number and `station`, then the value columns. Where a restart repeats a time, the
 later row wins. A missing file or column is reported with the file's name and the
@@ -217,7 +218,7 @@ columns it has.
 
 ### Exporting from FlexFlow Analyzer
 
-For flexflow, the series come from FlexFlow Analyzer's `data table`, which handles
+For a FlexFlow case, the series come from FlexFlow Analyzer's `data table`, which handles
 restarts, the groups of several bodies (`--othid`, `--osgid`) and the pendulum's lines.
 It writes `tsId, time, <variables>`, which FlowReel reads as it is:
 

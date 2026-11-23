@@ -7,15 +7,15 @@ import pytest
 
 from flowreel.box import Box
 from flowreel.sources import Source
-from flowreel.sources.flexflow import FlexflowSource
-from flowreel.sources.flexflow.plt import PltFile
+from flowreel.sources.plt import PltSource
+from flowreel.sources.plt.reader import PltFile
 
 CASE = Path(__file__).parent / "data" / "flexflow_case"
 
 
 @pytest.fixture
 def src():
-    return FlexflowSource(CASE)
+    return PltSource(CASE)
 
 
 def test_reader_header():
@@ -94,7 +94,7 @@ def test_bounds_and_memory(src):
 
 def test_missing_case_and_step(tmp_path, src):
     with pytest.raises(FileNotFoundError):
-        FlexflowSource(tmp_path)
+        PltSource(tmp_path)
     with pytest.raises(KeyError, match="5000"):
         src.flow(1, ["U"], None)
 
@@ -113,7 +113,7 @@ def test_series(tmp_path):
     _write_series(tmp_path, "a.oisd", "oisd_files",
                   "time 1.0\ntotTrac 3 1\n1.0 2.0 3.0\nother 3 1\n9 9 9\n"
                   "time 2.0\ntotTrac 3 1\n4.0 5.0 6.0\n")
-    src = FlexflowSource(tmp_path)
+    src = PltSource(tmp_path)
     d = src.series("displacement")
     assert list(d.columns) == ["time", "probe", "dx", "dy", "dz"]
     assert d[(d.time == 2.0) & (d.probe == 1)].dy.item() == 0.7
@@ -130,7 +130,7 @@ def test_series_restart_later_file_wins(tmp_path):
     _write_series(tmp_path, "old.oisd", "oisd_files", "time 1.0\ntotTrac 3 1\n1 1 1\n")
     _write_series(tmp_path, "new.oisd", "oisd_files", "time 1.0\ntotTrac 3 1\n2 2 2\n")
     os.utime(tmp_path / "oisd_files" / "old.oisd", (1, 1))
-    assert FlexflowSource(tmp_path).series("force").fx.tolist() == [2.0]
+    assert PltSource(tmp_path).series("force").fx.tolist() == [2.0]
 
 
 def test_series_with_one_group_reads(tmp_path):
@@ -139,7 +139,7 @@ def test_series_with_one_group_reads(tmp_path):
     _write_series(tmp_path, "a.oisd", "oisd_files",
                   "tsId 1\ntime 1.0\nosgId 0\nosdFlag 1\ntotTrac 3 1\n1 2 3\n"
                   "tsId 2\ntime 2.0\nosgId 0\nosdFlag 1\ntotTrac 3 1\n4 5 6\n")
-    assert FlexflowSource(tmp_path).series("force").fy.tolist() == [2.0, 5.0]
+    assert PltSource(tmp_path).series("force").fy.tolist() == [2.0, 5.0]
 
 
 @pytest.mark.parametrize("folder, name, key, block", [
@@ -152,7 +152,7 @@ def test_series_with_two_groups_is_refused(tmp_path, folder, name, key, block):
     text = "".join(f"time 1.0\n{key} {g}\n{block}" for g in (0, 1))
     _write_series(tmp_path, "a." + folder[:4], folder, text)
     with pytest.raises(ValueError, match=rf"more than one group \({key} 0, 1\).*data table CASE"):
-        FlexflowSource(tmp_path).series(name)
+        PltSource(tmp_path).series(name)
 
 
 def test_zones_are_found_in_the_file(src):
@@ -161,6 +161,22 @@ def test_zones_are_found_in_the_file(src):
     with pytest.raises(KeyError, match="cyl"):
         src.body(5000, "wing")
     with pytest.raises(KeyError, match="FIELD"):
-        FlexflowSource(CASE, body="wing")
+        PltSource(CASE, body="wing")
     with pytest.raises(ValueError, match="not a volume zone"):
-        FlexflowSource(CASE, volume="cyl")
+        PltSource(CASE, volume="cyl")
+
+
+def test_the_adapter_is_plt_and_flexflow_is_its_first_name():
+    """PLT files are read whatever wrote them (Section 24, q. 10): the adapter is ``plt``;
+    ``flexflow`` stays as its other name, and the old import path still works."""
+    from flowreel.sources.flexflow import FlexflowSource
+    from flowreel.sources.registry import available, create
+    assert {"plt", "flexflow"} <= set(available())
+    plt, old = create("plt", path=str(CASE)), create("flexflow", path=str(CASE))
+    assert type(plt) is type(old) is PltSource is FlexflowSource
+    assert plt.steps() == old.steps() and plt.name == "plt"
+
+
+def test_a_folder_without_plt_files_says_what_it_wants(tmp_path):
+    with pytest.raises(FileNotFoundError, match=r"no <name>\.<step>\.plt files in .*binary/"):
+        PltSource(tmp_path)

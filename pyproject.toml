@@ -37,7 +37,8 @@ docs = ["mkdocs-material==9.8.1"]
 flowreel = "flowreel.cli:main"
 
 [project.entry-points."flowreel.sources"]
-flexflow = "flowreel.sources.flexflow:FlexflowSource"
+plt = "flowreel.sources.plt:PltSource"
+flexflow = "flowreel.sources.plt:PltSource"   # its first name: shots that say flexflow:CASE
 vtk = "flowreel.sources.vtk:VtkSource"
 geometry = "flowreel.sources.geometry:GeometrySource"
 

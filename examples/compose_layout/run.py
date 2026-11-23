@@ -21,7 +21,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from flowreel import compose
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt.writer import write_plt
 
 HERE = Path(__file__).parent
 FILES = ("compare.yml", "grid.yml", "window.yml", "stations.yml", "cameras.yml", "flowreel.yml")

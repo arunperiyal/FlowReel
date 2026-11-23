@@ -3,7 +3,7 @@
 .. code-block:: yaml
 
     name: bare_reveal
-    source: flexflow:bare/BR0SG0U1P0
+    source: plt:bare/BR0SG0U1P0
     time: {steps: [5000, 5600], every: 5}
     camera: {view: main}
     size: [1920, 1080]
@@ -143,7 +143,7 @@ def _source(value, check: Checker) -> tuple[tuple[str, str], dict]:
     text = check.string(value)
     adapter, sep, location = text.partition(":")
     if not sep or not adapter or not location:
-        raise check.error(f"expected 'adapter:location' (for example flexflow:bare/BR0SG0U1P0) "
+        raise check.error(f"expected 'adapter:location' (for example plt:bare/BR0SG0U1P0) "
                           f"or {{adapter: ..., path: ...}}, got {text!r}")
     return (adapter, location), {}
 

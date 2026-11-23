@@ -1649,19 +1649,19 @@ tutorial met; then the rest.
 
 **Branch 9: `phase8/sources-plt`** (added 2026-11-23, asked by Arun: FlowReel reads PLT
 files without depending on FlexFlow, and takes time series from CSV; Section 24, q. 10)
-- [ ] The adapter that reads Tecplot binary PLT files is called `plt`: `plt:CASE` in a
+- [x] The adapter that reads Tecplot binary PLT files is called `plt`: `plt:CASE` in a
   shot, `{adapter: plt, path: ...}`, `project init plt:CASE`; its code moves to
   `flowreel.sources.plt` and its class to `PltSource`. `flexflow` stays as a second name
   of the same adapter, so the shots written so far (the AFMS film's) keep working, and
   the old import path keeps working too
-- [ ] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
+- [x] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
   wrote them; the adapter's errors and docs name the files it wants, not the solver
-- [ ] Time series come from CSV files declared under a body in `flowreel.yml`
+- [x] Time series come from CSV files declared under a body in `flowreel.yml`
   ([bodies](bodies.md#series)), the documented way for every source; the reading of
   FlexFlow's `.othd` and `.oisd` files stays as it is (Section 23, Data formats; one
   body only, Section 24, q. 4), described as a quick look at a FlexFlow case, not as the
   way
-- [ ] Docs: the sources page (`plt` first; `flexflow` as its other name), the commands
+- [x] Docs: the sources page (`plt` first; `flexflow` as its other name), the commands
   and project pages, the YAML and command references, the examples (`plt:` in place of
   `flexflow:`); `project info` prints the source as `plt:`
 

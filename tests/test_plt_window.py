@@ -3,10 +3,10 @@ import numpy as np
 import pytest
 
 from flowreel.box import Box
-from flowreel.sources.flexflow import FlexflowSource
-from flowreel.sources.flexflow import window as win
-from flowreel.sources.flexflow.plt import PltFile
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt import PltSource
+from flowreel.sources.plt import window as win
+from flowreel.sources.plt.reader import PltFile
+from flowreel.sources.plt.writer import write_plt
 
 VARS = ["X", "Y", "Z", "U", "V", "W", "Pressure"]
 NX, NY, NZ, LENGTH = 400, 3, 3, 100.0
@@ -56,8 +56,8 @@ def test_the_window_holds_the_box_only(case):
 
 
 def test_a_windowed_read_equals_a_whole_read(case):
-    windowed = FlexflowSource(case).flow(2, ["U", "p"], BOX)
-    whole = FlexflowSource(case, window=False).flow(2, ["U", "p"], BOX)
+    windowed = PltSource(case).flow(2, ["U", "p"], BOX)
+    whole = PltSource(case, window=False).flow(2, ["U", "p"], BOX)
     assert windowed.n_cells == whole.n_cells == 40 * NY * NZ
     assert np.array_equal(windowed.points, whole.points)
     assert np.array_equal(windowed.cell_connectivity, whole.cell_connectivity)
@@ -65,7 +65,7 @@ def test_a_windowed_read_equals_a_whole_read(case):
 
 
 def test_a_windowed_read_never_loads_a_whole_variable(case, monkeypatch):
-    src = FlexflowSource(case)
+    src = PltSource(case)
     monkeypatch.setattr(PltFile, "read_variable", lambda *a, **k: pytest.fail("whole read"))
     small = PltFile.load_connectivity                           # a wall's own cells are fine
 
@@ -78,7 +78,7 @@ def test_a_windowed_read_never_loads_a_whole_variable(case, monkeypatch):
 
 
 def test_the_window_is_chosen_once(case, monkeypatch):
-    src = FlexflowSource(case)
+    src = PltSource(case)
     src.flow(1, ["U"], BOX)
     monkeypatch.setattr(win, "choose", lambda *a, **k: pytest.fail("chosen again"))
     src.flow(2, ["U"], BOX)                                         # the same box: kept
@@ -91,28 +91,28 @@ EDGE = Box((40.0, -1.48, -2.0), (50.0, 2.0, 2.0))    # the floor row is just out
 
 def test_a_margin_keeps_cells_the_motion_brings_in(case):
     # step 2 moves the mesh 0.05 up: the floor nodes (y = -1.5 at step 1) are inside
-    whole = FlexflowSource(case, window=False).flow(2, ["U"], EDGE)
-    tight = FlexflowSource(case, cache=None).flow(2, ["U"], EDGE)
-    wide = FlexflowSource(case, margin=0.1, cache=None).flow(2, ["U"], EDGE)
+    whole = PltSource(case, window=False).flow(2, ["U"], EDGE)
+    tight = PltSource(case, cache=None).flow(2, ["U"], EDGE)
+    wide = PltSource(case, margin=0.1, cache=None).flow(2, ["U"], EDGE)
     assert whole.n_cells == 40 * NY * NZ and tight.n_cells == 40 * (NY - 1) * NZ
     assert wide.n_cells == whole.n_cells and np.array_equal(wide.points, whole.points)
     with pytest.raises(ValueError, match="margin must be at least 0"):
-        FlexflowSource(case, margin=-1)
+        PltSource(case, margin=-1)
 
 
 def test_the_index_is_kept_on_disk_for_other_processes(case, tmp_path, monkeypatch):
     folder = tmp_path / "windows"
-    FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
+    PltSource(case, cache=folder).flow(1, ["U"], BOX)
     assert len(list(folder.glob("*.npz"))) == 1
     real = win.build_span
     monkeypatch.setattr(win, "build_span", lambda *a, **k: pytest.fail("built again"))
-    src = FlexflowSource(case, cache=folder)                         # a new process
+    src = PltSource(case, cache=folder)                         # a new process
     for x in range(0, 60, 5):                                        # a travelling window
         assert src.flow(1, ["U"], Box((x, -2, -2), (x + 10, 2, 2))).n_cells == 40 * NY * NZ
     import os
     os.utime(case / "long.1.plt", ns=(1, 1))                         # the file rewritten
     monkeypatch.setattr(win, "build_span", real)
-    FlexflowSource(case, cache=folder).flow(1, ["U"], BOX)
+    PltSource(case, cache=folder).flow(1, ["U"], BOX)
     assert len(list(folder.glob("*.npz"))) == 2
 
 
@@ -128,7 +128,7 @@ def test_the_span_index_reads_only_the_box(case):
 
 def test_default_cache_and_none(case, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
-    FlexflowSource(case).flow(1, ["U"], BOX)
+    PltSource(case).flow(1, ["U"], BOX)
     assert len(list((tmp_path / "xdg" / "flowreel" / "windows").glob("*.npz"))) == 1
-    FlexflowSource(case, cache=None).flow(1, ["U"], Box((0, -2, -2), (5, 2, 2)))
+    PltSource(case, cache=None).flow(1, ["U"], Box((0, -2, -2), (5, 2, 2)))
     assert len(list((tmp_path / "xdg" / "flowreel" / "windows").glob("*.npz"))) == 1

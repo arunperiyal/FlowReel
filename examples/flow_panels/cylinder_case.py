@@ -29,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt.writer import write_plt
 
 HERE = Path(__file__).parent
 RADIUS = 0.5

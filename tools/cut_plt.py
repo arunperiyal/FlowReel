@@ -15,8 +15,8 @@ from pathlib import Path
 
 import numpy as np
 
-from flowreel.sources.flexflow.plt import PltFile
-from flowreel.sources.flexflow.plt_write import write_plt
+from flowreel.sources.plt.reader import PltFile
+from flowreel.sources.plt.writer import write_plt
 
 
 def main():

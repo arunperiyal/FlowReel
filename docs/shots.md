@@ -6,7 +6,7 @@ layers. It is one YAML file. Everything a shot can vary over time is a
 
 ```yaml
 name: bare_reveal
-source: flexflow:bare/BR0SG0U1P0
+source: plt:bare/BR0SG0U1P0
 time: {steps: [5000, 5600], every: 5}
 camera: {view: main}
 size: [1920, 1080]

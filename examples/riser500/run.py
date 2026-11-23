@@ -20,7 +20,7 @@ import numpy as np
 
 from flowreel.scene import render, render_frame
 from flowreel.scene.rendering import Scene
-from flowreel.sources.flexflow import FlexflowSource
+from flowreel.sources.plt import PltSource
 
 sys.path.insert(0, str(Path(__file__).parent))
 import riser500_case as case  # noqa: E402
@@ -37,7 +37,7 @@ def main(folder: Path, draft: bool = False, image: Path | None = None) -> None:
     print(f"one step read whole: {whole_mb:.1f} MB; through the window: {window_mb:.2f} MB "
           f"({whole_mb / window_mb:.0f} times less)")
     half = case.write_case(folder / "half_span", length=250.0, project=False)
-    short = FlexflowSource(half / "case", cache=None, margin=1.0)
+    short = PltSource(half / "case", cache=None, margin=1.0)
     print(f"the same window in a case 250 long: "
           f"{short.memory_per_step(travel.crop(0)) * 1e3:.2f} MB")
     for i in (0, case.STEPS - 1):

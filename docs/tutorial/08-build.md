@@ -86,5 +86,5 @@ know yet.
   [layouts](../layouts.md) that put shots and panels side by side, and
   [the film file](../film.md).
 - The [rules](../rules.md) every project follows, on one page.
-- Your own data: `flowreel project init` takes a FlexFlow case (`flexflow:CASE`), VTK
+- Your own data: `flowreel project init` takes a folder of PLT files (`plt:CASE`), VTK
   files (`vtk:`) or a body made in code (`geometry:`); see [sources](../sources.md).

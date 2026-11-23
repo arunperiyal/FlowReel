@@ -247,7 +247,7 @@ are drawn over the model, never hidden by it.
 | `origin` | `arrows` only, required: `[x, y, z]`, or `{body: NAME, end: 0 \| 1}` for the centre of the body's low (0) or high (1) end along its axis | | `{body: riser, end: 0}` |
 | `length` | track, `arrows`: length of an arrow, in `unit` | `1` | `3` |
 | `unit` | `model` or `diameters` (`arrows` and `ruled`) | `model` | `diameters` |
-| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the `origin`'s body or the one body | | `riser` |
+| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the project's [`reference.length`](project.md#reference-values) when given, else the `origin`'s body or the one body | | `riser` |
 | `bounds` | `ruled` only: a box ([boxes](#boxes-bounds-and-in)) | `domain` | `{x: [0, 12], y: [-1.5, 1.5], z: [-1.5, 1.5]}` |
 | `ticks` | `ruled` only: spacing in `unit`, or `auto` | `auto` | `0.5` |
 

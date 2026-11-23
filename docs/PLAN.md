@@ -1630,7 +1630,7 @@ tutorial met; then the rest.
   they give none (a value given in the panel still wins; a shot's layer has no
   `params`); `length` is the unit of the axes layer's `unit: diameters` when it names no
   body (panels show no lengths in diameters)
-- [ ] Docs (the project page, the fields page, the YAML reference), the rules page if it
+- [x] Docs (the project page, the fields page, the YAML reference), the rules page if it
   makes a new rule, and an example
 
 **Branch 7: `phase8/film-watch`**

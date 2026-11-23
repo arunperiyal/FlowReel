@@ -242,7 +242,7 @@ These three read the flow itself, not histories. A runnable example on a generat
 | `source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder |
 | `body` | string | the one body | the body, by its name in `flowreel.yml` or its zone |
 | `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](fields.md)) |
-| `params` | mapping of numbers | none | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear` |
+| `params` | mapping of numbers | the project's [`reference`](project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
 | `range` | `[low, high]` | required | the colours' range; values outside it take the end colours |
 | `colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name |
 | `levels` | integer | `41` | contour levels from `low` to `high` |

@@ -1656,7 +1656,7 @@ files without depending on FlexFlow, and takes time series from CSV; Section 24,
   the old import path keeps working too
 - [x] A case is a folder of `<name>.<step>.plt` files (in it, or in `binary/`), whatever
   wrote them; the adapter's errors and docs name the files it wants, not the solver
-- [ ] Time series come from CSV files declared under a body in `flowreel.yml`
+- [x] Time series come from CSV files declared under a body in `flowreel.yml`
   ([bodies](bodies.md#series)), the documented way for every source; the reading of
   FlexFlow's `.othd` and `.oisd` files stays as it is (Section 23, Data formats; one
   body only, Section 24, q. 4), described as a quick look at a FlexFlow case, not as the

@@ -307,14 +307,16 @@ lift = src.series("force")
 - **Crop** keeps the cells with every node inside the box. It is read through a window:
   only the box's nodes of the asked variables leave the disk ([long
   bodies](long-bodies.md#reading-only-the-window)).
-- **Series:** `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
+- **Series:** a body's time histories come from CSV files declared in `flowreel.yml`
+  ([bodies](bodies.md#series)), for any number of bodies and whatever wrote them. As a
+  quick look at a FlexFlow case with one body, the adapter also reads FlexFlow's own:
+  `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,
   `dy`, `dz`; `probe` is the row in the file, from 0) and `force` from
   `oisd_files/*.oisd` (columns `time`, `fx`, `fy`, `fz`, the total force, not a
-  coefficient). Where restarts repeat a time, the later file wins. These are for a
-  quick look at a case with **one body**: a file holding several groups (`othId` probe
-  sets or `osgId` surfaces, one per body) is refused with a `ValueError` rather than
-  mixed. For such a case, export each group as CSV with FlexFlow Analyzer and declare it
-  under its body ([bodies](bodies.md#series)).
+  coefficient). Where restarts repeat a time, the later file wins. A file holding
+  several groups (`othId` probe sets or `osgId` surfaces, one per body) is refused with
+  a `ValueError` rather than mixed: export each group as CSV with FlexFlow Analyzer and
+  declare it under its body.
 
 - **Zones are found, not assumed.** The adapter reads the zone list of the first file, so
   a case needs no options whatever its zones are called: `src.volume` and `src.bodies()`

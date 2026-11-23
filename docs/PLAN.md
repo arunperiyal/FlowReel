@@ -1581,7 +1581,7 @@ tutorial met; then the rest.
   jobs: the oldest versions FlowReel declares (`vtk`, `pyvista` and the rest at their
   minimums) and the newest; OSMesa from the runner's packages for off-screen drawing,
   ffmpeg from them too; the reference-image tests run, not skipped
-- [ ] Whatever the oldest job finds: fixed, or the minimum raised in `pyproject.toml` and
+- [x] Whatever the oldest job finds: fixed, or the minimum raised in `pyproject.toml` and
   `environment.yml` with the reason in the commit
 - [ ] The README says how the tests run, and where CI runs them
 

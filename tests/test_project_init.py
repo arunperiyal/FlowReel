@@ -78,7 +78,7 @@ def test_project_init_command(tmp_path, monkeypatch):
 def test_project_init_help(capsys):
     from flowreel.cli import main
     assert main(["project", "init", "--help"]) == 0
-    assert "flowreel project init flexflow:bare/BR0SG0U1P0" in capsys.readouterr().out
+    assert "flowreel project init plt:bare/BR0SG0U1P0" in capsys.readouterr().out
 
 
 def test_body_option_names_bodies():

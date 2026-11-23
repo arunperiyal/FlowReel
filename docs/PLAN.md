@@ -1583,7 +1583,7 @@ tutorial met; then the rest.
   ffmpeg from them too; the reference-image tests run, not skipped
 - [x] Whatever the oldest job finds: fixed, or the minimum raised in `pyproject.toml` and
   `environment.yml` with the reason in the commit
-- [ ] The README says how the tests run, and where CI runs them
+- [x] The README says how the tests run, and where CI runs them
 
 **Branch 2: `phase8/checks-doctor`**
 - [ ] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the

@@ -88,3 +88,31 @@ def test_steps_and_frames(tmp_path):
         EditorState.open(tmp_path / "c.yml", "pan", frames=0, steps=[0])
     with pytest.raises(ValueError, match="time step"):
         EditorState.open(tmp_path / "c.yml", "pan", frames=5, steps=[])
+
+
+def test_the_frame_shows_its_step_when_the_steps_of_frames_are_known(tmp_path):
+    s = EditorState.open(tmp_path / "c.yml", "pan", frames=30, steps=[0, 10],
+                         frame_steps=[0] * 10 + [10] * 10)
+    assert s.set_frame(12) and s.step == 10
+    assert not s.set_frame(13) and s.step == 10          # the same step: nothing moves
+    assert s.set_frame(3) and s.step == 0
+    assert s.set_frame(25) and s.step == 10              # past the shot: its last frame's
+    s.set_step(0)                                          # the step slider still moves alone
+    assert s.step == 0 and s.frame == 25
+
+
+def test_without_the_steps_of_frames_the_frame_leaves_the_step(tmp_path):
+    s = EditorState.open(tmp_path / "c.yml", "pan", frames=30, steps=[0, 10])
+    s.set_step(1)
+    assert not s.set_frame(5) and s.step == 10
+
+
+def test_the_frames_with_a_key(tmp_path):
+    s = EditorState.open(tmp_path / "c.yml", "pan", frames=48, steps=[0])
+    assert s.key_frames() == []
+    for frame in (30, 0, 12):
+        s.set_frame(frame)
+        s.save(v(frame))
+    assert s.key_frames() == [0, 12, 30]
+    s.undo()
+    assert s.key_frames() == [0, 30]

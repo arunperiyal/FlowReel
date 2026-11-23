@@ -1645,7 +1645,7 @@ tutorial met; then the rest.
   saved, replaced or undone
 - [x] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
   the *Time step* slider still moves alone
-- [ ] Tests (the editor's state, without a window), the camera editor page
+- [x] Tests (the editor's state, without a window), the camera editor page
 
 **Branch 9: `phase8/tutorial-unsteady`**
 - [ ] A public unsteady data set of vortex shedding whose licence allows it to be shown

@@ -157,3 +157,41 @@ def test_a_perspective_view_is_saved_without_vtks_parallel_scale(window, tmp_pat
     key(window, "s")
     assert window.view().parallel_scale == 1.0
     assert "parallel_scale" not in (tmp_path / "cameras.yml").read_text()
+
+
+def test_ticks_fall_along_the_frame_slider():
+    from flowreel.editor.window import FRAME_A, FRAME_B, tick_positions
+    assert tick_positions([0, 29], 30) == pytest.approx([FRAME_A[0], FRAME_B[0]])
+    assert tick_positions([10], 21) == pytest.approx([(FRAME_A[0] + FRAME_B[0]) / 2])
+    assert tick_positions([0], 1) == []
+
+
+def test_saved_keys_are_marked_on_the_frame_slider(window):
+    assert getattr(window, "_tick_actor", None) is None
+    for frame in (0, 20):
+        window.set_frame(frame)
+        key(window, "s")
+    lines = window._tick_actor.GetMapper().GetInput()
+    assert lines.GetNumberOfLines() == 2
+    key(window, "u")
+    assert window._tick_actor.GetMapper().GetInput().GetNumberOfLines() == 1
+
+
+def test_the_frame_slider_moves_the_step_slider(tmp_path, toy_source):
+    scene = Scene.make(shot(), toy_source, VIEWS, {}, (160, 90))    # one frame a step
+    scenes = ShotScenes(scene)
+    state = EditorState.open(tmp_path / "cameras.yml", "picked", frames=len(scenes.frame_steps),
+                             steps=scenes.steps, frame_steps=scenes.frame_steps)
+    try:
+        w = EditorWindow(state, scenes, size=(320, 180), off_screen=True)
+    except (RuntimeError, OSError) as error:
+        pytest.skip(f"off-screen rendering is not available: {error}")
+    try:
+        last = len(scenes.frame_steps) - 1
+        w.set_frame(last)
+        assert state.step == scenes.frame_steps[last] == 20
+        assert w._step_slider.GetRepresentation().GetValue() == state.step_index
+        w.set_frame(0)
+        assert state.step == 0
+    finally:
+        w.plotter.close()

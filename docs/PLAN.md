@@ -1570,46 +1570,93 @@ each change also updates the tutorial and the reference pages. The list grows as
 come in; it is split into stacked branches by kind of feature (`phase8/<kind>-<topic>`)
 when the work starts.
 
-**Camera editor**
-- [ ] Mark the frames that have a saved key on the Frame slider (ticks or numbers in
-  another colour), so the keys of a track can be seen without playing it
-- [ ] Let the Frame slider move the Time step slider to the step that frame shows
-  (through the shot's `time` keys); the Time step slider stays for looking at other steps
-  while framing a view
+The tasks below were listed as they were asked for (2026-11-22 and 2026-11-23) and split
+into branches on 2026-11-23. Each branch is stacked on the one before it; none needs
+another's code, but each regenerates the reference pages, so they go in this order: the
+checks first, so every later branch is tested on old and new VTK; then the two gaps the
+tutorial met; then the rest.
 
-Added 2026-11-23, suggested after the tutorial rehearsal on airavata (Section 19.8,
-branch 6) and taken up by Arun. Do first: the tests in CI, the tight `fit: domain`, and
-contour lines; the first guards the rest, the other two are gaps the tutorial met.
+**Branch 1: `phase8/ci-tests`**
+- [ ] A workflow that runs `pytest` on every PR and push to main, on Python 3.12, in two
+  jobs: the oldest versions FlowReel declares (`vtk`, `pyvista` and the rest at their
+  minimums) and the newest; OSMesa from the runner's packages for off-screen drawing,
+  ffmpeg from them too; the reference-image tests run, not skipped
+- [ ] Whatever the oldest job finds: fixed, or the minimum raised in `pyproject.toml` and
+  `environment.yml` with the reason in the commit
+- [ ] The README says how the tests run, and where CI runs them
 
-**Checks**
-- [ ] The test suite in CI on every PR, on the oldest VTK and pyvista FlowReel supports
-  and on the newest (VTK 9.7 broke nine tests and three things a user sees, found only by
-  running the suite on airavata by hand); off-screen rendering by OSMesa or EGL on the
-  runner, the golden-frame tests included or skipped with a reason
-- [ ] `flowreel doctor`: the versions of VTK, pyvista and ffmpeg, whether they are ones
-  FlowReel is tested on, the off-screen back ends (`jobs check`), the fonts, and the
-  project if run in one; one report to paste into a question
+**Branch 2: `phase8/checks-doctor`**
+- [ ] The versions CI tests (oldest and newest VTK and pyvista) kept in one place in the
+  code, read by the doctor and by the CI workflow's test that the two agree
+- [ ] `flowreel doctor`: Python, FlowReel, VTK, pyvista, matplotlib, ffmpeg (version and
+  filters), each said tested or not; the off-screen back ends (`jobs check`); the
+  bundled fonts; and, inside a project, its root and what `project info` says; exit
+  status 1 when something FlowReel needs is missing
+- [ ] Help, docs (commands page, a line in the install chapter of the tutorial), the
+  reference regenerated
 
-**Shots**
-- [ ] `camera: {fit: domain}` (and `fit: crop`) frames the box to the shot's own picture
-  shape, as `project init`'s first view does (`fit(..., aspect=)`), instead of its
-  bounding sphere; existing shots change, so their golden frames are redrawn on purpose
-- [ ] A contour-line layer: lines of a field at given levels on a slice, coloured or
-  plain, with labels optional; the tutorial then shows the pressure on its shot as well
-  as in the panel
-- [ ] Streamlines in shots, seeded on a line, a plane or round a body, as tubes or lines
-  coloured by a field; for a moving body, relative to it as the section panel's are
-- [ ] Reference values in `flowreel.yml` (density, free-stream speed, a length), given
-  once, so the pressure coefficient, the Strouhal number and lengths in diameters work
-  in every shot and panel without their own `params`; a key given in a layer still
-  wins
+**Branch 3: `phase8/shots-fit`**
+- [ ] `camera: {fit: ...}` fits the box to the shot's picture (`fit(..., aspect=)`), the
+  shot's size passed to the camera; a new key `shape: picture` (default) or `sphere`
+  (the old fit, safe for any turn of the camera)
+- [ ] The test shots taken from the prototype (their golden frames are the prototype's own
+  pictures, framed by the sphere) say `shape: sphere`; the other tests' expectations
+  updated
+- [ ] Docs (cameras page, the YAML reference) and the shot template
 
-**Workflow**
-- [ ] `film build --watch`: build again when the film file, a card, a text file or a
-  frame folder changes, until stopped; only the clips that changed are made again
-- [ ] A second tutorial on unsteady data (a public vortex-shedding case, licence
-  checked as for `cylinder_crossflow`): time tracks, a freeze on a moving flow, and a
-  render of many steps as a Slurm job array
+**Branch 4: `phase8/layers-contour`**
+- [ ] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a
+  slice (`normal`, `position`, as the slice layer), in one `colour` or coloured by the
+  field with a `colormap`, `width` in pixels; levels and range may be tracks
+- [ ] Tests on generated data: the lines lie on the slice at the asked values, and a
+  frame draws them
+- [ ] Docs (flow layers page, the YAML reference, the shot template), an example, and a
+  "Try" in chapter 6 of the tutorial: the pressure's contour lines over the sweep shot
+
+**Branch 5: `phase8/layers-streamlines`**
+- [ ] A `streamlines` layer: seeds on a `line` (two points and a count), a `plane` (a
+  rectangle and counts) or `round` a body (a ring at a station); traced in the frame's
+  velocity both ways to a length; drawn as `lines` or `tubes`, in one colour or coloured
+  by a field
+- [ ] `relative: true`: traced in the velocity relative to a moving body, as the section
+  panel's streamlines are
+- [ ] Tests on generated data (a uniform flow gives straight lines along it; a vortex
+  gives closed loops), docs, the YAML reference, the template and an example
+
+**Branch 6: `phase8/project-reference`**
+- [ ] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
+  read with the project; an unknown key is an error, as everywhere
+- [ ] Layers and panels that take `params: {rho, u_inf}` use the project's values when
+  they give none (a value given in the shot still wins); `length` scales lengths shown
+  in diameters (the axes layer's ticks, a panel's axes)
+- [ ] Docs (the project page, the fields page, the YAML reference), the rules page if it
+  makes a new rule, and an example
+
+**Branch 7: `phase8/film-watch`**
+- [ ] `film build --watch`: build, then build again each time the film file, a card, a
+  text file or a frame folder it uses changes (polled, no new dependency), until
+  Ctrl-C; a build that fails says why and waits for the next change
+- [ ] Tests (a change to a caption builds again, only that shot's clip is made), help,
+  the build page and the reference
+
+**Branch 8: `phase8/editor-slider`**
+- [ ] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
+  saved, replaced or undone
+- [ ] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
+  the *Time step* slider still moves alone
+- [ ] Tests (the editor's state, without a window), the camera editor page
+
+**Branch 9: `phase8/tutorial-unsteady`**
+- [ ] A public unsteady data set of vortex shedding whose licence allows it to be shown
+  (as `cylinder_crossflow`'s does); if none is found, ask Arun before using generated
+  data instead
+- [ ] A second tutorial, its own pages under `docs/tutorial/`: time tracks, a freeze on a
+  moving flow, and a render of many steps as a Slurm job array; its data script and
+  its project under `examples/`, tested by following it as the first one is
+
+Branches are stacked in the order above. Branches 4 to 8 do not use each other's code;
+they could be done by agents in parallel, but each one regenerates the reference pages,
+so they are done one after another.
 
 **Phase 8 is done when** every task listed here is done and Arun closes the list.
 

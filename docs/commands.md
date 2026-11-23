@@ -587,6 +587,47 @@ One job is described in words: why it waits (Slurm's reason, such as `Dependency
 the jobs it runs `--after`), how long it has run, or how it ended. An array of tasks is
 counted by state, such as `RUNNING 4, PENDING 12`.
 
+## `doctor`
+
+```text
+flowreel doctor [--no-draw] [--timeout S]
+```
+
+One report of what FlowReel runs on, to read when something looks wrong, or to send
+with a question:
+
+```text
+$ flowreel doctor
+FlowReel:
+   flowreel    0.0.1 at /home/you/FlowReel/src/flowreel
+   python      3.12.12 at /home/you/miniconda3/envs/flexflow_env/bin/python
+packages:
+   numpy       2.4.2 (needs 1.26 or newer)
+   pyvista     0.49.2, tested (0.44 to 0.49)
+ ? vtk         9.8.0, newer than tested (9.3 to 9.7): untested, may draw differently
+   ...
+ffmpeg:
+   ffmpeg      8.0.1 at /home/you/miniconda3/envs/flexflow_env/bin/ffmpeg, with the encoder and filters FlowReel uses
+off-screen drawing:
+   osmesa      not installed
+   egl         works in 1.2 s
+   used        egl: works
+fonts:
+   Lato        the copy bundled with FlowReel, at /home/you/FlowReel/src/flowreel/fonts
+project:
+   folder      /home/you/films/cylinder
+   shots       2
+   film        film.yml: 5 shots, 20.0 s planned
+everything FlowReel needs is here
+```
+
+Each package is checked against the minimum FlowReel declares. VTK and pyvista, which
+decide what a frame looks like, are also checked against the oldest and newest versions
+the tests run on in CI: a newer one works as far as anyone knows, but has not been
+tested (`?`). A package older than the minimum, no ffmpeg FlowReel can use, or no back
+end that draws (`!`) stops a film, and the exit status is 1. The drawing is the test of
+[`jobs check`](#jobs-partitions-jobs-check-jobs-status); `--no-draw` leaves it out.
+
 ## Errors and exit status
 
 A problem in a shot, layout, panel or film file is reported with the file and key path, and the nearest valid

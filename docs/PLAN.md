@@ -1592,7 +1592,7 @@ tutorial met; then the rest.
   filters), each said tested or not; the off-screen back ends (`jobs check`); the
   bundled fonts; and, inside a project, its root and what `project info` says; exit
   status 1 when something FlowReel needs is missing
-- [ ] Help, docs (commands page, a line in the install chapter of the tutorial), the
+- [x] Help, docs (commands page, a line in the install chapter of the tutorial), the
   reference regenerated
 
 **Branch 3: `phase8/shots-fit`**

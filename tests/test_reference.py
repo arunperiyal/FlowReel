@@ -40,7 +40,7 @@ def test_every_command_is_on_the_page(reference):
     text = (ROOT / "docs" / "reference" / "commands.md").read_text()
     for name, _, helps in reference.command_groups():
         for action, _ in helps:
-            assert f"### `flowreel {name} {action}`" in text
+            assert f"### `{f'flowreel {name} {action}'.rstrip()}`" in text
 
 
 def test_a_key_is_found_by_its_row(reference):

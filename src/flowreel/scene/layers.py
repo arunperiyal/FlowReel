@@ -75,12 +75,15 @@ class FrameData:
     ``body(name)`` gives a wall surface (``None`` for all of them), read once per frame.
     ``need(*fields)`` adds derived fields to ``flow`` the first time they are asked for.
     ``cached(key, build)`` returns a surface from the renderer's cache, or builds it.
+    ``fields`` are the arrays read from the source (default ``FLOW_FIELDS``; a scene
+    gives :func:`flow_fields`, with ``p`` when a layer's field needs the pressure).
     """
 
     FLOW_FIELDS = ("U", "V", "W")
 
-    def __init__(self, source, step: int, flow=None, crop=None, cache=None):
+    def __init__(self, source, step: int, flow=None, crop=None, cache=None, fields=None):
         self.source, self.step, self.crop, self.cache = source, step, crop, cache
+        self.fields = tuple(fields or self.FLOW_FIELDS)
         self._flow = flow
         self._bodies: dict = {}
 
@@ -88,7 +91,7 @@ class FrameData:
     def flow(self):
         """The flow volume of this step, read on first use."""
         if self._flow is None:
-            self._flow = self.source.flow(self.step, list(self.FLOW_FIELDS), self.crop)
+            self._flow = self.source.flow(self.step, list(self.fields), self.crop)
         return self._flow
 
     @property
@@ -122,6 +125,25 @@ class FrameData:
         missing = [n for n in names if n not in self.flow.point_data]
         for name, value in fields.compute(self.flow, missing).items():
             self.flow.point_data[name] = value
+
+
+def flow_fields(source, layers) -> tuple[str, ...]:
+    """The arrays to read from ``source`` for ``layers``: the velocity always, ``p``
+    when a layer's ``field`` or ``colour_by`` needs the pressure and the source has it,
+    and any it names that the source provides itself. A name that is neither (an array
+    on a body's own surface) is left to its layer. A source without ``fields()`` is
+    read for the velocity alone, as every frame was before."""
+    from flowreel.fields.registry import available, resolve
+    lister = getattr(source, "fields", None)
+    provided = set(lister()) if callable(lister) else set(FrameData.FLOW_FIELDS)
+    names = [n for layer in layers for key in ("field", "colour_by")
+             if isinstance(n := layer.raw.get(key), str)]
+    out = list(FrameData.FLOW_FIELDS)
+    derived = [n for n in names if n not in provided and n in available()]
+    if derived and "pressure" in resolve(derived) and "p" in provided:
+        out.append("p")
+    out += [n for n in names if n in provided and n not in out]
+    return tuple(out)
 
 
 class Layer:

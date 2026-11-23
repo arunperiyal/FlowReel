@@ -63,7 +63,8 @@ def test_wall_shear_and_its_zero_line(folder):
     assert np.abs(s["values"][inner] - exact[inner]).max() < 0.01 * MU * case.SHEAR
     kind.build(Figure())
     kind.update(1.5, 3)
-    seg = np.concatenate(kind.zero_line.allsegs[0])
+    # matplotlib 3.8.0 gives the level's points, later versions a list of segments
+    seg = np.concatenate([np.asarray(s).reshape(-1, 2) for s in kind.zero_line.allsegs[0]])
     inside = (seg[:, 0] > 0.6) & (seg[:, 0] < case.SPAN - 0.6)
     assert np.abs(seg[inside, 1]).max() < 1e-3                   # along z = 0
 

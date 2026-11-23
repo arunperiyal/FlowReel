@@ -25,10 +25,11 @@ from dataclasses import dataclass, field
 from importlib import metadata
 from pathlib import Path
 
-#: The oldest and newest versions (major.minor) the test suite runs on in CI. The oldest
-#: are FlowReel's declared minimums (tests/test_doctor.py checks); the newest is raised
-#: when CI's newest job passes on a new release.
-TESTED = {"vtk": ("9.3", "9.7"), "pyvista": ("0.44", "0.49")}
+#: The oldest and newest versions (major.minor) the test suite runs on in CI, of the
+#: packages that decide what a frame or a caption looks like. The oldest are FlowReel's
+#: declared minimums (tests/test_doctor.py checks); the newest is raised when CI's newest
+#: job passes on a new release (matplotlib is held below 3.11: PLAN Section 24, q. 9).
+TESTED = {"vtk": ("9.5", "9.7"), "pyvista": ("0.47", "0.49"), "matplotlib": ("3.8", "3.10")}
 
 @dataclass
 class Line:

@@ -3,8 +3,9 @@
 # and at the newest. A new VTK or pyvista breaks something the day it is released, not
 # when a user meets it (VTK 9.7 broke nine tests, found by hand on airavata).
 #
-# The frames are drawn under Xvfb: VTK's wheels before 9.4 draw off screen only through
-# X, so one way serves both jobs. ffmpeg comes from the runner's packages.
+# Frames are drawn off screen with Mesa (OSMesa or EGL on the CPU), as on a cluster node;
+# Xvfb gives the tests that open a window a display. ffmpeg comes from the runner's
+# packages.
 name: tests
 
 on:
@@ -42,7 +43,8 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q --no-install-recommends ffmpeg xvfb \
-              libgl1 libglx-mesa0 libgl1-mesa-dri libxrender1 libxcursor1 libxft2 libxinerama1
+              libgl1 libglx-mesa0 libgl1-mesa-dri libosmesa6 libegl1 libegl-mesa0 \
+              libxrender1 libxcursor1 libxft2 libxinerama1
       - name: FlowReel and its dependencies (${{ matrix.versions }})
         run: |
           pip install -q uv

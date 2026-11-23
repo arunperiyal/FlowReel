@@ -1626,9 +1626,10 @@ tutorial met; then the rest.
 **Branch 6: `phase8/project-reference`**
 - [x] `reference: {rho, u_inf, length}` in `flowreel.yml`, each optional and positive,
   read with the project; an unknown key is an error, as everywhere
-- [ ] Layers and panels that take `params: {rho, u_inf}` use the project's values when
-  they give none (a value given in the shot still wins); `length` scales lengths shown
-  in diameters (the axes layer's ticks, a panel's axes)
+- [x] Layers and panels that take `params: {rho, u_inf}` use the project's values when
+  they give none (a value given in the panel still wins; a shot's layer has no
+  `params`); `length` is the unit of the axes layer's `unit: diameters` when it names no
+  body (panels show no lengths in diameters)
 - [ ] Docs (the project page, the fields page, the YAML reference), the rules page if it
   makes a new rule, and an example
 

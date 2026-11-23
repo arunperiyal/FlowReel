@@ -118,6 +118,9 @@ def frame_key(scene, index: int) -> str:
     if watermark is not None:          # left out when absent, so older keys still hold
         from flowreel.film.watermark import key_fields
         parts["watermark"] = key_fields(watermark)
+    reference = getattr(scene, "reference", None)
+    if reference:                      # the project's reference values, likewise
+        parts["reference"] = dict(sorted(reference.items()))
     return digest(parts)
 
 

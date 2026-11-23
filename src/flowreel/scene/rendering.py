@@ -125,6 +125,7 @@ class Scene:
     size: tuple[int, int]
     cache: SurfaceCache | None = None
     fields: tuple[str, ...] | None = None    # read from the source: layers.flow_fields
+    reference: dict | None = None            # the project's reference values
 
     @classmethod
     def make(cls, shot, source=None, views=None, tracks=None, size=None,
@@ -141,8 +142,9 @@ class Scene:
         from flowreel.project.names import bodies_key, declare, DeclaredSource
         shot = _as_shot(shot)
         source = source if source is not None else open_source(shot)
+        project = project_for(shot.file)
         if not isinstance(source, DeclaredSource):
-            source = declare(source, project_for(shot.file))
+            source = declare(source, project)
         fp = plan(shot, source)
         bind_series(shot, source, fp)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
@@ -151,7 +153,7 @@ class Scene:
         surfaces = SurfaceCache(cache, key_source) if cache is not None and fp.frozen else None
         from flowreel.scene.layers import flow_fields
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces,
-                   flow_fields(source, shot.layers))
+                   flow_fields(source, shot.layers), project.reference if project else {})
 
     @property
     def pixel_scale(self) -> float:
@@ -185,7 +187,7 @@ class Scene:
     def data(self, index: int) -> FrameData:
         """The data of frame ``index`` (flow read on first use)."""
         return FrameData(self.source, self.plan.time.step(index), crop=self.crop(index),
-                         cache=self.cache, fields=self.fields)
+                         cache=self.cache, fields=self.fields, reference=self.reference)
 
     def draw(self, index: int) -> np.ndarray:
         """Draw frame ``index``: ``(height, width, 3)`` uint8."""
@@ -223,7 +225,7 @@ class Scene:
         if data is None:
             data = (self.data(index) if step == self.plan.time.step(index) else
                     FrameData(self.source, step, crop=self.crop(index), cache=self.cache,
-                              fields=self.fields))
+                              fields=self.fields, reference=self.reference))
         from flowreel.scene.drawn import drawing
         with drawing(plotter.renderer, shot.stretch.scale if shot.stretch else None):
             for layer, values in zip(shot.layers, self.values(index)):

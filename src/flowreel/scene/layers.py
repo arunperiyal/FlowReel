@@ -77,13 +77,17 @@ class FrameData:
     ``cached(key, build)`` returns a surface from the renderer's cache, or builds it.
     ``fields`` are the arrays read from the source (default ``FLOW_FIELDS``; a scene
     gives :func:`flow_fields`, with ``p`` when a layer's field needs the pressure).
+    ``reference`` holds the project's reference values (``flowreel.yml``), which derived
+    fields take as parameters (``rho``, ``u_inf``).
     """
 
     FLOW_FIELDS = ("U", "V", "W")
 
-    def __init__(self, source, step: int, flow=None, crop=None, cache=None, fields=None):
+    def __init__(self, source, step: int, flow=None, crop=None, cache=None, fields=None,
+                 reference=None):
         self.source, self.step, self.crop, self.cache = source, step, crop, cache
         self.fields = tuple(fields or self.FLOW_FIELDS)
+        self.reference = dict(reference or {})
         self._flow = flow
         self._bodies: dict = {}
 
@@ -120,10 +124,15 @@ class FrameData:
         return self._bodies[name]
 
     def need(self, *names: str) -> None:
-        """Make sure ``flow`` carries the fields ``names`` (computed from U, V, W, p)."""
+        """Make sure ``flow`` carries the fields ``names`` (computed from U, V, W, p, with
+        the reference values the fields take)."""
         from flowreel import fields
+        from flowreel.fields.registry import accepted
         missing = [n for n in names if n not in self.flow.point_data]
-        for name, value in fields.compute(self.flow, missing).items():
+        if not missing:
+            return
+        params = {k: v for k, v in self.reference.items() if k in accepted(missing)}
+        for name, value in fields.compute(self.flow, missing, **params).items():
             self.flow.point_data[name] = value
 
 

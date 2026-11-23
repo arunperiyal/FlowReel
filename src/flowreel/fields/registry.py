@@ -107,6 +107,12 @@ def resolve(names) -> list[str]:
     return order
 
 
+def accepted(names) -> set[str]:
+    """The parameters the fields ``names`` (and what they need) take."""
+    names = [names] if isinstance(names, str) else list(names)
+    return {p for f in (describe(n) for n in resolve(names)) for p in f.params}
+
+
 def compute(grid, names, **params) -> dict[str, Any]:
     """Compute the fields ``names`` on ``grid``.
 

@@ -99,6 +99,12 @@ def open_panel_source(panel, value, check: Checker):
     return declare(source, project), source_id(holder), project
 
 
+def available_fields() -> set[str]:
+    """The names of the derived fields (a source's own arrays take no parameters)."""
+    from flowreel.fields.registry import available
+    return set(available())
+
+
 class FlowPanel(PanelType):
     """The keys every flow panel has: where the flow is, the body, the field and its
     colours. Subclasses add their own and draw."""
@@ -125,7 +131,12 @@ class FlowPanel(PanelType):
         params = options.get("params") or {}
         if not isinstance(params, dict):
             raise check.at("params").error(f"expected a mapping of numbers, got {params!r}")
-        self.params = {k: check.at("params", k).number(v) for k, v in params.items()}
+        given = {k: check.at("params", k).number(v) for k, v in params.items()}
+        # the project's reference values the field takes; the panel's own win
+        from flowreel.fields.registry import accepted
+        reference = self.project.reference if self.project is not None else {}
+        wanted = accepted([self.field]) if self.field in available_fields() else set()
+        self.params = {**{k: v for k, v in reference.items() if k in wanted}, **given}
         if options.get("range") is None:
             raise check.error("missing key 'range' ([low, high] of the colour map; a range "
                               "taken from each frame's data would change from frame to frame)")

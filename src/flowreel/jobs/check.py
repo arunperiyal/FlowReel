@@ -24,9 +24,15 @@ from flowreel.scene import backend as backend_mod
 #: Seconds a backend may take before it counts as hung.
 TIMEOUT = 60.0
 
-#: Drawn in the child process; ``argv[1]`` is the window class it must get.
+#: Starts the child's own reason for failing, to tell it from VTK's log lines, which
+#: may be printed after it (VTK 9.7 warns about OSMesa as the process ends).
+MARK = "flowreel-check: "
+
+#: Drawn in the child process; ``argv[1]`` is the window class it must get, ``argv[2]``
+#: the :data:`MARK` its reason for failing starts with.
 SCRIPT = """
 import sys
+MARK = sys.argv[2]
 import numpy as np
 import pyvista as pv
 plotter = pv.Plotter(off_screen=True, window_size=(64, 64))
@@ -36,9 +42,9 @@ image = plotter.screenshot(return_img=True)
 name = type(plotter.ren_win).__name__
 plotter.close()
 if name != sys.argv[1]:
-    raise SystemExit(f"VTK made a {name}, not a {sys.argv[1]}")
+    raise SystemExit(f"{MARK}VTK made a {name}, not a {sys.argv[1]}")
 if not np.asarray(image).any():
-    raise SystemExit("the picture is blank")
+    raise SystemExit(f"{MARK}the picture is blank")
 """
 
 
@@ -109,7 +115,7 @@ def try_backend(backend: str, timeout: float = TIMEOUT,
     want = backend_mod.WINDOW_CLASS[backend]
     start = time.perf_counter()
     try:
-        done = subprocess.run([sys.executable, "-c", SCRIPT, want], env=env,
+        done = subprocess.run([sys.executable, "-c", SCRIPT, want, MARK], env=env,
                               capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return BackendResult(backend, "fails", time.perf_counter() - start,
@@ -132,6 +138,10 @@ def check(backend: str = "auto", timeout: float = TIMEOUT,
 
 
 def _last_line(done: subprocess.CompletedProcess) -> str:
+    for stream in (done.stderr, done.stdout):
+        for line in reversed((stream or "").splitlines()):
+            if line.startswith(MARK):
+                return line[len(MARK):].strip()
     for stream in (done.stderr, done.stdout):
         lines = [line.strip() for line in (stream or "").splitlines() if line.strip()]
         if lines:

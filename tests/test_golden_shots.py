@@ -8,6 +8,7 @@ limits are those of the reveal's golden test: anti-aliasing, float round-off and
 OpenGL driver move a few grey levels on a few edge pixels. Each shot also renders a
 frame near the golden one, which must fail the same limits, or the check proves nothing.
 """
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -32,7 +33,12 @@ def rendered(tmp_path_factory):
     sh = Shell(out / "store")
     pictures = {}
     for name, (shot, frame, near) in SHOTS.items():
-        status, _, err = sh.run(f"shot render {shot} --frames {frame},{near} -j 2 -o {out}")
+        # A copy, made a project, so the render's caches stay out of tests/data.
+        folder = shutil.copytree(shot.parent, out / "projects" / name)
+        if not (folder / "flowreel.yml").exists():
+            (folder / "flowreel.yml").write_text("")
+        status, _, err = sh.run(f"shot render {folder / shot.name} --frames {frame},{near} "
+                                f"-j 2 -o {out}")
         if status and ("OpenGL" in err or "display" in err.lower()):
             pytest.skip(f"off-screen rendering is not available: {err}")
         assert status == 0, err

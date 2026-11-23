@@ -97,8 +97,8 @@ def _run_args(parser):
                         help="off-screen OpenGL: auto (OSMesa, else EGL), osmesa, egl or x")
     parser.add_argument("--no-memory-check", dest="check_memory", action="store_false",
                         help="draw even if the jobs look too big for the free memory")
-    parser.add_argument("-o", "--out", default="frames", metavar="DIR",
-                        help="folder of the frame folders (default ./frames)")
+    parser.add_argument("-o", "--out", metavar="DIR",
+                        help="folder of the frame folders (default frames/ at the project root)")
 
 
 class ShotCommand(BaseCommand):
@@ -155,9 +155,9 @@ class ShotCommand(BaseCommand):
                        help="threads per job; caps the suggested jobs at cores / T")
         m.add_argument("--backend", choices=BACKENDS, default="auto",
                        help="off-screen OpenGL: auto, osmesa, egl or x")
-        m.add_argument("-o", "--out", default="frames", metavar="DIR",
-                       help="folder of the frame folders, where the measurement is kept for "
-                            "sizing Slurm jobs (default ./frames)")
+        m.add_argument("-o", "--out", metavar="DIR",
+                       help="folder of the frame folders, whose measurement sizes Slurm "
+                            "jobs (default frames/ at the project root)")
 
         t = _parser(
             actions, "template", help="write a commented shot file with the defaults",
@@ -175,6 +175,11 @@ class ShotCommand(BaseCommand):
         if not args.shot_cmd:
             ctx.error("give an action: flowreel shot --help")
             return 2
+        if args.shot_cmd != "template":
+            from flowreel.cli.project import project_root
+            root = project_root(ctx, getattr(args, "shot", None))
+            if getattr(args, "out", None) is None:
+                args.out = str(root / "frames")
         try:
             return getattr(self, "do_" + args.shot_cmd)(args, ctx)
         except ConfigError as exc:

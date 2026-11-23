@@ -50,6 +50,7 @@ from pathlib import Path
 from flowreel.film import ffmpeg as ff
 from flowreel.film.anchors import anchored
 from flowreel.film.timeline import EPS
+from flowreel.project.paths import output
 from flowreel.scene.keys import digest
 from flowreel.scene.rendering import FRAME_NAME
 
@@ -125,7 +126,7 @@ class Clips:
         from flowreel.film.timeline import timeline
         if self.line is None:
             self.line = timeline(self.film)
-        self.folder = Path(self.folder) if self.folder is not None else self.film.folder / "clips"
+        self.folder = Path(self.folder) if self.folder is not None else output(self.film.folder, "clips")
         self.folder.mkdir(parents=True, exist_ok=True)
         self._base: dict[str, Clip] = {}
         self._layouts: dict[str, object] = {}

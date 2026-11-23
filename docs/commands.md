@@ -15,7 +15,8 @@ The commands are a thin layer over library functions (`flowreel.scene.render`,
 `flowreel.film.check.contact`), so everything here can also be done from Python;
 [rendering](rendering.md), [layouts](layouts.md), [panels](panels.md) and
 [building the film](build.md) explain what those do. Runnable examples that need no
-data are `examples/shot_commands/run.sh`, `examples/compose_commands/run.sh` and
+data are `examples/project/run.sh` (a [project](project.md) made, used, looked at and
+cleaned), `examples/shot_commands/run.sh`, `examples/compose_commands/run.sh` and
 `examples/film_commands/run.sh` (that one needs ffmpeg). The
 command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 
@@ -29,11 +30,16 @@ command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 `use shot:carve.yml` sets the shot; commands that take a shot then use it when you leave
 it out, and print `Using shot: ...`. `unuse shot` clears it.
 
-`use project:~/films/afms` sets the project: a folder holding `flowreel.yml` or
-`film.yml`. The `film` commands then use its `film.yml` when no film file is given, from
-any folder; without a project they use `./film.yml`. How a project folder is made and
-laid out is still open (plan Section 24, question 6); for now the context only finds
-the film file.
+`use project:~/films/afms` sets the project: a folder holding `flowreel.yml`
+([projects](project.md)). The `film` commands then use its `film.yml` when no film file
+is given, from any folder; without a project they use `./film.yml`.
+
+Every command except `project init`, the `template` commands and `jobs` works inside a
+project. It finds the project by walking up from the file it is given (or the shell's
+project, or the current folder) and stops outside one with an error saying how to make
+one. Output goes under the project root wherever the command runs: frames to
+`frames/`, clips to `clips/`, caches and measured timings to `.flowreel/`. `-o` still
+overrides.
 
 `use view:main` sets a view of `cameras.yml`; `camera project` then uses it when neither
 `--view` nor `--track` is given. `help`, `help shot`, and
@@ -67,7 +73,7 @@ change since they were drawn are skipped (see [rendering](rendering.md#frame-key
 | `--threads T` | `min(4, cores / N)` | threads per job |
 | `--backend B` | `auto` | `auto` (OSMesa, else EGL), `osmesa`, `egl` or `x` |
 | `--no-memory-check` | off | draw even if the jobs look too big for the free memory ([long bodies](long-bodies.md#memory)) |
-| `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
+| `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
 
 Drafts go to `DIR/<shot>@<W>x<H>/` and never mix with the full-size frames. Each frame is
 reported as it finishes, then a summary:
@@ -138,8 +144,8 @@ once `source` and `camera` name real things.
 
 ## Camera commands
 
-Every camera command reads and writes one `cameras.yml`: `-c FILE`, else the one beside
-the shot when a shot is given (or set with `use shot:FILE`), else `./cameras.yml`. Files
+Every camera command reads and writes one `cameras.yml`: `-c FILE`, else the project's,
+at its root ([projects](project.md)). Files
 are written by [`update_cameras`](cameras.md#writing-camerasyml): other views and tracks
 are kept, the old file is left as `cameras.yml.bak`, and comments are not kept.
 
@@ -256,7 +262,7 @@ flowreel camera preview TRACK [SHOT] [--vtp DIR] [--every N] [--scale S] [-o DIR
 Draws every `N`th frame of a track (and its last) small, over one scene: the shot's first
 step, or saved surfaces (`--vtp`). Nothing else changes between the frames, so it shows
 the camera move in a second or two, without rendering the shot. Frames go to
-`DIR/<track>@preview/` (default `frames/`); `--scale` is of the shot's size (default
+`DIR/<track>@preview/` (default `frames/` at the project root); `--scale` is of the shot's size (default
 `0.25`; 1920x1080 with `--vtp` and no shot).
 
 See `examples/camera_commands/run.sh`, which runs each of these on generated data.
@@ -282,7 +288,7 @@ scaled.
 | `--size W H` | | a draft at W x H pixels |
 | `--force` | off | compose again, and render and draw the tiles again |
 | `-j N`, `--jobs N` | `1` | processes for the stations' renders and the panels' frames |
-| `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
+| `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
 
 ```text
 $ flowreel compose layout compare.yml --scale 0.5
@@ -311,7 +317,7 @@ process, which builds the figure once and moves it along in time.
 | `--frames SPEC` | every frame | frames, as for `shot render` |
 | `--force` | off | draw every frame again |
 | `-j N`, `--jobs N` | `1` | processes, one run of frames each |
-| `-o DIR`, `--out DIR` | `frames` | folder of the frame folders |
+| `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
 
 ```text
 $ flowreel compose panel lift.yml -j 4
@@ -340,7 +346,7 @@ shot's planned and measured length and whether its clip was built or kept.
 | `--force` | off | build every clip again, even when its key did not change |
 | `--preview HEIGHT` | none | also write `film_<HEIGHT>p.mp4`, scaled to HEIGHT pixels (even, at most the film's) |
 | `--crf N` | `28` | quality of the preview copy, 0 to 51, lower is better and larger; needs `--preview` |
-| `--clips DIR` | `clips/` beside the film file | folder of the clips |
+| `--clips DIR` | `clips/` at the project root | folder of the clips |
 | `-j N`, `--jobs N` | `1` | processes drawing a layout's `rate: output` panels |
 
 ```text
@@ -440,27 +446,67 @@ commented out.
 ## `project init`
 
 ```text
-flowreel project init SOURCE [--body FILE] [--step N] [-o DIR] [--force]
+flowreel project init [SOURCE] [--body FILE] [--step N] [--link PATH] [-o DIR] [--force]
 ```
 
-Writes `DIR/flowreel.yml` with one body per surface zone of `SOURCE`, each under its
-zone's name. A zone at least 3 times longer in one direction than across becomes a beam
-body, with its `axis` and `diameter` measured from the surface; other zones get neither. The supports
-and series are written commented out, to fill in: the files do not say how a body is
-held, and a guess would be drawn as if it were known. See [bodies](bodies.md).
+Makes the project folder `DIR` ([projects](project.md)): `shots/`, `text/`, `cards/`,
+`assets/` and `data/`; `film.yml` (from `film template`) and `cameras.yml` (one view
+`main` of the whole domain) at the root, kept if they exist; a `.gitignore` for
+`frames/`, `clips/`, `.flowreel/` and `data/`; and `flowreel.yml` with one body per
+surface zone of `SOURCE`, each under its zone's name. A zone at least 3 times longer in
+one direction than across becomes a beam body, with its `axis` and `diameter` measured
+from the surface; other zones get neither. The supports and series are written
+commented out, to fill in: the files do not say how a body is held, and a guess would
+be drawn as if it were known. See [bodies](bodies.md). Without `SOURCE`, `flowreel.yml`
+has only comments.
 
 | Option | Default | Meaning |
 |---|---|---|
-| `SOURCE` | | `adapter:location`: `flexflow:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
+| `SOURCE` | none | `adapter:location`: `flexflow:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
 | `--body FILE` | none | body file or pattern, for a source that reads it separately (`vtk`) |
 | `--step N` | the first | step whose surfaces are measured |
+| `--link PATH` | none | a symbolic link `DIR/data/<name of PATH>` to the data, made before `SOURCE` is read; data is never copied |
 | `-o DIR`, `--out DIR` | `.` | project folder |
-| `--force` | off | overwrite an existing `flowreel.yml` |
+| `--force` | off | overwrite an existing `flowreel.yml` and replace a data link; `film.yml` and `cameras.yml` are kept |
 
 ```text
 $ flowreel project init geometry:grooved_cylinder -o carve
+made carve: shots/ text/ cards/ assets/ data/
+wrote carve/film.yml, carve/cameras.yml, carve/.gitignore
 wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
 ```
+
+## `project info`
+
+```text
+flowreel project info [DIR]
+```
+
+Prints what the project holds: its data links, the sources its shots read, the bodies
+of `flowreel.yml`, every shot file with the frames drawn for it, the views and tracks of
+`cameras.yml`, the film's shots and planned length, and the size of `frames/`, `clips/`
+and `.flowreel/`. A file that does not load is listed with its error. Nothing is
+changed. `DIR` is any folder in the project (default: the shell's project, else the
+current folder).
+
+## `project clean`
+
+```text
+flowreel project clean [DIR] [--cache] [--frames] [--clips] [--dry-run]
+```
+
+Removes generated output: `--cache` (`.flowreel/cache/`, the default when none is
+named), `--frames` (`frames/`) and `--clips` (`clips/`), and prints the size of each.
+Files written by hand, the data, and the measured frame costs and job records in
+`.flowreel/` are never removed; they are small and size the next Slurm job. A folder
+that is a symbolic link is skipped, since what it points to may be shared.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--cache` | on when none is named | the surface cache |
+| `--frames` | off | every frame folder |
+| `--clips` | off | the finished clips |
+| `--dry-run` | off | say what would be removed, remove nothing |
 
 ## Slurm options
 
@@ -524,7 +570,7 @@ flowreel jobs status [JOBID ...] [--all]
   and says which work; it exits 1 when the one renders would use does not. Every job
   script runs it first, so a node without OpenGL fails in seconds.
 - **`status`** gives Slurm's state of the jobs submitted from this folder (the last ten,
-  or `--all`; noted in `.flowreel/jobs.json`) or of the jobs given: `squeue` for those
+  or `--all`; noted in `.flowreel/jobs.json` at the project root) or of the jobs given: `squeue` for those
   queued or running, `sacct` for the rest. For a render it counts the frames drawn since
   it was submitted.
 

@@ -117,8 +117,10 @@ echo "done $(date)"
 A render becomes a job array, sized from what one frame of the shot costs.
 
 **Measured, not guessed.** Every render that draws frames keeps the largest peak memory
-and the middle time of its frames in `.measured.json` in the shot's frame folder
-(`frames/reveal/`; a draft has its own, since it costs less), and `shot memory SHOT -o
+and the middle time of its frames, one record per frame folder (`frames/reveal/`; a
+draft has its own, since it costs less), kept at the project root in
+`.flowreel/measured/frames/reveal.json` (outside a project, `.measured.json` in the
+frame folder), and `shot memory SHOT -o
 OUT` keeps the frame it draws. So the next render, on any machine that shares the
 folder, is sized from the last one. A shot with no measurement yet gets a small first
 job: it measures one frame on the node (4 cores, 16 GB, 30 minutes), then plans and

@@ -171,6 +171,7 @@ def test_film_check_warns(tmp_path, monkeypatch):
     drawn_frames(tmp_path / "f", 6)
     caption = {**DOT, "lines": ["Look here"], "at": [0.0, 0.75], "place": {"model": [-5.5, 0, 0]}}
     film_file(tmp_path, [{"name": "a", "frames": "f", "rate": {"fps": 8}, "text": [caption]}])
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
     monkeypatch.chdir(tmp_path)
     status, out, err = Shell(tmp_path / "store").run("film check --at every:0.5 --width 80")
     assert status == 0, err
@@ -256,12 +257,15 @@ def test_named_cameras_come_from_the_project_root(tmp_path):
     (tmp_path / PROJECT_FILE).write_text("source: toy:none\n")
     (tmp_path / "cameras.yml").write_text(
         "views:\n  - {name: v0, position: [0, 0, 10], focal: [0, 0, 0], view_angle: 40}\n")
-    (films / "cameras.yml").write_text(
-        "views:\n  - {name: other, position: [0, 0, 5], focal: [0, 0, 0]}\n")
     c = load(films, [{"name": "a", "frames": "f"}])
     p = ShotProjector(c.film, c.line, "a")
     assert p.point(Anchor(POINT, view="v0"), 0) == pytest.approx(expected(0))
     with pytest.raises(ValueError, match="no view 'other'"):
+        p.point(Anchor(POINT, view="other"), 0)
+    (films / "cameras.yml").write_text(                    # one left below the root
+        "views:\n  - {name: other, position: [0, 0, 5], focal: [0, 0, 0]}\n")
+    p = ShotProjector(c.film, c.line, "a")
+    with pytest.raises(ValueError, match="move this one to"):
         p.point(Anchor(POINT, view="other"), 0)
 
 

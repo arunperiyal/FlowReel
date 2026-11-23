@@ -37,6 +37,7 @@ layers:
 def project(tmp_path, monkeypatch):
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
     sbatch = tmp_path / "sbatch"
     sbatch.write_text(f"#!/bin/bash\nexec {sys.executable} {FAKE} \"$@\"\n")
     sbatch.chmod(0o755)

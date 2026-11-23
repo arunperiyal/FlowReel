@@ -48,8 +48,8 @@ def _common(parser, what: str):
                         help="draw the frames even when their key did not change")
     parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
                         help="processes drawing at once (default 1)")
-    parser.add_argument("-o", "--out", default="frames", metavar="DIR",
-                        help="folder of the frame folders (default ./frames)")
+    parser.add_argument("-o", "--out", metavar="DIR",
+                        help="folder of the frame folders (default frames/ at the project root)")
     from flowreel.cli.jobs import add_slurm_args
     add_slurm_args(parser)
 
@@ -57,7 +57,9 @@ def _common(parser, what: str):
 def _as_job(args, what: str, file: str, extra: list[str]) -> list[str]:
     """The ``flowreel compose WHAT FILE ...`` line a job runs: these options, without the
     Slurm ones."""
-    cmd = ["flowreel", "compose", what, file, *extra, "-j", str(args.jobs), "-o", args.out]
+    from flowreel.cli.jobs import job_path
+    cmd = ["flowreel", "compose", what, job_path(file), *extra, "-j", str(args.jobs), "-o",
+           job_path(args.out)]
     if args.frames:
         cmd += ["--frames", args.frames]
     if args.force:
@@ -107,6 +109,10 @@ class ComposeCommand(BaseCommand):
             return 2
         if args.jobs < 1:
             raise CommandError("-j must be at least 1")
+        from flowreel.cli.project import project_root
+        root = project_root(ctx, getattr(args, "layout", None), getattr(args, "panel", None))
+        if args.out is None:
+            args.out = str(root / "frames")
         try:
             return getattr(self, "do_" + args.compose_cmd)(args, ctx)
         except ConfigError as exc:

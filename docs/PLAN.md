@@ -1425,16 +1425,19 @@ Phase 6 is done, since the tutorial picks a camera in the editor.
 
 **Branch 1: `phase7/project-rules`** (the project folder; question 6 decided)
 - [x] Question 6, decided and confirmed 2026-11-22 (Section 24), recorded in Section 23
-- [ ] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
+- [x] `project init` writes the agreed folders, `.gitignore` and (with `--link`) the data
   link; commands find the project by walking up, and stop outside one with an error
   saying how to make one (except `project init`, the `template` commands and `jobs`)
-- [ ] Generated output under the project root, wherever a command runs (`frames/`,
+- [x] Generated output under the project root, wherever a command runs (`frames/`,
   `clips/`; caches and measured timings in `.flowreel/`); `-o` still overrides
-- [ ] One `cameras.yml` at the project root for shots (today beside the shot file) and
+- [x] One `cameras.yml` at the project root for shots (today beside the shot file) and
   captions; a `cameras.yml` beside a shot file is an error that says to move it
-- [ ] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
+- [x] `project info` (source, bodies, shots, cameras, film, caches and their sizes) and
   `project clean` (`--frames`, `--cache`, `--clips`, `--dry-run`), Section 13
-- [ ] Tests on generated projects; help text; docs: project page
+- [x] Tests on generated projects; help text; docs: project page
+- [x] `docs/rules.md`: every rule FlowReel imposes on a project in one page, each with
+  its reason, what happens when it is broken and a link to the details; a new rule goes
+  there in the same PR (`.claude/rules/documentation.md`)
 
 **Branch 2: `phase7/tutorial-data`** (pyvista's `cylinder_crossflow`; independent of
 branch 1)

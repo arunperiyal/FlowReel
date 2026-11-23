@@ -4,8 +4,8 @@ Each action is a thin layer over a library function: the editor
 (:mod:`flowreel.editor`), :func:`~flowreel.scene.camera_path.build_track`,
 :func:`~flowreel.scene.orbit.orbit`, :func:`~flowreel.scene.camera_import.import_view`
 and :func:`~flowreel.scene.projection.project`. They all read and write one
-``cameras.yml``: ``-c FILE``, else the one beside the shot when a shot is given (or set
-with ``use shot:FILE``), else ``./cameras.yml``.
+``cameras.yml``: ``-c FILE``, else the project's, at its root (plan Section 23, question
+6). A ``cameras.yml`` left beside a shot below the root is an error that says to move it.
 """
 from __future__ import annotations
 
@@ -29,8 +29,8 @@ EXAMPLES = {
   flowreel camera project --track carve --points 6,0.42,0.18
   flowreel camera preview approach wake.yml
 
-Every action reads and writes one cameras.yml: -c FILE, else the one beside the shot,
-else ./cameras.yml. Reference: docs/commands.md, docs/camera-editor.md.""",
+Every action reads and writes one cameras.yml: -c FILE, else the project's, at its
+root. Reference: docs/commands.md, docs/camera-editor.md.""",
     "edit": """examples:
   flowreel camera edit wake.yml --track approach     a window on the shot's first step
   flowreel camera edit wake.yml --track approach --film film.yml   with the captions' points
@@ -78,18 +78,20 @@ def _shot_arg(parser, required=False):
 
 def _cameras_arg(parser):
     parser.add_argument("-c", "--cameras", metavar="FILE",
-                        help="cameras.yml to read and write (default: beside the shot, "
-                             "else ./cameras.yml)")
+                        help="cameras.yml to read and write (default: the project's, at "
+                             "its root)")
 
 
 def cameras_path(args) -> Path:
     """The ``cameras.yml`` an action uses (see the module)."""
+    from flowreel.project.paths import CAMERAS_FILE, cameras_file
     if getattr(args, "cameras", None):
         return Path(args.cameras)
     shot = getattr(args, "shot", None)
     if shot:
-        return Path(shot).resolve().parent / "cameras.yml"
-    return Path("cameras.yml")
+        return cameras_file(shot)
+    root = getattr(args, "root", None)
+    return Path(root) / CAMERAS_FILE if root else Path(CAMERAS_FILE)
 
 
 def _point(text: str) -> tuple[float, float, float]:
@@ -212,8 +214,9 @@ class CameraCommand(BaseCommand):
         v.add_argument("--every", type=int, default=4, metavar="N", help="every Nth frame (4)")
         v.add_argument("--scale", type=float, default=0.25, metavar="S",
                        help="the shot's size times S (0.25; 1920x1080 without a shot)")
-        v.add_argument("-o", "--out", default="frames", metavar="DIR",
-                       help="frames go to DIR/<track>@preview/ (default ./frames)")
+        v.add_argument("-o", "--out", metavar="DIR",
+                       help="frames go to DIR/<track>@preview/ (default frames/ at the "
+                            "project root)")
         _cameras_arg(v)
         return p
 
@@ -221,6 +224,11 @@ class CameraCommand(BaseCommand):
         if not args.camera_cmd:
             ctx.error("give an action: flowreel camera --help")
             return 2
+        from flowreel.cli.project import project_root
+        root = project_root(ctx, getattr(args, "shot", None), getattr(args, "cameras", None))
+        args.root = str(root)
+        if getattr(args, "out", "") is None:
+            args.out = str(root / "frames")
         try:
             return getattr(self, "do_" + args.camera_cmd)(args, ctx)
         except ConfigError as exc:

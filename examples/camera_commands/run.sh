@@ -9,6 +9,7 @@ FLOWREEL=${FLOWREEL:-flowreel}
 mkdir -p "$DIR"
 cp "$HERE/shot.yml" "$HERE/trace.py" "$DIR/"
 cd "$DIR"
+$FLOWREEL project init --force >/dev/null                   # the folder becomes a project
 rm -f cameras.yml cameras.yml.bak
 $FLOWREEL camera import trace.py wide -c cameras.yml          # a view from ParaView
 $FLOWREEL camera orbit turn --shot shot.yml --station 6 --axis y --radius 6 --frames 48 \

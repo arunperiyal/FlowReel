@@ -47,6 +47,7 @@ def main(folder: Path) -> None:
     folder.mkdir(parents=True)
     (folder / "wake.yml").write_text(SHOT)
     (folder / "cameras.yml").write_text(CAMERAS)
+    (folder / "flowreel.yml").write_text("")             # a project (docs/project.md)
     sbatch = folder / "bin" / "sbatch"
     sbatch.parent.mkdir()
     sbatch.write_text(f"#!/bin/bash\nexec {sys.executable} {HERE / 'fake_sbatch.py'} \"$@\"\n")

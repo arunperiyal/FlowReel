@@ -25,6 +25,7 @@ CAMERAS = "views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up:
 def sh(tmp_path, monkeypatch):
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
+    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/project.md)
     monkeypatch.chdir(tmp_path)
     return Shell(tmp_path / "store")
 
@@ -128,11 +129,14 @@ def test_every_action_has_help_with_examples(action, capsys):
 
 
 def test_the_commands_example_renders(sh, tmp_path):
+    import shutil
     from pathlib import Path
-    shot = Path(__file__).parent.parent / "examples" / "shot_commands" / "shot.yml"
-    status, out, err = run(sh, f"shot render {shot} --frames 23 --scale 0.25 -o {tmp_path}")
+    here = Path(__file__).parent.parent / "examples" / "shot_commands"
+    shutil.copy(here / "shot.yml", tmp_path / "example.yml")
+    shutil.copy(here / "cameras.yml", tmp_path / "cameras.yml")
+    status, out, err = run(sh, "shot render example.yml --frames 23 --scale 0.25 -o out")
     assert status == 0, err
-    assert (tmp_path / "cylinder@160x90" / "frame_00023.png").exists()
+    assert (tmp_path / "out" / "cylinder@160x90" / "frame_00023.png").exists()
 
 
 def test_render_save_vtp_saves_surfaces_and_draws_nothing(sh, tmp_path):

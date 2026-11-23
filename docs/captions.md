@@ -128,8 +128,8 @@ arrow follows its target while the camera moves. Code: `flowreel.film.anchors`.
   caption: a film shot names a folder of frames, not the shot file that drew them, and
   a camera moved by `follow` cannot be worked out again without the data. `view` or
   `track` (not both) are for frames FlowReel did not draw; they read the project's
-  `cameras.yml`, at its root beside `flowreel.yml` (without a project, the one beside
-  the film file).
+  `cameras.yml`, at its root beside `flowreel.yml` ([projects](project.md); without a
+  project, the one beside the film file).
 - **Which frame.** Each output frame of a finished shot shows a place among the shot's
   frames. Between two frames (interpolated or blended to the film's rate) the point is
   blended between its places in the two, as the picture moves; under

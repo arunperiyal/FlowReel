@@ -44,6 +44,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from flowreel.film import ffmpeg as ff
+from flowreel.project.paths import output
 
 
 @dataclass(frozen=True)
@@ -189,7 +190,7 @@ def build(film, *, folder=None, force: bool = False, mute: bool = False,
     """Build ``film`` (a :class:`~flowreel.film.Film` or a film file's path) into its
     ``output``.
 
-    ``folder`` keeps the clips (default ``clips/`` beside the film file); ``force``
+    ``folder`` keeps the clips (default ``clips/`` at the project root); ``force``
     rebuilds every clip; ``mute`` leaves the sound out; ``preview`` is the height of
     a preview copy to write too, at ``crf``; ``only`` names one shot to build alone
     (see the module); ``panels`` are options for
@@ -326,13 +327,13 @@ def last_clip(folder: Path, name: str) -> Path | None:
 def lengths(film, *, folder=None) -> Lengths:
     """The planned length of each shot of ``film`` (a :class:`~flowreel.film.Film` or a
     film file's path) and its chapters, from the timeline; the measured length from
-    each shot's finished clip of the last build in ``folder`` (default ``clips/`` beside
-    the film file). Nothing is drawn or built, so a clip may be older than the film file
+    each shot's finished clip of the last build in ``folder`` (default ``clips/`` at the
+    project root, or beside the film file outside a project). Nothing is drawn or built, so a clip may be older than the film file
     (``film build`` reports the lengths of what it builds)."""
     from flowreel.film.timeline import timeline
     film = _film(film)
     line = timeline(film)
-    folder = Path(folder) if folder is not None else film.folder / "clips"
+    folder = Path(folder) if folder is not None else output(film.folder, "clips")
     shots = []
     for ts in line.shots:
         clip = last_clip(folder, ts.shot.name) if folder.is_dir() else None

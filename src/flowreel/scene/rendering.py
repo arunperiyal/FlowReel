@@ -35,6 +35,15 @@ FRAME_NAME = "frame_{:05d}.png"
 CACHE_FOLDER = ".cache/surfaces"
 
 
+def surface_cache(shot, out: str | Path) -> Path:
+    """Where the frozen surfaces of ``shot`` are cached: ``<root>/.flowreel/cache/surfaces``
+    when its file is in a project (:mod:`flowreel.project.paths`), else
+    ``out/.cache/surfaces``, beside the frames."""
+    from flowreel.project.paths import state
+    folder = state(shot.file) if getattr(shot, "file", None) else None
+    return folder / "cache" / "surfaces" if folder is not None else Path(out) / CACHE_FOLDER
+
+
 def open_source(shot: Shot):
     """The source named by the shot's ``source``.
 
@@ -267,7 +276,7 @@ def render_frame(shot, frame: int, source=None, *, views=None, tracks=None,
 
     ``shot`` is a :class:`~flowreel.scene.shot.Shot` or a shot file path; ``source``
     defaults to the shot's own (:func:`open_source`); ``views`` and ``tracks`` to the
-    ``cameras.yml`` beside the shot file. ``size`` (``(width, height)``) or ``scale``
+    project's ``cameras.yml`` (:func:`flowreel.project.paths.cameras_file`). ``size`` (``(width, height)``) or ``scale``
     draws a draft (:func:`draft_size`); by default the shot's size. ``backend`` is chosen as in :func:`render`, so a frame drawn here and the same frame
     drawn by a render are the same picture. Returns ``(height, width, 3)`` uint8.
     """
@@ -318,7 +327,8 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
            check_memory: bool = True) -> RenderReport:
     """Render ``frames`` (default all) of ``shot`` to PNG files.
 
-    Frames go to ``out/<shot name>/frame_00000.png``. A frame whose file exists and was
+    Frames go to ``out/<shot name>/frame_00000.png``; frozen surfaces are cached in
+    :func:`surface_cache`. A frame whose file exists and was
     drawn with the same key (plan Section 11, :mod:`flowreel.scene.keys`) is skipped;
     every frame asked for has its camera recorded in the folder (:func:`record_views`);
     ``force`` draws every frame asked for again. ``scale`` or ``size`` draws a draft:
@@ -337,7 +347,7 @@ def render(shot, frames: Iterable[int] | None = None, source=None, *, views=None
         raise ValueError(f"jobs must be at least 1, got {jobs}")
     shot = _as_shot(shot)
     size = draft_size(shot.size, scale, size)
-    cache = Path(out) / CACHE_FOLDER
+    cache = surface_cache(shot, out)
     scene = Scene.make(shot, source, views, tracks, size, cache=cache)
     indices = _frames(frames, scene.plan.n_frames, shot)
     if check_memory:
@@ -413,7 +423,7 @@ def missing(shot, frames: Iterable[int] | None = None, source=None, *, views=Non
     opened to work out the keys."""
     shot = _as_shot(shot)
     size = draft_size(shot.size, scale, size)
-    scene = Scene.make(shot, source, views, tracks, size, cache=Path(out) / CACHE_FOLDER)
+    scene = Scene.make(shot, source, views, tracks, size, cache=surface_cache(shot, out))
     folder = frame_folder(out, shot, size)
     store = KeyStore(folder)
     return [i for i in _frames(frames, scene.plan.n_frames, shot)

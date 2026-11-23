@@ -73,9 +73,16 @@ time. The first time a step is shown it is read and drawn (the status line says 
 it took); after that it is kept, so stepping back and forth is instant. A step is drawn
 with the layer values of the first frame that shows it.
 
-The Frame slider only says which frame the next view belongs to; it does not change the
-scene. That is on purpose: a frozen shot shows one step through all its frames, and a
-moving one would have to be read again at every frame.
+The Frame slider says which frame the next view belongs to, and moves the Time step
+slider to the step that frame of the shot shows (through the shot's `time` keys), so a
+view is framed against the flow as it will be at that frame. A frozen shot shows one
+step through all its frames, so its scene does not change. The Time step slider still
+moves on its own, to look at other steps while framing a view; the next move of the
+Frame slider brings it back. Opened with `--vtp` and no shot, the editor does not know
+which step each frame shows, and the two sliders move apart.
+
+The frames that have a saved key are marked on the Frame slider, in yellow, so a track's
+keys can be seen without playing it; the marks follow each save, replace and undo.
 
 ## Away from the data (`--vtp`)
 

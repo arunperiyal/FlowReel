@@ -267,7 +267,8 @@ class CameraCommand(BaseCommand):
                                "copy DIR, and use 'camera edit --vtp DIR' there)")
         path = cameras_path(args)
         state = EditorState.open(path, args.track, frames, scenes.steps,
-                                 "spline" if args.spline else "linear")
+                                 "spline" if args.spline else "linear",
+                                 frame_steps=getattr(scenes, "frame_steps", None))
         window = EditorWindow(state, scenes, size=tuple(args.size), anchors=anchors)
         ctx.out(f"editing track {args.track!r} of {path}; s save, u undo, r replace, "
                 "p play, n next step; close the window when done")

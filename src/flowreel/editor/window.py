@@ -36,6 +36,17 @@ BUTTONS = (("save", "Save view (s)"), ("undo", "Undo (u)"), ("replace", "Replace
 MARKER = "#ffcc33"           # anchors in the window
 TEXT = "#e8e8e8"             # the window's own words, light on the dark scene
 PLAY_FPS = 24
+#: Where the Frame slider runs, in the window's normalised coordinates (left, then right).
+FRAME_A, FRAME_B = (0.05, 0.08), (0.45, 0.08)
+TICK = "#ffcc33"             # the marks of saved keys on the Frame slider
+
+
+def tick_positions(key_frames, frames: int, a=FRAME_A, b=FRAME_B) -> list[float]:
+    """Where along the Frame slider (normalised x) each of ``key_frames`` falls, for a
+    slider from frame 0 at ``a`` to frame ``frames - 1`` at ``b``."""
+    if frames < 2:
+        return []
+    return [a[0] + (b[0] - a[0]) * f / (frames - 1) for f in key_frames]
 
 
 class EditorWindow:
@@ -140,13 +151,17 @@ class EditorWindow:
         self._show(self.state.next_step())
 
     def set_frame(self, value: float) -> None:
-        """The *Frame* slider."""
+        """The *Frame* slider; it moves the *Time step* slider to the step the frame
+        shows."""
         if not self._ready:
             return
-        self.state.set_frame(value)
+        moved = self.state.set_frame(value)
         if self._frame_slider is not None:       # set from code: move the slider too
             self._frame_slider.GetRepresentation().SetValue(self.state.frame)
-        self._status()
+        if moved:
+            self._show(self.state.step)
+        else:
+            self._status()
 
     def set_step(self, value: float) -> None:
         """The *Time step* slider: a position in the list of steps."""
@@ -178,13 +193,47 @@ class EditorWindow:
     def _status(self) -> None:
         self.plotter.add_text(f"{self.state.status()}\n{self.message}", position="upper_left",
                               font_size=10, color=TEXT, shadow=True, name="status")
+        self._ticks()
+
+    def _ticks(self) -> None:
+        """Marks on the Frame slider at the frames with a saved key, drawn again after
+        each change (the window's status follows every change)."""
+        if getattr(self, "_frame_slider", None) is None:
+            return
+        import numpy as np
+        import pyvista as pv
+        from vtkmodules.vtkRenderingCore import vtkActor2D, vtkCoordinate, vtkPolyDataMapper2D
+        renderer = self.plotter.renderer
+        old = getattr(self, "_tick_actor", None)
+        if old is not None:
+            renderer.RemoveViewProp(old)
+            self._tick_actor = None
+        xs = tick_positions(self.state.key_frames(), self.state.frames)
+        if not xs:
+            return
+        y = FRAME_A[1]
+        points = np.array([[x, y + dy, 0.0] for x in xs for dy in (0.018, 0.04)])
+        lines = np.hstack([[2, 2 * k, 2 * k + 1] for k in range(len(xs))])
+        mesh = pv.PolyData(points, lines=lines)
+        coordinate = vtkCoordinate()
+        coordinate.SetCoordinateSystemToNormalizedViewport()
+        mapper = vtkPolyDataMapper2D()
+        mapper.SetInputData(mesh)
+        mapper.SetTransformCoordinate(coordinate)
+        actor = vtkActor2D()
+        actor.SetMapper(mapper)
+        prop = actor.GetProperty()
+        prop.SetColor(pv.Color(TICK).float_rgb)
+        prop.SetLineWidth(3)
+        renderer.AddViewProp(actor)
+        self._tick_actor = actor
 
     def _widgets(self) -> None:
         p, st = self.plotter, self.state
         self._frame_slider = None
         if st.frames > 1:
             self._frame_slider = p.add_slider_widget(self.set_frame, [0, st.frames - 1], value=st.frame, title="Frame",
-                                pointa=(0.05, 0.08), pointb=(0.45, 0.08), fmt="%.0f",
+                                pointa=FRAME_A, pointb=FRAME_B, fmt="%.0f",
                                 style="modern")
         self._step_slider = None
         if len(st.steps) > 1:

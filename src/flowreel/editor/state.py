@@ -34,7 +34,9 @@ from flowreel.scene.views import View, load_views
 class EditorState:
     """The editor's state: the ``path`` of ``cameras.yml``, the ``track`` being made,
     its length in ``frames``, the shot's time ``steps``, and the ``path`` (``linear`` or
-    ``spline``) of the track written. Build with :meth:`open`."""
+    ``spline``) of the track written. ``frame_steps``, when known, is the step each
+    frame of the shot shows, so moving the frame shows its step. Build with
+    :meth:`open`."""
 
     path: Path
     track: str
@@ -49,14 +51,17 @@ class EditorState:
     tracks: dict[str, CameraTrack] = field(default_factory=dict)
     shared: set = field(default_factory=set)                  # views other tracks use
     history: list = field(default_factory=list)
+    frame_steps: list[int] | None = None
 
     @classmethod
-    def open(cls, path: str | Path, track: str, frames: int, steps, path_kind: str = "linear"):
+    def open(cls, path: str | Path, track: str, frames: int, steps, path_kind: str = "linear",
+             frame_steps=None):
         """The editor on ``path`` (made when missing) for camera track ``track``.
 
         An existing track of that name is taken up: its keys (at whole frames) become the
         editor's, with their view names. ``frames`` is the track's length (at least 1).
-        ``steps`` are the time steps the editor can show (at least one)."""
+        ``steps`` are the time steps the editor can show (at least one); ``frame_steps``
+        the step each frame of the shot shows, when known."""
         if frames < 1:
             raise ValueError(f"frames must be at least 1, got {frames}")
         steps = list(steps)
@@ -65,7 +70,8 @@ class EditorState:
         path = Path(path)
         views = load_views(path) if path.exists() else {}
         tracks = load_tracks(path, views) if path.exists() else {}
-        state = cls(path, track, int(frames), steps, path_kind)
+        state = cls(path, track, int(frames), steps, path_kind,
+                    frame_steps=None if frame_steps is None else list(frame_steps))
         old = tracks.pop(track, None)
         if old is not None:
             state.path_kind = old.path
@@ -87,9 +93,21 @@ class EditorState:
         """The time step shown."""
         return self.steps[self.step_index]
 
-    def set_frame(self, frame: int) -> None:
-        """Move the frame slider (clamped to the track)."""
+    def set_frame(self, frame: int) -> bool:
+        """Move the frame slider (clamped to the track), and show the step that frame of
+        the shot shows (the last frame's past its end); ``True`` when the step changed."""
         self.frame = min(max(int(round(frame)), 0), self.frames - 1)
+        if not self.frame_steps:
+            return False
+        step = self.frame_steps[min(self.frame, len(self.frame_steps) - 1)]
+        if step not in self.steps or step == self.step:
+            return False
+        self.step_index = self.steps.index(step)
+        return True
+
+    def key_frames(self) -> list[int]:
+        """The frames that have a saved key, in order."""
+        return sorted(self.keys)
 
     def next_step(self) -> int:
         """Show the next time step (after the last, the first); returns it."""

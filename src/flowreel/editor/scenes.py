@@ -23,8 +23,10 @@ class ShotScenes:
         self.scene = scene
         plan = scene.plan
         self.frame_of: dict[int, int] = {}
-        for i in range(plan.n_frames):
-            self.frame_of.setdefault(plan.time.step(i), i)
+        #: the step each frame of the shot shows, for the editor's Frame slider
+        self.frame_steps: list[int] = [plan.time.step(i) for i in range(plan.n_frames)]
+        for i, step in enumerate(self.frame_steps):
+            self.frame_of.setdefault(step, i)
         self.steps = sorted(self.frame_of)
 
     @property

@@ -1641,11 +1641,11 @@ tutorial met; then the rest.
   the build page and the reference
 
 **Branch 8: `phase8/editor-slider`**
-- [ ] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
+- [x] Ticks on the *Frame* slider at the frames with a saved key, redrawn when a key is
   saved, replaced or undone
-- [ ] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
+- [x] Moving the *Frame* slider moves the *Time step* slider to the step that frame shows;
   the *Time step* slider still moves alone
-- [ ] Tests (the editor's state, without a window), the camera editor page
+- [x] Tests (the editor's state, without a window), the camera editor page
 
 **Branch 9: `phase8/tutorial-unsteady`**
 - [ ] A public unsteady data set of vortex shedding whose licence allows it to be shown

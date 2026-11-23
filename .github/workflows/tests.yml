@@ -46,7 +46,7 @@ jobs:
       - name: FlowReel and its dependencies (${{ matrix.versions }})
         run: |
           pip install -q uv
-          uv pip install --system --resolution ${{ matrix.resolution }} -e ".[dev]" pytest-xdist
+          uv pip install --system --resolution ${{ matrix.resolution }} -e ".[dev]" "pytest-xdist>=3.5"
           python -c "import vtk, pyvista, numpy, matplotlib; print('vtk', vtk.__version__, 'pyvista', pyvista.__version__, 'numpy', numpy.__version__, 'matplotlib', matplotlib.__version__)"
       - name: Tests
         run: xvfb-run -a -s "-screen 0 1920x1080x24" python -m pytest -q -n auto --dist loadfile -rfEs

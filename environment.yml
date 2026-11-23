@@ -9,15 +9,15 @@ channels:
 dependencies:
   - python=3.12
   - ffmpeg>=5.1          # clips and the film; FlowReel checks version and filters
-  - numpy
-  - pandas>=2
-  - scipy
+  - numpy>=1.26
+  - pandas>=2.1.1
+  - scipy>=1.11.2
   - pyvista>=0.44
   - vtk>=9.3
   - matplotlib>=3.8
-  - pillow>=10
-  - pyyaml>=6
-  - pytest>=7
+  - pillow>=10.1
+  - pyyaml>=6.0.1
+  - pytest>=7.4
   - pip
   - pip:
       - git+https://github.com/arunperiyal/shellkit.git

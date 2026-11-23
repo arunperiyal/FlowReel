@@ -52,3 +52,20 @@ def test_a_windowed_estimate_follows_the_window(case):  # noqa: F811
     nodes, cells = 41 * (NY + 1) * (NZ + 1), 40 * NY * NZ
     assert window == pytest.approx(2 * (nodes * 7 * 4 + cells * 9 * 8) / 1e9)
     assert whole > 9 * window                        # 400 cells along against 40
+
+
+@pytest.mark.parametrize("peak_gb", [0.3, 0.63, 0.7, 2.2])
+def test_a_slurm_job_passes_the_check_of_the_memory_it_was_sized_for(peak_gb):
+    """A job asks for the memory its measured frame needs; the render inside it checks
+    by that measurement, not by the source's estimate (which was 0.7 GB against 0.63
+    measured, and stopped the tutorial's job of 16 frames in 13 GB)."""
+    from flowreel.jobs import partitions
+    from flowreel.jobs.measured import Measured
+    from flowreel.jobs.split import PARENT, plan_render
+    airavata = partitions.load(user=partitions.Path("/nonexistent.yml"))["airavata"]
+    measured = Measured(int(peak_gb * GB), 1.0, 1, 6, "node1", "2026-11-23 20:55")
+    plan = plan_render(list(range(120)), measured, airavata)
+    scene = Scene.make(toy_shot(), Heavy(), VIEWS)       # its estimate says 1.7 GB a job
+    in_use = PARENT                                       # the render's own process
+    assert check_fits(scene, [0], plan.jobs, available=plan.memory - in_use,
+                      measured=measured.peak_bytes) == measured.peak_bytes

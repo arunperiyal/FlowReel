@@ -136,15 +136,15 @@ def gitignore_text(old: str = "") -> str:
 
 def cameras_text(source=None, label: str | None = None) -> str:
     """A first ``cameras.yml``: one view ``main`` looking down -z with the source's
-    domain in frame (a placeholder without a source), to replace with one picked in
-    ``flowreel camera edit``."""
+    domain filling a 16:9 picture, the shape of a shot's default size (a placeholder
+    without a source), to replace with one picked in ``flowreel camera edit``."""
     from flowreel.scene.camera_file import view_line
     from flowreel.scene.views import View
     view = View((0.0, 0.0, 10.0), (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), name="main")
     note = "a placeholder: no source was given"
     if source is not None:
         from flowreel.scene.framing import fit
-        view = fit(view, source.bounds())
+        view = fit(view, source.bounds(), margin=1.05, aspect=16 / 9)
         note = f"the whole domain of {label or getattr(source, 'name', 'the source')}, from +z"
     return ("# cameras.yml written by `flowreel project init`: every shot and caption of\n"
             "# the project reads its views and tracks here. Reference: docs/cameras.md;\n"

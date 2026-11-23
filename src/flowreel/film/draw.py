@@ -76,7 +76,9 @@ def maths_settings(style: FilmStyle) -> dict:
     rc = {"font.family": [family, "DejaVu Sans"]}
     if style.maths == "font":
         rc.update({"mathtext.fontset": "custom", "mathtext.rm": family,
-                   "mathtext.it": f"{family}:italic", "mathtext.bf": f"{family}:bold"})
+                   "mathtext.it": f"{family}:italic", "mathtext.bf": f"{family}:bold",
+                   # \mathcal: matplotlib looks for a 'cursive' font, which few have
+                   "mathtext.cal": f"{family}:italic"})
     else:
         rc["mathtext.fontset"] = style.maths
     return rc

@@ -115,9 +115,9 @@ $ flowreel shot render shots/sweep.yml -j 4
 $ flowreel film check
 ```
 
-`film check` builds each shot's finished clip, with its text, and draws a **contact
-sheet**, `contact.png`: a still from the middle of every caption, labelled with its time
-and shot. Read it as a check of the words and their places before the film is joined.
+`film check` draws a **contact sheet**, `contact.png`: a still from the middle of every
+caption, labelled with its time and shot. The stills come from the shots' finished
+clips, with their text, so it builds the clip of each shot that has a caption. Read it as a check of the words and their places before the film is joined.
 
 ![The contact sheet](images/07-check.png)
 

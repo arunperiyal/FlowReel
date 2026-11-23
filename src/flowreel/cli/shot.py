@@ -258,7 +258,7 @@ def _save_vtp(args, ctx, frames) -> int:
         steps = sorted({plan.time.step(i) for i in indices if 0 <= i < plan.n_frames})
         if not steps:
             raise CommandError(f"no frame of {args.frames} is in the shot (0 to {plan.n_frames - 1})")
-        saved = save_shot_surfaces(args.shot, args.save_vtp, steps)
+        saved = save_shot_surfaces(args.shot, args.save_vtp, steps, backend=args.backend)
     except (ValueError, IndexError) as exc:
         raise CommandError(str(exc)) from None
     ctx.out(f"saved the surfaces of {len(saved)} step{'s' * (len(saved) != 1)} "

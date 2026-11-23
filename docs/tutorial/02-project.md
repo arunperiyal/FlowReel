@@ -66,10 +66,23 @@ The panel in chapter 6 cuts across the body's axis, so it needs this.
 
 ```text
 $ flowreel project info
+project /home/you/films/cylinder
+source:  none (no shot yet)
+bodies:  cylinder
+shots:   none
+cameras: views main; tracks none
+film:    film.yml: 1 shot, length not known yet (shot 'cylinder': no frame_NNNNN.png files in /home/you/films/cylinder/frames/cylinder)
+output:  frames/ 0 B, clips/ 0 B, .flowreel/ 0 B
 ```
 
-`project info` lists the data link, the body, the shots, the cameras and the film. There
-are no shots yet. The folder now holds:
+`project info` lists what the project holds. It is nearly empty:
+
+- **source** is read from the shots, and there are none yet; chapter 3 writes the first.
+- **film** is the starting `film.yml` from `project init`: one shot, named after the
+  folder, whose frames do not exist. Chapter 7 replaces it, so the complaint goes away.
+
+A project made with `--link` (data kept elsewhere, [projects](../project.md)) would also
+have a `data:` line. The folder now holds:
 
 ```text
 cylinder/

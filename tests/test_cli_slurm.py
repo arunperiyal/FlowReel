@@ -107,7 +107,23 @@ def test_jobs_status(sh, tmp_path):
     assert "1310  g (render), submitted 00:00:0" in out
     assert "RUNNING 1, PENDING 1" in out and "frames drawn since: 0 of 6 (frames/g)" in out
     status, out, _ = sh.run("jobs status 1311")
-    assert "1311  film" in out and "COMPLETED  [1311 COMPLETED 00:01:10 exit 0:0]" in out
+    assert "1311  film" in out and "COMPLETED after 00:01:10, exit 0:0" in out
+
+
+def test_a_task_that_started_is_counted_once(tmp_path, monkeypatch):
+    from flowreel.jobs import submit
+    # as a one-task array starts, squeue lists its pending record beside the task
+    monkeypatch.setenv("FLOWREEL_SQUEUE", str(fake(tmp_path / "squeue",
+        'echo "7_[0]|g|PENDING|0:00|None"\necho "7_0|g|RUNNING|0:02|None"\n')))
+    monkeypatch.setenv("FLOWREEL_SACCT", str(fake(tmp_path / "sacct", "")))
+    assert [s.job for s in submit.status(["7"])] == ["7_0"]
+    states = {"7_[0]": submit.JobState("7_[0]", "g", "PENDING", "0:00", "None"),
+              "7_0": submit.JobState("7_0", "g", "RUNNING", "0:02", "None")}
+    assert submit._task_ids("0-2,5%2") == [0, 1, 2, 5] and submit._task_ids("x") == []
+    assert submit.state_text(states["7_[0]"]) == "PENDING"
+    assert submit.state_text(submit.JobState("8", "f", "PENDING", "0:00", "Dependency")) \
+        == "PENDING (Dependency)"
+    assert submit.state_text(states["7_0"]) == "RUNNING for 0:02"
 
 
 def test_errors(sh, tmp_path):

@@ -47,3 +47,20 @@ def test_installed_backend_makes_its_window(name, monkeypatch):
         assert B.window_class(plotter) == B.WINDOW_CLASS[name]
     finally:
         plotter.close()
+
+
+def test_vtks_own_filters_are_used(monkeypatch):
+    """Where this VTK has VTK-m's stand-ins (conda-forge's VTK 9.7), they are turned
+    off; where it has none, nothing happens."""
+    import sys
+    import types
+    calls = []
+    fake = types.ModuleType("vtkmodules.vtkAcceleratorsVTKmFilters")
+    fake.vtkmFilterOverrides = types.SimpleNamespace(SetEnabled=calls.append)
+    monkeypatch.setitem(sys.modules, "vtkmodules.vtkAcceleratorsVTKmFilters", fake)
+    from flowreel.scene.backend import plain_vtk_filters
+    plain_vtk_filters()
+    assert calls == [False]
+    monkeypatch.setitem(sys.modules, "vtkmodules.vtkAcceleratorsVTKmFilters", None)
+    plain_vtk_filters()                               # ImportError: nothing to turn off
+    assert calls == [False]

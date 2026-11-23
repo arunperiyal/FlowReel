@@ -12,7 +12,7 @@ Written into ``-o`` (default ``docs/tutorial/images/`` of this repository):
 
 | File | Chapter | What |
 |---|---|---|
-| ``03-first-shot.png`` | 3 | frame 0 of ``wake`` |
+| ``03-first-shot.png`` | 3 | frame 0 of ``wake`` as chapter 3 has it, from the view ``main`` |
 | ``04-camera.png`` | 4 | frames 0 and 96 of ``wake``, side by side |
 | ``05-sweep.png`` | 5 | frames 0, 48 and 71 of ``sweep`` |
 | ``06-panel.png`` | 6 | frame 0 of ``pressure`` |
@@ -44,6 +44,21 @@ def frame(project: Path, shot: str, index: int) -> Image.Image:
     return Image.open(path).convert("RGB")
 
 
+def chapter3(project: Path) -> Image.Image:
+    """Frame 0 of ``wake`` as chapter 3 leaves it, before chapter 4 gives it a track:
+    drawn from the view ``main``, which ``project init`` wrote."""
+    import yaml
+    from flowreel.scene.rendering import render_frame
+    shot = yaml.safe_load((project / "shots" / "wake.yml").read_text())
+    shot["camera"] = {"view": "main"}
+    path = project / "shots" / ".chapter3_wake.yml"   # beside it: paths stay right
+    path.write_text(yaml.safe_dump(shot, sort_keys=False))
+    try:
+        return Image.fromarray(render_frame(path, 0))
+    finally:
+        path.unlink()
+
+
 def row(images: list[Image.Image], width: int = WIDTH, gap: int = 8) -> Image.Image:
     """``images`` side by side, scaled to ``width`` in all, ``gap`` pixels apart."""
     each = (width - gap * (len(images) - 1)) // len(images)
@@ -61,7 +76,7 @@ def stills(project: str | Path, out: str | Path = IMAGES) -> list[Path]:
     project, out = Path(project), Path(out)
     out.mkdir(parents=True, exist_ok=True)
     pictures = {
-        "03-first-shot.png": row([frame(project, "wake", 0)]),
+        "03-first-shot.png": row([chapter3(project)]),
         "04-camera.png": row([frame(project, "wake", 0), frame(project, "wake", 96)]),
         "05-sweep.png": row([frame(project, "sweep", i) for i in (0, 48, 71)]),
         "06-panel.png": row([frame(project, "pressure", 0)]),

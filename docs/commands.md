@@ -541,7 +541,7 @@ submitted job 1310; log logs/reveal_measure_1310.log
 
 $ flowreel shot render reveal.yml --submit --max-running 2       # once measured
 121 frames in 1 task of up to 121 frames, 1 at once
-each task: 16 cores, 14G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
+each task: 16 cores, 15G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
 one frame: 0.70 GB and 6.0 s a frame (1 frame, 1 thread, node1, 2026-11-21 04:00)
 wrote jobs/reveal.sh (job array of 1 task)
 submitted job 1311; log logs/reveal_1311_*.log
@@ -577,9 +577,15 @@ flowreel jobs status [JOBID ...] [--all]
 ```text
 $ flowreel jobs status
 1311  reveal (render), submitted 00:04:10 ago
-  RUNNING 1
+  RUNNING for 00:04:02
   frames drawn since: 64 of 121 (frames/reveal)
+1312  film (film), submitted 00:04:09 ago
+  PENDING (Dependency)
 ```
+
+One job is described in words: why it waits (Slurm's reason, such as `Dependency` on
+the jobs it runs `--after`), how long it has run, or how it ended. An array of tasks is
+counted by state, such as `RUNNING 4, PENDING 12`.
 
 ## Errors and exit status
 

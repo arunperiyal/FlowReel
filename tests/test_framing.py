@@ -57,3 +57,32 @@ def test_follow_keeps_offset():
     v = View((-10, 0, 0), (0, 0, 0))
     f = follow(v, (3, 4, 5))
     assert f.focal == (3, 4, 5) and f.position == pytest.approx((-7, 4, 5))
+
+
+def test_a_flat_box_fills_a_picture_of_its_shape():
+    """With ``aspect``, a 15 x 7.5 domain seen face on fills a 16:9 picture across, as
+    ``project init``'s first view; the sphere fit would leave it at 40 % of the width."""
+    view = View((0, 0, 10), (0, 0, 0), (0, 1, 0), name="main")
+    box = Box((0, -3.75, -0.05), (15, 3.75, 0.05))
+    tight = fit(view, box, margin=1.0, aspect=16 / 9)
+    seen = 2 * (tight.distance - 0.05) * math.tan(math.radians(15)) * 16 / 9
+    assert seen == pytest.approx(15.0)                # the width just in, at the near face
+    assert tight.focal == pytest.approx((7.5, 0, 0))
+    assert tight.distance < 0.5 * fit(view, box).distance
+    tall = fit(view, box, margin=1.0, aspect=0.25)    # a tall picture: the width decides
+    assert 2 * (tall.distance - 0.05) * math.tan(math.radians(15)) * 0.25 == pytest.approx(15.0)
+    flat = fit(view.with_(parallel=True), box, margin=1.0, aspect=16 / 9)
+    assert flat.parallel_scale == pytest.approx(7.5 * 9 / 16)
+    with pytest.raises(ValueError, match="aspect"):
+        fit(view, box, aspect=0)
+
+
+def test_project_inits_first_view_fills_the_picture():
+    from flowreel.project.init import cameras_text
+
+    class Domain:
+        name = "domain"
+
+        def bounds(self):
+            return Box((0, -3.75, -0.05), (15, 3.75, 0.05))
+    assert "position: [7.5, 0, 16.584" in cameras_text(Domain())

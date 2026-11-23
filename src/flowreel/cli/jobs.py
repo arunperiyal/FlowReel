@@ -188,7 +188,7 @@ class JobsCommand(BaseCommand):
 
     def do_status(self, args, ctx):
         from flowreel.jobs.partitions import format_time
-        from flowreel.jobs.submit import frames_done, notes, status
+        from flowreel.jobs.submit import frames_done, notes, state_text, status
         from flowreel.project.paths import find_root
         base = find_root() or Path.cwd()
         noted = {n["job"]: n for n in notes(base)}
@@ -217,11 +217,10 @@ class JobsCommand(BaseCommand):
             counts: dict[str, int] = {}
             for s in found:
                 counts[s.state] = counts.get(s.state, 0) + 1
-            if found:
-                ctx.out("  " + ", ".join(f"{k} {v}" if len(found) > 1 else k
-                                         for k, v in counts.items())
-                        + "".join(f"  [{s.job} {s.state} {s.elapsed} {s.reason}]".rstrip()
-                                  for s in found if len(found) == 1))
+            if len(found) == 1:
+                ctx.out("  " + state_text(found[0]))
+            elif found:
+                ctx.out("  " + ", ".join(f"{k} {v}" for k, v in counts.items()))
             if n.get("folder") and n.get("frames"):
                 drawn = frames_done(base / n["folder"], n["frames"], n["submitted"])
                 ctx.out(f"  frames drawn since: {drawn} of {len(n['frames'])} ({n['folder']})")

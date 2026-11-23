@@ -7,7 +7,7 @@ The frames are drawn (chapter 7), so the last step is to join them into the film
 ```text
 $ flowreel film build --preview 540
 shot      planned  measured
-title       3.00 s    3.00 s  kept
+title       3.00 s    3.00 s  built
 wake        7.00 s    7.00 s  kept
 sweep       3.00 s    3.00 s  kept
 pressure    3.00 s    3.00 s  kept
@@ -21,7 +21,8 @@ built in 2.3 s
 `film build` makes each shot's **finished clip** (its frames at the film's rate, its
 fades and its captions) and joins the clips into `film.mp4`. The clips `film check`
 built are kept, since nothing changed: every clip has a key, and only a clip whose
-frames, text or settings changed is made again ([clips](../clips.md)). `--preview 540`
+frames, text or settings changed is made again ([clips](../clips.md)). The title card
+has no caption, so `film check` did not need its clip, and it is built now. `--preview 540`
 also writes `film_540p.mp4`, a small copy that is quick to send round for comments.
 
 Each shot is listed with its **planned** length, worked out from `film.yml`, and its

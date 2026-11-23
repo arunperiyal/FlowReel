@@ -129,8 +129,9 @@ submits the render.
 **Per task.** 16 cores unless asked; as many frames drawn at once (`-j`) as the cores
 take at `--threads` each (1 by default: Mesa's renderer draws one frame per core), and
 no more than the memory holds, each frame getting its measured peak with 20% to spare.
-Memory left out is asked for to fit those jobs, in whole GB, and jobs are cut down when
-a node would not hold them.
+Memory left out is asked for to fit those jobs and 0.7 GB for the render's own process,
+in whole GB, and jobs are cut down when a node would not hold them. Inside the job, the
+render checks the memory by the same measured peak before it draws.
 
 **Tasks.** Consecutive runs of frames, about eight frames per job: a task loads Python,
 VTK and the data once for many frames, and one cut short loses little. `--max-running
@@ -145,7 +146,7 @@ estimate does not fit.
 
 ```text
 121 frames in 1 task of up to 121 frames
-each task: 16 cores, 14G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
+each task: 16 cores, 15G, -j 16 --threads 1, 00:11:12 on airavata part1 (drawing about 00:00:48)
 one frame: 0.70 GB and 6.0 s a frame (12 frames, 1 thread, node1, 2026-11-21 04:00)
 ```
 

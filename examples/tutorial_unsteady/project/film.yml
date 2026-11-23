@@ -1,0 +1,15 @@
+output: film.mp4
+fps: 24
+size: [1920, 1080]
+shots:
+  - {name: title, card: cards/title.yml, seconds: 3, fade: [0.5, 0.5]}
+  - name: board                       # 221 frames at 24 a second: 9.2 s, and a 2 s freeze
+    frames: frames/board
+    fade: [0.5, 0]
+    text: text/board.yml
+    freezes: [{at: 3.0, hold: 2, text: text/freeze.yml}]
+  - name: end
+    hold_last_of: board
+    seconds: 3
+    fade: [0, 1.5]
+    text: [{lines: ['Made with FlowReel'], at: [0.3, 2.5], place: [60, 960], align: left}]

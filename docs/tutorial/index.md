@@ -34,7 +34,8 @@ Each chapter ends with a picture to compare with yours.
    cluster.
 
 Every file the tutorial writes is in `examples/tutorial/project/` as it stands at the
-end, so you can compare yours with it.
+end, so you can compare yours with it. After it, [the second tutorial](unsteady/index.md)
+films a flow that moves.
 
 ## What you need
 

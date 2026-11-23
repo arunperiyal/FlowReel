@@ -72,6 +72,14 @@ nav:
       - 7. The film file: tutorial/07-film.md
       - 8. Building the film: tutorial/08-build.md
       - The data: tutorial/data.md
+  - Second tutorial:
+      - tutorial/unsteady/index.md
+      - 1. The data and the project: tutorial/unsteady/01-data.md
+      - 2. A shot that moves: tutorial/unsteady/02-shot.md
+      - 3. The force beside it: tutorial/unsteady/03-panel.md
+      - 4. The film: tutorial/unsteady/04-film.md
+      - 5. On a cluster: tutorial/unsteady/05-cluster.md
+      - The data: tutorial/unsteady/data.md
   - User guide:
       - Projects and data:
           - Projects: project.md

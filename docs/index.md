@@ -14,6 +14,13 @@ describe it.
 cylinder from a public data set, in eight short chapters, from installing FlowReel to
 the finished film. Start there.
 
+**[The second tutorial](tutorial/unsteady/index.md)** films a flow that moves: vortex
+shedding behind a cylinder at a Reynolds number of 100, read from PLT files, with the
+drag and lift drawn beside it from a CSV file, and rendered on a cluster. It follows
+the first.
+
+![The second tutorial's film](tutorial/unsteady/images/film.gif)
+
 ## The user guide
 
 Each part of FlowReel, in the order a film is made:

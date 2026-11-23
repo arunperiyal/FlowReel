@@ -8,7 +8,10 @@ YAML file, so a film can be made again, changed in one place, or rendered on a c
 
 **Documentation:** <https://arunperiyal.github.io/FlowReel/>, with
 [the tutorial](https://arunperiyal.github.io/FlowReel/tutorial/), a 20-second film from a
-public data set in eight short chapters. The same pages are in [docs/](docs/index.md).
+public data set in eight short chapters, and
+[a second one](https://arunperiyal.github.io/FlowReel/tutorial/unsteady/) on a flow that
+moves, read from PLT files with its force from CSV. The same pages are in
+[docs/](docs/index.md).
 
 **Status:** Phases 1 to 6 of [the plan](docs/PLAN.md) are done: FlowReel rebuilt the
 2-minute AFMS 2026 film of vortex-induced vibration from files, the same length with its

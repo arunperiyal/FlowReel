@@ -81,6 +81,8 @@ know yet.
 
 ## What next
 
+- The [second tutorial](unsteady/index.md) films a flow that moves: vortex shedding,
+  read from PLT files, with the force on the cylinder beside it from a CSV file.
 - The [user guide](../project.md) explains each part in full: the
   [layers](../layers-flow.md), [cameras](../cameras.md), [panels](../panels.md),
   [layouts](../layouts.md) that put shots and panels side by side, and

@@ -201,6 +201,89 @@ class Slice(Layer):
 
 
 @register
+class Contour(Layer):
+    """Lines of a field at chosen values, on a cutting plane through the flow.
+
+    Options: ``normal`` and ``position`` (track) place the plane, as for ``slice``;
+    ``field`` (required) is the field the lines follow; ``levels`` is a list of the
+    field's values, or a count of levels spread evenly over ``range``, both ends
+    included (default 11); ``range`` (vector track ``[low, high]``, default
+    ``[-1, 1]``) spaces a count of levels, and spans the colour map, so it may sweep;
+    ``colour`` (track) draws every line in one colour, unless ``colormap`` is given, which
+    colours each line by its value over ``range``; ``width`` (track, pixels) and
+    ``opacity`` (track).
+    """
+
+    name = "contour"
+    needs_flow = True
+    options = (
+        Option("normal", track=False, required=True, doc="x, y or z", example="z"),
+        Option("position", "number", required=True, doc="where the plane cuts, length unit",
+               example=0.0),
+        Option("field", track=False, required=True, doc="field the lines follow",
+               example="pressure"),
+        Option("levels", track=False, default=11,
+               doc="a list of values, or a count spread over range"),
+        Option("range", "vector", default=(-1.0, 1.0),
+               doc="[low, high]: spaces a count of levels and spans the colour map; may sweep"),
+        Option("colour", "colour", default="#ffffff"),
+        Option("colormap", track=False, default=None,
+               doc="colour each line by its value instead of colour"),
+        Option("width", "number", default=2.0, doc="line width, pixels"),
+        Option("opacity", "number", default=1.0),
+    )
+
+    @classmethod
+    def check(cls, raw: dict, check) -> None:
+        check.at("normal").choice(raw["normal"], ("x", "y", "z"))
+        levels = raw.get("levels", 11)
+        if isinstance(levels, bool) or not isinstance(levels, (int, list)):
+            raise check.at("levels").error(
+                f"expected a list of values or a count, got {levels!r}")
+        if isinstance(levels, int) and levels < 1:
+            raise check.at("levels").error(f"a count must be at least 1, got {levels}")
+        if isinstance(levels, list):
+            if not levels:
+                raise check.at("levels").error("give at least one value")
+            for k, value in enumerate(levels):
+                check.at("levels", k).number(value)
+
+    @staticmethod
+    def level_values(v) -> list[float]:
+        """The values the lines are drawn at, for the option values ``v``."""
+        levels = v["levels"]
+        if isinstance(levels, list):
+            return [float(x) for x in levels]
+        low, high = v["range"]
+        return [float(x) for x in np.linspace(low, high, levels)]
+
+    def mesh(self, frame, v):
+        """The lines (``PolyData``) with the field's values on them, or ``None`` when
+        no level crosses the plane."""
+        data = frame.data
+        data.need(v["field"])
+        cut = data.flow.slice(normal=v["normal"],
+                              origin=_origin(v["normal"], v["position"])).triangulate()
+        if not cut.n_points:
+            return None
+        lines = cut.contour(self.level_values(v), scalars=v["field"])
+        return lines if lines.n_points else None
+
+    def draw(self, plotter, frame) -> None:
+        v = frame.values
+        lines = self.mesh(frame, v)
+        if lines is None:
+            return
+        common = dict(line_width=v["width"], opacity=v["opacity"], lighting=False,
+                      show_scalar_bar=False)
+        if v.get("colormap"):
+            plotter.add_mesh(lines, scalars=v["field"], cmap=colormap(v["colormap"]),
+                             clim=list(v["range"]), **common)
+        else:
+            plotter.add_mesh(lines, color=v["colour"], **common)
+
+
+@register
 class BodyLayer(Layer):
     """One wall surface, a list of them, or all, drawn solid or as a ghost.
 

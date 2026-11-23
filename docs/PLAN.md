@@ -1605,7 +1605,7 @@ tutorial met; then the rest.
 - [x] Docs (cameras page, the YAML reference) and the shot template
 
 **Branch 4: `phase8/layers-contour`**
-- [ ] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a
+- [x] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a
   slice (`normal`, `position`, as the slice layer), in one `colour` or coloured by the
   field with a `colormap`, `width` in pixels; levels and range may be tracks
 - [ ] Tests on generated data: the lines lie on the slice at the asked values, and a

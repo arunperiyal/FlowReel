@@ -435,6 +435,22 @@ Guide: [layers-markers](../layers-markers.md#centreline).
 | `specular` | track | `0.3` | weight of the highlight |
 | `smooth` | track (boolean) | `true` | smooth shading |
 
+### `contour`
+
+Guide: [layers-flow](../layers-flow.md#contour).
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `normal` | fixed |  | required; x, y or z |
+| `position` | track |  | required; where the plane cuts, length unit |
+| `field` | fixed |  | required; field the lines follow |
+| `levels` | fixed | `11` | a list of values, or a count spread over range |
+| `range` | track (vector) | `[-1.0, 1.0]` | [low, high]: spaces a count of levels and spans the colour map; may sweep |
+| `colour` | track (colour) | `'#ffffff'` |  |
+| `colormap` | fixed |  | colour each line by its value instead of colour |
+| `width` | track | `2.0` | line width, pixels |
+| `opacity` | track | `1.0` |  |
+
 ### `geometry`
 
 Guide: [layers-markers](../layers-markers.md#geometry).

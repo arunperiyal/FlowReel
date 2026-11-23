@@ -1610,7 +1610,7 @@ tutorial met; then the rest.
   field with a `colormap`, `width` in pixels; levels and range may be tracks
 - [x] Tests on generated data: the lines lie on the slice at the asked values, and a
   frame draws them
-- [ ] Docs (flow layers page, the YAML reference, the shot template), an example, and a
+- [x] Docs (flow layers page, the YAML reference, the shot template), an example, and a
   "Try" in chapter 6 of the tutorial: the pressure's contour lines over the sweep shot
 
 **Branch 5: `phase8/layers-streamlines`**

@@ -65,6 +65,38 @@ over a frozen step brings out weaker flow. `iso` and `body` keep a fixed range.
 `|field| >= high`. `near_wall`: it rises the same way with the distance from the body, so
 the section does not paint over the wall. Both multiply with `opacity`.
 
+## `contour`
+
+Lines of `field` at chosen values, on a plane through the flow: isobars over a slice of
+vorticity, say, or lines of the same speed.
+
+| Key | Type | Default | Example |
+|---|---|---|---|
+| `normal` | `x`, `y`, `z`, required | | `z` |
+| `position` | track, length, required | | `0.0` |
+| `field` | field name, required | | `pressure` |
+| `levels` | a list of values, or a count | `11` | `[-400, -200, 0, 200, 400]` |
+| `range` | vector track, `[low, high]` | `[-1, 1]` | `[-1100, 1100]` |
+| `colour` | track, colour | `#ffffff` | `"#000000"` |
+| `colormap` | as `iso`; colours each line by its value | none: `colour` | `fire_ice` |
+| `width` | track, pixels | `2` | `1.5` |
+| `opacity` | track | `1` | `0.6` |
+
+`levels: 11` draws 11 lines spread evenly from `range`'s low end to its high end, both
+included; a list draws one line at each value. `range` also spans the colour map when
+`colormap` is given. It may sweep, and a count of levels sweeps with it, the lines
+moving as the range narrows; listed levels stay put. A level that the plane does not
+cross draws nothing.
+
+Draw it after a `slice` on the same plane, so the lines lie over the colours:
+
+```yaml
+layers:
+  - {type: slice, normal: z, position: 0, field: vorticity_z, range: [-60, 60]}
+  - {type: contour, normal: z, position: 0, field: pressure, levels: 15, range: [-700, 700],
+     colour: '#ffffff', width: 1.5, opacity: 0.7}
+```
+
 ## `body`
 
 | Key | Type | Default | Example |

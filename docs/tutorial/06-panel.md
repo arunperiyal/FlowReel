@@ -53,4 +53,17 @@ top and bottom where the flow is fastest. Behind the cylinder, two closed stream
 show the two vortices that stay attached at this Reynolds number: the flow turns back
 on itself there and never leaves.
 
+**Try** the pressure in the shot as well: lines of equal pressure over the sweep's
+vorticity, with a [`contour`](../layers-flow.md#contour) layer on the same plane. Add it
+to the end of `shots/sweep.yml`'s layers, after the slice:
+
+```yaml
+  - {type: contour, normal: z, position: 0.0, field: pressure, levels: 15, range: [-700, 700],
+     colour: '#ffffff', width: 1.5, opacity: 0.7}
+```
+
+and preview the sweep again. The lines crowd in front of the cylinder, where the
+pressure rises fastest, and open out in the wake. Keep them or take them out: the rest
+of the tutorial works either way.
+
 Next: [the film file](07-film.md).

@@ -14,8 +14,8 @@ class Shell:
         self.out = io.StringIO()
         self.err = io.StringIO()
         self.rt = Runtime(make_app(storage),
-                          console=Console(file=self.out, width=200, color_system=None),
-                          err_console=Console(file=self.err, width=200, color_system=None))
+                          console=Console(file=self.out, width=1000, color_system=None),
+                          err_console=Console(file=self.err, width=1000, color_system=None))
 
     def run(self, line):
         for buf in (self.out, self.err):

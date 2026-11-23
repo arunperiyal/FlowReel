@@ -302,7 +302,11 @@ class Streamlines(Layer):
     ``length`` (length unit; default the flow's diagonal) is how far each line runs each
     way; ``style`` ``lines`` (``width`` in pixels) or ``tubes`` (``radius``, length unit,
     default 0.2 % of the diagonal); ``colour`` (track), or ``field`` with ``range`` and
-    ``colormap``; ``opacity`` (track).
+    ``colormap``; ``opacity`` (track); ``relative`` (default false): traced in the
+    velocity relative to the body, which moves at the speed of its centre between the
+    saved steps either side, as the section panel's streamlines are. ``true`` takes the
+    body and station of ``round`` seeds; with other seeds give ``{body: NAME, station:
+    S}``.
     """
 
     name = "streamlines"
@@ -322,6 +326,8 @@ class Streamlines(Layer):
         Option("range", "vector", default=(-1.0, 1.0), doc="[low, high] of the colour map"),
         Option("colormap", track=False, default="fire_ice"),
         Option("opacity", "number", default=1.0),
+        Option("relative", track=False, default=False,
+               doc="relative to the body: true (round seeds) or {body, station}"),
     )
 
     @classmethod
@@ -358,6 +364,19 @@ class Streamlines(Layer):
         for key in ("length", "radius"):
             if raw.get(key) is not None and check.at(key).number(raw[key]) <= 0:
                 raise check.at(key).error("must be positive")
+        relative = raw.get("relative", False)
+        if isinstance(relative, dict):
+            rel = check.at("relative").mapping(relative, ("body", "station"))
+            if "station" not in rel:
+                raise check.at("relative").error("needs 'station' (where to take the body's speed)")
+            check.at("relative", "station").number(rel["station"])
+        elif not isinstance(relative, bool):
+            raise check.at("relative").error(
+                f"expected true, false or {{body, station}}, got {relative!r}")
+        elif relative and kind != "round":
+            raise check.at("relative").error(
+                "true takes the body and station of round seeds; give {body: NAME, "
+                "station: S} with line or plane seeds")
 
     @staticmethod
     def _ring(data, spec) -> np.ndarray:
@@ -406,6 +425,18 @@ class Streamlines(Layer):
             return out
         return self._ring(data, spec)
 
+    def _body_speed(self, data, v) -> np.ndarray:
+        from flowreel.compose.flow_cut import body_velocity
+        from flowreel.project.measure import long_axis
+        from flowreel.project.names import declaration, one_body
+        relative, seeds = v["relative"], v["seeds"]
+        where = seeds["round"] if relative is True else relative
+        name = where.get("body") or one_body(data.source)
+        body = declaration(data.source, name)
+        axis = (body.axis if body else None) or long_axis(data.body(name)) or "z"
+        slab = 0.25 * body.diameter if body and body.diameter else None
+        return body_velocity(data.source, data.step, name, axis, float(where["station"]), slab)
+
     def mesh(self, frame, v):
         """The streamlines (``PolyData`` of lines), or ``None`` when none leaves a seed
         inside the flow."""
@@ -414,6 +445,11 @@ class Streamlines(Layer):
         data.need("velocity", *([v["field"]] if v.get("field") else []))
         flow = data.flow
         vectors = "velocity"
+        if v.get("relative"):
+            flow = flow.copy(deep=False)
+            flow.point_data["velocity_seen"] = (np.asarray(flow.point_data["velocity"])
+                                                - self._body_speed(data, v))
+            vectors = "velocity_seen"
         diagonal = float(np.linalg.norm(np.subtract(flow.bounds[1::2], flow.bounds[::2])))
         seeds = pv.PolyData(self.seed_points(data, v["seeds"]))
         lines = flow.streamlines_from_source(

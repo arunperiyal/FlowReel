@@ -1618,7 +1618,7 @@ tutorial met; then the rest.
   rectangle and counts) or `round` a body (a ring at a station); traced in the frame's
   velocity both ways to a length; drawn as `lines` or `tubes`, in one colour or coloured
   by a field
-- [ ] `relative: true`: traced in the velocity relative to a moving body, as the section
+- [x] `relative: true`: traced in the velocity relative to a moving body, as the section
   panel's streamlines are
 - [ ] Tests on generated data (a uniform flow gives straight lines along it; a vortex
   gives closed loops), docs, the YAML reference, the template and an example

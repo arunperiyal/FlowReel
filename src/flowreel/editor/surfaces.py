@@ -57,9 +57,9 @@ def save_surfaces(plotter, folder: str | Path) -> int:
         upstream = mapper.GetInputAlgorithm()
         if upstream is not None:                 # pyvista's pipeline releases its output
             upstream.Update()
-        if mapper.GetInputAsDataSet() is None:
+        if mapper.GetInput() is None:
             continue
-        mesh = pv.wrap(mapper.GetInputAsDataSet()).copy()
+        mesh = pv.wrap(mapper.GetInput()).copy()
         if mesh.n_points == 0:
             continue
         where = None
@@ -67,7 +67,7 @@ def save_surfaces(plotter, folder: str | Path) -> int:
             was = mapper.GetInterpolateScalarsBeforeMapping()
             mapper.InterpolateScalarsBeforeMappingOff()
             cell = reference(0)
-            colours = mapper.MapScalars(mapper.GetInputAsDataSet(), 1.0, cell)
+            colours = mapper.MapScalars(mapper.GetInput(), 1.0, cell)
             mapper.SetInterpolateScalarsBeforeMapping(was)
             if colours is not None:
                 from vtkmodules.util.numpy_support import vtk_to_numpy

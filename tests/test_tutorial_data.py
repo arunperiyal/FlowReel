@@ -47,6 +47,20 @@ def test_a_file_already_there_is_not_downloaded_again(gd, tmp_path):
     assert calls == []
 
 
+def faces_point_out(grid):
+    """Whether every face of every cell, in VTK's face order, points away from the cell.
+
+    VTK 9.7 changed which order of a wedge's points is right side out; the faces come
+    from the installed VTK, so this checks the conversion against the VTK it ran with."""
+    centres = grid.cell_centers().points
+    for i in range(grid.n_cells):
+        for face in grid.get_cell(i).faces:
+            p = face.points
+            if np.dot(np.cross(p[1] - p[0], p[2] - p[0]), p.mean(axis=0) - centres[i]) <= 0:
+                return False
+    return True
+
+
 def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_path):
     out = gd.get(tmp_path, stand_in=True, say=quiet)
     assert out == tmp_path / "data" / "cylinder_crossflow"
@@ -57,8 +71,7 @@ def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_
     assert set(np.unique(flow.celltypes)) == {gd.WEDGE, gd.HEXAHEDRON}
     assert sorted(flow.point_data) == ["U", "V", "W", "p"]      # vorticity_mag left out
     assert flow.bounds[4:] == pytest.approx((-0.05, 0.05))      # 0.1 diameter of span
-    volumes = flow.compute_cell_sizes(length=False, area=False)["Volume"]
-    assert (volumes > 0).all()                                   # no cell turned inside out
+    assert faces_point_out(flow)                                 # no cell turned inside out
     body = pv.read(out / "cylinder.vtp")
     assert body.bounds[1] - body.bounds[0] == pytest.approx(1.0, abs=1e-3)
     assert body.n_open_edges == 0                                # capped: seen end-on, solid
@@ -91,6 +104,16 @@ def test_a_second_run_changes_nothing(gd, tmp_path):
     gd.get(tmp_path, stand_in=True, say=lines.append)
     assert any("nothing changed" in line for line in lines)
     assert {p: p.stat().st_mtime_ns for p in out.rglob("*") if p.is_file()} == before
+
+
+def test_a_new_vtk_with_the_other_wedge_order_converts_again(gd, tmp_path, monkeypatch):
+    gd.get(tmp_path, stand_in=True, say=quiet)
+    other = {"clockwise": "counter-clockwise", "counter-clockwise": "clockwise"}
+    monkeypatch.setattr(gd, "wedge_base", lambda now=gd.wedge_base(): other[now])
+    lines = []
+    out = gd.get(tmp_path, stand_in=True, say=lines.append)
+    assert any(line.startswith("converted to") for line in lines)
+    assert not faces_point_out(pv.read(out / "flow_0.vtu"))    # built for the other VTK
 
 
 def test_download_then_rerun_downloads_nothing(gd, tmp_path, monkeypatch):

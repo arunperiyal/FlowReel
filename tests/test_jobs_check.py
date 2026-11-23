@@ -27,7 +27,16 @@ def test_a_failing_backend_is_reported_not_raised():
         pytest.skip("no off-screen backend is installed")
     result = C.try_backend(name, extra_env={B.ENV: "vtkNoSuchWindow"})
     assert result.status == "fails"
-    assert result.error.endswith(f"not a {B.WINDOW_CLASS[name]}")
+    # VTK up to 9.6 falls back to another window, which the check refuses; 9.7 crashes
+    assert (result.error.endswith(f"not a {B.WINDOW_CLASS[name]}")
+            or result.error.startswith("killed by SIG")), result.error
+
+
+def test_a_crash_says_what_was_printed_last(monkeypatch):
+    monkeypatch.setattr(B, "installed", lambda name: True)
+    monkeypatch.setattr(C, "SCRIPT", "import os, signal, sys; print('VTK: no window', "
+                                     "file=sys.stderr, flush=True); os.kill(os.getpid(), signal.SIGSEGV)")
+    assert C.try_backend("egl").error == "killed by SIGSEGV; last said: VTK: no window"
 
 
 def test_a_crash_and_a_hang_are_reported(monkeypatch):

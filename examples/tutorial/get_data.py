@@ -102,6 +102,22 @@ def fetch(url: str, path: Path, expected: str, opener=urllib.request.urlopen) ->
 
 # ---- conversion ----------------------------------------------------------------------
 
+def wedge_base() -> str:
+    """How this VTK wants a wedge's base, ``"clockwise"`` or ``"counter-clockwise"``
+    seen from its top, for the wedge's faces to point out of it.
+
+    VTK changed it in 9.7 (merge request 12988 made the wedge match its parametric
+    points), so it is asked rather than assumed: the unit wedge, in VTK's own point
+    order, is counter-clockwise seen from its top, and its first face is the base."""
+    import numpy as np
+    import pyvista as pv
+    pts = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1]], float)
+    base = pv.UnstructuredGrid(np.array([6, 0, 1, 2, 3, 4, 5]), np.array([WEDGE]),
+                               pts).get_cell(0).faces[0].points
+    normal_z = np.cross(base[1] - base[0], base[2] - base[0])[2]
+    return "counter-clockwise" if normal_z < 0 else "clockwise"
+
+
 def _extrude_flow(fluid, span: float):
     """``fluid`` (a 2D grid of triangles and quadrilaterals at z = 0) as a grid of
     wedges and hexahedra from z = -span/2 to span/2, with ``U``, ``V``, ``W`` and ``p``
@@ -113,6 +129,7 @@ def _extrude_flow(fluid, span: float):
     bottom, top = pts.copy(), pts.copy()
     bottom[:, 2], top[:, 2] = -span / 2, span / 2
     cells, types = [], []
+    reverse = wedge_base() == "clockwise"
     for i in range(fluid.n_cells):
         ids = list(fluid.get_cell(i).point_ids)
         xy = pts[ids, :2]
@@ -120,8 +137,10 @@ def _extrude_flow(fluid, span: float):
         if area < 0:                                   # counter-clockwise seen from +z
             ids = ids[::-1]
         up = [j + n for j in ids]
-        if len(ids) == 3:   # VTK's wedge: the base, seen from the top, is clockwise
-            cells += [6, ids[0], ids[2], ids[1], up[0], up[2], up[1]]
+        if len(ids) == 3:
+            if reverse:
+                ids, up = [ids[0], ids[2], ids[1]], [up[0], up[2], up[1]]
+            cells += [6, *ids, *up]
             types.append(WEDGE)
         elif len(ids) == 4:
             cells += [8, *ids, *up]
@@ -388,7 +407,7 @@ def get(folder: str | Path = ".", *, stand_in: bool = False, opener=urllib.reque
         say(f"downloaded {', '.join(got)}" if got else
             f"{ensight}: all files there already, with the right checksums")
     sums = {name: sha256(ensight / name) for name in FILES}
-    stamp = {"stand_in": stand_in, "span": SPAN, "sha256": sums}
+    stamp = {"stand_in": stand_in, "span": SPAN, "wedge_base": wedge_base(), "sha256": sums}
     if _stamp(out) == stamp and all((out / f).is_file() for f in
                                     ("flow.pvd", "flow_0.vtu", "cylinder.vtp", "README.md")):
         say(f"{out}: converted already; nothing changed")

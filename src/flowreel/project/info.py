@@ -133,9 +133,17 @@ def shot_files(root: Path) -> list[Path]:
 
 
 def _source_text(value) -> str:
-    if isinstance(value, dict):
-        return ":".join(str(value[k]) for k in ("adapter", "path", "body") if k in value)
-    return str(value)
+    """A shot's ``source`` as one line: ``adapter:path``, then its body files, if any
+    (``body cylinder=wall.vtp``)."""
+    if not isinstance(value, dict):
+        return str(value)
+    text = ":".join(str(value[k]) for k in ("adapter", "path") if k in value)
+    body = value.get("body")
+    if isinstance(body, dict):
+        text += " body " + ", ".join(f"{name}={path}" for name, path in body.items())
+    elif body is not None:
+        text += (" body " if "path" in value else ":") + str(body)
+    return text
 
 
 def info(root: str | Path) -> ProjectInfo:

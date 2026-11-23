@@ -249,3 +249,13 @@ def test_info_and_clean_stop_outside_a_project(sh):
     for line in ("project info", "project clean --dry-run"):
         status, _, err = sh.run(line)
         assert status != 0 and "not in a FlowReel project" in err
+
+
+def test_info_writes_a_source_on_one_line():
+    from flowreel.project.info import _source_text
+    assert _source_text("vtk:flow.pvd") == "vtk:flow.pvd"
+    assert _source_text({"adapter": "geometry", "body": "grooved_cylinder"}) == \
+        "geometry:grooved_cylinder"
+    assert _source_text({"adapter": "vtk", "path": "f.pvd", "body": "w.vtp"}) == "vtk:f.pvd body w.vtp"
+    assert _source_text({"adapter": "vtk", "path": "f.pvd", "body": {"cylinder": "w.vtp"}}) == \
+        "vtk:f.pvd body cylinder=w.vtp"

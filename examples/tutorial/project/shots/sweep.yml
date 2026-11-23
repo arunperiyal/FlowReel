@@ -1,0 +1,17 @@
+# The second shot: the same step, the colour range narrowed from the strong vorticity
+# at the wall to the weak vorticity far from it.
+name: sweep
+source:
+  adapter: vtk
+  path: ../data/cylinder_crossflow/flow.pvd
+  body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
+time: {frozen: 0, frames: 72}         # 3 s at 24
+camera: {view: approach_0000}        # the first view picked in the editor: the whole domain
+size: [1920, 1080]
+layers:
+  - type: slice
+    normal: z
+    position: 0.0
+    field: vorticity_z
+    range: {from: [-200, 200], to: [-5, 5], frames: [12, 60], ease: in_out}
+  - {type: body, body: cylinder}

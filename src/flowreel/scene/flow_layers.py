@@ -145,8 +145,9 @@ class Slice(Layer):
     """A cutting plane through the flow, coloured by a field and faded where it is weak.
 
     Options: ``normal`` (``x``, ``y`` or ``z``, required), ``position`` (track, length
-    unit), ``field`` (required), ``range`` and ``colormap`` as for ``iso``, ``opacity``
-    (track), ``fade_weak`` (``[low, high]``: opacity ramps smoothly from 0 where
+    unit), ``field`` (required), ``range`` (vector track ``[low, high]``: it may sweep,
+    since the plane is coloured afresh in every frame) and ``colormap`` as for ``iso``,
+    ``opacity`` (track), ``fade_weak`` (``[low, high]``: opacity ramps smoothly from 0 where
     ``|field| <= low`` to 1 where ``|field| >= high``; ``null`` keeps it opaque),
     ``near_wall`` (``[low, high]`` in length unit: opacity ramps from 0 at the body to 1
     at ``high``, the mask of the wall's own layer), ``mask_body`` (body name, default
@@ -161,7 +162,8 @@ class Slice(Layer):
                example=0.0),
         Option("field", track=False, required=True, doc="field that colours the plane",
                example="vorticity_x"),
-        Option("range", track=False, default=(-1.0, 1.0)),
+        Option("range", "vector", default=(-1.0, 1.0),
+               doc="[low, high] of the colour map; may sweep"),
         Option("colormap", track=False, default="fire_ice"),
         Option("opacity", "number", default=1.0),
         Option("fade_weak", track=False, default=None),

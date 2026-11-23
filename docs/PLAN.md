@@ -1483,20 +1483,31 @@ branch 1)
   docs: building the site locally, and where it is published
 
 **Branch 4: `phase7/tutorial`** (the tutorial; needs branches 1, 2 and 3)
-- [ ] `docs/tutorial/`, one page per chapter with an index page, each chapter ending with
+- [x] `project init --body NAME=FILE` (once per body), so a `vtk` body gets its name
+  (`cylinder`) rather than `body`; a single `--body FILE` is unchanged
+- [x] A slice's `range` is a vector track, so a shot can sweep it (the plane is coloured
+  afresh every frame); `iso` and `body` keep a fixed range
+- [x] `project info` writes a shot's source with its body files on one line
+- [x] `docs/tutorial/`, one page per chapter with an index page, each chapter ending with
   a still to compare: install; `project init` on the data; a first shot (`shot template`, the flow
   coloured by vorticity from velocity, contour lines of pressure, the cylinder; `shot
   preview`); a camera picked in the editor that moves from the whole domain to the
   cylinder; a second shot sweeping the colour range; a panel of the pressure
   coefficient round the wall; `film.yml` with a title card, two captions (one with maths, one
   anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
-  the full build; optionally Slurm
-- [ ] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
+  the full build; optionally Slurm. Done 2026-11-23, with two changes found while writing
+  it: the pressure is shown by the panel's filled contours, since a shot has no layer of
+  contour lines (one is a Phase 8 candidate); and the panel draws the pressure `p`, not
+  its coefficient, since the data set does not give its density. The tutorial's body
+  needs `axis: z` and `diameter: 1.0` in `flowreel.yml`: a slab 0.1 long has no long
+  axis to measure, and the cylinder's ends are capped in `get_data.py` so a camera
+  looking along it sees a solid body
+- [x] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
   of the finished film from `cylinder_crossflow` into `docs/tutorial/images/`; committed
   only once branch 2 has recorded that the licence allows it; the GIF on the index page
-- [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
+- [x] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
   reader can compare theirs
-- [ ] A test that follows the tutorial on the stand-in data at a small size, command by
+- [x] A test that follows the tutorial on the stand-in data at a small size, command by
   command, and checks the film is 20 s with the captions in place
 
 **Branch 5: `phase7/docs-reference`** (the guide and reference; needs branches 1 and 3)

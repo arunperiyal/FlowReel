@@ -1,0 +1,10 @@
+# flowreel.yml written by `flowreel project init` from vtk:data/cylinder_crossflow/flow.pvd at step 0.
+# Reference: docs/bodies.md. Axes and diameters are measured; supports and
+# series are left to fill (uncomment and edit).
+bodies:
+  cylinder:
+    zone: cylinder
+    axis: z                           # the span: this 2D flow was given a thin one along z
+    diameter: 1.0
+    # series:                         # time histories as CSV (docs/bodies.md)
+    #   displacement: {file: data/cylinder_displacement.csv}

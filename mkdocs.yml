@@ -62,6 +62,15 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Tutorial:
+      - tutorial/index.md
+      - 1. Install: tutorial/01-install.md
+      - 2. The project and the data: tutorial/02-project.md
+      - 3. A first shot: tutorial/03-first-shot.md
+      - 4. The camera: tutorial/04-camera.md
+      - 5. A second shot: tutorial/05-sweep.md
+      - 6. A panel: tutorial/06-panel.md
+      - 7. The film file: tutorial/07-film.md
+      - 8. Building the film: tutorial/08-build.md
       - The data: tutorial/data.md
   - User guide:
       - Projects: project.md

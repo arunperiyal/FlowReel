@@ -1497,7 +1497,7 @@ branch 1)
   anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
   the full build; optionally Slurm. Done 2026-11-23, with two changes found while writing
   it: the pressure is shown by the panel's filled contours, since a shot has no layer of
-  contour lines (one is a Phase 8 candidate); and the panel draws the pressure `p`, not
+  contour lines (a Phase 8 task, Section 19.9); and the panel draws the pressure `p`, not
   its coefficient, since the data set does not give its density. The tutorial's body
   needs `axis: z` and `diameter: 1.0` in `flowreel.yml`: a slab 0.1 long has no long
   axis to measure, and the cylinder's ends are capped in `get_data.py` so a camera
@@ -1576,6 +1576,40 @@ when the work starts.
 - [ ] Let the Frame slider move the Time step slider to the step that frame shows
   (through the shot's `time` keys); the Time step slider stays for looking at other steps
   while framing a view
+
+Added 2026-11-23, suggested after the tutorial rehearsal on airavata (Section 19.8,
+branch 6) and taken up by Arun. Do first: the tests in CI, the tight `fit: domain`, and
+contour lines; the first guards the rest, the other two are gaps the tutorial met.
+
+**Checks**
+- [ ] The test suite in CI on every PR, on the oldest VTK and pyvista FlowReel supports
+  and on the newest (VTK 9.7 broke nine tests and three things a user sees, found only by
+  running the suite on airavata by hand); off-screen rendering by OSMesa or EGL on the
+  runner, the golden-frame tests included or skipped with a reason
+- [ ] `flowreel doctor`: the versions of VTK, pyvista and ffmpeg, whether they are ones
+  FlowReel is tested on, the off-screen back ends (`jobs check`), the fonts, and the
+  project if run in one; one report to paste into a question
+
+**Shots**
+- [ ] `camera: {fit: domain}` (and `fit: crop`) frames the box to the shot's own picture
+  shape, as `project init`'s first view does (`fit(..., aspect=)`), instead of its
+  bounding sphere; existing shots change, so their golden frames are redrawn on purpose
+- [ ] A contour-line layer: lines of a field at given levels on a slice, coloured or
+  plain, with labels optional; the tutorial then shows the pressure on its shot as well
+  as in the panel
+- [ ] Streamlines in shots, seeded on a line, a plane or round a body, as tubes or lines
+  coloured by a field; for a moving body, relative to it as the section panel's are
+- [ ] Reference values in `flowreel.yml` (density, free-stream speed, a length), given
+  once, so the pressure coefficient, the Strouhal number and lengths in diameters work
+  in every shot and panel without their own `params`; a key given in a layer still
+  wins
+
+**Workflow**
+- [ ] `film build --watch`: build again when the film file, a card, a text file or a
+  frame folder changes, until stopped; only the clips that changed are made again
+- [ ] A second tutorial on unsteady data (a public vortex-shedding case, licence
+  checked as for `cylinder_crossflow`): time tracks, a freeze on a moving flow, and a
+  render of many steps as a Slurm job array
 
 **Phase 8 is done when** every task listed here is done and Arun closes the list.
 

@@ -10,7 +10,7 @@ from flowreel.box import Box
 
 # Messages wrap at the terminal's width, or at 80 columns without one (CI, a job log);
 # the tests read them at one width everywhere.
-os.environ["COLUMNS"] = "200"
+os.environ["COLUMNS"] = "1000"
 
 
 def _one_window_class() -> None:

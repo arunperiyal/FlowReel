@@ -1,7 +1,7 @@
 # 7. The film file
 
 `film.yml` puts the shots in order and says what goes on them: cards, captions,
-freezes, fades and sound ([the film file](../film.md)). `project init` wrote a starting
+freezes, fades and sound ([the film file](../../film.md)). `project init` wrote a starting
 one with every key and a comment. This chapter replaces it with the tutorial's film.
 
 Times in `film.yml` are **seconds of film**. A shot's own frames are counted in frames,
@@ -9,7 +9,7 @@ but the film plays at `fps` frames a second, so 120 frames at 24 a second last 5
 
 ## A title card
 
-A card is a still picture of text, drawn by FlowReel ([cards](../cards.md)). Write
+A card is a still picture of text, drawn by FlowReel ([cards](../../cards.md)). Write
 `cards/title.yml`:
 
 ```yaml
@@ -54,7 +54,7 @@ And `text/freeze.yml`, the caption of the freeze:
 `{model: [x, y, z]}` is a **point in the model**: the top of the cylinder, in the data's
 own units. FlowReel finds where that point is in each frame from the camera that drew
 it, so the caption and its arrow stay on the cylinder while the camera moves
-([points in the model](../captions.md#points-in-the-model)). `offset` moves them from
+([points in the model](../../captions.md#points-in-the-model)). `offset` moves them from
 that point by pixels: right, and up (negative is up).
 
 ## The film

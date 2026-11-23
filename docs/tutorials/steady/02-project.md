@@ -2,7 +2,7 @@
 
 Every film lives in a **project**: a folder with a `flowreel.yml` in it. FlowReel's
 commands find it from any folder inside it, and put what they make in the same places
-every time ([projects](../project.md)).
+every time ([projects](../../project.md)).
 
 ## Get the data
 
@@ -34,7 +34,7 @@ wrote flowreel.yml: 1 body (cylinder); fill in the supports
 
 The **source** is `vtk:` and a file: the `vtk` adapter reads the `.pvd` collection of
 flow files (a folder of PLT files would be `plt:` and the folder, as in the
-[second tutorial](unsteady/index.md)). The **body**, the cylinder's wall, is in a file of its own, and
+[second tutorial](../unsteady/index.md)). The **body**, the cylinder's wall, is in a file of its own, and
 `cylinder=` names it. `project init` made the folders for what you will write
 (`shots/`, `text/`, `cards/`, `assets/`), a starting `film.yml`, a `cameras.yml` with one
 view of the whole domain, and `flowreel.yml`:
@@ -82,7 +82,7 @@ output:  frames/ 0 B, clips/ 0 B, .flowreel/ 0 B
 - **film** is the starting `film.yml` from `project init`: one shot, named after the
   folder, whose frames do not exist. Chapter 7 replaces it, so the complaint goes away.
 
-A project made with `--link` (data kept elsewhere, [projects](../project.md)) would also
+A project made with `--link` (data kept elsewhere, [projects](../../project.md)) would also
 have a `data:` line. The folder now holds:
 
 ```text

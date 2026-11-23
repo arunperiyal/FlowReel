@@ -6,20 +6,22 @@ laptop or on a cluster, and builds the film from one more file, with its cards,
 captions, freezes and sound. Every picture can be made again from the files that
 describe it.
 
-![A frame of the tutorial's film](tutorial/images/04-camera.png)
+![A frame of the tutorial's film](tutorials/steady/images/04-camera.png)
 
 ## Where to start
 
-**[The tutorial](tutorial/index.md)** makes a 20-second film of the flow past a
+Two [tutorials](tutorials/index.md), in order:
+
+**[The tutorial](tutorials/steady/index.md)** makes a 20-second film of the flow past a
 cylinder from a public data set, in eight short chapters, from installing FlowReel to
 the finished film. Start there.
 
-**[The second tutorial](tutorial/unsteady/index.md)** films a flow that moves: vortex
+**[The second tutorial](tutorials/unsteady/index.md)** films a flow that moves: vortex
 shedding behind a cylinder at a Reynolds number of 100, read from PLT files, with the
 drag and lift drawn beside it from a CSV file, and rendered on a cluster. It follows
 the first.
 
-![The second tutorial's film](tutorial/unsteady/images/film.gif)
+![The second tutorial's film](tutorials/unsteady/images/film.gif)
 
 ## The user guide
 

@@ -429,7 +429,7 @@ def _stamp(out: Path) -> dict | None:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
-                                     epilog="Reference: docs/tutorial/data.md")
+                                     epilog="Reference: docs/tutorials/steady/data.md")
     parser.add_argument("folder", nargs="?", default=".", metavar="DIR",
                         help="the project folder (default the current one)")
     parser.add_argument("--stand-in", action="store_true",

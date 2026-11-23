@@ -672,7 +672,7 @@ branch 1)
   axis to measure, and the cylinder's ends are capped in `get_data.py` so a camera
   looking along it sees a solid body
 - [x] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
-  of the finished film from `cylinder_crossflow` into `docs/tutorial/images/`; committed
+  of the finished film from `cylinder_crossflow` into `docs/tutorials/steady/images/`; committed
   only once branch 2 has recorded that the licence allows it; the GIF on the index page
 - [x] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
   reader can compare theirs
@@ -862,7 +862,7 @@ files organised)
   (`design.md`, `phases.md`, `decisions.md`, `questions.md`), each section keeping its
   number, and `plan/README.md` saying which file holds which; every reference to
   `docs/PLAN.md` rewritten to the file that holds its section
-- [ ] The tutorials side by side: `docs/tutorials/steady/` (the first) and
+- [x] The tutorials side by side: `docs/tutorials/steady/` (the first) and
   `docs/tutorials/unsteady/`, under `docs/tutorials/index.md`
 - [ ] The user guide in folders by part, as the site's navigation groups it:
   `docs/guide/projects/`, `shots/`, `rendering/`, `composing/`, `film/`, with

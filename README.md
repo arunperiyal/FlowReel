@@ -4,12 +4,12 @@ Films of flow simulations from configuration files: rendered shots, 2D panels, l
 captions with mathematics, freezes, sound and assembly. Every picture is described by a
 YAML file, so a film can be made again, changed in one place, or rendered on a cluster.
 
-![A frame of the tutorial's film: the flow past a cylinder, coloured by vorticity](docs/tutorial/images/04-camera.png)
+![A frame of the tutorial's film: the flow past a cylinder, coloured by vorticity](docs/tutorials/steady/images/04-camera.png)
 
 **Documentation:** <https://arunperiyal.github.io/FlowReel/>, with
-[the tutorial](https://arunperiyal.github.io/FlowReel/tutorial/), a 20-second film from a
+[the tutorial](https://arunperiyal.github.io/FlowReel/tutorials/steady/), a 20-second film from a
 public data set in eight short chapters, and
-[a second one](https://arunperiyal.github.io/FlowReel/tutorial/unsteady/) on a flow that
+[a second one](https://arunperiyal.github.io/FlowReel/tutorials/unsteady/) on a flow that
 moves, read from PLT files with its force from CSV. The same pages are in
 [docs/](docs/index.md).
 

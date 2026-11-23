@@ -1,6 +1,6 @@
 # Second tutorial: a flow that moves
 
-The [first tutorial](../index.md) filmed one steady step. This one films vortex
+The [first tutorial](../steady/index.md) filmed one steady step. This one films vortex
 shedding behind a cylinder at a Reynolds number of 100: a flow that changes from step to
 step, with the force on the cylinder drawn beside it as it swings. It reads the flow as
 PLT files with the `plt` source, and the force from a CSV file, so it shows the way your
@@ -29,6 +29,6 @@ Every file the tutorial writes is in `examples/tutorial_unsteady/project/`.
 
 ## What you need
 
-- FlowReel installed, as in the first tutorial's [chapter 1](../01-install.md).
+- FlowReel installed, as in the first tutorial's [chapter 1](../steady/01-install.md).
 - 1.2 GB to download and about 1 GB of disk for the converted data. Without the network,
   [a generated stand-in](data.md#getting-it) of the same shape works for every step.

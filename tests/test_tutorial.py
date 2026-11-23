@@ -1,5 +1,6 @@
-"""The tutorial (docs/tutorial/), followed command by command on the stand-in data at a
-small size, and its pages checked against the files in examples/tutorial/project/."""
+"""The first tutorial (docs/tutorials/steady/), followed command by command on the
+stand-in data at a small size, and its pages checked against the files in
+examples/tutorial/project/."""
 import os
 import re
 import shutil
@@ -11,7 +12,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).parent.parent
-PAGES = ROOT / "docs" / "tutorial"
+PAGES = ROOT / "docs" / "tutorials" / "steady"
 REFERENCE = ROOT / "examples" / "tutorial" / "project"
 GET_DATA = ROOT / "examples" / "tutorial" / "get_data.py"
 DATA = "data/cylinder_crossflow"
@@ -53,7 +54,7 @@ def test_the_first_shot_is_the_reference_with_its_first_camera():
 def test_every_page_is_in_the_site_and_every_picture_exists():
     site = (ROOT / "mkdocs.yml").read_text()
     for page in sorted(PAGES.glob("*.md")):
-        assert f"tutorial/{page.name}" in site, page.name
+        assert f"tutorials/steady/{page.name}" in site, page.name
         for picture in re.findall(r"\]\((images/[^)]+)\)", page.read_text()):
             assert (PAGES / picture).is_file(), f"{page.name}: {picture}"
 

@@ -1,7 +1,7 @@
 # 5. A second shot: a sweeping range
 
 Almost every value in a shot may change along it: it is then a **track**, keys of
-values at frames, rather than one value ([tracks](../tracks.md)). The camera of the
+values at frames, rather than one value ([tracks](../../tracks.md)). The camera of the
 first shot was one. In the second shot, the slice's colour range changes.
 
 The vorticity is strong next to the wall and weak far from it. A range of ±60 shows the
@@ -32,7 +32,7 @@ layers:
 - **`range: {from: ..., to: ..., frames: [12, 60]}`** is a track: ±200 until frame 12,
   then easing to ±5 by frame 60, and held there to the end. `ease: in_out` starts and
   ends the change gently. Other ways to write a track, with keys at several frames, are
-  in [tracks](../tracks.md#forms).
+  in [tracks](../../tracks.md#forms).
 - **`camera: {view: approach_0000}`** holds the camera still, at the first view you
   picked in chapter 4. Any view of `cameras.yml` can be used on its own like this.
 - **`{type: body, body: cylinder}`** is the same layer written on one line; YAML allows

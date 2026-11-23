@@ -1,4 +1,4 @@
-"""The second tutorial (docs/tutorial/unsteady/), followed command by command on the
+"""The second tutorial (docs/tutorials/unsteady/), followed command by command on the
 stand-in data, and its pages checked against examples/tutorial_unsteady/project/."""
 import os
 import re
@@ -11,7 +11,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).parent.parent
-PAGES = ROOT / "docs" / "tutorial" / "unsteady"
+PAGES = ROOT / "docs" / "tutorials" / "unsteady"
 REFERENCE = ROOT / "examples" / "tutorial_unsteady" / "project"
 GET_DATA = ROOT / "examples" / "tutorial_unsteady" / "get_data.py"
 #: Small sizes for the test: the shot and the panel (the layout and film keep theirs,
@@ -43,7 +43,7 @@ def test_the_pages_show_the_reference_files(page, name):
 def test_every_page_is_in_the_site_and_every_picture_exists():
     nav = (ROOT / "mkdocs.yml").read_text()
     for page in sorted(PAGES.glob("*.md")):
-        assert f"tutorial/unsteady/{page.name}" in nav, page.name
+        assert f"tutorials/unsteady/{page.name}" in nav, page.name
         for picture in re.findall(r"\]\((images/[^)]+)\)", page.read_text()):
             assert (PAGES / picture).is_file(), (page.name, picture)
 

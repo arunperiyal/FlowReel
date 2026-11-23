@@ -17,7 +17,7 @@ The film has five shots:
 4. **The pressure** (3 s): a panel of the pressure round the cylinder, with streamlines.
 5. **The end** (4 s): the last picture held, fading out.
 
-It is silent; [the film file](../film.md#audio) says how to add sound.
+It is silent; [the film file](../../film.md#audio) says how to add sound.
 
 ## Chapters
 
@@ -34,7 +34,7 @@ Each chapter ends with a picture to compare with yours.
    cluster.
 
 Every file the tutorial writes is in `examples/tutorial/project/` as it stands at the
-end, so you can compare yours with it. After it, [the second tutorial](unsteady/index.md)
+end, so you can compare yours with it. After it, [the second tutorial](../unsteady/index.md)
 films a flow that moves.
 
 ## What you need

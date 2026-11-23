@@ -3,7 +3,7 @@
 name: cylinder
 source: geometry:grooved_cylinder
 time: {frozen: 0, frames: 24}
-camera: {fit: domain, direction_of: main, margin: 0.9}   # the whole domain, seen as main sees it
+camera: {fit: domain, direction_of: main, margin: 1.05}  # the whole domain, filling the picture
 size: [640, 360]
 lights: raking
 layers:

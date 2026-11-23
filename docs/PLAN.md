@@ -1596,13 +1596,13 @@ tutorial met; then the rest.
   reference regenerated
 
 **Branch 3: `phase8/shots-fit`**
-- [ ] `camera: {fit: ...}` fits the box to the shot's picture (`fit(..., aspect=)`), the
+- [x] `camera: {fit: ...}` fits the box to the shot's picture (`fit(..., aspect=)`), the
   shot's size passed to the camera; a new key `shape: picture` (default) or `sphere`
   (the old fit, safe for any turn of the camera)
-- [ ] The test shots taken from the prototype (their golden frames are the prototype's own
-  pictures, framed by the sphere) say `shape: sphere`; the other tests' expectations
-  updated
-- [ ] Docs (cameras page, the YAML reference) and the shot template
+- [x] The shots that use `fit` checked: no test shot taken from the prototype does (their
+  golden frames stay as they are); the shot commands example, whose `margin: 0.9`
+  tightened the sphere, now fills the picture with `margin: 1.05`
+- [x] Docs (cameras page, the YAML reference) and the shot template
 
 **Branch 4: `phase8/layers-contour`**
 - [ ] A `contour` layer: lines of a field at `levels` (a list, or `{count, range}`) on a

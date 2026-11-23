@@ -125,7 +125,7 @@ def _check_amplify(layers, check: Checker) -> None:
 
 # Keys of the sub-mappings. Time is read by scene.plan, camera by scene.camera.
 _TIME_KEYS = ("steps", "every", "frozen", "frames", "keys", "ease")
-_CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "follow", "station",
+_CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "shape", "follow", "station",
                 "axis", "motion")
 
 

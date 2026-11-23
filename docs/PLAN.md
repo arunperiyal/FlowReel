@@ -1396,10 +1396,22 @@ behaved; the track was rendered. The scripted check of the same path is
 Added 2026-11-22, while Phase 6 is being built. Phase 7 turns the per-phase pages in
 `docs/` into documentation a new user can start from: a tutorial that makes a short film
 from a public data set, a user guide, and a reference generated from the code where it
-can be, so it cannot drift. It needed two answers, both given on 2026-11-22 (Section 23):
+can be, so it cannot drift. It needed three answers, all given on 2026-11-22 (Section 23):
 how a project folder is made and laid out (Section 24, question 6, kept until now for
-this phase), and which public data set the tutorial uses (question 7: pyvista's
-`cylinder_crossflow`).
+this phase), which public data set the tutorial uses (question 7: pyvista's
+`cylinder_crossflow`), and how the documentation is presented (question 8: a website).
+
+**Presentation** (question 8): the whole of `docs/` becomes one MkDocs Material website on
+GitHub Pages, in three parts: the Tutorial, the User guide (today's per-phase pages, in
+reading order) and the Reference; `PLAN.md` stays out of it. The pages stay Markdown in
+`docs/`, so they still read on GitHub, only without the site's tabs and notes. The site
+is built with `mkdocs build --strict` on every PR, so a broken link or a page missing
+from the navigation fails the PR, and deployed on every push to `main`. A website was
+chosen over pages read on GitHub for search and navigation across some thirty pages,
+which a new user needs more than an expert. The tutorial is one page per chapter under
+`docs/tutorial/`, each ending with a still to compare, and its first page shows a short
+GIF of the finished film; the stills and the GIF are rendered from `cylinder_crossflow` by
+a script, and committed only once branch 2 has recorded that its licence allows it.
 
 **Project rules** (question 6): `flowreel.yml` stays the visible project file, for what
 is edited by hand, and a hidden `.flowreel/` folder holds only machine state (caches,
@@ -1419,8 +1431,10 @@ camera moves, a field coloured and its range swept, contour lines and the wall, 
 than a wake that develops in time. The 2D mesh is given a thin span when it is converted,
 so the layers, which expect cells with volume, work on it unchanged.
 
-Branches 1 and 2 need nothing from each other, so they can be built in parallel. Branch 3 needs both, branch 4 needs branch 1 (the
-reference describes the project rules), and branch 5 needs all. Phase 7 starts after
+Branches 1, 2 and 3 need nothing from each other, so they can be built in parallel.
+Branch 4 needs all three (the tutorial uses the project rules and the data, and is pages
+of the site), branch 5 needs branches 1 and 3 (the reference describes the project rules,
+and is part of the site), and branch 6 needs all. Phase 7 starts after
 Phase 6 is done, since the tutorial picks a camera in the editor.
 
 **Branch 1: `phase7/project-rules`** (the project folder; question 6 decided)
@@ -1455,40 +1469,56 @@ branch 1)
 - [ ] Tests (checksum refused, conversion of the stand-in, rerun skips); docs: the data
   set, its source, licence and how to cite it
 
-**Branch 3: `phase7/tutorial`** (the tutorial; needs branches 1 and 2)
-- [ ] `docs/tutorial.md`, in short chapters, each ending with a frame or a still to
-  compare: install; `project init` on the data; a first shot (`shot template`, the flow
+**Branch 3: `phase7/docs-site`** (the website; independent of branches 1 and 2)
+- [x] Question 8, decided 2026-11-22 (Section 24), recorded in Section 23
+- [ ] `mkdocs.yml`: the Material theme, search, tabs, notes (admonitions) and copy
+  buttons on code; navigation in three parts, Tutorial, User guide and Reference, with
+  `PLAN.md` left out; a `docs` extra in `pyproject.toml` (`mkdocs-material`, pinned)
+- [ ] Every existing page builds under `--strict`: broken links and anchors fixed, every
+  page in the navigation; the pages still read on GitHub
+- [ ] `.github/workflows/docs.yml`: `mkdocs build --strict` on every PR, deployed to GitHub
+  Pages on every push to `main` (Pages turned on in the repository's settings by Arun)
+- [ ] A test that builds the site strictly when `mkdocs` is installed (skipped otherwise);
+  docs: building the site locally, and where it is published
+
+**Branch 4: `phase7/tutorial`** (the tutorial; needs branches 1, 2 and 3)
+- [ ] `docs/tutorial/`, one page per chapter with an index page, each chapter ending with
+  a still to compare: install; `project init` on the data; a first shot (`shot template`, the flow
   coloured by vorticity from velocity, contour lines of pressure, the cylinder; `shot
   preview`); a camera picked in the editor that moves from the whole domain to the
   cylinder; a second shot sweeping the colour range; a panel of the pressure
   coefficient round the wall; `film.yml` with a title card, two captions (one with maths, one
   anchored to the body), a freeze and silence; `film check`; `film build --preview`, then
   the full build; optionally Slurm
+- [ ] `examples/tutorial/stills.py`: renders each chapter's still and a short, small GIF
+  of the finished film from `cylinder_crossflow` into `docs/tutorial/images/`; committed
+  only once branch 2 has recorded that the licence allows it; the GIF on the index page
 - [ ] `examples/tutorial/`: every file the tutorial writes, as it stands at the end, so a
   reader can compare theirs
 - [ ] A test that follows the tutorial on the stand-in data at a small size, command by
   command, and checks the film is 20 s with the captions in place
 
-**Branch 4: `phase7/docs-reference`** (the guide and reference; needs branch 1)
-- [ ] `docs/README.md`: where to start (tutorial), the user guide pages in reading order,
-  and the reference; the per-phase pages renamed and linked as guide chapters
+**Branch 5: `phase7/docs-reference`** (the guide and reference; needs branches 1 and 3)
+- [ ] `docs/index.md`, the site's first page: where to start (the tutorial), the user
+  guide and the reference; the per-phase pages renamed as guide chapters, in reading order
+  in the site's navigation
 - [ ] YAML reference: every key of every file type (shot, cameras, layout, panel, film,
   card, `flowreel.yml`) with type, default and example, generated from the schema modules
   and the `template` commands, with a test that fails when the page is out of date
 - [ ] Command reference generated from the help text, with the same test
-- [ ] `README.md` brought up to date (status, what it does, a still, install, the
-  tutorial link); a docstring check over public modules (`.claude/rules/documentation.md`)
+- [ ] `README.md` brought up to date (status, what it does, a still, install, links to
+  the site and its tutorial); a docstring check over public modules (`.claude/rules/documentation.md`)
 
-**Branch 5: `phase7/tutorial-check`** (the check; needs all the others)
-- [ ] The tutorial followed from a clean checkout on a machine that has never had
-  FlowReel, with the real data set, by the instructions alone; time per chapter and every
+**Branch 6: `phase7/tutorial-check`** (the check; needs all the others)
+- [ ] The tutorial followed on the published site, from a clean checkout on a machine
+  that has never had FlowReel, with the real data set, by the instructions alone; time per chapter and every
   place where the reader stopped recorded here
 - [ ] Fixes from that run, each a commit naming the chapter
 - [ ] By a new user: someone other than Arun makes a 20 s film from the tutorial; what
   they made and what they asked recorded here
 
-Left out of Phase 7: a documentation website (the pages are Markdown read on GitHub),
-translations, and video tutorials.
+Left out of Phase 7: translations, video tutorials, and a reference of the Python
+library generated from its docstrings (the site documents the commands and YAML files).
 
 **Phase 7 is done when** a new user makes a 20 s film from the tutorial.
 
@@ -1564,6 +1594,7 @@ submitted film.
 | When | Starting now, with Phase 1 next |
 | Project rules (2026-11-22) | `flowreel.yml` stays the visible project file; machine state in a hidden `.flowreel/`; `project init` makes `shots/`, `text/`, `cards/`, `assets/`, `data/` and a `.gitignore`, `--link` symlinks the data; output under the project root; one `cameras.yml` at the root; commands stop outside a project (except `project init`, templates, `jobs`). Section 24 question 6, Section 19.8 |
 | Tutorial data (2026-11-22) | pyvista's `cylinder_crossflow`: one steady 2D step at Re 35, converted to a `.pvd` with a thin span; its licence to check before it is shown in a film. Section 24 question 7, Section 19.8 |
+| Presentation (2026-11-22) | The whole of `docs/` (not `PLAN.md`) as a MkDocs Material website on GitHub Pages: Tutorial, User guide, Reference; `mkdocs build --strict` on every PR, deployed on push to `main`. The tutorial one page per chapter in `docs/tutorial/`, a still per chapter and a short GIF of the film, rendered from the tutorial data once its licence allows. Section 24 question 8, Section 19.8 |
 
 ## 24. Questions
 
@@ -1578,6 +1609,7 @@ New ones are added here as the work raises them.
 | 5 | ~~Are the AFMS film's rendered frames still on the workstation?~~ **Answered 2026-11-19:** yes; Arun copies them into the AFMS project folder when branch 7 needs them. | Phase 4, branch 7 |
 | 6 | ~~Project rules~~ **Decided 2026-11-22** (Arun's proposal, discussed after the backend): (a) `flowreel.yml` stays the visible project file, for what is edited by hand; a hidden `.flowreel/` folder holds only machine state (caches, measured timings). (b) Outside a project the commands stop with an error saying how to make one, except `project init`, the `template` commands and `jobs`; the Python library works anywhere. (c) Generated output (`frames/`, `clips/`, `.flowreel/`) goes under the project root, wherever a command is run from; `-o` still overrides. (d) One `cameras.yml`, at the project root, for every shot and caption. Paths written in files stay relative to the file. Confirmed the same day: the folders `project init` makes (`shots/`, `text/`, `cards/`, `assets/`, `data/`, with `film.yml` and `cameras.yml` at the root), a `.gitignore` for the generated ones and `data/`, and `init --link` putting a symlink to the data in `data/` (data is never copied); a `cameras.yml` beside a shot file is an error that says to move it to the root. | Phase 7, branch 1 |
 | 7 | ~~Which public data set does the tutorial use?~~ **Decided 2026-11-22: pyvista's `cylinder_crossflow`** (`pyvista.examples.download_cylinder_crossflow`). Looked at: 0.7 MB of EnSight (`cylinder_Re35.case`), one steady step of a 2D flow past a cylinder of diameter 1 at Re 35, domain x 0 to 15, y -3.75 to 3.75, z 0; blocks `fluid` (14 831 points, quads and triangles) with `velocity`, `pressure` and `vorticity_mag` (the last not used, Section 6), the boundaries `inlet`, `outlet`, `outlet_top`, `outlet_bottom`, and the wall `wall_cylinder`. Its licence is still to be checked before it is shown in a film (branch 2). | Phase 7, branch 2 |
+| 8 | ~~How is the documentation, and the tutorial in it, presented?~~ **Decided 2026-11-22** (asked before branch 2): (a) a website, MkDocs Material on GitHub Pages, rather than Markdown read on GitHub, a notebook or a walkthrough inside the shell; (b) it covers all of `docs/` in three parts, Tutorial, User guide and Reference, and leaves out `PLAN.md`; (c) `mkdocs build --strict` on every PR, deployed on every push to `main`; (d) the tutorial one page per chapter under `docs/tutorial/`; (e) a still at the end of each chapter and a short GIF of the finished film, rendered from `cylinder_crossflow` by a script, committed once its licence allows. | Phase 7, branches 3 and 4 |
 
 **Decided 2026-11-13: both PLT and VTU.** FlowReel reads flexflow's PLT files itself
 and also VTU files, among them those FlexFlow Analyzer extracts (`field extract`); the

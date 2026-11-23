@@ -6,6 +6,8 @@ bodies:
     axis: x
     diameter: 1.0
     ends: [{at: 0.0, support: clamped}, {at: 4.0, support: clamped}]
+    series:                           # written by `flowreel project sections` (run.py)
+      sections: {file: series/cylinder_sections.csv, by: section, stations: series/cylinder_sections_stations.csv}
 reference:                            # the generated flow is in units of its own: q = 1/2
   rho: 1.0
   u_inf: 1.0

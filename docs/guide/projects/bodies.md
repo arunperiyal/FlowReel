@@ -216,6 +216,32 @@ number and `station`, then the value columns. Where a restart repeats a time, th
 later row wins. A missing file or column is reported with the file's name and the
 columns it has.
 
+### Computed from the flow: `project sections`
+
+A body's sectional force along its axis can be computed by FlowReel itself, from the
+flow next to the wall, so it needs nothing but the case:
+
+```text
+$ flowreel project sections plt:data/bare --body bare --param mu=0.001 -j 8
+bare: 121 of 121 steps to compute (0 in bare_sections.csv already), 48 sections over x = 0 to 12
+wrote series/bare_sections.csv (121 new steps) and series/bare_sections_stations.csv
+declare it under bodies.bare in flowreel.yml:
+    series:
+      sections:
+        file: series/bare_sections.csv
+        by: section
+        stations: series/bare_sections_stations.csv
+```
+
+The wall is cut into equal sections along the body's axis (fixed at the first step's
+extent), and the traction on each, its pressure and its shear, is summed and divided by
+the section's length: `fx, fy, fz`, a force per unit length on the body. With `rho` and
+`u_inf` under [`reference`](project.md#reference-values) and the body's `diameter`, the
+coefficients `cx, cy, cz` are written too, divided by `q D`. The shear needs the dynamic
+viscosity, `--param mu=...`. Each step's time already in the file is kept, so a run cut
+short goes on where it stopped and a longer window adds only its new steps. A
+[`map`](../composing/panels.md#map) panel draws the result against the span and time.
+
 ### Exporting from FlexFlow Analyzer
 
 For a FlexFlow case, the series come from FlexFlow Analyzer's `data table`, which handles

@@ -880,7 +880,7 @@ only the prototype's `surface_data.py` computed)
   `--sections N`, `--steps FIRST LAST`, `--every N`, `-j N`; a step already in the file
   is kept, so a run cut short goes on where it stopped; it prints the lines that declare
   the series under the body
-- [ ] Tests on generated data (a known wall traction gives known sectional forces; a second
+- [x] Tests on generated data (a known wall traction gives known sectional forces; a second
   run adds only the new steps), docs (the bodies page's series, the commands page, the
   reference), and an example
 

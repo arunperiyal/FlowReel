@@ -11,8 +11,12 @@ diameters long moving across a ring of flow, four steps 0.5 apart). Then:
 3. strip.yml: the body seen from +y, coloured by the wall shear along the span, with
    the line where it is zero (DIR/frames/strip/).
 4. board.yml: the three tiled into one picture (DIR/frames/board/).
+5. ``flowreel project sections``: the force on 8 sections along the body at every step,
+   from the flow (series/cylinder_sections.csv, declared in flowreel.yml), and
+   liftmap.yml, a map of it against the span and time (DIR/frames/liftmap/).
 """
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,6 +38,13 @@ def main(folder: Path) -> None:
         print(f"{report.folder.name}: {report.count('drawn')} drawn")
     report = compose.layout(folder / "board.yml", folder / "frames")
     print(f"{report.folder.name}: {report.count('composed')} composed")
+    subprocess.run([sys.executable, "-m", "flowreel", "project", "sections", "plt:case",
+                    "--param", "mu=0.5", "--sections", "8"], cwd=folder, check=True,
+                   capture_output=True)
+    print("sections: series/cylinder_sections.csv")
+    shutil.copy(HERE / "liftmap.yml", folder / "liftmap.yml")
+    report = compose.panel(folder / "liftmap.yml", folder / "frames")
+    print(f"{report.folder.name}: {report.count('drawn')} drawn")
 
 
 if __name__ == "__main__":

@@ -72,6 +72,48 @@ examples:
   flowreel project info films/afms
 ```
 
+### `flowreel project sections`
+
+```text
+usage: flowreel project sections [-h] [--body NAME] [--axis {x,y,z}] [--sections N]
+                                 [--steps FIRST LAST] [--every N] [--param KEY=VALUE]
+                                 [--margin L] [-j N] [-o FILE]
+                                 SOURCE
+
+Compute the force on equal sections of a body along its axis, step by step,
+from the flow next to the wall (pressure and wall shear), and write it as a
+series in long form: a CSV of time, section, fx, fy, fz per unit length (and
+cx, cy, cz, divided by q D, when flowreel.yml gives rho and u_inf under
+reference and the body its diameter), and a stations file. Steps already in
+the CSV are kept, so a run cut short goes on where it stopped.
+
+positional arguments:
+  SOURCE               adapter:location, e.g. plt:data/bare
+
+options:
+  -h, --help           show this help message and exit
+  --body NAME          the body, as flowreel.yml names it (default the one body)
+  --axis {x,y,z}       along which the sections are stacked (default the body's axis)
+  --sections N         equal sections over the body's extent (default 48)
+  --steps FIRST LAST   the saved steps from FIRST to LAST (default every one)
+  --every N            every Nth of those steps (default 1)
+  --param KEY=VALUE    a parameter of the wall fields: mu (dynamic viscosity, needed
+                       for the shear), p_inf (default 0)
+  --margin L           flow read round the wall, length unit (default 0.5)
+  -j N, --jobs N       steps computed at once, each in its own process (default 1)
+  -o FILE, --out FILE  the CSV (default series/<body>_sections.csv at the project
+                       root)
+
+examples:
+  flowreel project sections plt:data/bare --body bare --param mu=0.001
+                                                    every step, 48 sections, into series/
+  flowreel project sections plt:data/bare --body bare --param mu=0.001 --steps 5000 5600 -j 8
+  flowreel project sections vtk:run/flow.pvd --sections 96 -o series/riser_lift.csv
+
+Declare what it writes under the body in flowreel.yml (the command prints the lines)
+and draw it with a map panel. Reference: docs/guide/projects/bodies.md#series.
+```
+
 ### `flowreel project clean`
 
 ```text

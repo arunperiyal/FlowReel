@@ -490,6 +490,32 @@ and `.flowreel/`. A file that does not load is listed with its error. Nothing is
 changed. `DIR` is any folder in the project (default: the shell's project, else the
 current folder).
 
+## `project sections`
+
+```text
+flowreel project sections SOURCE [--body NAME] [--axis x|y|z] [--sections N]
+                                 [--steps FIRST LAST] [--every N] [--param KEY=VALUE]
+                                 [--margin L] [-j N] [-o FILE]
+```
+
+Computes a body's sectional force along its axis, step by step, from the flow next to
+the wall, and writes it as a series: a CSV in long form (`time, section, fx, fy, fz`, and
+`cx, cy, cz` with the project's reference values) and a stations file. It prints the
+lines that declare it under the body ([bodies](projects/bodies.md#computed-from-the-flow-project-sections)).
+
+| Option | Default | Meaning |
+|---|---|---|
+| `SOURCE` | required | `adapter:location`, as for `project init` |
+| `--body NAME` | the one body | the body, as `flowreel.yml` names it |
+| `--axis` | the body's declared axis | along which the sections are stacked |
+| `--sections N` | `48` | equal sections over the body's extent |
+| `--steps FIRST LAST` | every saved step | the window |
+| `--every N` | `1` | every Nth step of it |
+| `--param KEY=VALUE` | none | `mu` (dynamic viscosity, needed for the shear), `p_inf` |
+| `--margin L` | `0.5` | flow read round the wall, length unit |
+| `-j N` | `1` | steps computed at once, each in its own process |
+| `-o FILE` | `series/<body>_sections.csv` | the CSV; the stations file is beside it |
+
 ## `project clean`
 
 ```text

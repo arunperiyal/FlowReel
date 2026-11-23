@@ -1,0 +1,12 @@
+# The sectional force of the generated cylinder against the span and time, from the
+# series that `flowreel project sections` computed from the flow (run.py, step 5).
+type: map
+size: [960, 360]
+times: [0, 0.5, 1.0, 1.5]
+x: {label: '$t$'}
+y: {label: 'Span $x/D$'}
+rows:
+  - {body: cylinder, series: sections, column: cz, title: 'Sectional $C_z$'}
+colormap: fire_ice
+range: [-2, 2]
+colorbar: {label: '$C_z$'}

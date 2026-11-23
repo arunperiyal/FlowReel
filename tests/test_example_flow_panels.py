@@ -11,4 +11,6 @@ def test_example_draws_the_flow_panels(tmp_path):
                           text=True, timeout=600)
     assert done.returncode == 0, done.stderr[-2000:]
     assert done.stdout.splitlines() == ["section: 4 drawn", "cuts: 4 drawn", "strip: 4 drawn",
-                                        "board: 4 composed"]
+                                        "board: 4 composed",
+                                        "sections: series/cylinder_sections.csv",
+                                        "liftmap: 4 drawn"]

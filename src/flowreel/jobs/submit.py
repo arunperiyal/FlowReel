@@ -109,8 +109,35 @@ def status(jobs: list[str]) -> list[JobState]:
             if len(parts) == 5 and parts[0] not in out and "[" not in parts[0]:
                 job, name, state, elapsed, code = parts
                 out[job] = JobState(job, name, state.split()[0], elapsed, f"exit {code}")
+    for key in [k for k in out if "_[" in k]:     # tasks still pending, as one record
+        base = key.split("_")[0]
+        tasks = _task_ids(key.split("_[", 1)[1].rstrip("]"))
+        if tasks and all(f"{base}_{i}" in out for i in tasks):
+            del out[key]                            # started meanwhile: listed one by one
     return sorted(out.values(), key=lambda s: [int(x) if x.isdigit() else 0
                                                for x in s.job.replace("_", ".").split(".")])
+
+
+def _task_ids(spec: str) -> list[int]:
+    """The array task ids of a Slurm task list such as ``0-9%4`` or ``0,3,5-7``
+    (empty when it does not read as one)."""
+    ids = []
+    for part in spec.split("%")[0].split(","):
+        low, _, high = part.partition("-")
+        if not low.isdigit() or (high and not high.isdigit()):
+            return []
+        ids += range(int(low), int(high or low) + 1)
+    return ids
+
+
+def state_text(state: JobState) -> str:
+    """One job's state in words: why it waits, how long it has run, or how it ended."""
+    reason = "" if state.reason in ("", "None", "(null)") else state.reason
+    if state.state == "PENDING":
+        return f"PENDING ({reason})" if reason else "PENDING"
+    if state.state == "RUNNING":
+        return f"RUNNING for {state.elapsed}"
+    return f"{state.state} after {state.elapsed}" + (f", {reason}" if reason else "")
 
 
 def frames_done(folder: str | Path, frames: list[int], since: float) -> int:

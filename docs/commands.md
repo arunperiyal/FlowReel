@@ -577,9 +577,15 @@ flowreel jobs status [JOBID ...] [--all]
 ```text
 $ flowreel jobs status
 1311  reveal (render), submitted 00:04:10 ago
-  RUNNING 1
+  RUNNING for 00:04:02
   frames drawn since: 64 of 121 (frames/reveal)
+1312  film (film), submitted 00:04:09 ago
+  PENDING (Dependency)
 ```
+
+One job is described in words: why it waits (Slurm's reason, such as `Dependency` on
+the jobs it runs `--after`), how long it has run, or how it ended. An array of tasks is
+counted by state, such as `RUNNING 4, PENDING 12`.
 
 ## Errors and exit status
 

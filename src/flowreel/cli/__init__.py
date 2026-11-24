@@ -66,6 +66,8 @@ def make_app(storage=None) -> App:
     from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
     from flowreel.cli.data import DataCommand
+    from flowreel.cli.panel import PanelCommand
+    from flowreel.cli.scene import SceneCommand
     from flowreel.cli.doctor import DoctorCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
@@ -78,6 +80,8 @@ def make_app(storage=None) -> App:
                      + " [dim]help, Tab, exit[/dim]\n")
     app.register(ProjectCommand)
     app.register(DataCommand)
+    app.register(PanelCommand)
+    app.register(SceneCommand)
     app.register(ShotCommand)
     app.register(CameraCommand)
     app.register(ComposeCommand)

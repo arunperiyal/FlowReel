@@ -64,14 +64,25 @@ class Shot:
     file: str | None = None
     stretch: "Stretch | None" = None
     watermark: object = None
+    size_given: bool = False
 
 
 def load(path: str | Path) -> Shot:
-    """Read the shot file at ``path``. Errors name the file."""
+    """Read the shot file at ``path``. Errors name the file. A shot that gives no
+    ``size`` takes the size of the box that shows it in its project's film of scenes
+    (:func:`flowreel.film.model.shot_box_size`), so it is drawn at the size it is seen."""
+    from dataclasses import replace
+
     from flowreel.yamlfile import read_yaml
     path = Path(path)
     data = read_yaml(path)
-    return from_dict(data, file=str(path))
+    shot = from_dict(data, file=str(path))
+    if not shot.size_given:
+        from flowreel.film.model import shot_box_size
+        size = shot_box_size(path)
+        if size is not None:
+            shot = replace(shot, size=size)
+    return shot
 
 
 def from_dict(data, file: str | None = None) -> Shot:
@@ -104,7 +115,7 @@ def from_dict(data, file: str | None = None) -> Shot:
     return Shot(name=name, source=source, time=time, layers=layers, camera=camera,
                 size=size, crop=crop, background=background, antialias=antialias,
                 lights=lights, source_options=source_options, file=file, stretch=stretch,
-                watermark=watermark)
+                watermark=watermark, size_given="size" in data)
 
 
 def _check_amplify(layers, check: Checker) -> None:

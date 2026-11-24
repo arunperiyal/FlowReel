@@ -413,6 +413,7 @@ Guide: [guide/film/scenes](../guide/film/scenes.md).
 | `boxes[].shape.head` | pixels | `18` | an arrow's head | [guide/film/scenes](../guide/film/scenes.md#shape) |
 | `boxes[].shape.direction` | `right`, `left`, `up`, `down`, `up_right`, `up_left`, `down_right`, `down_left` | `right` | a line or arrow: from the middle of one side (or a corner) to the opposite one | [guide/film/scenes](../guide/film/scenes.md#shape) |
 | `boxes[].shape.radius` | pixels | `0` | a rectangle's rounded corners | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.shadow` | true or false | `false` | a soft shadow, as text has: an arrow over a picture stays readable | [guide/film/scenes](../guide/film/scenes.md#shape) |
 | `boxes[].shot.file` | path | required (or `frames`) | the shot file | [guide/film/scenes](../guide/film/scenes.md#shot) |
 | `boxes[].shot.frames` | folder | none | frames drawn elsewhere, instead of a shot file | [guide/film/scenes](../guide/film/scenes.md#shot) |
 | `boxes[].shot.rate` | `{fps, to_output}` | the film's rate | as a [shot of a film](../guide/film/film.md#shots) has it | [guide/film/scenes](../guide/film/scenes.md#shot) |

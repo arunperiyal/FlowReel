@@ -1084,11 +1084,11 @@ The decisions, for every branch:
 - [x] Tests on generated films
 
 **Branch 2: `phase10/boxes`** (drawing a frame of a scene)
-- [ ] Text boxes (lines, looks, shadow and box, maths), image boxes (fit, opacity), shape
+- [x] Text boxes (lines, looks, shadow and box, maths), image boxes (fit, opacity), shape
   boxes; each box's `at` and fade
-- [ ] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
+- [x] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
   `follow` placing text and shapes on a point of a shot box; `last_frame`
-- [ ] Tests against pictures drawn by hand and the old captions' golden pictures
+- [x] Tests against pictures drawn by hand and the old captions' golden pictures
 
 **Branch 3: `phase10/scene-build`**
 - [ ] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;

@@ -1,10 +1,11 @@
 """A FlowReel project: a folder with ``flowreel.yml`` (plan Section 3).
 
 ``flowreel.yml`` holds what belongs to the project rather than to one shot. So far that
-is ``bodies:`` (:mod:`flowreel.project.bodies`) and ``reference:``, the flow's
-reference values (:data:`REFERENCE_KEYS`: density, free-stream speed and a length), given
-once for every shot and panel; paths, defaults and ``scales:`` come with the phases
-that use them. A shot finds its project by looking for
+is ``defaults:`` (:data:`DEFAULT_KEYS`) and ``tags:``, the project's tags; each case's
+bodies, units and series are in its tag's ``data/<tag>/domain.yml``
+(:mod:`flowreel.project.domain`). ``bodies:`` and ``reference:`` (:data:`REFERENCE_KEYS`),
+the layout before tags, are read until the tutorials and examples move to tags
+(Phase 10), then removed. A shot finds its project by looking for
 ``flowreel.yml`` in its own folder and then in each folder above it; where the
 project's other files and its output go is :mod:`flowreel.project.paths`.
 """
@@ -18,7 +19,9 @@ from flowreel.project.bodies import Body, End, Series, parse_bodies
 from flowreel.project.paths import PROJECT_FILE, find_root
 from flowreel.scene.errors import Checker
 
-KEYS = ("bodies", "reference")
+KEYS = ("bodies", "reference", "defaults", "tags")
+#: Keys of ``defaults:``: what every command of the project starts from.
+DEFAULT_KEYS = ("backend", "style")
 #: The keys of ``reference:``: ``rho`` (density) and ``u_inf`` (free-stream speed), the
 #: parameters of the pressure and skin-friction coefficients; ``length``, the length a
 #: shot's axes divide by with ``unit: diameters`` when they name no body.
@@ -37,6 +40,15 @@ class Project:
     file: Path | None = None
     bodies: dict = field(default_factory=dict)
     reference: dict = field(default_factory=dict)
+    defaults: dict = field(default_factory=dict)
+    tag_names: tuple = ()
+
+    @property
+    def tags(self) -> dict:
+        """The project's tags (``data/<tag>/domain.yml``), by name
+        (:func:`flowreel.project.domain.domains`); none without a file."""
+        from flowreel.project.domain import domains
+        return {} if self.folder is None else domains(self.folder)
 
     @property
     def folder(self) -> Path | None:
@@ -55,7 +67,33 @@ def load_project(path: str | Path) -> Project:
     data = check.mapping({} if data is None else data, KEYS)
     path = path.resolve()
     return Project(path, parse_bodies(data.get("bodies"), check.at("bodies"), path.parent),
-                   parse_reference(data.get("reference"), check.at("reference")))
+                   parse_reference(data.get("reference"), check.at("reference")),
+                   parse_defaults(data.get("defaults"), check.at("defaults")),
+                   parse_tag_names(data.get("tags"), check.at("tags")))
+
+
+def parse_defaults(value, check: Checker) -> dict:
+    """``defaults:`` checked: ``backend`` (one of the off-screen back ends) and ``style``
+    (a mapping, the film's style)."""
+    if value is None:
+        return {}
+    from flowreel.scene.backend import BACKENDS
+    out = dict(check.mapping(value, DEFAULT_KEYS))
+    if "backend" in out:
+        check.at("backend").choice(out["backend"], BACKENDS)
+    if "style" in out:
+        check.at("style").mapping(out["style"], tuple(out["style"] or {}))
+    return out
+
+
+def parse_tag_names(value, check: Checker) -> tuple:
+    """``tags:`` checked: a list of tag names (each a folder under ``data/``)."""
+    if value is None:
+        return ()
+    from flowreel.project.domain import check_tag
+    if not isinstance(value, list):
+        raise check.error(f"expected a list of tag names, got {value!r}")
+    return tuple(check_tag(v, check.at(k)) for k, v in enumerate(value))
 
 
 def parse_reference(value, check: Checker) -> dict:

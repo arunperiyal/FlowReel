@@ -47,7 +47,7 @@ def test_the_levels(folder):
     assert opening.layout.background == "#101010" and opening.chapter.title == "Opening"
     image, title = opening.layout.boxes
     assert (image.name, image.kind, image.content.fit) == ("image1", "image", "contain")
-    assert title.content.drawn.size == 64.0 and title.rect((1920, 1080)) == (480, 270, 960, 540)
+    assert title.content.drawn.size == 70.0 and title.rect((1920, 1080)) == (480, 270, 960, 540)  # the film's look
     assert f.style.looks["title"].size == 70 and f.style.looks["title"].weight == "bold"
     shot, caption = reveal.layout.boxes
     assert reveal.layout.main is shot and reveal.seconds is None and reveal.cross == 1.0
@@ -150,3 +150,16 @@ def test_the_commands(folder, monkeypatch):
     assert status != 0 and "render it first: flowreel shot render" in err   # read, no frames
     from flowreel.project.info import info
     assert info(folder).film == "film.yml: 3 scenes"
+
+
+def test_a_text_box_starts_from_the_films_look(folder):
+    (folder / "layouts" / "l.yml").write_text("boxes: [{text: a}]\n")
+    f = film(folder, [{"name": "a", "seconds": 1, "layout": {"boxes": [
+        {"text": "a"}, {"text": {"lines": "b", "valign": "top"}}, {"text": {"lines": "c", "look": "title"}}]}},
+        {"name": "b", "seconds": 1, "layout": "l"}],
+        style={"looks": {"text": {"valign": "bottom", "margin": 80}}})
+    a, b, c = f.scenes[0].layout.boxes
+    assert (a.content.drawn.valign, a.content.drawn.margin) == ("bottom", 80)
+    assert (b.content.drawn.valign, b.content.drawn.margin) == ("top", 80)
+    assert c.content.drawn.valign == "centre"                     # the title look's own
+    assert f.scenes[1].layout.boxes[0].content.drawn.valign == "bottom"   # a layout file too

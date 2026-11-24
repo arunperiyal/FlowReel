@@ -71,6 +71,7 @@ class DesignState:
     size: tuple[int, int]
     fps: int
     grid: float = 20.0
+    looks: dict | None = None
     selected: str | None = None
     history: list = field(default_factory=list)
     message: str = ""
@@ -91,7 +92,7 @@ class DesignState:
         else:
             file, raw = None, layout
         return cls(film_path, scene, copy.deepcopy(raw["boxes"]), raw.get("background"),
-                   file, film.size, film.fps, grid)
+                   file, film.size, film.fps, grid, film.style.looks)
 
     # -- reading ---------------------------------------------------------------------
 
@@ -116,7 +117,8 @@ class DesignState:
             raw["background"] = background
         where = Checker(self.layout_file) if self.layout_file else \
             Checker(self.film_path, ("scenes", self.scene, "layout"))
-        return M.parse_layout(raw, where, self.folder, self.fps, self.size, self.layout_file)
+        return M.parse_layout(raw, where, self.folder, self.fps, self.size, self.layout_file,
+                              self.looks)
 
     def names(self) -> list[str]:
         """The boxes' names, in drawing order."""

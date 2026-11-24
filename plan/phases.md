@@ -1070,11 +1070,17 @@ The decisions, for every branch:
   tutorials are rewritten from scratch around the levels.
 
 **Branch 1: `phase10/film-model`** (the files)
-- [ ] `film.yml`'s schema: properties, audio, watermark and scenes (name, layout inline
+- [x] `film.yml`'s schema: properties, audio, watermark and scenes (name, layout inline
   or a file, seconds, fade, cross, chapter); the layout's schema: boxes (name, pos,
   size, place, at, fade, and one of text, image, shape, shot, panel, last_frame); loader
-  and checks, errors naming the key; card and caption files and the old shot kinds go
+  and checks, errors naming the key. A film of scenes is a new model
+  (`flowreel.film.model`), read when `film.yml` has `scenes:`; the film of shots, card and
+  caption files and the old shot kinds stay until branch 7 moves the tutorials and
+  examples, so `main` keeps building films (decided while implementing, 2026-11-24). A
+  box's content is under its kind, short or as a mapping (`text: {lines, look, size}`),
+  so the text's `size` and the box's `size: [w, h]` do not meet
 - [ ] `film template` and a layout template, every key commented; the YAML reference
+  (`film template --scenes` and `--layout` until branch 3 makes scenes the default)
 - [ ] Tests on generated films
 
 **Branch 2: `phase10/boxes`** (drawing a frame of a scene)
@@ -1112,6 +1118,9 @@ The decisions, for every branch:
   shot, a scene of one box, a layout of several, the film), on data tags; their data
   scripts write tags; their pictures made again; their follow-along tests
 - [ ] Every example and its test on tags and scenes
+- [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
+  and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
+  tiles (Phase 10 branch 1 kept them so `main` kept building films)
 - [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
   `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
   and `--link` (Phase 9 kept them read so

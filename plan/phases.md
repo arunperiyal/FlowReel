@@ -974,7 +974,7 @@ The decisions, for every branch:
 - [x] Tests on generated files with several groups and a restart; docs
 
 **Branch 4: `phase9/data-extract`**
-- [ ] `data extract sections TAG --body NAME`: the force on a body's sections along its
+- [x] `data extract sections TAG --body NAME`: the force on a body's sections along its
   axis, step by step from the flow (the code of PR #84), with `mu`, `rho` and `u_inf` from
   the tag's units; into `series/`, declared under the body; `--sections`, `--steps`,
   `--every`, `-j`, `--force`; steps already in the file kept

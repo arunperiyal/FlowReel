@@ -3,8 +3,8 @@
 ``data import`` brings a case in as a tag (:mod:`flowreel.project.imports`); ``list``,
 ``info``, ``remove``, ``rename`` and ``check`` look after the tags; ``import history``
 converts a FlexFlow case's OTHD and OISD files to CSV in a tag
-(:mod:`flowreel.project.history`); ``template`` prints a ``domain.yml`` with every key.
-``extract`` comes with Phase 9's next branch.
+(:mod:`flowreel.project.history`); ``extract`` computes series from a tag's flow into the
+tag (:mod:`flowreel.project.extract`); ``template`` prints a ``domain.yml`` with every key.
 """
 from __future__ import annotations
 
@@ -34,6 +34,18 @@ Reference: docs/guide/projects/data.md and docs/guide/commands.md.""",
   flowreel data import history --path /scratch/run --tag bare
                                             othd_files/ and oisd_files/, a CSV per group
   flowreel data import history --path /scratch/run --tag two --group 0=riser --group 1=ball""",
+    "extract": """examples:
+  flowreel data extract sections bare       the one body, 48 sections, every step
+  flowreel data extract sections bare --body cyl --sections 96 --steps 5000 5600 -j 8""",
+    "sections": """examples:
+  flowreel data extract sections bare       the one body, 48 sections, every step
+  flowreel data extract sections bare --steps 5000 5300 -j 8
+  flowreel data extract sections bare --steps 5000 5600 -j 8
+                                            adds only the steps not in the file
+  flowreel data extract sections bare --sections 96 --force
+                                            start again with another count
+
+Draw it with a map panel (docs/guide/composing/panels.md#map).""",
     "list": """examples:
   flowreel data list""",
     "info": """examples:
@@ -104,6 +116,39 @@ class DataCommand(BaseCommand):
         i.add_argument("--yes", action="store_true", help="copy even above 5 GB")
         i.add_argument("--force", action="store_true",
                        help="replace the tag's link (domain.yml keeps its edits)")
+
+        e = _parser(actions, "extract", help="compute a series from a tag's flow, into the tag",
+                    description="Compute a series from a tag's flow and write it under "
+                                "data/TAG/series/, declared under its body in domain.yml, with "
+                                "the constants taken from the tag's units.")
+        kinds = e.add_subparsers(dest="extract_kind", metavar="<kind>")
+        s = kinds.add_parser(
+            "sections", help="a body's sectional force along its axis, step by step",
+            description=textwrap.fill(
+                "The force on equal sections of a body along its axis, step by step, from "
+                "the flow next to the wall (pressure and wall shear, with mu and p_inf from "
+                "the tag's units): a CSV of time, section, fx, fy, fz per unit length, and "
+                "cx, cy, cz divided by q D when the units give rho and u_inf and the body "
+                "its diameter; and a stations file. Declared as the body's 'sections' "
+                "series. Steps already in the CSV are kept, so a run cut short goes on "
+                "where it stopped.", 78),
+            epilog=EXAMPLES["sections"], formatter_class=argparse.RawDescriptionHelpFormatter)
+        s.add_argument("tag", metavar="TAG")
+        s.add_argument("--body", metavar="NAME", help="the body (default the tag's one body)")
+        s.add_argument("--axis", choices=("x", "y", "z"),
+                       help="along which the sections are stacked (default the body's axis)")
+        s.add_argument("--sections", type=int, default=48, metavar="N",
+                       help="equal sections over the body's extent (default 48)")
+        s.add_argument("--steps", type=int, nargs=2, metavar=("FIRST", "LAST"),
+                       help="the saved steps from FIRST to LAST (default every one)")
+        s.add_argument("--every", type=int, default=1, metavar="N",
+                       help="every Nth of those steps (default 1)")
+        s.add_argument("--margin", type=float, default=0.5, metavar="L",
+                       help="flow read round the wall, length unit (default 0.5)")
+        s.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
+                       help="steps computed at once, each in its own process (default 1)")
+        s.add_argument("--force", action="store_true",
+                       help="start the file again, and replace a different declaration")
 
         _parser(actions, "list", help="the project's tags: kind, steps, size, link",
                 description="List every tag under data/: its kind, its steps, its size, "
@@ -195,6 +240,23 @@ class DataCommand(BaseCommand):
                      "not given to a body (listed in domain.yml; or --group)")
             nodes = f", {c.nodes} nodes" if c.nodes > 1 else ""
             ctx.out(f"{c.kind} group {c.group}: {c.file}, {c.rows} rows{nodes}; {where}")
+        return 0
+
+    def do_extract(self, args, ctx):
+        if not args.extract_kind:
+            ctx.error("give a kind: flowreel data extract --help")
+            return 2
+        from flowreel.project.extract import extract_sections
+        done = extract_sections(self._root(ctx), args.tag, body=args.body, axis=args.axis,
+                                sections=args.sections, steps=args.steps, every=args.every,
+                                margin=args.margin, jobs=args.jobs, force=args.force,
+                                say=ctx.out)
+        folder = f"data/{args.tag}"
+        ctx.out(f"wrote {folder}/series/{done.csv.name} ({done.steps} new steps) and "
+                f"{done.stations.name}" + ("" if done.coefficients else
+                "; no coefficients: give units rho and u_inf and the body's diameter"))
+        ctx.out(f"declared as {done.body}'s {done.name} in {folder}/domain.yml"
+                if done.declared else f"{done.body}'s {done.name} was declared already")
         return 0
 
     def do_list(self, args, ctx):

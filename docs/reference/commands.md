@@ -98,6 +98,33 @@ examples:
   flowreel project clean --frames --clips           frames and finished clips
 ```
 
+## `data`
+
+A project's data by tag: each case's domain.yml.
+
+### `flowreel data template`
+
+```text
+usage: flowreel data template [-h] [--kind {plt,vtk,geometry}] [-o FILE] [--force]
+
+Print (or write with -o) a domain.yml with every key, at its default or as an
+example, each with a comment: what a case under data/<tag>/ can say about
+itself.
+
+options:
+  -h, --help            show this help message and exit
+  --kind {plt,vtk,geometry}
+                        the kind of case (default plt)
+  -o FILE, --output FILE
+                        write it here instead
+  --force               overwrite FILE
+
+examples:
+  flowreel data template                    a PLT case
+  flowreel data template --kind geometry    a body made in code
+  flowreel data template --kind vtk -o data/run/domain.yml
+```
+
 ## `shot`
 
 Render, preview and measure shots.

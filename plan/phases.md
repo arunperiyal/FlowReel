@@ -943,14 +943,16 @@ The decisions, for every branch:
   stay as they are.
 
 **Branch 1: `phase9/domain-file`** (the base the others stand on)
-- [ ] `data/<tag>/domain.yml`: its schema and loader (kind, units, bodies with zone, file
+- [x] `data/<tag>/domain.yml`: its schema and loader (kind, units, bodies with zone, file
   or function, axis, diameter, ends, series), tag names checked; the project's tags found
-  under `data/`; `flowreel.yml` reduced to `defaults:` and `tags:` (its `bodies:` and
-  `reference:` become errors saying where they went)
-- [ ] Sources opened from a tag (`plt`, `vtk`, `geometry`) with the tag's bodies and units
+  under `data/`; `flowreel.yml` gains `defaults:` and `tags:`. Its `bodies:` and
+  `reference:` are still read: FlowReel's own tutorials, examples and tests use them, and
+  making them errors now would leave `main` failing until Phase 10 moves them; Phase 10's
+  last branch removes them (decided while implementing, 2026-11-24)
+- [x] Sources opened from a tag (`plt`, `vtk`, `geometry`) with the tag's bodies and units
   declared on them; the fields' parameters (`rho`, `mu`, `u_inf`) taken from the units
-- [ ] `data template`: every key of `domain.yml`, commented; the YAML reference covers it
-- [ ] Tests on generated tags; docs (projects, bodies, sources, rules: a new rule, data by
+- [x] `data template`: every key of `domain.yml`, commented; the YAML reference covers it
+- [x] Tests on generated tags; docs (projects, bodies, sources, rules: a new rule, data by
   tag)
 
 **Branch 2: `phase9/data-import`**
@@ -978,7 +980,8 @@ The decisions, for every branch:
 
 **Branch 5: `phase9/source-tags`**
 - [ ] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
-  too; bodies as `tag.body` where tags meet; `source: adapter:path` removed
+  too; bodies as `tag.body` where tags meet; `source: adapter:path` still read until
+  Phase 10's last branch removes it
 - [ ] Frame keys, `project info`, the doctor and the camera editor follow
 - [ ] Tests, docs, the YAML reference
 
@@ -1106,6 +1109,9 @@ The decisions, for every branch:
   shot, a scene of one box, a layout of several, the film), on data tags; their data
   scripts write tags; their pictures made again; their follow-along tests
 - [ ] Every example and its test on tags and scenes
+- [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
+  `reference:`, and `source: adapter:path` in shots and panels (Phase 9 kept them read so
+  `main` stayed green)
 
 **Phase 10 is done when** the AFMS film is made from its two cases as tags and scenes
 (its port, waiting for Phases 9 and 10), both tutorials are rewritten, and the guide

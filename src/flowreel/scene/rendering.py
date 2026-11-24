@@ -152,8 +152,10 @@ class Scene:
         key_source = source_id(shot) + ([{"bodies": declared}] if declared else [])
         surfaces = SurfaceCache(cache, key_source) if cache is not None and fp.frozen else None
         from flowreel.scene.layers import flow_fields
+        units = getattr(source, "units", None)      # a tag's (data/<tag>/domain.yml)
+        reference = dict(units) if units is not None else (project.reference if project else {})
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces,
-                   flow_fields(source, shot.layers), project.reference if project else {})
+                   flow_fields(source, shot.layers), reference)
 
     @property
     def pixel_scale(self) -> float:

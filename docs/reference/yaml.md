@@ -102,6 +102,37 @@ Guide: [guide/projects/bodies](../guide/projects/bodies.md).
 | `reference.rho` | number > 0 | none | density, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
 | `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
 | `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` | [guide/projects/project](../guide/projects/project.md#reference-values) |
+| `defaults` | mapping | `{}` | what the project's commands start from | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
+| `tags` | list of tag names | the folders of `data/` | the project's [tags](../guide/projects/data.md), listed for checks | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
+| `defaults.backend` | `auto`, `osmesa`, `egl`, `x` | `auto` | the off-screen back end | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
+| `defaults.style` | mapping | the film's own | the film's style (used by Phase 10's films) | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
+
+## Tag: `data/TAG/domain.yml`
+
+Guide: [guide/projects/data](../guide/projects/data.md).
+
+| Key | Type | Default | Meaning | Section |
+|---|---|---|---|---|
+| `kind` | `plt`, `vtk` or `geometry` | required | how the case is read: the [source](../guide/projects/sources.md) of that name | [guide/projects/data](../guide/projects/data.md#domainyml) |
+| `source` | mapping | `{}` | the reader's options ([below](../guide/projects/data.md#source)); paths are taken from the tag's folder | [guide/projects/data](../guide/projects/data.md#domainyml) |
+| `units` | mapping | `{}` | the case's constants ([below](../guide/projects/data.md#units)) | [guide/projects/data](../guide/projects/data.md#domainyml) |
+| `bodies` | mapping | none | the case's bodies, as [bodies](../guide/projects/bodies.md) declares them; series paths from the tag's folder | [guide/projects/data](../guide/projects/data.md#domainyml) |
+| `measured` | mapping | none | what `data import` found (steps, zones, fields, bounds); for reading, never read back | [guide/projects/data](../guide/projects/data.md#domainyml) |
+| `units.rho` | number > 0 | none | density | [guide/projects/data](../guide/projects/data.md#units) |
+| `units.mu` | number > 0 | none | dynamic viscosity: wall shear, skin friction, sectional force | [guide/projects/data](../guide/projects/data.md#units) |
+| `units.u_inf` | number > 0 | none | free-stream speed | [guide/projects/data](../guide/projects/data.md#units) |
+| `units.p_inf` | number | `0` | free-stream pressure | [guide/projects/data](../guide/projects/data.md#units) |
+| `units.length` | number > 0 | none | the length lengths are shown in: the axes layer's `unit: diameters` | [guide/projects/data](../guide/projects/data.md#units) |
+| `source.path` | path | required (`plt`, `vtk`) | the PLT folder, or the VTK flow (a `.pvd`, a pattern or a file) | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.volume` | text | found in the file | `plt`: the volume zone | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.body` | text, list, or name to file | found | `plt`: wall zone(s); `vtk`: body files by name; `geometry`: the body made in code | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.nen`, `.window`, `.margin`, `.cache` |  |  | `plt`: as the [sources](../guide/projects/sources.md#the-plt-adapter) page says | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.name` | text | the kind | the source's label | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.names`, `.body_block`, `.flow_block` |  |  | `vtk`: as the [sources](../guide/projects/sources.md#the-vtk-adapter) page says | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.dt` |  | `1`, `1.0` | `geometry`: its steps and their time | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.times` |  |  | `vtk`: as the [sources](../guide/projects/sources.md#the-vtk-adapter) page says | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.params` | mapping | `{}` | `geometry`: the body's parameters | [guide/projects/data](../guide/projects/data.md#source) |
+| `source.frames` |  | `1`, `1.0` | `geometry`: its steps and their time | [guide/projects/data](../guide/projects/data.md#source) |
 
 ## Layout: `NAME.yml (compose layout)`
 

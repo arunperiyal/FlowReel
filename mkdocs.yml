@@ -82,6 +82,7 @@ nav:
       - Projects and data:
           - Projects: guide/projects/project.md
           - Rules: guide/projects/rules.md
+          - Data and tags: guide/projects/data.md
           - Sources: guide/projects/sources.md
           - Bodies: guide/projects/bodies.md
           - Derived fields: guide/projects/fields.md

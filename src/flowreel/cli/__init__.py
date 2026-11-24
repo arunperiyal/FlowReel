@@ -65,6 +65,7 @@ def make_app(storage=None) -> App:
     shell keeps history and settings (default ``~/.flowreel``)."""
     from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
+    from flowreel.cli.data import DataCommand
     from flowreel.cli.doctor import DoctorCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
@@ -76,6 +77,7 @@ def make_app(storage=None) -> App:
               banner="[bold]flowreel[/bold] " + flowreel.__version__
                      + " [dim]help, Tab, exit[/dim]\n")
     app.register(ProjectCommand)
+    app.register(DataCommand)
     app.register(ShotCommand)
     app.register(CameraCommand)
     app.register(ComposeCommand)

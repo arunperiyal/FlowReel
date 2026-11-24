@@ -909,7 +909,8 @@ examples:
 ### `flowreel film template`
 
 ```text
-usage: flowreel film template [-h] [--fps N] [-o FILE] [--force] [name]
+usage: flowreel film template [-h] [--fps N] [-o FILE] [--force] [--scenes | --layout]
+                              [name]
 
 Print (or write with -o) a film file with every key at its default, each with
 a comment, and one frames shot.
@@ -924,10 +925,16 @@ options:
   -o FILE, --output FILE
                         write to FILE instead of printing
   --force               overwrite FILE if it exists
+  --scenes              a film of scenes, each a layout of boxes (Phase 10's model)
+  --layout              a layout file (layouts/NAME.yml) with one box of each kind
 
 examples:
   flowreel film template                     print a film file with the defaults
   flowreel film template wake --fps 30 -o film.yml
+  flowreel film template --scenes wake -o film.yml
+                                             a film of scenes (title, the shot, an end)
+  flowreel film template --layout -o layouts/compare.yml
+                                             a layout file, one box of each kind
 ```
 
 ## `jobs`

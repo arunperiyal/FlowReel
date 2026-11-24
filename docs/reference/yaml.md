@@ -341,6 +341,86 @@ Guide: [guide/film/film](../guide/film/film.md).
 | `shots[].chapter.title` | text, or `{title, at}` | none | a one-line title | [guide/film/build](../guide/film/build.md#chapters) |
 | `shots[].chapter.at` | seconds | `0` | where in the finished shot (freezes included) it starts; must be inside the shot | [guide/film/build](../guide/film/build.md#chapters) |
 
+## Film of scenes: `film.yml with scenes:`
+
+Guide: [guide/film/scenes](../guide/film/scenes.md).
+
+| Key | Type | Default | Meaning | Section |
+|---|---|---|---|---|
+| `output` | path | `film.mp4` | the film, from the film file's folder | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `fps` | integer | `24` | frames a second of the film | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `size` | `[width, height]` | `[1920, 1080]` | the film's pixels; boxes are placed in them | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `style` | mapping | the defaults below | fonts, colours and the looks of text | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `audio` | list | none | tracks, as [the film file](../guide/film/film.md) gives them | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `watermark` | mapping | none | as [the watermark](../guide/film/captions.md#the-watermark) gives it, with `scenes` in place of `shots` | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `scenes` | list | required | the scenes, in order | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `style.font` | font family | `Lato` (bundled) | the text's font | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.maths` | `font` or a maths font set | `font` | the font of text between `$` | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.colours` | `{text, muted}` | below | the film's two colours | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks` | mapping of `title`, `text`, `small` | below | how text looks; a text box starts from one | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.colours.text` | colour | `#f2f2f2` | text and shapes, unless a box says | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.colours.muted` | colour | `#96a5b2` | the `small` look, and `colour: muted` | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.size` | number > 0 | `50` | letter height, pixels | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.colour` | colour, `muted` or `~` | `~`: the text colour | the letters' colour | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.weight` | `regular`, `light`, `bold`, `italic` | `regular` | the font's weight | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.align` | `centre`, `left`, `right` | `centre` | the lines against each other | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.valign` | `top`, `centre`, `bottom` | `centre` | the text in its box | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.spacing` | number > 0 | `1.3` | line spacing, times the size | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.shadow` | true or false | `true` | a soft shadow behind the letters | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.box` | true or false | `false` | a dark box behind the text | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.fade` | seconds | `0.8` | in and out, unless the box gives `fade` | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `style.looks.NAME.margin` | pixels | `40` | from the box's edges | [guide/film/scenes](../guide/film/scenes.md#style) |
+| `watermark.scenes` | list of scene names | every scene | the scenes it shows on (or `seconds: [start, end]`) | [guide/film/scenes](../guide/film/scenes.md#the-film) |
+| `scenes[].name` | string | required | unique; `last_frame` and the watermark name it | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].layout` | mapping, or a name | required | the layout in place, or `layouts/NAME.yml` (a path ending `.yml` is taken from the film file's folder) | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].seconds` | seconds | its main box's length | how long a scene of text, pictures or a held frame lasts | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].fade` | seconds, or `[in, out]` | `[0, 0]` | from and to black | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].cross` | seconds | `0` | dissolve into the next scene; not with a fade out, not on the last scene | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].chapter` | title, or `{title, at}` | none | starts a chapter, as [chapters](../guide/film/build.md) say | [guide/film/scenes](../guide/film/scenes.md#scenes) |
+| `scenes[].layout.background` | colour | `black` | behind the boxes | [guide/film/scenes](../guide/film/scenes.md#layouts) |
+| `scenes[].layout.boxes` | list | required | drawn in order, the first at the back | [guide/film/scenes](../guide/film/scenes.md#layouts) |
+
+## Layout: `layouts/NAME.yml, or a scene's layout`
+
+Guide: [guide/film/scenes](../guide/film/scenes.md).
+
+| Key | Type | Default | Meaning | Section |
+|---|---|---|---|---|
+| `background` | colour | `black` | behind the boxes | [guide/film/scenes](../guide/film/scenes.md#layouts) |
+| `boxes` | list | required | drawn in order, the first at the back | [guide/film/scenes](../guide/film/scenes.md#layouts) |
+| `boxes[].name` | string | the kind and its number (`text2`) | unique in the layout; `follow` and `main` name it | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].pos` | `[x, y]` | none | the upper left corner, pixels of the film, `y` down | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].size` | `[w, h]` | none | width and height in pixels; a shot is drawn at this size | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].place` | `full`, `top`, `bottom`, `left`, `right`, `centre`, `top_left`, `top_right`, `bottom_left`, `bottom_right` | `full` | a half, the middle half, or a quarter of the frame, instead of `pos` and `size` | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].at` | `[start, end]` | the whole scene | seconds into the scene; `end` `~` runs to the scene's end | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].fade` | seconds, or `[in, out]` | a text's look; else `0` | fading in and out at `at`'s ends | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].follow` | `{box, model, offset}` | none | for text and shapes: pinned to a point of the flow in a shot box | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].text`, `.image`, `.shape`, `.shot`, `.panel`, `.last_frame` | below | one is required | what the box shows | [guide/film/scenes](../guide/film/scenes.md#boxes) |
+| `boxes[].follow.box` | a shot box's name | required | the shot whose camera places the point | [guide/film/scenes](../guide/film/scenes.md#follow-a-box-on-a-point-of-the-flow) |
+| `boxes[].follow.model` | `[x, y, z]` | required | the point, in the flow's units | [guide/film/scenes](../guide/film/scenes.md#follow-a-box-on-a-point-of-the-flow) |
+| `boxes[].follow.offset` | `[dx, dy]` | `[0, 0]` | pixels moved on the screen after projection | [guide/film/scenes](../guide/film/scenes.md#follow-a-box-on-a-point-of-the-flow) |
+| `boxes[].text.lines` | a line or a list | required | the text | [guide/film/scenes](../guide/film/scenes.md#text) |
+| `boxes[].text.look` | `title`, `text`, `small` | `text` | the look it starts from | [guide/film/scenes](../guide/film/scenes.md#text) |
+| `boxes[].text.subtitle` | true or false | `true` | a timed text box (one with `at`) is a subtitle in `film.srt` | [guide/film/scenes](../guide/film/scenes.md#text) |
+| `boxes[].text.size`, `.colour`, `.weight`, `.align`, `.valign`, `.spacing`, `.shadow`, `.box`, `.fade`, `.margin` | as a look's | the look's | change the look for this box | [guide/film/scenes](../guide/film/scenes.md#text) |
+| `boxes[].image.file` | path | required | the picture; keep logos in `assets/`, outside FlowReel | [guide/film/scenes](../guide/film/scenes.md#image) |
+| `boxes[].image.fit` | `contain`, `cover`, `stretch` | `contain` | all of it in the box; the box filled, cut to fit; or stretched | [guide/film/scenes](../guide/film/scenes.md#image) |
+| `boxes[].image.opacity` | 0 to 1 | `1` |  | [guide/film/scenes](../guide/film/scenes.md#image) |
+| `boxes[].shape.kind` | `line`, `arrow`, `rectangle`, `circle` | required | a rectangle is the box's outline, a circle the ellipse in it, a line or arrow crosses it | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.colour` | colour | the text colour |  | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.width` | pixels | `4` | the line's width | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.fill` | colour | none | inside a rectangle or circle; `#rrggbbaa` for see-through | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.head` | pixels | `18` | an arrow's head | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.direction` | `right`, `left`, `up`, `down`, `up_right`, `up_left`, `down_right`, `down_left` | `right` | a line or arrow: from the middle of one side (or a corner) to the opposite one | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shape.radius` | pixels | `0` | a rectangle's rounded corners | [guide/film/scenes](../guide/film/scenes.md#shape) |
+| `boxes[].shot.file` | path | required (or `frames`) | the shot file | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].shot.frames` | folder | none | frames drawn elsewhere, instead of a shot file | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].shot.rate` | `{fps, to_output}` | the film's rate | as a [shot of a film](../guide/film/film.md#shots) has it | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].shot.freezes` | list of `{at, hold}` | none | stop at `at` seconds of the shot's frames for `hold` seconds; the other boxes go on | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].shot.freezes[].at` | seconds | required | when, in seconds of the shot's own frames | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].shot.freezes[].hold` | seconds > 0 | required | how long the frame is held | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].panel.file` | path | required | a panel file; the build draws it at the box's size, at the film's rate | [guide/film/scenes](../guide/film/scenes.md#panel-and-last_frame) |
+
 ## Captions: `text/NAME.yml, or a shot's text`
 
 Guide: [guide/film/film](../guide/film/film.md).

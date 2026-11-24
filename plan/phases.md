@@ -1079,7 +1079,7 @@ The decisions, for every branch:
   examples, so `main` keeps building films (decided while implementing, 2026-11-24). A
   box's content is under its kind, short or as a mapping (`text: {lines, look, size}`),
   so the text's `size` and the box's `size: [w, h]` do not meet
-- [ ] `film template` and a layout template, every key commented; the YAML reference
+- [x] `film template` and a layout template, every key commented; the YAML reference
   (`film template --scenes` and `--layout` until branch 3 makes scenes the default)
 - [ ] Tests on generated films
 

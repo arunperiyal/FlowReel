@@ -52,7 +52,11 @@ the frame), with the caption, shot and times.""",
   flowreel film chapters -o chapters.txt""",
     "template": """examples:
   flowreel film template                     print a film file with the defaults
-  flowreel film template wake --fps 30 -o film.yml""",
+  flowreel film template wake --fps 30 -o film.yml
+  flowreel film template --scenes wake -o film.yml
+                                             a film of scenes (title, the shot, an end)
+  flowreel film template --layout -o layouts/compare.yml
+                                             a layout file, one box of each kind""",
 }
 
 
@@ -174,6 +178,11 @@ class FilmCommand(BaseCommand):
         m.add_argument("-o", "--output", metavar="FILE",
                        help="write to FILE instead of printing").completer = paths((".yml", ".yaml"))
         m.add_argument("--force", action="store_true", help="overwrite FILE if it exists")
+        which = m.add_mutually_exclusive_group()
+        which.add_argument("--scenes", action="store_true",
+                           help="a film of scenes, each a layout of boxes (Phase 10's model)")
+        which.add_argument("--layout", action="store_true",
+                           help="a layout file (layouts/NAME.yml) with one box of each kind")
         return p
 
     def execute(self, args, ctx):
@@ -291,7 +300,9 @@ class FilmCommand(BaseCommand):
         from flowreel.film.template import template
         if args.fps < 1:
             raise CommandError("--fps must be at least 1")
-        text = template(args.name, args.fps)
+        from flowreel.film.scene_template import film_template, layout_template
+        text = (film_template(args.name, args.fps) if args.scenes
+                else layout_template() if args.layout else template(args.name, args.fps))
         if not args.output:
             ctx.out(text, end="")
             return 0

@@ -1,0 +1,16 @@
+# domain.yml of the tag 'crossflow', written by `flowreel data import` and edited by hand
+# (a second import with --force keeps your edits). Reference:
+# docs/guide/projects/data.md.
+kind: vtk
+source:
+  path: vtk/flow.pvd
+  body: {cylinder: vtk/cylinder.vtp}
+units:                            # the case is without dimensions: D = 1, U = 1, Re = 35
+  rho: 1.0
+  u_inf: 1.0
+  mu: 0.028571                    # rho U D / Re
+bodies:
+  cylinder:
+    zone: cylinder
+    axis: z                       # the span: this 2D flow was given a thin one along z
+    diameter: 1.0

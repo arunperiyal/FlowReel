@@ -2,8 +2,9 @@
 
     python examples/tutorial/stills.py PROJECT [-o docs/tutorials/steady/images]
 
-``PROJECT`` is a tutorial project at the end of chapter 8: its frames rendered at full
-size, ``film.mp4`` and ``contact.png`` built. The pictures are made from those files,
+``PROJECT`` is a tutorial project at the end of chapter 9: its shots rendered at the size
+of their boxes, ``panel draw`` run, the scenes previewed as chapters 7 and 8 say, and
+``film.mp4`` and ``contact.png`` built. The pictures are made from those files,
 so they show what a reader's own project shows, from the real data set
 (``cylinder_crossflow``, Apache-2.0: its licence allows them to be shown and kept in
 the repository; docs/tutorials/steady/data.md).
@@ -16,7 +17,9 @@ Written into ``-o`` (default ``docs/tutorials/steady/images/`` of this repositor
 | ``04-camera.png`` | 4 | frames 0 and 96 of ``wake``, side by side |
 | ``05-sweep.png`` | 5 | frames 0, 48 and 71 of ``sweep`` |
 | ``06-panel.png`` | 6 | frame 0 of ``pressure`` |
-| ``07-check.png`` | 7 | the contact sheet of ``film check`` |
+| ``07-scene.png`` | 7 | ``scene preview wake --at 2 5.5``: the caption, then the freeze |
+| ``08-layout.png`` | 8 | ``scene preview compare --at 1 4.5`` and ``title --at 2`` |
+| ``09-check.png`` | 9 | the contact sheet of ``film check`` |
 | ``film.gif`` | index | the film, small and at 8 frames a second |
 
 Stills are 960 pixels wide in all, so the repository stays small.
@@ -39,8 +42,8 @@ def frame(project: Path, shot: str, index: int) -> Image.Image:
     """Frame ``index`` of the full-size frames of ``shot``."""
     path = project / "frames" / shot / f"frame_{index:05d}.png"
     if not path.is_file():
-        raise FileNotFoundError(f"{path}: render the tutorial's frames at full size first "
-                                f"(chapter 8)")
+        raise FileNotFoundError(f"{path}: render the tutorial's shots first (chapters 7 "
+                                f"and 8)")
     return Image.open(path).convert("RGB")
 
 
@@ -57,6 +60,15 @@ def chapter3(project: Path) -> Image.Image:
         return Image.fromarray(render_frame(path, 0))
     finally:
         path.unlink()
+
+
+def still(project: Path, scene: str, at: float) -> Image.Image:
+    """The still ``scene preview SCENE --at AT`` wrote."""
+    path = project / "frames" / "scenes" / scene / f"at_{at:.2f}.png"
+    if not path.is_file():
+        raise FileNotFoundError(f"{path}: run flowreel scene preview {scene} --at {at:g} "
+                                f"first (chapters 7 and 8)")
+    return Image.open(path).convert("RGB")
 
 
 def row(images: list[Image.Image], width: int = WIDTH, gap: int = 8) -> Image.Image:
@@ -80,7 +92,10 @@ def stills(project: str | Path, out: str | Path = IMAGES) -> list[Path]:
         "04-camera.png": row([frame(project, "wake", 0), frame(project, "wake", 96)]),
         "05-sweep.png": row([frame(project, "sweep", i) for i in (0, 48, 71)]),
         "06-panel.png": row([frame(project, "pressure", 0)]),
-        "07-check.png": row([Image.open(project / "contact.png").convert("RGB")]),
+        "07-scene.png": row([still(project, "wake", 2), still(project, "wake", 5.5)]),
+        "08-layout.png": row([still(project, "compare", 1), still(project, "compare", 4.5),
+                              still(project, "title", 2)]),
+        "09-check.png": row([Image.open(project / "contact.png").convert("RGB")]),
     }
     written = []
     for name, picture in pictures.items():

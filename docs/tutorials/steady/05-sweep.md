@@ -13,13 +13,9 @@ Copy `shots/wake.yml` to `shots/sweep.yml` and change it to:
 
 ```yaml
 name: sweep
-source:
-  adapter: vtk
-  path: ../data/cylinder_crossflow/flow.pvd
-  body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
+source: crossflow
 time: {frozen: 0, frames: 72}         # 3 s at 24
-camera: {view: approach_0000}        # the first view picked in the editor: the whole domain
-size: [1920, 1080]
+camera: {fit: {x: [0, 15], y: [-2.1, 2.1], z: [-0.05, 0.05]}, direction_of: approach_0000}
 layers:
   - type: slice
     normal: z
@@ -33,8 +29,12 @@ layers:
   then easing to ±5 by frame 60, and held there to the end. `ease: in_out` starts and
   ends the change gently. Other ways to write a track, with keys at several frames, are
   in [tracks](../../guide/shots/tracks.md#forms).
-- **`camera: {view: approach_0000}`** holds the camera still, at the first view you
-  picked in chapter 4. Any view of `cameras.yml` can be used on its own like this.
+- **`camera: {fit: ..., direction_of: approach_0000}`** holds the camera still, looking
+  the way of the first view you picked in chapter 4, as close as it can while the
+  region `x` 0 to 15, `y` ±2.1 fills the picture: the wake, wide and low. The film will
+  show this shot in a strip across half its frame (chapter 8), which this region fits
+  ([cameras](../../guide/shots/cameras.md)). A view of `cameras.yml` can also be used on
+  its own, `camera: {view: approach_0000}`.
 - **`{type: body, body: cylinder}`** is the same layer written on one line; YAML allows
   either.
 

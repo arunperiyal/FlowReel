@@ -2,4 +2,5 @@
 frames/
 clips/
 .flowreel/
-data/
+data/*/*
+!data/*/domain.yml

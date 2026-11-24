@@ -1,0 +1,12 @@
+# The title: a scene of text and a line, no shot. Places are halves of the frame, so the
+# layout fits a film of any size. Reference: docs/guide/film/layouts.md.
+boxes:
+  - text: {lines: ['Flow past a cylinder'], look: title, size: 76, valign: bottom}
+    place: top                        # the upper half, the title at its foot
+  - shape: {kind: line, width: 2, colour: '#96a5b2'}
+    pos: [810, 538]                   # a divider at the middle, in the film's pixels
+    size: [300, 3]
+  - text: {lines: ['Reynolds number 35, one steady step'], look: small, size: 34, valign: top}
+    place: bottom                     # the lower half, at its head
+  - text: {lines: ['Data: PyVista example data (M. Flamm), Apache-2.0'], look: small, valign: bottom}
+    place: bottom                     # and at its foot

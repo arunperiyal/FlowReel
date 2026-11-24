@@ -1,10 +1,10 @@
 # The carving shot of the reference film, at full size, on generated geometry (no data):
 # four helical grooves are cut into a smooth cylinder by glowing cutters, then the
 # camera closes in on a groove and ends on the main view. Try:
-#   flowreel shot preview examples/carve/shot.yml          # every 10th frame, small
-#   flowreel shot render examples/carve/shot.yml -j 8 --frames 100:140
+#   flowreel shot preview examples/carve/shots/carve.yml          # every 10th frame, small
+#   flowreel shot render examples/carve/shots/carve.yml -j 8 --frames 100:140
 name: carve
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 288}
 camera: {track: carve}
 size: [1920, 1080]

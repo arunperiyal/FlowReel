@@ -1,10 +1,10 @@
 # The three styles of the axes layer on generated geometry (no data): a ruled box round
 # the grooved cylinder, arrows beyond its high end, and a triad in the corner, while the
 # camera goes half way round. Try:
-#   flowreel shot preview examples/axes/shot.yml
+#   flowreel shot preview examples/axes/shots/axes.yml
 #   python examples/axes/run.py axes.png
 name: axes
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 96}
 camera: {track: orbit}
 size: [1920, 1080]

@@ -13,7 +13,7 @@ from PIL import Image
 
 from flowreel.scene import render_frame
 
-SHOT = Path(__file__).with_name("shot.yml")
+SHOT = Path(__file__).parent / "shots" / "grooves.yml"
 FRAMES = (80, 160, 191)                     # front at mid-span; all carved; close in
 SIZE = (480, 270)
 

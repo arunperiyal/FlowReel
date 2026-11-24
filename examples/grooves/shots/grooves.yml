@@ -3,10 +3,10 @@
 # segments half a period along from its neighbours', like bricks. The front carves
 # them from end to end, a cutter glowing on each segment it is cutting, then the
 # camera closes in. Try:
-#   flowreel shot preview examples/grooves/shot.yml
-#   flowreel shot render examples/grooves/shot.yml -j 8
+#   flowreel shot preview examples/grooves/shots/grooves.yml
+#   flowreel shot render examples/grooves/shots/grooves.yml -j 8
 name: grooves
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 192}
 camera: {track: carve}
 size: [1920, 1080]

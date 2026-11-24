@@ -12,7 +12,7 @@ HERE = Path(__file__).parent.parent / "examples" / "grooves"
 
 
 def test_shot_carves_staggered_spanwise_grooves():
-    params = load(HERE / "shot.yml").layers[0].values(150)["params"]
+    params = load(HERE / "shots" / "grooves.yml").layers[0].values(150)["params"]
     assert params["turns"] == 0 and params["stagger"] == 0.5
     assert params["cut_front"] == pytest.approx(12.3)
 

@@ -1,7 +1,7 @@
 # Layers that need no flow: a grooved cylinder whose radius grows, its bounding box,
 # arrows on the ground and a block and a sphere that move. Needs no data (see run.py).
 name: marker_layers
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 24}
 camera: {view: main}
 size: [640, 360]

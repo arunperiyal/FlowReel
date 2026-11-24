@@ -19,12 +19,14 @@ TIMES = [0.0, 0.5, 1.0, 1.5]
 
 @pytest.fixture(scope="module")
 def folder(tmp_path_factory):
-    return case.write_case(tmp_path_factory.mktemp("cylinder"))
+    folder = tmp_path_factory.mktemp("cylinder")
+    case.make_project(folder)                   # the case as the tag cylinder, its body held at both ends
+    return folder
 
 
 def cuts(folder, **spec):
     base = {"type": "cuts", "size": [600, 200], "times": TIMES,
-            "source": {"adapter": "flexflow", "path": "case", "cache": None},
+            "source": {"tag": "cylinder", "cache": None},
             "stations": [1.0, 2.0, 3.0], "field": "p", "range": [-2, 2]}
     return from_dict({**base, **spec}, file=str(folder / "cuts.yml"))
 

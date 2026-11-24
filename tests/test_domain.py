@@ -25,7 +25,7 @@ def tag(root, name, spec):
 def plt_tag(root, name, units=None):
     """A tag of the generated cylinder case, its PLT folder linked as plt/."""
     cases = root / "cases" / name
-    case.write_case(cases, project=False)
+    case.write_case(cases)
     folder = tag(root, name, {"kind": "plt", "source": {"path": "plt"},
                               "units": units or {"rho": 2.0, "u_inf": 1.0, "mu": 0.5},
                               "bodies": {"cyl": {"zone": "cyl", "axis": "x", "diameter": 1.0}}})
@@ -64,7 +64,7 @@ def test_a_tags_units_reach_the_fields(tmp_path):
     from tests.test_render import VIEWS
     (tmp_path / "flowreel.yml").write_text("")
     domain = D.load_domain(plt_tag(tmp_path, "bare"))
-    shot = from_dict({"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    shot = from_dict({"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
                       "camera": {"view": "main"}, "size": [32, 18],
                       "layers": [{"type": "slice", "normal": "x", "position": 2.0,
                                   "field": "pressure_coefficient", "range": [-1, 1]}]},

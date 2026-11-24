@@ -2,12 +2,11 @@
 import pandas as pd
 import pytest
 
-from flowreel.project import PROJECT_FILE, load_project
 from flowreel.project.bodies import Series
-from flowreel.project.names import DeclaredSource
 from flowreel.project.series import read_series
 
 from conftest import ToySource
+from tag_fixture import declare_bodies
 
 # `data table CASE --var aleDisp_y --node 24 --output disp.csv` writes tsId, time, values;
 # a restart repeats time 0.2, and the later row wins.
@@ -72,8 +71,7 @@ def source(tmp_path):
     write(tmp_path / "data", "riser.csv", ANALYZER)
     write(tmp_path / "data", "force.csv", "time,fy\n0,1\n")
     write(tmp_path / "data", "ball.csv", "time,fy\n0,2\n")
-    write(tmp_path, PROJECT_FILE, PROJECT)
-    return DeclaredSource(Zones(), load_project(tmp_path).bodies)
+    return declare_bodies(Zones(), PROJECT, tmp_path)
 
 
 def test_series_by_body(source):

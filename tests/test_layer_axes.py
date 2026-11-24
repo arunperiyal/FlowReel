@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from flowreel.project import PROJECT_FILE
 from flowreel.scene.axes import nice_step, outer_edges, tick_text, ticks, triad_viewport
 from flowreel.scene.errors import ConfigError
 from flowreel.scene.layers import Frame
@@ -14,6 +13,7 @@ from flowreel.scene.shot import from_dict
 from flowreel.scene.text import to_display
 from flowreel.scene.views import parse_view
 
+from tag_fixture import declare_bodies
 from test_layer_supports import Riser
 
 PROJECT = "bodies: {riser: {zone: cyl, axis: x, diameter: 2.0}}\n"
@@ -25,11 +25,11 @@ VIEWS = {"side": parse_view({"name": "side", "position": [8, 14, 60], "focal": [
 
 
 def scene(tmp_path, layer, view="side", size=(320, 180)):
-    (tmp_path / PROJECT_FILE).write_text(PROJECT)
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
             "camera": {"view": view}, "size": [320, 180], "antialias": "none",
             "background": "black", "layers": [{"type": "axes", **layer}]}
-    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")), Riser(), VIEWS, size=size)
+    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")),
+                      declare_bodies(Riser(), PROJECT, tmp_path), VIEWS, size=size)
 
 
 def drawn(sc, inspect):

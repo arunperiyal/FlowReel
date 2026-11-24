@@ -5,11 +5,11 @@ import numpy as np
 import pyvista as pv
 
 from flowreel import sources
-from flowreel.project import PROJECT_FILE
 from flowreel.scene.keys import file_stamps, frame_key
 from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import from_dict
 
+from tag_fixture import tag_project
 from test_render import VIEWS
 
 
@@ -22,8 +22,11 @@ def write_case(folder):
     pv.Sphere(radius=0.2, center=(0, 0, 0.5)).save(folder / "body.vtp")
 
 
-def shot(folder):
-    spec = {"name": "k", "source": {"adapter": "vtk", "path": "flow_*.vti", "body": "body.vtp"},
+def shot(folder, bodies=None):
+    """A shot of the tag ``k``: the case's files in ``folder``, one folder above the tag."""
+    tag_project(folder, "k", kind="vtk", bodies=bodies,
+                source={"path": "../../flow_*.vti", "body": "../../body.vtp"})
+    spec = {"name": "k", "source": "k",
             "time": {"steps": [0, 1]}, "camera": {"view": "main"}, "size": [32, 24],
             "layers": [{"type": "body"}]}
     return from_dict(spec, file=str(folder / "k.yml"))
@@ -56,9 +59,8 @@ def test_series_files_of_the_project_are_stamped(tmp_path):
     (tmp_path / "f.csv").write_text("time,fy\n0,1\n")
     for n in (0, 1):
         (tmp_path / f"d_{n}.csv").write_text("time,dy\n0,0\n")
-    (tmp_path / PROJECT_FILE).write_text(
-        "bodies: {ball: {zone: body, series: {force: f.csv, "
-        "disp: {file: 'd_{node}.csv', by: node}}}}\n")
-    scene = Scene.make(shot(tmp_path), views=VIEWS)
+    bodies = {"ball": {"zone": "body", "series": {"force": "../../f.csv",
+                                                  "disp": {"file": "../../d_{node}.csv", "by": "node"}}}}
+    scene = Scene.make(shot(tmp_path, bodies), views=VIEWS)
     names = [os.path.basename(s[0]) for s in file_stamps(scene.source, 0)]
     assert names == ["flow_0.vti", "body.vtp", "d_0.csv", "d_1.csv", "f.csv"]

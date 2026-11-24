@@ -2,8 +2,8 @@
 
 Usage: python run.py [OUT.png]   (default ./supports.png)
 
-Needs no data: the body is a beam 6 diameters long made here, declared in code (as a
-flowreel.yml would declare it) with one end of each kind. docs/images/supports.png is
+Needs no data: the body is a beam 6 diameters long made here, declared in code (as a tag's
+domain.yml would declare it) with one end of each kind. docs/images/supports.png is
 this script's output.
 """
 import sys
@@ -67,7 +67,7 @@ def panel(kind: str, options: dict, tension: bool) -> np.ndarray:
     body = Body("beam", "beam", axis="x", diameter=1.0,
                 ends=(End(0.0, kind, tension, options),))
     source = DeclaredSource(Beam(), {"beam": body})
-    shot = from_dict({"name": kind, "source": "beam:none", "time": {"frozen": 0, "frames": 1},
+    shot = from_dict({"name": kind, "source": "beam", "time": {"frozen": 0, "frames": 1},
                       "camera": {"view": "v"}, "size": list(PANEL), "lights": "raking",
                       "layers": [{"type": "body", "colour": "#c8ccd0"},
                                  {"type": "supports", "colour": "#e0a030"}]})

@@ -46,19 +46,10 @@ def surface_cache(shot, out: str | Path) -> Path:
 
 
 def open_source(shot: Shot):
-    """The source named by the shot's ``source``.
-
-    ``adapter:location``: ``geometry:NAME`` names a body; other adapters get the
-    location as ``path``. The mapping form passes its keys to the adapter as options.
-    A relative ``path``, and a relative ``body`` file (or mapping of them) for any
-    adapter but ``geometry``, is taken from the shot file's folder.
-    """
-    from flowreel import sources
-    if shot.source[0] == TAG_SOURCE:
-        from flowreel.project.domain import open_tag
-        domain = _tag(shot)
-        return open_tag(domain, **source_options(shot))
-    return sources.create(shot.source[0], **source_options(shot))
+    """The source of the shot's tag (:func:`flowreel.project.domain.open_tag`): its
+    reader, its bodies as the tag declares them and its units."""
+    from flowreel.project.domain import open_tag
+    return open_tag(_tag(shot), **source_options(shot))
 
 
 def _tag(shot):
@@ -72,46 +63,31 @@ def _tag(shot):
 
 
 def source_options(shot: Shot) -> dict:
-    """The options :func:`open_source` gives the adapter, with paths resolved; for a tag,
-    the shot's reading options (checked against the tag's kind)."""
-    adapter, location = shot.source
-    if adapter == TAG_SOURCE:
-        from flowreel.project.domain import tag_options
-        try:
-            return tag_options(_tag(shot), shot.source_options)
-        except ValueError as exc:
-            raise Checker(shot.file, ("source",)).error(str(exc)) from None
-    if not shot.source_options:
-        options = {"body": location} if adapter == "geometry" else {"path": location}
-    else:
-        options = dict(shot.source_options)
-    if "path" in options:
-        options["path"] = _beside(shot, options["path"])
-    if adapter != "geometry" and "body" in options:
-        body = options["body"]
-        options["body"] = {k: _beside(shot, v) for k, v in body.items()} \
-            if isinstance(body, dict) else _beside(shot, body)
-    return options
+    """The reading options the shot gives its tag (``{tag: bare, step: ...}``), checked
+    against the tag's kind."""
+    from flowreel.project.domain import tag_options
+    try:
+        return tag_options(_tag(shot), shot.source_options)
+    except ValueError as exc:
+        raise Checker(shot.file, ("source",)).error(str(exc)) from None
 
 
-def _beside(shot: Shot, value):
-    """``value`` (a path) taken from the shot file's folder when relative."""
-    if not isinstance(value, str) or not shot.file:
-        return value
-    path = Path(value).expanduser()
-    return str(path if path.is_absolute() else Path(shot.file).parent / path)
-
-
-def source_id(shot: Shot) -> list:
-    """The shot's source as it goes into keys: the adapter and its options with paths
-    resolved, so two shot files that write the same relative path for different data
-    (``flow_*.vti`` in two folders) never share a cached surface or a frame key."""
-    if shot.source[0] == TAG_SOURCE:
+def source_id(shot: Shot, source=None) -> list:
+    """The shot's source as it goes into keys: its tag, the kind and reading options with
+    paths resolved, and the units, so a changed case never reuses a cached surface or a
+    frame key. A ``source`` built in code and given with a shot whose tag is not in a
+    project is known by its name."""
+    from flowreel.scene.errors import ConfigError
+    try:
         domain = _tag(shot)
-        return [TAG_SOURCE, {"tag": domain.tag, "kind": domain.kind,
-                             "source": {**domain.source, **source_options(shot)},
-                             "units": domain.units}]
-    return [shot.source[0], source_options(shot)]
+    except ConfigError:
+        if source is None:
+            raise
+        return ["source", getattr(source, "name", type(source).__name__),
+                dict(getattr(source, "units", None) or {})]
+    return [TAG_SOURCE, {"tag": domain.tag, "kind": domain.kind,
+                         "source": {**domain.source, **source_options(shot)},
+                         "units": domain.units}]
 
 
 def bind_series(shot: Shot, source, fp: FramePlan) -> None:
@@ -161,26 +137,19 @@ class Scene:
         plan it. ``views``/``tracks`` default to the shot's ``cameras.yml``. ``cache`` is
         the surface cache folder, used only when the shot is frozen.
 
-        The source is seen through the bodies of the shot's project (the nearest
-        ``flowreel.yml``, :func:`flowreel.project.find_project`), so body names in the
-        shot are the declared ones. A source given already wrapped
-        (:func:`flowreel.project.names.declare`) is used as it is."""
-        from flowreel.project import project_for
-        from flowreel.project.names import bodies_key, declare, DeclaredSource
+        The source is the shot's tag, seen through the bodies its ``domain.yml`` declares,
+        so body names in the shot are the declared ones."""
+        from flowreel.project.names import bodies_key
         shot = _as_shot(shot)
         source = source if source is not None else open_source(shot)
-        project = project_for(shot.file)
-        if not isinstance(source, DeclaredSource):
-            source = declare(source, project)
         fp = plan(shot, source)
         bind_series(shot, source, fp)
         camera = shot_camera(shot, views, tracks, rest_step=fp.time.step(0))
         declared = bodies_key(source)
-        key_source = source_id(shot) + ([{"bodies": declared}] if declared else [])
+        key_source = source_id(shot, source) + ([{"bodies": declared}] if declared else [])
         surfaces = SurfaceCache(cache, key_source) if cache is not None and fp.frozen else None
         from flowreel.scene.layers import flow_fields
-        units = getattr(source, "units", None)      # a tag's (data/<tag>/domain.yml)
-        reference = dict(units) if units is not None else (project.reference if project else {})
+        reference = dict(getattr(source, "units", None) or {})   # the tag's (domain.yml)
         return cls(shot, source, fp, camera, tuple(size or shot.size), surfaces,
                    flow_fields(source, shot.layers), reference)
 

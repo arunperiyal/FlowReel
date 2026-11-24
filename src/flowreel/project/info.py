@@ -1,7 +1,7 @@
 """What a project holds, and removing what it made (plan Section 13: ``project info`` and
 ``project clean``).
 
-:func:`info` looks without changing anything: the bodies of ``flowreel.yml``, the shot
+:func:`info` looks without changing anything: the tags and their bodies, the shot
 files and their sources, the views and tracks of ``cameras.yml``, the film, the data
 links, and the size of everything generated. A file that does not load is reported
 with its error rather than stopping the report, since ``info`` is where one looks when
@@ -143,29 +143,11 @@ def shot_files(root: Path) -> list[Path]:
 
 
 def _source_text(value) -> str:
-    """A shot's ``source`` as one line: ``adapter:path``, then its body files, if any
-    (``body cylinder=wall.vtp``)."""
+    """A shot's ``source`` as one line: its tag, and its reading options if any."""
     if not isinstance(value, dict):
         return str(value)
-    if "tag" in value:
-        extra = ", ".join(f"{k} {v}" for k, v in value.items() if k != "tag")
-        return f"{value['tag']}" + (f" ({extra})" if extra else "")
-    text = ":".join(str(value[k]) for k in ("adapter", "path") if k in value)
-    body = value.get("body")
-    if isinstance(body, dict):
-        text += " body " + ", ".join(f"{name}={path}" for name, path in body.items())
-    elif body is not None:
-        text += (" body " if "path" in value else ":") + str(body)
-    return text
-
-
-def _scene_film(path: Path) -> bool:
-    from flowreel.film.model import is_scene_film
-    from flowreel.yamlfile import read_yaml
-    try:
-        return is_scene_film(read_yaml(path))
-    except Exception:
-        return False
+    extra = ", ".join(f"{k} {v}" for k, v in value.items() if k != "tag")
+    return f"{value.get('tag')}" + (f" ({extra})" if extra else "")
 
 
 def info(root: str | Path) -> ProjectInfo:
@@ -176,7 +158,7 @@ def info(root: str | Path) -> ProjectInfo:
     out = ProjectInfo(root)
     try:
         project = load_project(root)
-        out.bodies = [n for n in project.named_bodies() if "." in n or n in project.bodies]
+        out.bodies = [n for n in project.named_bodies() if "." in n]
     except Exception as exc:                       # reported, not raised: see the module
         out.errors.append(str(exc))
     from flowreel.project.imports import state, tags
@@ -212,7 +194,7 @@ def info(root: str | Path) -> ProjectInfo:
         except Exception as exc:
             out.errors.append(str(exc))
     film = root / FILM_FILE
-    if film.exists() and _scene_film(film):
+    if film.exists():
         from flowreel.film.model import load as load_scenes
         try:
             f = load_scenes(film)
@@ -222,20 +204,6 @@ def info(root: str | Path) -> ProjectInfo:
         except Exception as exc:
             out.film = f"{FILM_FILE}: does not load"
             out.errors.append(str(exc))
-    elif film.exists():
-        from flowreel.film.schema import load
-        from flowreel.film.timeline import timeline
-        try:
-            f = load(film)
-        except Exception as exc:
-            out.film = f"{FILM_FILE}: does not load"
-            out.errors.append(str(exc))
-        else:
-            out.film = f"{FILM_FILE}: {len(f.shots)} shot{'s' * (len(f.shots) != 1)}"
-            try:                                  # needs the frames: a new film has none
-                out.film += f", {timeline(f).length:.1f} s planned"
-            except Exception as exc:
-                out.film += f", length not known yet ({getattr(exc, 'problem', exc)})"
     out.layouts = sorted(p.stem for p in (root / "layouts").glob("*.yml")) \
         if (root / "layouts").is_dir() else []
     data = root / "data"

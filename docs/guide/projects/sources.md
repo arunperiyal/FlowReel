@@ -22,8 +22,8 @@ adding an adapter, nothing more.
 
 - Velocity is `U`, `V`, `W` (or the vector `velocity`); pressure is `p`. Adapters map their
   own names onto these.
-- Units are the source's own. A `scales:` block in `flowreel.yml` may declare
-  `length: D`, `velocity: U` for labels.
+- Units are the source's own. A tag's `units:` (`length`, `u_inf`, ...) says what
+  its numbers are, for labels and the derived fields.
 - Derived fields (vorticity, Q, lambda2, wall shear, ...) are **not** provided by sources;
   they are computed from velocity and pressure.
 
@@ -43,7 +43,7 @@ An unknown name raises `KeyError` listing the names; a source without a body rai
 `LookupError`. Nothing in FlowReel assumes the body is a cylinder or has a span: only
 `sectional_force` asks for an axis, and `wall_force` needs none (see `docs/guide/projects/fields.md`).
 
-These are the source's own zone names. A project's `flowreel.yml` can give them other
+These are the source's own zone names. A tag's `domain.yml` can give them other
 names and add what the files cannot say (axis, diameter, supports, series); shots then
 use the declared names ([bodies](bodies.md)).
 
@@ -312,7 +312,7 @@ lift = src.series("force")
   only the box's nodes of the asked variables leave the disk ([long
   bodies](../shots/long-bodies.md#reading-only-the-window)).
 - **Series:** a body's time histories come from CSV files declared under the body in its
-  tag's `domain.yml` (or, before tags, `flowreel.yml`)
+  tag's `domain.yml`
   ([bodies](bodies.md#series)), for any number of bodies and whatever wrote them. As a
   quick look at a FlexFlow case with one body, the adapter also reads FlexFlow's own:
   `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,

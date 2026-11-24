@@ -10,8 +10,25 @@ from flowreel.film import boxes as B
 from flowreel.film import model as M
 from flowreel.scene.frame_views import DrawnView
 from flowreel.scene.views import View
-from test_golden_captions import DATA, compare, seen
-from test_reveal_golden import CLEAR_LIMIT, MEAN_LIMIT
+from test_reveal_golden import CLEAR_LIMIT, MEAN_LIMIT, difference
+
+DATA = Path(__file__).parent / "data" / "captions"
+GREY = (90, 110, 130, 255)
+PAD = 20
+
+
+def seen(image):
+    """``image`` (RGBA) over mid-grey, as an RGB array."""
+    return np.asarray(Image.alpha_composite(Image.new("RGBA", image.size, GREY), image).convert("RGB"))
+
+
+def compare(picture, gold_image):
+    """The difference inside the golden caption's extent, padded."""
+    ys, xs = np.nonzero(np.asarray(gold_image)[..., 3])
+    top, bottom = max(0, ys.min() - PAD), ys.max() + PAD
+    left, right = max(0, xs.min() - PAD), xs.max() + PAD
+    gold = seen(gold_image)
+    return difference(picture[top:bottom, left:right], gold[top:bottom, left:right])
 
 SIZE = (1920, 1080)
 
@@ -135,7 +152,7 @@ def test_a_text_box_sits_by_its_look_in_its_box(tmp_path):
 def test_shot_and_held_pictures_are_fitted(tmp_path, picture):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: w, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: w, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [
             {"name": "a", "layout": {"boxes": [{"name": "main", "shot": "shots/w.yml", "place": "left"}]}},
             {"name": "b", "seconds": 2, "layout": {"boxes": [{"last_frame": "a", "place": "right"}]}}]},
@@ -153,7 +170,7 @@ def test_shot_and_held_pictures_are_fitted(tmp_path, picture):
 def test_a_box_follows_a_point_of_the_flow(tmp_path):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: w, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: w, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [{"name": "a", "layout": {"boxes": [
         {"name": "main", "shot": "shots/w.yml", "place": "left"},
         {"name": "label", "text": "here", "follow": {"box": "main", "model": [0, 0, 0], "offset": [10, -20]}},
@@ -185,7 +202,7 @@ def test_a_panel_box_is_drawn_at_the_box_size(tmp_path):
 def test_the_points_boxes_follow_for_the_camera_editor(tmp_path):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: wake, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: wake, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [{"name": "a", "layout": {"boxes": [
         {"name": "main", "shot": "shots/w.yml"},
         {"text": ["Groove", "0.08 D"], "follow": {"box": "main", "model": [6, 0.4, 0.2]}},

@@ -507,7 +507,7 @@ class BodyLayer(Layer):
     draw the line where ``field`` is 0, such as separation in wall shear) with
     ``zero_colour`` and ``zero_width`` (pixels, track).
 
-    A virtual body (``flowreel.yml``) is drawn as a ghost unless ``style`` says
+    A virtual body (a tag's ``domain.yml``) is drawn as a ghost unless ``style`` says
     otherwise, and a ghost has an outline ``edge_width`` pixels wide in its colour, so it
     reads as modelled, not meshed. A virtual body has no wall: ``field`` on it is an
     error.

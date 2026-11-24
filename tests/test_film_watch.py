@@ -5,9 +5,9 @@ import time
 import pytest
 
 from flowreel.film import watch as W
-from flowreel.film.build import build
+from flowreel.film.scene_build import build
 
-from film_project import film_file, frames, need_ffmpeg
+from film_project import frames, need_ffmpeg, scene_film
 
 
 def test_the_fingerprint_leaves_out_what_the_build_writes(tmp_path):
@@ -16,14 +16,14 @@ def test_the_fingerprint_leaves_out_what_the_build_writes(tmp_path):
     (tmp_path / "film.srt").write_text("x")
     (tmp_path / "clips").mkdir()
     (tmp_path / "clips" / "shot_a.mp4").write_text("x")
-    (tmp_path / "text").mkdir()
-    (tmp_path / "text" / "a.yml").write_text("x")
+    (tmp_path / "layouts").mkdir()
+    (tmp_path / "layouts" / "a.yml").write_text("x")
     names = [f[0] for f in W.fingerprint(tmp_path)]
-    assert names == ["film.yml", "text/a.yml"]
+    assert names == ["film.yml", "layouts/a.yml"]
     before = W.fingerprint(tmp_path)
     (tmp_path / "film.mp4").write_text("a new film")
     assert W.fingerprint(tmp_path) == before
-    (tmp_path / "text" / "a.yml").write_text("an edit")
+    (tmp_path / "layouts" / "a.yml").write_text("an edit")
     assert W.fingerprint(tmp_path) != before
 
 
@@ -78,20 +78,21 @@ def test_each_change_builds_again_and_an_error_waits_for_the_next(tmp_path):
     assert said[-1].startswith("watching ")
 
 
-def test_a_caption_changed_makes_only_its_shots_clip_again(tmp_path):
+def test_a_caption_changed_makes_only_its_scenes_clip_again(tmp_path):
     need_ffmpeg()
     frames(tmp_path / "a", 12)
     frames(tmp_path / "b", 6, start=20)
-    shots = [{"name": "a", "frames": "a"}, {"name": "b", "frames": "b"}]
-    path = film_file(tmp_path, shots)
+    scenes = [{"name": "a", "layout": {"boxes": [{"shot": {"frames": "a"}}]}},
+              {"name": "b", "layout": {"boxes": [{"shot": {"frames": "b"}}]}}]
+    path = scene_film(tmp_path, scenes)
     results = []
 
     def once():
         results.append(build(path))
 
     def caption():
-        film_file(tmp_path, [{**shots[0], "text": [{"lines": ["A caption"], "at": [0.1, 0.4]}]},
-                             shots[1]])
+        boxes = scenes[0]["layout"]["boxes"] + [{"text": "A caption", "at": [0.1, 0.4]}]
+        scene_film(tmp_path, [{**scenes[0], "layout": {"boxes": boxes}}, scenes[1]])
     calls, _ = watching(path, once, [caption])
     assert len(results) == 2
     assert all(s.built for s in results[0].shots)
@@ -106,7 +107,7 @@ def test_the_command_refuses_what_watch_cannot_do(tmp_path, monkeypatch, line, m
     from cli_harness import Shell
     monkeypatch.chdir(tmp_path)
     (tmp_path / "flowreel.yml").write_text("")
-    film_file(tmp_path, [{"name": "a", "frames": "a"}])
+    scene_film(tmp_path, [{"name": "a", "layout": {"boxes": [{"shot": {"frames": "a"}}]}}])
     status, _, err = Shell(tmp_path).run(line)
     assert status != 0 and message in err
 
@@ -122,7 +123,7 @@ def test_the_command_watches_until_interrupted(tmp_path, monkeypatch):
     monkeypatch.setattr(watch_mod, "watch", fake_watch)
     monkeypatch.chdir(tmp_path)
     (tmp_path / "flowreel.yml").write_text("")
-    film_file(tmp_path, [{"name": "a", "frames": "a"}])
+    scene_film(tmp_path, [{"name": "a", "layout": {"boxes": [{"shot": {"frames": "a"}}]}}])
     status, out, err = Shell(tmp_path).run("film build --watch")
     assert status == 0, err
     assert "stopped watching" in out and str(seen["film"]).endswith("film.yml")

@@ -1,10 +1,11 @@
-"""The ``bodies:`` schema of ``flowreel.yml`` and finding a shot's project."""
+"""The ``bodies:`` schema of a tag's ``domain.yml``, and finding a shot's project."""
 from pathlib import Path
 
 import pytest
 
 from flowreel.project import PROJECT_FILE, find_project, load_project, project_for
 from flowreel.project.bodies import Body, End, parse_bodies
+from flowreel.project.domain import load_domain
 from flowreel.scene.errors import Checker, ConfigError
 
 RISER = """\
@@ -38,18 +39,20 @@ def bodies(value):
 
 
 def test_full_declaration(tmp_path):
-    project = load_project(write(tmp_path, RISER))
-    riser = project.bodies["riser"]
+    folder = tmp_path / "data" / "t"
+    folder.mkdir(parents=True)
+    (folder / "domain.yml").write_text("kind: geometry\nsource: {body: grooved_cylinder}\n" + RISER)
+    declared = load_domain(folder).bodies
+    riser = declared["riser"]
     assert riser == Body("riser", "cyl", "x", 1.0, (
         End(0.0, "pinned"), End(500.0, "roller", True, {"free_along": "x"})), riser.series)
     disp = riser.series["displacement"]
-    assert disp.file == tmp_path.resolve() / "data/riser_disp.csv" and disp.by == "node"
-    assert disp.stations == tmp_path.resolve() / "data/riser_nodes.csv" and disp.time == "time"
+    assert disp.file == folder.resolve() / "data/riser_disp.csv" and disp.by == "node"
+    assert disp.stations == folder.resolve() / "data/riser_nodes.csv" and disp.time == "time"
     assert riser.series["force"].file.name == "riser_force.csv"
-    assert project.bodies["downstream"].diameter is None
-    sphere = project.bodies["sphere"]
+    assert declared["downstream"].diameter is None
+    sphere = declared["sphere"]
     assert sphere.zone == "sphere" and sphere.axis is None and sphere.ends == ()
-    assert project.folder == tmp_path.resolve()
 
 
 def test_support_options():
@@ -96,25 +99,29 @@ def test_errors_name_the_key(value, msg):
         bodies(value)
 
 
-def test_unknown_top_key(tmp_path):
-    with pytest.raises(ConfigError, match=r"flowreel.yml: bodys: unknown key .*'bodies'"):
-        load_project(write(tmp_path, "bodys: {}\n"))
+def test_the_keys_of_flowreel_yml(tmp_path):
+    with pytest.raises(ConfigError, match=r"flowreel.yml: bodies: unknown key .*allowed: defaults, tags"):
+        load_project(write(tmp_path, "bodies: {}\n"))
+    with pytest.raises(ConfigError, match=r"flowreel.yml: reference: unknown key"):
+        load_project(write(tmp_path, "reference: {rho: 1}\n"))
+    with pytest.raises(ConfigError, match=r"flowreel.yml: tgs: unknown key .*'tags'"):
+        load_project(write(tmp_path, "tgs: []\n"))
 
 
 def test_empty_file_is_an_empty_project(tmp_path):
-    assert load_project(write(tmp_path, "")).bodies == {}
-    assert load_project(tmp_path).bodies == {}
+    assert load_project(write(tmp_path, "")).tag_names == ()
+    assert load_project(tmp_path).tags == {}
 
 
 def test_a_shot_finds_the_nearest_project(tmp_path):
-    write(tmp_path, "bodies: {top: {}}\n")
+    write(tmp_path, "tags: [top]\n")
     (tmp_path / "shots" / "close").mkdir(parents=True)
     shot = tmp_path / "shots" / "close" / "a.yml"
     shot.write_text("")
     assert find_project(shot) == (tmp_path / PROJECT_FILE).resolve()
-    assert list(project_for(shot).bodies) == ["top"]
-    write(tmp_path / "shots", "bodies: {near: {}}\n")
-    assert list(project_for(shot).bodies) == ["near"]
+    assert project_for(shot).tag_names == ("top",)
+    write(tmp_path / "shots", "tags: [near]\n")
+    assert project_for(shot).tag_names == ("near",)
     assert project_for(None) is None
 
 

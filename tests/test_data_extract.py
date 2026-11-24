@@ -20,7 +20,7 @@ UNITS = {"rho": 2.0, "u_inf": 1.0, "mu": 0.5}                    # q = 1
 
 
 def make_tag(root, units=UNITS, bodies=None):
-    case.write_case(root.parent / "cases", project=False)
+    case.write_case(root.parent / "cases")
     folder = root / "data" / "bare"
     folder.mkdir(parents=True)
     (folder / "plt").symlink_to(root.parent / "cases" / "case", target_is_directory=True)

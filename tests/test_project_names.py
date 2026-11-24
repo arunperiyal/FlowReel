@@ -1,12 +1,11 @@
-"""Body names through flowreel.yml: layers, follow and keys use the declared names."""
+"""Body names through a tag's domain.yml: layers, follow and keys use the declared names."""
 import pickle
 
 import pytest
 import pyvista as pv
 
-from flowreel.project import PROJECT_FILE, Project
 from flowreel.project.bodies import Body
-from flowreel.project.names import DeclaredSource, declare, one_body
+from flowreel.project.names import DeclaredSource, one_body
 from flowreel.scene.camera import ShotCamera
 from flowreel.scene.errors import Checker
 from flowreel.scene.keys import frame_key
@@ -14,6 +13,7 @@ from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import from_dict
 
 from conftest import ToySource
+from tag_fixture import tag_project
 from test_render import VIEWS
 
 
@@ -69,27 +69,29 @@ def test_one_body_when_the_name_is_left_out():
         one_body(DeclaredSource(TwoBodies(), both))
 
 
-def test_declare_and_pickle():
-    plain = TwoBodies()
-    assert declare(plain, None) is plain and declare(plain, Project()) is plain
-    src = declare(plain, Project(bodies=DECLARED))
-    assert declare(src, Project(bodies=DECLARED)) is src
+def test_declared_source_pickles():
+    src = DeclaredSource(TwoBodies(), DECLARED)
     again = pickle.loads(pickle.dumps(src))
     assert isinstance(again, DeclaredSource) and z_of(again.body(0, "riser")) == 0.3
 
 
-def shot_in(folder, project: str | None, camera=None, body="riser"):
-    if project is not None:
-        (folder / PROJECT_FILE).write_text(project)
-    spec = {"name": "two", "source": "toy:none", "time": {"steps": [0, 20]},
+def shot_in(folder, bodies: dict, camera=None, body="riser"):
+    """A shot of a tag whose ``domain.yml`` declares ``bodies``."""
+    tag_project(folder, "two", bodies=bodies)
+    spec = {"name": "two", "source": "two", "time": {"steps": [0, 20]},
             "camera": camera or {"view": "main"}, "size": [64, 48], "antialias": "none",
             "layers": [{"type": "body", "body": body}]}
     return from_dict(spec, file=str(folder / "two.yml"))
 
 
-def test_a_shot_uses_its_project_names(tmp_path):
-    shot = shot_in(tmp_path, "bodies: {riser: {zone: cyl2, axis: z}}\n")
-    scene = Scene.make(shot, TwoBodies(), VIEWS)
+def declared(shot_bodies: dict) -> DeclaredSource:
+    return DeclaredSource(TwoBodies(), {n: Body(n, **kw) for n, kw in shot_bodies.items()})
+
+
+def test_a_shot_uses_its_tags_names(tmp_path):
+    spec = {"riser": {"zone": "cyl2", "axis": "z"}}
+    shot = shot_in(tmp_path, spec)
+    scene = Scene.make(shot, declared({"riser": {"zone": "cyl2", "axis": "z"}}), VIEWS)
     assert isinstance(scene.source, DeclaredSource)
     assert z_of(scene.data(0).body("riser")) == 0.7
 
@@ -98,18 +100,18 @@ def test_follow_true_and_follow_by_name(tmp_path):
     zs = TwoBodies().body(0, "cyl2").points[:, 2]
     station = float(zs[abs(zs - 0.7).argmin()])            # on a ring of the sphere's points
     camera = {"view": "side", "follow": True, "station": station}
-    scene = Scene.make(shot_in(tmp_path, "bodies: {riser: {zone: cyl2}}\n", camera),
-                       TwoBodies(), VIEWS)
+    source = declared({"riser": {"zone": "cyl2"}})
+    scene = Scene.make(shot_in(tmp_path, {"riser": {"zone": "cyl2"}}, camera), source, VIEWS)
     assert scene.camera.view(0, scene.data(0)).focal == pytest.approx((0, 0, station), abs=1e-6)
     named = ShotCamera({"view": "side", "follow": "riser", "station": station}, VIEWS, {}, Checker())
     assert named.view(0, scene.data(0)).focal == pytest.approx((0, 0, station), abs=1e-6)
     with pytest.raises(LookupError, match="name the body"):
-        plain = Scene.make(shot_in(tmp_path / "..", None, camera, body="cyl"), TwoBodies(), VIEWS)
+        plain = Scene.make(shot_in(tmp_path / "other", {}, camera, body="cyl"), TwoBodies(), VIEWS)
         plain.camera.view(0, plain.data(0))
 
 
 def test_the_declaration_is_in_the_frame_key(tmp_path):
-    a = frame_key(Scene.make(shot_in(tmp_path, "bodies: {riser: {zone: cyl}}\n"), TwoBodies(), VIEWS), 0)
-    b = frame_key(Scene.make(shot_in(tmp_path, "bodies: {riser: {zone: cyl2}}\n"), TwoBodies(), VIEWS), 0)
-    c = frame_key(Scene.make(shot_in(tmp_path, "bodies: {riser: {zone: cyl}}\n"), TwoBodies(), VIEWS), 0)
-    assert a != b and a == c
+    def key(zone):
+        spec = {"riser": {"zone": zone}}
+        return frame_key(Scene.make(shot_in(tmp_path, spec), declared(spec), VIEWS), 0)
+    assert key("cyl") != key("cyl2") and key("cyl") == key("cyl")

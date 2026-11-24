@@ -1143,14 +1143,18 @@ reviewable: the tutorials, then the examples, then the removal)
   test)
 
 **Branch 9: `phase10/remove-old`**
-- [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
+- [x] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
   and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
   tiles, and the `compose` command group (branches 1 and 4 kept them so `main` kept
   building films); the guide's pages on it (`guide/old/`, branch 6)
-- [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
+- [x] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
   `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
   and `--link` (Phase 9 kept them read so
   `main` stayed green)
+- [x] The AFMS film made from its two cases as tags (`bare`, `helical`) and scenes:
+  `tools/afms_scenes.py` writes `film.yml`, `layouts/compare.yml` and `panels/plots.yml` from
+  the film of shots; built on airavata (`studies/afms_scenes`, job 1337): 131.88 s, the old
+  film's 131.875 s, the same sound, captions, freezes and comparison
 
 **Phase 10 is done when** the AFMS film is made from its two cases as tags and scenes
 (its port, waiting for Phases 9 and 10), both tutorials are rewritten, and the guide

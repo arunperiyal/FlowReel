@@ -3,13 +3,13 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from flowreel.project import PROJECT_FILE
 from flowreel.scene.layers import Frame
 from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import from_dict
 from flowreel.scene.views import parse_view
 
 from conftest import ToySource
+from tag_fixture import declare_bodies
 from test_project_measure import tube
 
 PROJECT = """\
@@ -40,13 +40,13 @@ class Riser(ToySource):
 
 
 def scene(tmp_path, layer=None, project=PROJECT, view="side"):
-    (tmp_path / PROJECT_FILE).write_text(project)
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 2},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 2},
             "camera": {"view": view}, "size": [320, 180], "antialias": "none",
             "background": "black",
             "layers": [{"type": "supports", "colour": "#ff0000", "arrow_colour": "#00ff00",
                         **(layer or {})}]}
-    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")), Riser(), VIEWS)
+    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")),
+                      declare_bodies(Riser(), project, tmp_path), VIEWS)
 
 
 def places(sc, height=180):

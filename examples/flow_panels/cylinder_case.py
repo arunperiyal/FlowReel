@@ -20,7 +20,7 @@ The flow is made so that every panel's numbers are known exactly:
 - ``p = SLOPE z``.
 
 ``make_project`` builds a project on tags from it; ``write_case`` alone writes only the
-PLT files, and with ``project=True`` also a ``flowreel.yml`` of the layout before tags.
+PLT files.
 """
 from __future__ import annotations
 
@@ -72,16 +72,7 @@ def _mesh():
     return (xx, rr, tt), bricks, wall
 
 
-# The project file of a case before tags (bodies and reference in flowreel.yml), which the
-# unit tests of the panels still read; phase 10's last branch removes it with that layout.
-BEFORE_TAGS = """bodies:
-  cylinder: {zone: cyl, axis: x, diameter: 1.0,
-             ends: [{at: 0.0, support: clamped}, {at: 4.0, support: clamped}]}
-reference: {rho: 1.0, u_inf: 1.0}
-"""
-
-
-def write_case(folder, steps: int = STEPS, project: bool = True) -> Path:
+def write_case(folder, steps: int = STEPS) -> Path:
     """Write the case into ``folder`` (see the module); returns ``folder``."""
     folder = Path(folder)
     case = folder / "case"
@@ -97,8 +88,6 @@ def write_case(folder, steps: int = STEPS, project: bool = True) -> Path:
         p = SLOPE * z
         write_plt(case / f"cyl.{10 * k}.plt", VARS, [x, y, z, u, v, w, p],
                   [("fluid", 5, bricks), ("cyl", 3, wall)], time=t)
-    if project:
-        (folder / "flowreel.yml").write_text(BEFORE_TAGS)
     return folder
 
 
@@ -134,7 +123,7 @@ def make_project(folder, tag: str = "cylinder", steps: int = STEPS) -> Path:
     zone ``cyl`` as ``cylinder``, held at both ends) filled in as a person would. Returns
     the tag's ``domain.yml``."""
     folder = Path(folder)
-    write_case(folder, steps=steps, project=False)
+    write_case(folder, steps=steps)
     flowreel(folder, "project", "init", "--force")
     flowreel(folder, "data", "import", "plt", "--path", "case", "--tag", tag)
     path = folder / "data" / tag / "domain.yml"

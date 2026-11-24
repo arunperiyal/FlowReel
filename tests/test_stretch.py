@@ -15,7 +15,7 @@ VIEWS = {"v": parse_view({"name": "v", "position": [2, 0, 40], "focal": [2, 0, 0
 
 
 def shot(stretch=None, camera=None):
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
             "camera": camera or {"view": "v"}, "size": [320, 180], "antialias": "none",
             "layers": [{"type": "body", "colour": "#ffffff"}]}
     if stretch is not None:

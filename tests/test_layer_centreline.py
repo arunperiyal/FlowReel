@@ -2,12 +2,12 @@
 import numpy as np
 import pytest
 
-from flowreel.project import PROJECT_FILE
 from flowreel.scene.centreline import displacement_values, rest_line
 from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import from_dict
 from flowreel.scene.views import parse_view
 
+from tag_fixture import declare_bodies
 from test_layer_supports import Riser          # a riser 40 D long along x, bent 1 D in y
 
 VIEWS = {"side": parse_view({"name": "side", "position": [20, 0, 60], "focal": [20, 0, 0]})}
@@ -15,11 +15,11 @@ PROJECT = "bodies: {riser: {zone: cyl, axis: x, diameter: 1.0}}\n"
 
 
 def scene(tmp_path, layer=None, project=PROJECT):
-    (tmp_path / PROJECT_FILE).write_text(project)
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
             "camera": {"view": "side"}, "size": [320, 180], "antialias": "none",
             "layers": [{"type": "centreline", **(layer or {})}]}
-    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")), Riser(), VIEWS)
+    return Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")),
+                      declare_bodies(Riser(), project, tmp_path), VIEWS)
 
 
 def test_rest_line_and_displacement_exact():
@@ -53,7 +53,7 @@ def test_drawn(tmp_path):
 
 def test_a_body_that_is_not_slender(tmp_path):
     from conftest import ToySource
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
             "camera": {"view": "side"}, "size": [32, 24], "layers": [{"type": "centreline"}]}
     sc = Scene.make(from_dict(spec, file=str(tmp_path / "x" / "s.yml")), ToySource(), VIEWS)
     with pytest.raises(ValueError, match="'sphere' is not slender"):
@@ -117,11 +117,11 @@ class Swinging(Riser):
 
 
 def test_envelope_from_the_surface(tmp_path):
-    (tmp_path / PROJECT_FILE).write_text(PROJECT)
-    spec = {"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    spec = {"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
             "camera": {"view": "side"}, "size": [64, 48],
             "layers": [{"type": "centreline", "envelope": [0, 20], "rest": True}]}
-    sc = Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")), Swinging(), VIEWS)
+    sc = Scene.make(from_dict(spec, file=str(tmp_path / "s.yml")),
+                    declare_bodies(Swinging(), PROJECT, tmp_path), VIEWS)
     lo, hi = sc.shot.layers[0].envelope(sc.data(0), "riser", np.array([10.0, 20.0, 30.0]))
     s = np.sin(np.pi * np.array([10.0, 20.0, 30.0]) / 40)
     assert np.allclose(lo, -s, atol=0.02) and np.allclose(hi, s, atol=0.02)

@@ -3,7 +3,7 @@
 Each frame shows the saved step nearest the frame's time (flow is never interpolated
 between steps). The data come from a source, named as a shot names one; without
 ``source``, a panel whose ``times`` are a shot's (``times: {shot: FILE}``) reads that
-shot's source. Body names are those of the project's ``flowreel.yml``.
+shot's source. Body names are those of the shot's tag.
 
 **section.** A cut across a body at a station: a field as filled contours, the
 streamlines of the flow seen from the moving body, the body's outline, and an inset, a
@@ -71,18 +71,16 @@ BODY_COLOUR = "#c8ccd0"
 
 
 def open_panel_source(panel, value, check: Checker):
-    """The source a flow panel reads, seen through the project's bodies: ``value`` (a
-    shot's ``source``, paths from the panel file's folder), else the source of the shot
+    """The source a flow panel reads, a tag's (bodies as its ``domain.yml`` declares them):
+    ``value`` (a shot's ``source``), else the source of the shot
     whose times the panel takes. Returns ``(source, id, project)``: ``id`` is the source
     as keys take it (paths resolved), ``project`` the panel's project or ``None``."""
     from flowreel.project import project_for
-    from flowreel.project.names import declare
-    from flowreel.scene.errors import ConfigError
     from flowreel.scene.rendering import open_source, source_id
     from flowreel.scene.shot import _source
     if value is not None:
-        (adapter, location), options = _source(value, check.at("source"))
-        holder = SimpleNamespace(source=(adapter, location), source_options=options,
+        source, options = _source(value, check.at("source"))
+        holder = SimpleNamespace(source=source, source_options=options,
                                  file=str(panel.file) if panel.file else None)
     elif isinstance(panel.times, Path):
         from flowreel.compose.stations import read_shot
@@ -99,7 +97,7 @@ def open_panel_source(panel, value, check: Checker):
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise where.error(f"cannot open the source: {exc}") from None
     project = project_for(panel.file) if panel.file else None
-    return declare(source, project), key, project
+    return source, key, project
 
 
 def available_fields() -> set[str]:
@@ -135,11 +133,9 @@ class FlowPanel(PanelType):
         if not isinstance(params, dict):
             raise check.at("params").error(f"expected a mapping of numbers, got {params!r}")
         given = {k: check.at("params", k).number(v) for k, v in params.items()}
-        # the project's reference values the field takes; the panel's own win
+        # the tag's units the field takes; the panel's own win
         from flowreel.fields.registry import accepted
-        units = getattr(self.source, "units", None)       # a tag's
-        reference = dict(units) if units is not None else (
-            self.project.reference if self.project is not None else {})
+        reference = dict(getattr(self.source, "units", None) or {})
         wanted = accepted([self.field]) if self.field in available_fields() else set()
         self.params = {**{k: v for k, v in reference.items() if k in wanted}, **given}
         if options.get("range") is None:
@@ -243,7 +239,7 @@ class CutPanel(FlowPanel):
         self.axis = (decl.axis if decl else None) or long_axis(surface)
         if self.axis is None:
             raise check.at("body").error(f"body {self.body!r} is not slender, so it has no "
-                                         "stations; declare its 'axis' in flowreel.yml")
+                                         "stations; declare its 'axis' in the tag's domain.yml")
         self.diameter = (decl.diameter if decl and decl.diameter else None) or \
             diameter(surface, self.axis)
         self.slab = 0.25 * self.diameter

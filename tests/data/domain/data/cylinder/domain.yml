@@ -1,0 +1,12 @@
+# The domain case: its flow, and the body the reference film draws: a cylinder 12 diameters
+# long along x, clamped at both ends (the shot draws the clamps with the supports layer).
+kind: vtk
+source: {path: "../../flow_*.vti", body: ../../body.vtp}
+bodies:
+  cylinder:
+    zone: body                     # the vtk source's single body file
+    axis: x
+    diameter: 1.0
+    ends:
+      - {at: 0.0, support: clamped}
+      - {at: 12.0, support: clamped}

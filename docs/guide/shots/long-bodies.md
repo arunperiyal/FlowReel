@@ -12,7 +12,7 @@ large to load whole. This page gathers what FlowReel does about it (plan Section
 | See the shape of the whole span | the [`centreline`](layers-markers.md#centreline) layer, from the surface or the probes, with `amplify` |
 | Fit the whole span in a frame | `stretch` draws the model compressed along one axis, and says so in the frame |
 | Files too large to load | windowed reading of PLT files, and a memory check before rendering |
-| Several stations at once | a [`stations`](../old/layouts.md#one-shot-at-several-stations-stations) layout tiles one shot at several stations |
+| Several stations at once | one shot file per station, each in its own box of a [layout](../film/layouts.md) |
 | Span against time, and where the window is | the [`map` and `locator`](panels.md#histories-along-a-long-body-map-and-locator) panels |
 | The flow across the body at several stations | the [`cuts`](panels.md#cuts) panel, and the [`section`](panels.md#section) panel at one station; both read through a window |
 

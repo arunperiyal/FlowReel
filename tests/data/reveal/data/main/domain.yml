@@ -1,0 +1,3 @@
+# The reveal's case: its flow files and its one body file, in the folder above the tag's.
+kind: vtk
+source: {path: "../../flow_*.vti", body: ../../body.vtp}

@@ -1,6 +1,6 @@
 """Chapters written out (plan Section 10.9): in the film's file, and for YouTube.
 
-The timeline places each chapter (:class:`~flowreel.film.timeline.TimedChapter`). The
+The build places each chapter (:class:`TimedChapter`). The
 build gives them to ffmpeg at the join as a metadata file (:func:`metadata_text`:
 ``;FFMETADATA1``, one ``[CHAPTER]`` each, in milliseconds) with ``-map_chapters``, so
 nothing is re-encoded; the preview copy keeps them. Desktop players (VLC, mpv, IINA,
@@ -16,10 +16,22 @@ there).
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 YOUTUBE_MIN_CHAPTERS = 3
 YOUTUBE_MIN_SECONDS = 10.0
+
+
+@dataclass(frozen=True)
+class TimedChapter:
+    """A chapter placed: its ``title``, started by scene ``shot``, from ``start`` to
+    ``end`` in film seconds."""
+
+    title: str
+    shot: str
+    start: float
+    end: float
 
 
 def _escape(text: str) -> str:

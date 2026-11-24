@@ -6,13 +6,13 @@ import pandas as pd
 import pytest
 
 from flowreel import tracks
-from flowreel.project import PROJECT_FILE
 from flowreel.scene.errors import ConfigError
 from flowreel.scene.rendering import Scene
 from flowreel.scene.shot import from_dict
 from flowreel.tracks import SeriesTrack
 
 from conftest import ToySource
+from tag_fixture import declare_bodies
 from test_render import VIEWS
 
 
@@ -80,12 +80,13 @@ class Riser(ToySource):
         return ["cyl"]
 
 
+BODIES = "bodies: {riser: {zone: cyl, axis: z, series: {force: data/force.csv}}}\n"
+
+
 def shot(tmp_path, length):
     (tmp_path / "data").mkdir(exist_ok=True)
     (tmp_path / "data" / "force.csv").write_text("time,fy\n0,0\n1,4\n")
-    (tmp_path / PROJECT_FILE).write_text(
-        "bodies: {riser: {zone: cyl, axis: z, series: {force: data/force.csv}}}\n")
-    spec = {"name": "s", "source": "toy:none", "time": {"steps": [0, 20]},
+    spec = {"name": "s", "source": "toy", "time": {"steps": [0, 20]},
             "camera": {"view": "main"}, "size": [64, 48], "antialias": "none",
             "layers": [{"type": "markers3d", "shape": "arrow3d", "at": [0, 0, 0],
                         "length": length}]}
@@ -95,10 +96,11 @@ def shot(tmp_path, length):
 def test_a_shot_binds_its_series_tracks(tmp_path):
     # ToySource steps 0, 10, 20 are at times 0, 0.5, 1.0
     scene = Scene.make(shot(tmp_path, {"series": "force", "body": "riser", "scale": 0.5}),
-                       Riser(), VIEWS)
+                       declare_bodies(Riser(), BODIES, tmp_path), VIEWS)
     assert [scene.values(i)[0]["length"] for i in range(3)] == [0.0, 1.0, 2.0]
 
 
 def test_a_wrong_series_names_the_layer(tmp_path):
     with pytest.raises(ConfigError, match=r"s.yml: layers\[0\]\.length: .*no series 'lift'"):
-        Scene.make(shot(tmp_path, {"series": "lift", "body": "riser"}), Riser(), VIEWS)
+        Scene.make(shot(tmp_path, {"series": "lift", "body": "riser"}),
+                   declare_bodies(Riser(), BODIES, tmp_path), VIEWS)

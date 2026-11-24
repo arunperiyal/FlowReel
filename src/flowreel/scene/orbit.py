@@ -94,7 +94,7 @@ def body_target(source, body: str | None, station: float, step: int | None = Non
     """The centre of ``body`` at ``station`` along its axis, at ``step`` (default the
     source's first), and that axis: the target of an orbit round a body.
 
-    ``body`` is a name declared in ``flowreel.yml`` or a zone of the source, ``None`` for
+    ``body`` is a name declared in a tag's ``domain.yml`` or a zone of the source, ``None`` for
     the one body there is. The axis is ``axis``, else the declared one, else the body's
     measured long axis, else ``z``, as ``follow`` takes it (docs/guide/shots/cameras.md).
     """

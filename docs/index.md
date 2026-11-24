@@ -34,9 +34,6 @@ A film is described in levels, and the guide follows them, in the order a film i
 | The film | [the film and its scenes](guide/film/film.md), [layouts and boxes](guide/film/layouts.md) (and the window that designs them), [boxes](guide/film/boxes.md): text, image, shape, shot, panel, a held frame |
 | Making it | [rendering and caching](guide/making/rendering.md), [Slurm](guide/making/slurm.md), [building the film](guide/making/build.md), [checking it](guide/making/check.md) |
 
-The film of shots that came before scenes (cards, caption files, tiled layouts,
-`compose`) is [described apart](guide/old/index.md) until it goes.
-
 ## The reference
 
 - **[Commands](reference/commands.md):** every command and option, from the commands'

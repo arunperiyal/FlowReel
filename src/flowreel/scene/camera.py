@@ -11,7 +11,7 @@
              axis: x, motion: false}
 
 Exactly one of ``view``, ``track`` and ``fit`` gives the base view; ``follow`` then moves
-it onto a body: a body name (declared in ``flowreel.yml`` or a zone of the source), or
+it onto a body: a body name (declared in a tag's ``domain.yml`` or a zone of the source), or
 ``true`` for the one body there is. Without ``station``, ``follow`` takes the station
 (and, with ``follow: true``, the body) of the shot's ``crop: {around: ...}``. Views and tracks come from the project's ``cameras.yml``, at its root
 (:func:`flowreel.project.paths.cameras_file`; beside the shot file outside a project).

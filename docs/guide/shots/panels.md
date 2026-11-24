@@ -2,8 +2,8 @@
 
 A panel is a matplotlib figure drawn once per frame, at that frame's time: plots of
 lift moving along with the film, a dot at the current value (plan Section 9.2). A
-panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`, so a
-[layout](../old/layouts.md) tiles them beside the flow.
+panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`; in a
+film a [panel box](../film/boxes.md#panel-and-last_frame) draws the panel beside the flow.
 
 A runnable example on generated histories is `examples/panels/run.py`; one on a
 generated flow is `examples/flow_panels/run.py`.
@@ -29,9 +29,8 @@ style: styles/film.yml
 **Times.** Frame *i* is drawn at `times[i]`, in the source's time unit. With
 `{shot: FILE}` the times are those of the shot's frames, the time of the step each
 frame shows. A panel and a shot with the same times then line up frame by frame in a
-layout. A list must not decrease. A layout can also tile a panel itself (`panel:
-FILE`), and draw it at the film's output rate, between flow frames
-([layouts](../old/layouts.md#panels-at-the-output-rate-rate-output)).
+film. A list must not decrease. A panel box draws the panel itself, and at the film's
+output rate, between flow frames (`rate` on the [box](../film/boxes.md#panel-and-last_frame)).
 
 ## Style
 
@@ -60,7 +59,7 @@ Lato has no maths glyphs; DejaVu Sans sits well beside it.
 
 The `series`, `phase`, `map` and `locator` panels read time histories declared for bodies
 under the body's `series` ([bodies](../projects/bodies.md)), in the tags of the project
-(the nearest `flowreel.yml` at or above the panel file) or in `flowreel.yml` itself. A
+(the nearest `flowreel.yml` at or above the panel file). A
 line names its series and, unless one body declares a series of that name, its body. A
 tag's body is `tag.body` (`smooth.cyl`), or its own name when no other tag has it
 ([bodies across tags](../projects/data.md#shots-and-panels-name-a-tag)):
@@ -244,7 +243,7 @@ These three read the flow itself, not histories. A runnable example on a generat
 | `source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder |
 | `body` | string | the one body | the body, by its name in the tag's `domain.yml` or its zone |
 | `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../projects/fields.md)) |
-| `params` | mapping of numbers | the project's [`reference`](../projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
+| `params` | mapping of numbers | the tag's [units](../projects/data.md#units) the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
 | `range` | `[low, high]` | required | the colours' range; values outside it take the end colours |
 | `colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name |
 | `levels` | integer | `41` | contour levels from `low` to `high` |

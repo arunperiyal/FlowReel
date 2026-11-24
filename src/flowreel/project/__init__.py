@@ -1,11 +1,9 @@
 """A FlowReel project: a folder with ``flowreel.yml`` (plan Section 3).
 
-``flowreel.yml`` holds what belongs to the project rather than to one shot. So far that
-is ``defaults:`` (:data:`DEFAULT_KEYS`) and ``tags:``, the project's tags; each case's
-bodies, units and series are in its tag's ``data/<tag>/domain.yml``
-(:mod:`flowreel.project.domain`). ``bodies:`` and ``reference:`` (:data:`REFERENCE_KEYS`),
-the layout before tags, are read until the tutorials and examples move to tags
-(Phase 10), then removed. A shot finds its project by looking for
+``flowreel.yml`` holds what belongs to the project rather than to one shot: ``defaults:``
+(:data:`DEFAULT_KEYS`) and ``tags:``, the project's tags. Each case's bodies, units and
+series are in its tag's ``data/<tag>/domain.yml`` (:mod:`flowreel.project.domain`). A shot
+finds its project by looking for
 ``flowreel.yml`` in its own folder and then in each folder above it; where the
 project's other files and its output go is :mod:`flowreel.project.paths`.
 """
@@ -15,18 +13,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-from flowreel.project.bodies import Body, End, Series, parse_bodies
+from flowreel.project.bodies import Body, End, Series
 from flowreel.project.paths import PROJECT_FILE, find_root
 from flowreel.scene.errors import Checker
 
-KEYS = ("bodies", "reference", "defaults", "tags")
+KEYS = ("defaults", "tags")
 #: Keys of ``defaults:``: what every command of the project starts from.
 DEFAULT_KEYS = ("backend", "style")
-#: The keys of ``reference:``: ``rho`` (density) and ``u_inf`` (free-stream speed), the
-#: parameters of the pressure and skin-friction coefficients; ``length``, the length a
-#: shot's axes divide by with ``unit: diameters`` when they name no body.
-REFERENCE_KEYS = ("rho", "u_inf", "length")
-
 __all__ = ["PROJECT_FILE", "Project", "Body", "End", "Series", "load_project", "find_project",
            "project_for"]
 
@@ -34,12 +27,9 @@ __all__ = ["PROJECT_FILE", "Project", "Body", "End", "Series", "load_project", "
 @dataclass(frozen=True)
 class Project:
     """A loaded ``flowreel.yml``: its ``file`` (``None`` when built in code), ``folder``,
-    the declared ``bodies`` by name and the ``reference`` values given (a subset of
-    :data:`REFERENCE_KEYS`, each a positive number)."""
+    its ``defaults`` and the ``tag_names`` it lists."""
 
     file: Path | None = None
-    bodies: dict = field(default_factory=dict)
-    reference: dict = field(default_factory=dict)
     defaults: dict = field(default_factory=dict)
     tag_names: tuple = ()
 
@@ -56,10 +46,9 @@ class Project:
         return None if self.file is None else self.file.parent
 
     def named_bodies(self) -> dict:
-        """Every body a panel of the project may name: ``flowreel.yml``'s by their names,
-        each tag's as ``tag.body``, and a tag's body by its own name too when no other
-        tag and no ``flowreel.yml`` body has that name."""
-        out = dict(self.bodies)
+        """Every body a panel of the project may name: each tag's as ``tag.body``, and a
+        tag's body by its own name too when no other tag has a body of that name."""
+        out = {}
         owners: dict[str, list[str]] = {}
         for tag, domain in self.tags.items():
             for name, body in domain.bodies.items():
@@ -80,7 +69,7 @@ class Project:
         if same:
             raise LookupError(f"several tags have a body {name!r}: name one as "
                               f"{' or '.join(same)}")
-        raise LookupError(f"no body {name!r} in {self.file} or its tags (bodies: "
+        raise LookupError(f"no body {name!r} in the tags of {self.file} (bodies: "
                           f"{', '.join(named) or 'none'})")
 
     def owners(self, series: str) -> list[str]:
@@ -104,9 +93,7 @@ def load_project(path: str | Path) -> Project:
     data = read_yaml(path)
     data = check.mapping({} if data is None else data, KEYS)
     path = path.resolve()
-    return Project(path, parse_bodies(data.get("bodies"), check.at("bodies"), path.parent),
-                   parse_reference(data.get("reference"), check.at("reference")),
-                   parse_defaults(data.get("defaults"), check.at("defaults")),
+    return Project(path, parse_defaults(data.get("defaults"), check.at("defaults")),
                    parse_tag_names(data.get("tags"), check.at("tags")))
 
 
@@ -132,18 +119,6 @@ def parse_tag_names(value, check: Checker) -> tuple:
     if not isinstance(value, list):
         raise check.error(f"expected a list of tag names, got {value!r}")
     return tuple(check_tag(v, check.at(k)) for k, v in enumerate(value))
-
-
-def parse_reference(value, check: Checker) -> dict:
-    """``reference:`` checked: a mapping of :data:`REFERENCE_KEYS`, each positive."""
-    if value is None:
-        return {}
-    out = {}
-    for key, number in check.mapping(value, REFERENCE_KEYS).items():
-        out[key] = check.at(key).number(number)
-        if out[key] <= 0:
-            raise check.at(key).error(f"must be positive, got {out[key]:g}")
-    return out
 
 
 def find_project(start: str | Path) -> Path | None:

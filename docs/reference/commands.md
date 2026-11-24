@@ -12,47 +12,30 @@ Make a project folder, see what it holds, clean what it made.
 ### `flowreel project init`
 
 ```text
-usage: flowreel project init [-h] [--body [NAME=]FILE] [--step N] [-o DIR]
-                             [--link PATH] [--force] [--import KIND:PATH] [--tag TAG]
-                             [SOURCE]
+usage: flowreel project init [-h] [-o DIR] [--force] [--import KIND:PATH] [--tag TAG]
 
-Make the project folder DIR: shots/, text/, cards/, assets/ and data/,
-film.yml and cameras.yml at the root (kept if they exist), a .gitignore for
-frames/, clips/, .flowreel/ and data/, and flowreel.yml declaring every
-surface zone of SOURCE as a body, with its axis and diameter measured from the
-surface. Supports and series are written commented out, to fill in. Without
-SOURCE, flowreel.yml has only comments.
+Make the project folder DIR: shots/, panels/, layouts/, assets/ and data/,
+flowreel.yml, film.yml and cameras.yml at the root (film.yml and cameras.yml
+are kept if they exist), and a .gitignore for frames/, clips/, .flowreel/ and
+data/.
 
---link puts a symbolic link to the data in data/ (data is never copied),
-before SOURCE is read, so SOURCE can name it there.
-
-positional arguments:
-  SOURCE              adapter:location, e.g. plt:CASE or vtk:FILE (optional)
+A case comes in as a tag: --import KIND:PATH --tag TAG does what data import
+does, and fits the first view of cameras.yml to the case.
 
 options:
   -h, --help          show this help message and exit
-  --body [NAME=]FILE  body file or pattern, for a source that reads it separately
-                      (vtk); NAME=FILE names the body (default 'body'), and may be
-                      given once per body
-  --step N            step to measure (default the first)
   -o DIR, --out DIR   project folder (default the current one)
-  --link PATH         link PATH (a case folder or file) into DIR/data/ under its name
-  --force             overwrite flowreel.yml (and replace a data link) if it exists
+  --force             overwrite flowreel.yml if it exists
   --import KIND:PATH  import a case as a tag as well (plt:PATH, vtk:PATH), as data
                       import does; give --tag
   --tag TAG           the tag of --import
 
 examples:
-  flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
-  flowreel project init vtk:flow.pvd --body body.vtp --step 5000
-  flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
-                                                    the body named cylinder
-  flowreel project init geometry:grooved_cylinder -o carve --force
-  flowreel project init --link /scratch/run vtk:data/run/flow.pvd
-                                                    link the data first, read it there
-  flowreel project init                             the folders only; bodies by hand
+  flowreel project init                             the folders and first files, here
+  flowreel project init -o carve --force            overwrite flowreel.yml
   flowreel project init --import plt:/scratch/run/binary --tag bare
                                                     the folders, and the case as a tag
+  flowreel project init --import vtk:/scratch/run --tag run -o films/afms
 ```
 
 ### `flowreel project info`
@@ -60,11 +43,10 @@ examples:
 ```text
 usage: flowreel project info [-h] [DIR]
 
-Print the project's data links, the sources its shots read, the bodies of
-flowreel.yml, every shot file with the frames drawn for it, the views and
-tracks of cameras.yml, the film's shots and planned length, and the size of
-frames/, clips/ and .flowreel/. Files that do not load are listed with their
-error. Nothing is changed.
+Print the project's tags, the sources its shots read, every shot file with the
+frames drawn for it, the views and tracks of cameras.yml, the film's scenes,
+and the size of frames/, clips/ and .flowreel/. Files that do not load are
+listed with their error. Nothing is changed.
 
 positional arguments:
   DIR         a folder in the project (default: use project:DIR, else here)
@@ -800,97 +782,6 @@ examples:
   flowreel scene design compare --grid 10    snap to a 10-pixel grid (0: none)
 ```
 
-## `compose`
-
-Compose layouts and draw panels.
-
-### `flowreel compose layout`
-
-```text
-usage: flowreel compose layout [-h] [--scale S] [--size W H] [--frames SPEC] [--force]
-                               [-j N] [-o DIR] [--slurm FILE] [--submit]
-                               [--cluster NAME] [--partition NAME] [--time T]
-                               [--mem SIZE] [--cpus N] [--after JOBID]
-                               layout
-
-Compose the frames of a layout file into OUT/<layout>/frame_00000.png: its
-stations' shots are rendered and its panels drawn first. Frames whose key did
-not change are skipped; a draft (--scale, --size) goes to
-OUT/<layout>@<W>x<H>/.
-
-positional arguments:
-  layout             the layout file
-
-options:
-  -h, --help         show this help message and exit
-  --scale S          compose at the layout's size times S (a draft), e.g. 0.5
-  --size W H         compose at W x H pixels (a draft)
-  --frames SPEC      composed frames to draw: A, A:B (both included), A:B:E, or a
-                     comma list
-  --force            draw the frames even when their key did not change
-  -j N, --jobs N     processes drawing at once (default 1)
-  -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
-
-Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
-  --slurm FILE       write a Slurm job script to FILE instead of running here
-  --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
-                     unless --slurm FILE)
-  --cluster NAME     the cluster (default: FLOWREEL_CLUSTER, or this host's)
-  --partition NAME   the partition (default: the shortest that takes the job)
-  --time T           time a job may run: 90m, 3h, 1-12:00:00 (default: estimated)
-  --mem SIZE         memory of a job: 32G, 500M (default: worked out)
-  --cpus N           cores of a job (default: 16 for a render, 4 otherwise)
-  --after JOBID      start only when job JOBID ended well (may be repeated)
-
-examples:
-  flowreel compose layout compare.yml             every frame, into frames/compare/
-  flowreel compose layout compare.yml --scale 0.5 a half-size draft, frames/compare@960x540/
-  flowreel compose layout compare.yml --frames 0:48:4 -j 8
-  flowreel compose layout compare.yml --force     compose again even if nothing changed
-  flowreel compose layout compare.yml --submit --after 1310   as a job, after the renders
-```
-
-### `flowreel compose panel`
-
-```text
-usage: flowreel compose panel [-h] [--frames SPEC] [--force] [-j N] [-o DIR]
-                              [--slurm FILE] [--submit] [--cluster NAME]
-                              [--partition NAME] [--time T] [--mem SIZE] [--cpus N]
-                              [--after JOBID]
-                              panel
-
-Draw the frames of a panel file into OUT/<panel>/frame_00000.png, frame i at
-the panel's time i. Frames whose key did not change are skipped. With -j N the
-frames are cut into N runs of consecutive frames, each drawn by its own
-process.
-
-positional arguments:
-  panel              the panel file
-
-options:
-  -h, --help         show this help message and exit
-  --frames SPEC      frames to draw: A, A:B (both included), A:B:E, or a comma list
-  --force            draw the frames even when their key did not change
-  -j N, --jobs N     processes drawing at once (default 1)
-  -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
-
-Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
-  --slurm FILE       write a Slurm job script to FILE instead of running here
-  --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
-                     unless --slurm FILE)
-  --cluster NAME     the cluster (default: FLOWREEL_CLUSTER, or this host's)
-  --partition NAME   the partition (default: the shortest that takes the job)
-  --time T           time a job may run: 90m, 3h, 1-12:00:00 (default: estimated)
-  --mem SIZE         memory of a job: 32G, 500M (default: worked out)
-  --cpus N           cores of a job (default: 16 for a render, 4 otherwise)
-  --after JOBID      start only when job JOBID ended well (may be repeated)
-
-examples:
-  flowreel compose panel lift.yml                 every frame, into frames/lift/
-  flowreel compose panel lift.yml -j 8            eight runs of frames at once
-  flowreel compose panel lift.yml --frames 0:10 --force
-```
-
 ## `film`
 
 Build a film and check it.
@@ -898,15 +789,15 @@ Build a film and check it.
 ### `flowreel film build`
 
 ```text
-usage: flowreel film build [-h] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
-                           [--crf N] [--watch] [--clips DIR] [-j N] [--slurm FILE]
-                           [--submit] [--cluster NAME] [--partition NAME] [--time T]
-                           [--mem SIZE] [--cpus N] [--after JOBID]
+usage: flowreel film build [-h] [--only SCENE] [--mute] [--force] [--preview HEIGHT]
+                           [--crf N] [--watch] [--clips DIR] [--slurm FILE] [--submit]
+                           [--cluster NAME] [--partition NAME] [--time T] [--mem SIZE]
+                           [--cpus N] [--after JOBID]
                            [FILM]
 
-Build every shot's finished clip (clips whose key did not change are kept),
+Build every scene's finished clip (clips whose key did not change are kept),
 join them into the film's output with its sound and chapters, and write
-film.srt and chapters.txt beside it. Prints each shot's planned and measured
+film.srt and chapters.txt beside it. Prints each scene's planned and measured
 length.
 
 positional arguments:
@@ -915,7 +806,7 @@ positional arguments:
 
 options:
   -h, --help        show this help message and exit
-  --only SHOT       build this shot's finished clip alone, as film_SHOT.mp4, silent
+  --only SCENE      build this scene's finished clip alone, as film_SCENE.mp4, silent
   --mute            build the film without its sound
   --force           build every clip again, even when its key did not change
   --preview HEIGHT  also write film_<HEIGHT>p.mp4, scaled to HEIGHT pixels (even)
@@ -923,7 +814,6 @@ options:
   --watch           build, then build again each time a file the film may be made from
                     changes, until Ctrl-C
   --clips DIR       folder of the clips (default clips/ at the project root)
-  -j N, --jobs N    processes drawing a layout's live panels (default 1)
 
 Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE      write a Slurm job script to FILE instead of running here
@@ -941,7 +831,7 @@ examples:
   flowreel film build talk.yml --mute        without its sound
   flowreel film build --preview 480          and film_480p.mp4, to send to someone
   flowreel film build --preview 720 --crf 23 a better preview copy
-  flowreel film build --only compare         one shot alone, as film_compare.mp4
+  flowreel film build --only compare         one scene alone, as film_compare.mp4
   flowreel film build --force                build every clip again
   flowreel film build --watch --preview 540  again on each change, until Ctrl-C
   flowreel film build --submit --after 1312  as a Slurm job, after the composes
@@ -951,12 +841,12 @@ examples:
 
 ```text
 usage: flowreel film check [-h] [--at WHEN] [--columns N] [--width PX] [-o FILE]
-                           [--force] [--clips DIR] [-j N]
+                           [--force] [--clips DIR]
                            [FILM]
 
 Draw contact.png beside the film: stills of the finished film, each labelled
-with its time and shot, the captions drawn as they show. Missing finished
-clips are built; the film is not joined.
+with its time and scene, the text drawn as it shows. Missing finished clips
+are built; the film is not joined.
 
 positional arguments:
   FILM                  the film file (default: film.yml of the project set with use
@@ -972,7 +862,6 @@ options:
                         where the sheet goes (default contact.png beside the film)
   --force               build the clips again, even when their key did not change
   --clips DIR           folder of the clips (default clips/ at the project root)
-  -j N, --jobs N        processes drawing a layout's live panels (default 1)
 
 examples:
   flowreel film check                        a still at the middle of each caption
@@ -989,7 +878,7 @@ the frame), with the caption, shot and times.
 ```text
 usage: flowreel film lengths [-h] [--clips DIR] [FILM]
 
-Print each shot's planned length (from the timeline) and its measured length
+Print each scene's planned length (from the plan) and its measured length
 (from its finished clip of the last build; - when none), the film's, and each
 chapter's start and length. Nothing is built.
 
@@ -1011,8 +900,8 @@ examples:
 ```text
 usage: flowreel film srt [-h] [-o FILE] [FILM]
 
-Write the captions as SubRip subtitles, at their film times, with maths
-between $ as plain text. Nothing is built.
+Write the timed text boxes as SubRip subtitles, at their film times, with
+maths between $ as plain text. Nothing is built.
 
 positional arguments:
   FILM                  the film file (default: film.yml of the project set with use
@@ -1054,15 +943,14 @@ examples:
 ### `flowreel film template`
 
 ```text
-usage: flowreel film template [-h] [--fps N] [-o FILE] [--force] [--scenes | --layout]
-                              [name]
+usage: flowreel film template [-h] [--fps N] [-o FILE] [--force] [--layout] [name]
 
-Print (or write with -o) a film file with every key at its default, each with
-a comment, and one frames shot.
+Print (or write with -o) a film of scenes with every key at its default, each
+with a comment: a title, the shot, an end. With --layout, a layout file with
+one box of each kind.
 
 positional arguments:
-  name                  the shot's name; its frames are in frames/NAME (default
-                        my_shot)
+  name                  the shot the film shows (default my_shot)
 
 options:
   -h, --help            show this help message and exit
@@ -1070,14 +958,11 @@ options:
   -o FILE, --output FILE
                         write to FILE instead of printing
   --force               overwrite FILE if it exists
-  --scenes              a film of scenes, each a layout of boxes (Phase 10's model)
   --layout              a layout file (layouts/NAME.yml) with one box of each kind
 
 examples:
-  flowreel film template                     print a film file with the defaults
+  flowreel film template                     print a film of scenes (title, the shot, an end)
   flowreel film template wake --fps 30 -o film.yml
-  flowreel film template --scenes wake -o film.yml
-                                             a film of scenes (title, the shot, an end)
   flowreel film template --layout -o layouts/compare.yml
                                              a layout file, one box of each kind
 ```

@@ -10,7 +10,7 @@ from flowreel.film import model as M
 from flowreel.film.scene_template import film_template, layout_template
 from flowreel.scene.errors import ConfigError
 
-SHOT = {"name": "wake", "source": "x:y", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
+SHOT = {"name": "wake", "source": "x", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
 
 
 @pytest.fixture
@@ -140,7 +140,7 @@ def test_the_templates_load(folder):
 
 def test_the_commands(folder, monkeypatch):
     monkeypatch.chdir(folder)
-    status, out, _ = Shell(folder).run("film template --scenes wake")
+    status, out, _ = Shell(folder).run("film template wake")
     assert status == 0 and "scenes:" in out and "shots/wake.yml" in out
     status, out, _ = Shell(folder).run("film template --layout")
     assert status == 0 and "boxes:" in out

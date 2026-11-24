@@ -14,13 +14,12 @@ film            film.yml
         └── boxes: text, image, shape, shot, panel, last_frame
 ```
 
-**Why levels.** A film used to be made of seven kinds of thing: film shots of four kinds
-(`frames`, `layout`, `card`, `hold_last_of`), layout files of tiles, card files and
-caption files. Each had its own keys, and a caption over a layout needed three of them.
-The levels need three nested ones. A title card is a scene of text and image boxes, a
+**Why levels.** A film used to be made of seven kinds of thing: film shots of four kinds,
+layout files of tiles, card files and caption files. Each had its own keys, and a caption
+over a layout needed three of them. The levels need three nested ones. A title card is a scene of text and image boxes, a
 plain shot is a scene of one box, and a caption is a text box timed in its scene.
 
-`flowreel film template --scenes` writes a film of scenes with every key, and `--layout` a layout file.
+`flowreel film template` writes a film of scenes with every key, and `--layout` a layout file.
 This page is the film level; [layouts](layouts.md) places boxes, [boxes](boxes.md) is each kind of box, and
 [building the film](../making/build.md) makes it.
 
@@ -146,9 +145,7 @@ A signature, logo or watermark, at one of two levels. Its keys:
 | `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency |
 | `watermark.colour` | colour | `'#f2f2f2'` | of text |
 | `watermark.scenes` | list of scene names | | film level only: show it on these scenes |
-| `watermark.shots` | list of names | | a film of shots only: show it on these shots |
 | `watermark.seconds` | `[start, end]` | | film level only: show it between these film seconds |
-| `watermark.cards` | bool | `false` | a film of shots only: show it on cards too |
 
 **Film level** (`watermark:` in `film.yml`). It is drawn at the build, on each
 scene's frames, so changing it never re-renders a shot. By default it shows on every

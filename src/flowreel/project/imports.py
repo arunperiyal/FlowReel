@@ -21,9 +21,12 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import numpy as np
 import yaml
 
+from flowreel.project.bodies import SUPPORTS
 from flowreel.project.domain import DOMAIN_FILE, KINDS, check_tag, load_domain
+from flowreel.project.measure import AXES, diameter, long_axis
 from flowreel.scene.errors import Checker
 
 #: Above this many bytes, ``--copy`` asks for ``--yes``.
@@ -215,10 +218,54 @@ def _remove(path: Path) -> None:
         shutil.rmtree(path)
 
 
+COLUMN = 38
+
+
+def _num(v: float) -> str:
+    return f"{v:.4g}"
+
+
+def _line(text: str, comment: str = "") -> str:
+    # A comment needs a space before '#' in YAML, even when the text is past the column.
+    return f"{text.ljust(COLUMN - 1)} # {comment}" if comment else text
+
+
+def _key(name: str) -> str:
+    text = yaml.safe_dump(name, default_flow_style=True).strip()
+    return text.removesuffix("...").strip()
+
+
+def body_block(zone: str, surface) -> str:
+    """The YAML of one declared body for ``zone``, measured from ``surface``."""
+    pts = np.asarray(surface.points)
+    ext = np.ptp(pts, axis=0)
+    axis = long_axis(surface)
+    lines = [f"  {_key(zone)}:", f"    zone: {_key(zone)}"]
+    if axis is None:
+        lines.append(_line("    # axis: x", "not slender, so not a beam: "
+                           + " x ".join(_num(e) for e in ext) + "; give one to make it a beam"))
+    else:
+        k = AXES[axis]
+        across = max(np.delete(ext, k))
+        lines.append(_line(f"    axis: {axis}", f"measured: {_num(ext[k])} long, {_num(across)} across"))
+        try:
+            d = diameter(surface, axis)
+            lines.append(_line(f"    diameter: {_num(d)}", "measured from the surface; check it"))
+        except ValueError as exc:
+            lines.append(_line("    # diameter: 1.0", f"could not measure ({exc})"))
+        lo, hi = float(pts[:, AXES[axis]].min()), float(pts[:, AXES[axis]].max())
+        lines += [_line("    # ends:", "how it is held: " + ", ".join(SUPPORTS)),
+                  f"    #   - {{at: {_num(lo)}, support: clamped}}",
+                  f"    #   - {{at: {_num(hi)}, support: clamped}}"]
+    lines += [_line("    # series:", "time histories as CSV (docs/guide/projects/bodies.md)"),
+              f"    #   displacement: {{file: data/{zone}_displacement.csv}}"]
+    return "\n".join(lines)
+
+
+
 def _measure(folder: Path, kind: str, source: dict) -> tuple[dict, str]:
     """What the case is (``measured:``) and its bodies' YAML, measured at the first step."""
     from flowreel import sources
-    from flowreel.project.init import body_block
     options = dict(source)
     if "path" in options:
         options["path"] = str(folder / options["path"])

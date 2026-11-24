@@ -22,7 +22,7 @@ VIEWS = {"main": {"position": [2, 0, 12], "focal": [2, 0, 0], "up": [0, 1, 0]}}
 def tag(root, name, units, series=True):
     """A tag of the generated cylinder case, its body cyl with a force series."""
     cases = root.parent / "cases" / name
-    case.write_case(cases, project=False)
+    case.write_case(cases)
     folder = root / "data" / name
     (folder / "series").mkdir(parents=True)
     (folder / "plt").symlink_to(cases / "case", target_is_directory=True)
@@ -86,7 +86,7 @@ def test_the_frame_key_changes_with_the_tags_units(project):
     ("nobody", "no tag 'nobody'.*tags: bare, helical"),
     ({"tag": "bare", "kind": "vtk"}, "holds a plt case, not vtk"),
     ({"tag": "bare", "names": {}}, "not an option of a plt tag: names"),
-    ({"tag": "bare", "adapter": "plt"}, "not both"),
+    ({"tag": "bare", "adapter": "plt"}, "not an option of a plt tag: adapter"),
     ({"tag": "a.b"}, "letters, digits"),
 ])
 def test_errors_name_the_shot_and_key(project, source, message):

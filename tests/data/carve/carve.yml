@@ -4,7 +4,7 @@
 # flow data. 288 frames; the prototype's fractions of the shot are frames here
 # (t * 287). The golden frame is 115, at 640 x 360.
 name: carve
-source: geometry:grooved_cylinder
+source: grooved
 time: {frozen: 0, frames: 288}
 camera: {track: carve}
 size: [640, 360]

@@ -18,22 +18,16 @@ from flowreel.scene.errors import ConfigError
 
 EXAMPLES = {
     "project": """examples:
-  flowreel project init plt:bare/BR0SG0U1P0
-  flowreel project init vtk:run/flow.pvd --body run/body_*.vtp -o films/afms
-  flowreel project init -o films/afms --link /scratch/afms/run
-
-Reference: docs/guide/projects/project.md, docs/guide/projects/bodies.md and docs/guide/commands.md.""",
-    "init": """examples:
-  flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
-  flowreel project init vtk:flow.pvd --body body.vtp --step 5000
-  flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
-                                                    the body named cylinder
-  flowreel project init geometry:grooved_cylinder -o carve --force
-  flowreel project init --link /scratch/run vtk:data/run/flow.pvd
-                                                    link the data first, read it there
-  flowreel project init                             the folders only; bodies by hand
+  flowreel project init -o films/afms
   flowreel project init --import plt:/scratch/run/binary --tag bare
-                                                    the folders, and the case as a tag""",
+
+Reference: docs/guide/projects/project.md and docs/guide/commands.md.""",
+    "init": """examples:
+  flowreel project init                             the folders and first files, here
+  flowreel project init -o carve --force            overwrite flowreel.yml
+  flowreel project init --import plt:/scratch/run/binary --tag bare
+                                                    the folders, and the case as a tag
+  flowreel project init --import vtk:/scratch/run --tag run -o films/afms""",
     "info": """examples:
   flowreel project info                             the project of this folder
   flowreel project info films/afms""",
@@ -62,51 +56,6 @@ def project_root(ctx, *files) -> Path:
 def default_out(ctx, out, *files, kind: str = "frames") -> Path:
     """``-o``'s folder when given, else ``<project root>/<kind>`` (:func:`project_root`)."""
     return Path(out) if out else project_root(ctx, *files) / kind
-
-
-def body_option(values) -> str | dict | None:
-    """``--body`` as the source takes it: one ``FILE`` (a body named ``body``), or
-    ``NAME=FILE`` once or more (bodies named as given). Raises ``CommandError`` on a mix,
-    a repeated name or an empty part."""
-    if not values:
-        return None
-    named = [v for v in values if "=" in v]
-    if not named:
-        if len(values) > 1:
-            raise CommandError("several --body files need a name each: --body NAME=FILE")
-        return values[0]
-    if len(named) != len(values):
-        raise CommandError("give every --body as NAME=FILE, or one FILE alone")
-    bodies = {}
-    for value in values:
-        name, _, path = value.partition("=")
-        if not name or not path:
-            raise CommandError(f"--body {value!r}: expected NAME=FILE")
-        if name in bodies:
-            raise CommandError(f"--body: the name {name!r} is given twice")
-        bodies[name] = path
-    return bodies
-
-
-def open_source(text: str, body: str | dict | None = None):
-    """The source written ``adapter:location`` on the command line (``geometry:NAME``
-    names a body; others take the location as ``path``), with ``body`` for an adapter
-    that reads the body from its own file: a file or pattern (the body ``body``), or a
-    mapping ``{name: file}`` (see :func:`body_option`)."""
-    from flowreel import sources
-    adapter, sep, location = text.partition(":")
-    if not sep or not adapter or not location:
-        raise CommandError(f"expected SOURCE as adapter:location (for example "
-                           f"vtk:flow.pvd), got {text!r}")
-    options = {"body": location} if adapter == "geometry" else {"path": location}
-    if body is not None:
-        if adapter == "geometry":
-            raise CommandError("--body is for sources that read a body file, not geometry")
-        options["body"] = body
-    try:
-        return sources.create(adapter, **options)
-    except KeyError as exc:
-        raise CommandError(str(exc.args[0]) if exc.args else str(exc)) from None
 
 
 def _import_into(folder: Path, spec: str, tag: str, made, ctx) -> None:
@@ -141,30 +90,18 @@ class ProjectCommand(BaseCommand):
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
         actions = p.add_subparsers(dest="project_cmd", metavar="<action>")
         i = actions.add_parser(
-            "init", help="make a project folder, with a body per surface zone",
+            "init", help="make a project folder",
             description="\n\n".join(textwrap.fill(s, 78) for s in (
-                "Make the project folder DIR: shots/, text/, cards/, assets/ and data/, "
-                "film.yml and cameras.yml at the root (kept if they exist), a .gitignore "
-                "for frames/, clips/, .flowreel/ and data/, and flowreel.yml declaring "
-                "every surface zone of SOURCE as a body, with its axis and diameter "
-                "measured from the surface. Supports and series are written commented "
-                "out, to fill in. Without SOURCE, flowreel.yml has only comments.",
-                "--link puts a symbolic link to the data in data/ (data is never copied), "
-                "before SOURCE is read, so SOURCE can name it there.")),
+                "Make the project folder DIR: shots/, panels/, layouts/, assets/ and "
+                "data/, flowreel.yml, film.yml and cameras.yml at the root (film.yml and "
+                "cameras.yml are kept if they exist), and a .gitignore for frames/, "
+                "clips/, .flowreel/ and data/.",
+                "A case comes in as a tag: --import KIND:PATH --tag TAG does what data "
+                "import does, and fits the first view of cameras.yml to the case.")),
             epilog=EXAMPLES["init"], formatter_class=argparse.RawDescriptionHelpFormatter)
-        i.add_argument("source", metavar="SOURCE", nargs="?",
-                       help="adapter:location, e.g. plt:CASE or vtk:FILE (optional)")
-        i.add_argument("--body", metavar="[NAME=]FILE", action="append",
-                       help="body file or pattern, for a source that reads it separately "
-                            "(vtk); NAME=FILE names the body (default 'body'), and may be "
-                            "given once per body")
-        i.add_argument("--step", type=int, metavar="N", help="step to measure (default the first)")
         i.add_argument("-o", "--out", default=".", metavar="DIR",
                        help="project folder (default the current one)")
-        i.add_argument("--link", metavar="PATH",
-                       help="link PATH (a case folder or file) into DIR/data/ under its name")
-        i.add_argument("--force", action="store_true",
-                       help="overwrite flowreel.yml (and replace a data link) if it exists")
+        i.add_argument("--force", action="store_true", help="overwrite flowreel.yml if it exists")
         i.add_argument("--import", dest="import_", metavar="KIND:PATH",
                        help="import a case as a tag as well (plt:PATH, vtk:PATH), as "
                             "data import does; give --tag")
@@ -173,10 +110,9 @@ class ProjectCommand(BaseCommand):
         n = actions.add_parser(
             "info", help="what the project holds, and the size of what it made",
             description=textwrap.fill(
-                "Print the project's data links, the sources its shots read, the bodies "
-                "of flowreel.yml, every shot file with the frames drawn for it, the views "
-                "and tracks of cameras.yml, the film's shots and planned length, and the "
-                "size of frames/, clips/ and .flowreel/. Files that do not load are "
+                "Print the project's tags, the sources its shots read, every shot file "
+                "with the frames drawn for it, the views and tracks of cameras.yml, the "
+                "film's scenes, and the size of frames/, clips/ and .flowreel/. Files that do not load are "
                 "listed with their error. Nothing is changed.", 78),
             epilog=EXAMPLES["info"], formatter_class=argparse.RawDescriptionHelpFormatter)
         n.add_argument("folder", nargs="?", metavar="DIR",
@@ -233,30 +169,16 @@ class ProjectCommand(BaseCommand):
         return 0
 
     def do_init(self, args, ctx):
-        from flowreel.project.init import make_link, make_project
+        from flowreel.project.init import make_project
         from flowreel.project.paths import PROJECT_FILE
         folder = Path(args.out)
         if (folder / PROJECT_FILE).exists() and not args.force:
             raise CommandError(f"{folder / PROJECT_FILE} exists (use --force to overwrite it; "
                                "film.yml and cameras.yml are kept either way)")
-        if args.source is None and (args.body or args.step is not None):
-            raise CommandError("--body and --step need a SOURCE")
-        if args.import_ and (args.source or args.link):
-            raise CommandError("--import brings the case in as a tag: give it without SOURCE "
-                               "and --link")
         if bool(args.import_) != bool(args.tag):
             raise CommandError("--import and --tag go together")
         try:
-            if args.link:                     # first, so that SOURCE may read the data there
-                link = make_link(folder, args.link, args.force)
-                ctx.out(f"linked {link} -> {link.readlink()}")
-            source = None
-            if args.source is not None:
-                source = open_source(args.source, body_option(args.body))
-                if args.step is not None and args.step not in source.steps():
-                    raise CommandError(f"step {args.step} is not saved (steps "
-                                       f"{source.steps()[0]} to {source.steps()[-1]})")
-            made = make_project(folder, source, args.step, label=args.source, force=args.force)
+            made = make_project(folder, force=args.force)
             if args.import_:
                 _import_into(folder, args.import_, args.tag, made, ctx)
         except (FileExistsError, LookupError, ValueError) as exc:
@@ -272,11 +194,6 @@ class ProjectCommand(BaseCommand):
         if args.import_:
             ctx.out(f"wrote {path}; the case's bodies and units are in "
                     f"data/{args.tag}/domain.yml")
-        elif source is None:
-            ctx.out(f"wrote {path} without bodies: declare them, import a case with data "
-                    f"import, or run project init SOURCE --force")
         else:
-            names = source.bodies()
-            ctx.out(f"wrote {path}: {len(names)} {'body' if len(names) == 1 else 'bodies'} "
-                    f"({', '.join(names)}); fill in the supports")
+            ctx.out(f"wrote {path}; bring a case in with data import")
         return 0

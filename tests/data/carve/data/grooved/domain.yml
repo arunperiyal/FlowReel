@@ -1,0 +1,3 @@
+# The carving shot's body, made in code: no flow data.
+kind: geometry
+source: {body: grooved_cylinder}

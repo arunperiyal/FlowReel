@@ -11,12 +11,14 @@ from flowreel.scene.layers import FrameData
 from flowreel.scene.shot import from_dict
 from flowreel.scene.views import parse_view
 
+from tag_fixture import tag_project
+
 VIEWS = {"main": parse_view({"name": "main", "position": [3, 2, 4], "focal": [0, 0, 0.5]}),
          "side": parse_view({"name": "side", "position": [4, 0, 0.5], "focal": [0, 0, 0.5]})}
 
 
 def toy_shot(**extra):
-    spec = {"name": "toy", "source": "toy:none", "time": {"steps": [0, 20]},
+    spec = {"name": "toy", "source": "toy", "time": {"steps": [0, 20]},
             "camera": {"view": "main"}, "size": [64, 48], "antialias": "none",
             "layers": [{"type": "body", "colour": "#ff0000"},
                        {"type": "outline", "bounds": "domain"}]}
@@ -74,10 +76,11 @@ def test_lights_are_read_and_change_the_picture(toy_source):
 
 
 def test_a_shot_file_opens_its_own_source(tmp_path):
+    tag_project(tmp_path, "g")
     (tmp_path / "cameras.yml").write_text(
         "views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up: [0, 0, 1]}\n")
     (tmp_path / "s.yml").write_text(
-        "name: g\nsource: geometry:grooved_cylinder\ntime: {frozen: 0}\n"
+        "name: g\nsource: g\ntime: {frozen: 0}\n"
         "camera: {view: main}\nsize: [40, 30]\nantialias: none\nlayers: [{type: outline}]\n")
     try:
         img = render_frame(tmp_path / "s.yml", 0)
@@ -147,22 +150,13 @@ def test_camera_errors_name_the_key(spec, message):
     assert "toy.yml: camera" in str(err.value)
 
 
-def test_a_source_mapping_passes_options_and_resolves_paths(tmp_path, monkeypatch):
-    from flowreel import sources
-    from flowreel.scene.rendering import open_source
-    seen = {}
-    monkeypatch.setattr(sources, "create", lambda adapter, **kw: seen.update(adapter=adapter, **kw))
-    shot = toy_shot(source={"adapter": "vtk", "path": "f_*.vti", "body": {"a": "a.vtp"}, "dt": 0.1})
-    shot.file = str(tmp_path / "s.yml")
-    assert shot.source == ("vtk", "f_*.vti") and shot.source_options["dt"] == 0.1
-    open_source(shot)
-    assert seen == {"adapter": "vtk", "path": str(tmp_path / "f_*.vti"),
-                    "body": {"a": str(tmp_path / "a.vtp")}, "dt": 0.1}
-    geo = toy_shot(source={"adapter": "geometry", "body": "grooved_cylinder"})
-    open_source(geo)
-    assert seen["body"] == "grooved_cylinder"                 # a name, not a file
-    with pytest.raises(ConfigError, match="missing key 'adapter'"):
+def test_the_sources_before_tags_are_not_read(tmp_path):
+    for old in ("vtk:flow.pvd", "geometry:grooved_cylinder", {"adapter": "vtk", "path": "f_*.vti"}):
+        with pytest.raises(ConfigError, match="a source is a tag"):
+            toy_shot(source=old)
+    with pytest.raises(ConfigError, match="expected a tag"):
         toy_shot(source={"path": "x"})
+    assert toy_shot(source={"tag": "bare", "margin": 1.0}).source_options == {"margin": 1.0}
 
 
 def test_a_shots_layers_read_the_pressure_when_they_need_it(toy_source):

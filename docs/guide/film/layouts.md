@@ -43,8 +43,7 @@ is then as large as its text. A box of another kind at `pos` needs its `size`.
 | `follow.model` | `[x, y, z]` | required | the point, in the flow's units |
 | `follow.offset` | `[dx, dy]` | `[0, 0]` | pixels moved on the screen after projection |
 
-The point is projected on each frame by the camera that drew it, as
-anchored captions of a film of shots were. A text box's upper left corner goes on the point,
+The point is projected on each frame by the camera that drew it. A text box's upper left corner goes on the point,
 an arrow's tip, and a rectangle's or circle's centre.
 
 

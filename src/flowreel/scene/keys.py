@@ -59,10 +59,10 @@ def digest(parts: dict) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def source_id(shot) -> list:
+def source_id(shot, source=None) -> list:
     """The shot's source in a key (see :func:`flowreel.scene.rendering.source_id`)."""
     from flowreel.scene.rendering import source_id as _id
-    return _id(shot)
+    return _id(shot, source)
 
 
 def file_stamps(source, step: int) -> list | None:
@@ -95,7 +95,7 @@ def frame_parts(scene, index: int) -> dict:
     crop = scene.crop(index)
     return {
         "code": code_version(),
-        "source": source_id(shot),
+        "source": source_id(shot, scene.source),
         "bodies": bodies_key(scene.source),
         "step": scene.plan.time.step(index),
         "files": file_stamps(scene.source, scene.plan.time.step(index)),

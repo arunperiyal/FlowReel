@@ -14,9 +14,3 @@ golden:
   mid: 6                      # halfway between keys 0 and 12 (smooth ease: t = 0.5): golden_mid.png
   near: 8                     # a nearby frame that must fail against golden_mid.png
 body: {colour: '#c8ccd0', specular: 0.4, specular_power: 20, ambient: 0.25}
-arrow:                        # an anchored arrow: from a pixel to a point on the body
-  from: [100, 60]
-  to: [6, 0, 0.5]             # the top of the cylinder at its middle
-  width: 4
-  colour: '#ffcc33'
-  frames: [0, 6, 12]          # arrow_00000.png, arrow_00006.png, arrow_00012.png

@@ -1,7 +1,6 @@
 """include: in any YAML file (yamlfile.py)."""
 import pytest
 
-from flowreel.film.text import load_text
 from flowreel.scene.errors import ConfigError
 from flowreel.yamlfile import merged, read_yaml
 
@@ -22,7 +21,7 @@ def test_a_mapping_includes_mappings_beneath_its_own_keys(tmp_path):
 def test_a_list_entry_includes_a_list(tmp_path):
     (tmp_path / "common.yml").write_text("- {lines: [one]}\n- {lines: [two]}\n")
     (tmp_path / "text.yml").write_text("- include: common.yml\n- {lines: [three], at: 2}\n")
-    assert [c.lines[0] for c in load_text(tmp_path / "text.yml")] == ["one", "two", "three"]
+    assert [d["lines"][0] for d in read_yaml(tmp_path / "text.yml")] == ["one", "two", "three"]
 
 
 def test_includes_nest_and_resolve_from_their_own_folder(tmp_path):
@@ -51,15 +50,9 @@ def test_errors(tmp_path):
 
 
 def test_shots_and_layouts_include_too(tmp_path):
-    from flowreel.compose import load
-    (tmp_path / "f").mkdir()
-    (tmp_path / "base.yml").write_text("size: [100, 50]\nbackground: '#101010'\n")
+    from flowreel.film.model import load_layout
+    (tmp_path / "base.yml").write_text("background: '#101010'\n")
     (tmp_path / "lay.yml").write_text(
-        "include: base.yml\ntiles: [{frames: f, at: [0, 0], size: [10, 10]}]\n")
-    lay = load(tmp_path / "lay.yml")
-    assert lay.size == (100, 50) and lay.background == "#101010"
-
-
-def test_merged():
-    assert merged({"a": {"b": 1, "c": 2}, "d": [1]}, {"a": {"b": 3}, "d": [2]}) == \
-        {"a": {"b": 3, "c": 2}, "d": [2]}
+        "include: base.yml\nboxes: [{shape: rectangle, pos: [0, 0], size: [10, 10]}]\n")
+    lay = load_layout(tmp_path / "lay.yml")
+    assert lay.background == "#101010" and len(lay.boxes) == 1

@@ -251,7 +251,7 @@ def reveal_shot(case: str | Path, folder: Path = PROTOTYPE) -> tuple[str, str]:
 # along the span to mid-span, showing a live section, and the wake turns grey. One frame
 # per saved step, {mf.T1} to {mf.T2} ({rf.__file__.rsplit('/', 1)[-1]}, --look reveal).
 name: bare_reveal
-source: flexflow:{Path(case).resolve()}
+source: bare
 time: {{steps: [{mf.T1}, {mf.T2}], every: 1}}
 crop: {{x: [{x0}, {x1}], y: [{y0}, {y1}], z: [{z0}, {z1}]}}
 camera: {{view: main}}
@@ -289,7 +289,7 @@ layers:
 def write_reveal(out: Path, case: str | Path, force: bool = False,
                  folder: Path = PROTOTYPE) -> list[Path]:
     """Write ``out/reveal/``: the reveal shot, its cameras and, when ``case`` is there,
-    its ``flowreel.yml``; returns the files written."""
+    its ``flowreel.yml`` and the case as the tag ``bare``; returns the files written."""
     shot, cameras = reveal_shot(case, folder)
     target = Path(out) / "reveal"
     target.mkdir(parents=True, exist_ok=True)
@@ -301,10 +301,10 @@ def write_reveal(out: Path, case: str | Path, force: bool = False,
         path.write_text(text)
         written.append(path)
     if (Path(case) / "binary").is_dir():
-        from flowreel import sources
+        from flowreel.project.imports import import_data
         from flowreel.project.init import init_project
-        written.append(init_project(target, sources.create("flexflow", path=str(case)),
-                                    label=f"flexflow:{case}", force=force))
+        written.append(init_project(target, force=force))
+        written.append(import_data(target, "plt", str(Path(case) / "binary"), "bare", force=force).domain)
     return written
 
 

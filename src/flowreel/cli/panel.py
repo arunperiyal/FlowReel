@@ -1,8 +1,7 @@
 """``flowreel panel``: a panel's frames drawn, and a panel file to start from.
 
-``panel draw`` draws a panel's own frames (as ``compose panel`` did, which stays until
-the film of shots goes); in a film of scenes a panel box is drawn by the build instead,
-at the box's size. ``panel template`` writes a commented panel file of a type.
+``panel draw`` draws a panel's own frames; in a film of scenes a panel box is drawn by the
+build instead, at the box's size. ``panel template`` writes a commented panel file of a type.
 """
 from __future__ import annotations
 
@@ -37,6 +36,32 @@ def _parser(actions, name, help, description):
                               formatter_class=argparse.RawDescriptionHelpFormatter)
 
 
+def _common(parser, what: str):
+    parser.add_argument("--frames", metavar="SPEC",
+                        help=f"{what} to draw: A, A:B (both included), A:B:E, or a comma list")
+    parser.add_argument("--force", action="store_true",
+                        help="draw the frames even when their key did not change")
+    parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
+                        help="processes drawing at once (default 1)")
+    parser.add_argument("-o", "--out", metavar="DIR",
+                        help="folder of the frame folders (default frames/ at the project root)")
+    from flowreel.cli.jobs import add_slurm_args
+    add_slurm_args(parser)
+
+
+def _as_job(args, file: str) -> list[str]:
+    """The ``flowreel panel draw FILE ...`` line a job runs: these options, without the
+    Slurm ones."""
+    from flowreel.cli.jobs import job_path
+    cmd = ["flowreel", "panel", "draw", job_path(file), "-j", str(args.jobs), "-o",
+           job_path(args.out)]
+    if args.frames:
+        cmd += ["--frames", args.frames]
+    if args.force:
+        cmd.append("--force")
+    return cmd
+
+
 class PanelCommand(BaseCommand):
     """The ``panel`` command group."""
 
@@ -45,7 +70,6 @@ class PanelCommand(BaseCommand):
     category = "Compose"
 
     def setup_parser(self, subparsers):
-        from flowreel.cli.compose import _common
         from flowreel.compose.panel_template import TYPES
         p = subparsers.add_parser(self.name, help=self.description,
                                   description=self.description, epilog=EXAMPLES["panel"],
@@ -85,7 +109,6 @@ class PanelCommand(BaseCommand):
                                else str(exc)) from None
 
     def do_draw(self, args, ctx):
-        from flowreel.cli.compose import _as_job
         from flowreel.cli.jobs import run_single, slurm_wanted
         from flowreel.cli.project import project_root
         from flowreel.cli.shot import parse_frames
@@ -96,8 +119,7 @@ class PanelCommand(BaseCommand):
         if args.out is None:
             args.out = str(root / "frames")
         if slurm_wanted(args):
-            cmd = _as_job(args, "panel", args.panel, [])
-            cmd[1:3] = ["panel", "draw"]
+            cmd = _as_job(args, args.panel)
             return run_single(ctx, Path(args.panel).stem, cmd, "compose", args)
         frames = parse_frames(args.frames) if args.frames else None
         start = time.perf_counter()

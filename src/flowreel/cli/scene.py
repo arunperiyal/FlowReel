@@ -114,14 +114,10 @@ class SceneCommand(BaseCommand):
 
     def _film(self, ctx, given):
         from flowreel.cli.project import project_root
-        from flowreel.film.model import is_scene_film, load
-        from flowreel.yamlfile import read_yaml
+        from flowreel.film.model import load
         path = Path(given) if given else project_root(ctx) / "film.yml"
         if not path.is_file():
-            raise CommandError(f"no film file {path} (flowreel film template --scenes)")
-        if not is_scene_film(read_yaml(path)):
-            raise CommandError(f"{path} is a film of shots; scenes are in a film with "
-                               "'scenes:' (docs/guide/film/film.md)")
+            raise CommandError(f"no film file {path} (flowreel film template)")
         return load(path)
 
     def do_list(self, args, ctx):

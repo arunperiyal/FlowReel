@@ -15,7 +15,7 @@ def _layer():
 
 
 def shot(**over):
-    d = {"name": "s", "source": "vtk:data/run.pvd", "time": {"frozen": 5},
+    d = {"name": "s", "source": "run", "time": {"frozen": 5},
          "layers": [{"type": "dummy"}]}
     d.update(over)
     return d
@@ -24,7 +24,7 @@ def shot(**over):
 def test_minimal_shot_gets_defaults():
     s = S.from_dict(shot())
     assert s.size == (1920, 1080) and s.antialias == "ssaa" and s.crop is None
-    assert s.source == ("vtk", "data/run.pvd") and s.background == "black"
+    assert s.source == ("tag", "run") and s.background == "black"
 
 
 def test_full_shot():
@@ -64,5 +64,5 @@ def test_load_names_file_and_syntax_line(tmp_path):
     p.write_text("name: ok\nsource: [unclosed\n")
     with pytest.raises(ConfigError, match="bad.yml: "):
         S.load(p)
-    p.write_text("name: s\nsource: vtk:a\ntime: {frozen: 1}\nlayers: [{type: dummy}]\n")
+    p.write_text("name: s\nsource: a\ntime: {frozen: 1}\nlayers: [{type: dummy}]\n")
     assert S.load(p).file == str(p)

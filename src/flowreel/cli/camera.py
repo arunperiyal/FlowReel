@@ -280,20 +280,9 @@ class CameraCommand(BaseCommand):
         if not args.film:
             return []
         name = scene.shot.name if scene is not None else None
-        from flowreel.film.model import is_scene_film
-        from flowreel.yamlfile import read_yaml
-        if is_scene_film(read_yaml(args.film)):
-            from flowreel.film.boxes import follow_points
-            from flowreel.film.model import load as load_scenes
-            return follow_points(load_scenes(args.film), name)
-        from flowreel.film import load
-        from flowreel.film.anchors import anchors_for_frames
-        film = load(args.film)
-        out = []
-        for s in film.shots:
-            if s.kind == "frames" and (name is None or Path(s.source).name == name):
-                out += [a for a in anchors_for_frames(film, s.source) if a not in out]
-        return out
+        from flowreel.film.boxes import follow_points
+        from flowreel.film.model import load as load_scenes
+        return follow_points(load_scenes(args.film), name)
 
     # -- path, orbit, import ----------------------------------------------------------
 
@@ -457,14 +446,12 @@ class CameraCommand(BaseCommand):
 
 
 def _shot_source(path):
-    """The source of the shot at ``path``, seen through its project's bodies, without
-    making the shot's scene: its camera may be the very track being made."""
-    from flowreel.project import project_for
-    from flowreel.project.names import declare
+    """The source of the shot at ``path``, without making the shot's scene: its camera
+    may be the very track being made."""
     from flowreel.scene.rendering import open_source
     from flowreel.scene.shot import load
     shot = load(path)
-    return declare(open_source(shot), project_for(shot.file))
+    return open_source(shot)
 
 
 def _context_view(store, namespace):

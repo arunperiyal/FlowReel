@@ -22,12 +22,14 @@ MU = 0.5
 
 @pytest.fixture(scope="module")
 def folder(tmp_path_factory):
-    return case.write_case(tmp_path_factory.mktemp("cylinder"))
+    folder = tmp_path_factory.mktemp("cylinder")
+    case.make_project(folder)                   # the case as the tag cylinder, its body held at both ends
+    return folder
 
 
 def strip(folder, **spec):
     base = {"type": "strip", "size": [640, 180], "times": TIMES,
-            "source": {"adapter": "flexflow", "path": "case", "cache": None},
+            "source": {"tag": "cylinder", "cache": None},
             "side": "y", "field": "p", "range": [-1, 1]}
     return from_dict({**base, **spec}, file=str(folder / "strip.yml"))
 
@@ -113,7 +115,6 @@ def test_errors(folder):
     kind.build(Figure())
     with pytest.raises(ConfigError, match="not a vector"):
         kind.update(0.0, 0)
-    kind = make(strip(folder, field="wall_shear", component="x"))
+    kind = make(strip(folder, field="wall_shear", component="x"))   # mu: the tag's units
     kind.build(Figure())
-    with pytest.raises(ConfigError, match="mu"):
-        kind.update(0.0, 0)
+    kind.update(0.0, 0)

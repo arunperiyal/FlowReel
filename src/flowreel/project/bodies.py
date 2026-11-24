@@ -1,4 +1,4 @@
-"""Declared bodies: the ``bodies:`` block of ``flowreel.yml`` (plan Section 5.4).
+"""Declared bodies: the ``bodies:`` block of a tag's ``domain.yml`` (plan Section 5.4).
 
 A source's files say where a body's surface is and nothing else. The declaration adds
 what they cannot say: which surface zone it is and where its time series are, and for a
@@ -24,7 +24,7 @@ the solver as equations (a pendulum, a spring) and drawn from a registered ``sha
 parameters ``drive``-n by series tracks, its origin ``attach``-ed to a real body at a
 station or to a fixed point (plan Section 5.5).
 
-Lengths are in the source's unit. Paths are taken from the folder of ``flowreel.yml``.
+Lengths are in the source's unit. Paths are taken from the tag's folder.
 The records are plain and frozen; drawing supports and reading series are the jobs of
 the ``supports`` layer and the series reader.
 """

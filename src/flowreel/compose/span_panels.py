@@ -2,7 +2,7 @@
 
 Both read a history at many points along a body: a series declared with ``by`` (the
 column numbering the points) and ``stations`` (where each point is along the body), as
-in ``flowreel.yml``:
+in a tag's ``domain.yml``:
 
 .. code-block:: yaml
 

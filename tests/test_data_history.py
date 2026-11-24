@@ -63,7 +63,7 @@ def project(tmp_path, monkeypatch):
     root = tmp_path / "film"
     root.mkdir()
     (root / "flowreel.yml").write_text("")
-    case.write_case(tmp_path / "flow", project=False)
+    case.write_case(tmp_path / "flow")
     monkeypatch.chdir(root)
     assert Shell(root).run(f"data import plt --path {tmp_path / 'flow' / 'case'} --tag bare")[0] == 0
     return root

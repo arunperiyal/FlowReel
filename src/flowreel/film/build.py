@@ -1,50 +1,44 @@
-"""The film build (plan Section 10.8): finished clips joined into ``film.mp4``.
+"""The join of a film (plan Section 10.8): the pieces a build of scenes shares.
 
-:func:`build` makes every shot's finished clip (:class:`~flowreel.film.clips.Clips`,
-each kept by its key) and joins them in order with ffmpeg's ``concat`` demuxer, copying
-the picture: every clip is encoded alike, so nothing is encoded again and a join of an
-hour's film takes seconds.
+:mod:`flowreel.film.scene_build` makes each scene's finished clip and joins them in order
+with ffmpeg's ``concat`` demuxer (:func:`concat_list`), copying the picture: every clip is
+encoded alike, so nothing is encoded again and a join of an hour's film takes seconds.
 
-**Lengths.** Each shot's planned length comes from the timeline, its measured length
-from its clip (``ffprobe``); the report prints both, so a clip that came out short is
-seen at once. The film's measured length is the sum of its clips'.
+**Lengths.** Each scene's planned length comes from the plan, its measured length from
+its clip (``ffprobe``); the report (:class:`Built`, :class:`Lengths`) prints both, so a
+clip that came out short is seen at once. The film's measured length is the sum of its
+clips'.
 
 **Audio** (plan Section 10.6). Each track of ``audio`` is read from ``offset`` seconds
 into its file, at ``volume``, and starts ``start`` seconds into the film; tracks are
-mixed (added, not averaged) and the whole cut to the picture. Lengths are measured from
-the files, not planned (the prototype's planned and measured lengths differed by a
-second): a track plays until the picture or the file ends, whichever comes first, and
-its fade out ends there. Silence fills the rest, so the sound runs as long as the
-picture. ``mute`` builds the film without sound. Sound is encoded as AAC at 192 kb/s;
-the picture is still copied.
+mixed (added, not averaged) and the whole cut to the picture (:func:`audio_graph`).
+Lengths are measured from the files, not planned: a track plays until the picture or the
+file ends, whichever comes first, and its fade out ends there. Silence fills the rest, so
+the sound runs as long as the picture. ``mute`` builds the film without sound. Sound is
+encoded as AAC at 192 kb/s; the picture is still copied.
 
 **Preview copy** (plan Section 10.8). ``preview=480`` also writes ``film_480p.mp4``
-beside the film: the joined film scaled to 480 pixels high (the width follows the
-aspect ratio) and encoded once at ``crf`` (default 28, strongly compressed), with the
-film's sound and chapters. No frame is drawn again; text, laid out in the film's own
-pixels, shrinks with the picture and stays in place.
+beside the film (:func:`write_preview`): the joined film scaled to 480 pixels high (the
+width follows the aspect ratio) and encoded once at ``crf`` (default 28), with the film's
+sound and chapters. No frame is drawn again; text, laid out in the film's own pixels,
+shrinks with the picture and stays in place.
 
-**One shot** (``only``). ``only="compare"`` builds that shot's finished clip alone and
-copies it to ``film_compare.mp4`` beside the film, silent, for checking its text; the
-rest of the film is laid out (captions may run across cuts) but not built or joined.
+**One scene** (``only``). ``only="compare"`` builds that scene's finished clip alone and
+copies it to ``film_compare.mp4`` beside the film (:func:`only_path`), silent, for
+checking its text.
 
-**Subtitles.** A whole build also writes the captions as ``film.srt`` beside the film
-(:func:`flowreel.film.check.srt`), when it has any.
-
-**Chapters** (plan Section 10.9). The timeline's chapters are given to the join as an
-ffmpeg metadata file (``-map_chapters``), so they cost no encoding and the preview copy
-keeps them; ``chapters.txt`` beside the film holds them as YouTube timestamps
+**Chapters** (plan Section 10.9). The plan's chapters are given to the join as an ffmpeg
+metadata file (``-map_chapters``), so they cost no encoding and the preview copy keeps
+them; ``chapters.txt`` beside the film holds them as YouTube timestamps
 (:mod:`flowreel.film.chapters`), and the report notes what YouTube would refuse.
 """
 from __future__ import annotations
 
 import os
-import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from flowreel.film import ffmpeg as ff
-from flowreel.project.paths import output
 
 
 @dataclass(frozen=True)
@@ -88,11 +82,6 @@ class Built:
             if getattr(self, what) is not None:
                 out.append(f"{what} {getattr(self, what)}")
         return out + self.notes
-
-
-def _film(film):
-    from flowreel.film.schema import Film, load
-    return film if isinstance(film, Film) else load(film)
 
 
 def concat_list(paths, listing: Path) -> Path:
@@ -172,7 +161,7 @@ def preview_path(output: Path, height: int) -> Path:
 def write_preview(film, source: Path, height: int, crf: int = PREVIEW_CRF) -> Path:
     """Scale the built film ``source`` to ``height`` pixels high and encode it once at
     ``crf``, keeping its sound and chapters; returns the copy's path."""
-    from flowreel.film.clips import encode_args
+    from flowreel.film.ffmpeg import encode_args
     _check_preview(film, height, crf)
     out = preview_path(Path(source), height)
     tmp = out.with_name(out.stem + ".part" + out.suffix)
@@ -184,86 +173,9 @@ def write_preview(film, source: Path, height: int, crf: int = PREVIEW_CRF) -> Pa
     return out
 
 
-def build(film, *, folder=None, force: bool = False, mute: bool = False,
-          preview: int | None = None, crf: int = PREVIEW_CRF, only: str | None = None,
-          panels: dict | None = None) -> Built:
-    """Build ``film`` (a :class:`~flowreel.film.Film` or a film file's path) into its
-    ``output``.
-
-    ``folder`` keeps the clips (default ``clips/`` at the project root); ``force``
-    rebuilds every clip; ``mute`` leaves the sound out; ``preview`` is the height of
-    a preview copy to write too, at ``crf``; ``only`` names one shot to build alone
-    (see the module); ``panels`` are options for
-    drawing a layout's ``rate: output`` panels (such as ``jobs``). Returns a
-    :class:`Built`."""
-    from flowreel.film.clips import Clips
-    film = _film(film)
-    if only is not None:
-        film.shot(only)          # an unknown name, with the film's shots, before any work
-        if preview is not None:
-            raise ValueError("preview: a preview copy is of the whole film, not one shot")
-    if preview is not None:      # checked before minutes of clips are built
-        _check_preview(film, preview, crf)
-    clips = Clips(film, folder=folder, force=force, panels=dict(panels or {}))
-    if only is not None:
-        return _only(film, clips, only)
-    finished, shots = [], []
-    for ts in clips.line.shots:
-        clip = clips.finished(ts.shot.name)
-        finished.append(clip)
-        shots.append(ShotLength(ts.shot.name, ts.length, ff.length(clip.path), clip.built))
-    measured = sum(s.measured for s in shots)
-    out = Path(film.output)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    listing = concat_list([c.path for c in finished], clips.folder / "film_list.txt")
-    args = ["-f", "concat", "-safe", 0, "-i", listing]
-    maps = ["-map", "0:v", "-c:v", "copy"]
-    notes, youtube = [], None
-    chapters = clips.line.chapters
-    if chapters:
-        from flowreel.film import chapters as ch
-        meta = clips.folder / "film_chapters.txt"
-        meta.write_text(ch.metadata_text(chapters, measured), encoding="utf-8")
-        args += ["-f", "ffmetadata", "-i", meta]
-        maps += ["-map_chapters", 1]
-        youtube = ch.chapters_path(out)
-        notes += ch.youtube_notes(chapters)
-    if film.audio and not mute:
-        plans = plan_tracks(film.audio, measured)
-        inputs, graph = audio_graph(plans, 2 if chapters else 1, measured)
-        args += inputs
-        maps += ["-filter_complex", graph, "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
-        for t in plans:
-            notes.append(f"audio {Path(t.audio.file).name}: {t.start:.2f} to {t.end:.2f} s "
-                         f"of the film (file {t.length:.2f} s)")
-    elif film.audio:
-        notes.append("audio: muted")
-    tmp = out.with_name(out.stem + ".part" + out.suffix)
-    ff.run(*args, *maps, "-t", f"{measured:.6f}", "-movflags", "+faststart", tmp)
-    os.replace(tmp, out)
-    copy = write_preview(film, out, preview, crf) if preview is not None else None
-    subtitles = None
-    if clips.line.captions:
-        from flowreel.film.check import srt
-        subtitles = srt(clips.line)
-    if youtube is not None:
-        youtube.write_text(ch.youtube_text(chapters), encoding="utf-8")
-    return Built(out, shots, clips.line.length, measured, notes, copy, subtitles, youtube)
-
-
 def only_path(output: Path, name: str) -> Path:
     """Where shot ``name`` built alone goes: ``film_<name>.mp4`` beside ``output``."""
     return output.with_name(f"{output.stem}_{name}{output.suffix}")
-
-
-def _only(film, clips, name: str) -> Built:
-    ts = clips.line.shot(name)
-    clip = clips.finished(name)
-    out = only_path(Path(film.output), name)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(clip.path, out)
-    measured = ff.length(out)
-    return Built(out, [ShotLength(name, ts.length, measured, clip.built)], ts.length, measured)
 
 
 def _check_preview(film, height, crf) -> None:
@@ -280,7 +192,7 @@ class Lengths:
     """A film's lengths without building it (``film lengths``): ``shots`` as
     :class:`ShotLength` (``measured`` is ``None`` for a shot with no finished clip yet,
     and ``built`` is always ``False``), the ``chapters``
-    (:class:`~flowreel.film.timeline.TimedChapter`) and the film's ``planned`` seconds."""
+    (:class:`~flowreel.film.chapters.TimedChapter`) and the film's ``planned`` seconds."""
 
     shots: list[ShotLength]
     chapters: list
@@ -313,30 +225,3 @@ class Lengths:
             out += [f"{c.title:{width}s}  {timestamp(c.start):>7s} {c.start:8.2f} s  "
                     f"{c.end - c.start:6.2f} s" for c in self.chapters]
         return out
-
-
-def last_clip(folder: Path, name: str) -> Path | None:
-    """The finished clip of shot ``name`` in the clips ``folder`` from the last build,
-    or ``None``. A build keeps one finished clip per shot."""
-    import re
-    pattern = re.compile(rf"shot_{re.escape(name)}_[0-9a-f]{{16}}\.mp4")
-    found = [p for p in Path(folder).glob(f"shot_{name}_*.mp4") if pattern.fullmatch(p.name)]
-    return max(found, key=lambda p: p.stat().st_mtime_ns) if found else None
-
-
-def lengths(film, *, folder=None) -> Lengths:
-    """The planned length of each shot of ``film`` (a :class:`~flowreel.film.Film` or a
-    film file's path) and its chapters, from the timeline; the measured length from
-    each shot's finished clip of the last build in ``folder`` (default ``clips/`` at the
-    project root, or beside the film file outside a project). Nothing is drawn or built, so a clip may be older than the film file
-    (``film build`` reports the lengths of what it builds)."""
-    from flowreel.film.timeline import timeline
-    film = _film(film)
-    line = timeline(film)
-    folder = Path(folder) if folder is not None else output(film.folder, "clips")
-    shots = []
-    for ts in line.shots:
-        clip = last_clip(folder, ts.shot.name) if folder.is_dir() else None
-        shots.append(ShotLength(ts.shot.name, ts.length,
-                                None if clip is None else ff.length(clip), False))
-    return Lengths(shots, line.chapters, line.length)

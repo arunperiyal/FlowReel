@@ -3,7 +3,7 @@
 A long render runs on a compute node: FlowReel writes the job script and hands
 it to `sbatch`, so nothing is written by hand. This page covers the pieces under that:
 the clusters FlowReel knows, the job it asks for, and the script it writes. The commands
-that use them, `shot render --slurm FILE --submit` and the same for `compose` and `film
+that use them, `shot render --slurm FILE --submit` and the same for `panel draw` and `film
 build`, and `jobs partitions | check | status`, are on the
 [commands page](../commands.md#slurm-options).
 
@@ -110,7 +110,7 @@ echo "done $(date)"
 - **A job array** runs each task's commands from a `case` on `SLURM_ARRAY_TASK_ID`, with
   `--array=0-9%4` for ten tasks, four at a time.
 - **A chain**: `--dependency=afterok:1301:1302` starts a job only when those ended well,
-  so composes and the film build can wait for the renders.
+  so panel draws and the film build can wait for the renders.
 
 ## Splitting a render
 

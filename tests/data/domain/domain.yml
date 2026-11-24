@@ -5,7 +5,7 @@
 # the prototype are frames here (t * 287). The golden frame is 224, at 640 x 360. The
 # body and its clamped ends are declared in flowreel.yml beside this file.
 name: domain
-source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}
+source: cylinder
 time: {frozen: 5000, frames: 288}
 camera: {track: domain}
 size: [640, 360]

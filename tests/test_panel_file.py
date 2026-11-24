@@ -6,6 +6,7 @@ from flowreel.compose.panel_file import from_dict, frame_times, load
 from flowreel.compose.style import Style
 from flowreel.scene.errors import ConfigError
 
+from tag_fixture import tag_project
 from test_plt_window import case  # noqa: F401  (two PLT steps at times 1 and 2)
 
 
@@ -18,7 +19,8 @@ def test_a_panel_with_a_list_of_times():
 
 
 def test_times_of_a_shot(case):  # noqa: F811
-    shot = {"name": "w", "source": {"adapter": "flexflow", "path": "."},
+    tag_project(case, "t", kind="plt", source={"path": "../..", "cache": None})
+    shot = {"name": "w", "source": "t",
             "time": {"steps": [1, 2]}, "camera": {"view": "v"},
             "layers": [{"type": "outline", "bounds": "domain"}]}
     (case / "w.yml").write_text(yaml.safe_dump(shot))

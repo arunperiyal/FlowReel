@@ -26,7 +26,7 @@ AXES = ("x", "y", "z")
 GROUP_KEYS = ("othId", "osgId")
 EXPORT = ("FlexFlow Analyzer exports one group as CSV: data table CASE --var VAR "
           "--othid N (or --osgid N) --output FILE.csv; declare it as a body's series in "
-          "flowreel.yml (docs/guide/projects/bodies.md)")
+          "the tag's domain.yml (docs/guide/projects/bodies.md)")
 
 
 def records(path, block: str, rows_from_header: bool):

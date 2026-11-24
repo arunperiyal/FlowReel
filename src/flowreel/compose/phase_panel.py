@@ -2,7 +2,7 @@
 
 A pendulum's angle against the cylinder's displacement, say: the trace up to the current
 time and a dot at the current values. Both histories are series declared in
-``flowreel.yml``, as for the ``series`` panel.
+a tag's ``domain.yml``, as for the ``series`` panel.
 
 .. code-block:: yaml
 

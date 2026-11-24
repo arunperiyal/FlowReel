@@ -21,12 +21,14 @@ TIMES = [0.0, 0.5, 1.0, 1.5]
 
 @pytest.fixture(scope="module")
 def folder(tmp_path_factory):
-    return case.write_case(tmp_path_factory.mktemp("cylinder"))
+    folder = tmp_path_factory.mktemp("cylinder")
+    case.make_project(folder)                   # the case as the tag cylinder, its body held at both ends
+    return folder
 
 
 def section(folder, **spec):
     base = {"type": "section", "size": [480, 270], "times": TIMES,
-            "source": {"adapter": "flexflow", "path": "case", "cache": None},
+            "source": {"tag": "cylinder", "cache": None},
             "body": "cylinder", "station": 2.0, "field": "vorticity_x", "range": [-2, 2]}
     return from_dict({**base, **spec}, file=str(folder / "section.yml"))
 
@@ -86,7 +88,7 @@ def test_fixed_centre_and_axes(folder):
 
 
 def test_draws_frames_and_takes_the_source_of_a_shot(folder):
-    shot = {"name": "near", "source": {"adapter": "flexflow", "path": "case", "cache": None},
+    shot = {"name": "near", "source": {"tag": "cylinder", "cache": None},
             "time": {"steps": [0, 30]}, "camera": {"view": "main"},
             "layers": [{"type": "slice", "normal": "x", "position": 2, "field": "U"}]}
     (folder / "near.yml").write_text(yaml.safe_dump(shot))
@@ -104,7 +106,7 @@ def test_draws_frames_and_takes_the_source_of_a_shot(folder):
 
 def test_errors_name_the_key(folder):
     with pytest.raises(ConfigError, match="station"):
-        make(from_dict({"type": "section", "times": TIMES, "source": "flexflow:case",
+        make(from_dict({"type": "section", "times": TIMES, "source": "cylinder",
                         "field": "U", "range": [0, 1]}, file=str(folder / "a.yml")))
     with pytest.raises(ConfigError, match="'source'"):
         make(from_dict({"type": "section", "times": TIMES, "station": 1, "field": "U",

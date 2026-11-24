@@ -435,7 +435,7 @@ class SeriesTrack:
             frame = (source.series(self.series, body=self.body) if self.body is not None
                      else source.series(self.series))
         except TypeError:
-            raise ValueError(f"{self.name}: body= needs bodies declared in flowreel.yml") from None
+            raise ValueError(f"{self.name}: body= needs bodies declared in the tag's domain.yml") from None
         except KeyError as exc:
             raise KeyError(f"{self.name}: {exc.args[0] if exc.args else exc}") from None
         column = self._column(frame)

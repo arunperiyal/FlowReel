@@ -30,15 +30,14 @@ may show it). No network? Add `--stand-in` for a small generated case of the sam
 
 ```text
 $ flowreel project init -o cylinder
-made cylinder: shots/ text/ cards/ assets/ data/
+made cylinder: shots/ panels/ layouts/ assets/ data/
 wrote cylinder/film.yml, cylinder/cameras.yml, cylinder/.gitignore
-wrote cylinder/flowreel.yml without bodies: declare them, import a case with data import, or run project init SOURCE --force
+wrote cylinder/flowreel.yml; bring a case in with data import
 $ cd cylinder
 ```
 
 `project init` made the folders, a starting `film.yml`, a `cameras.yml` with a first view,
-a `.gitignore`, and `flowreel.yml`, which marks the folder as a project. (`text/` and
-`cards/` belong to an older way of making films; you will not need them.)
+a `.gitignore`, and `flowreel.yml`, which marks the folder as a project.
 
 ## Bring the case in as a tag
 

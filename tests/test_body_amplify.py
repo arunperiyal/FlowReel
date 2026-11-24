@@ -11,7 +11,7 @@ from test_layer_centreline import VIEWS, Swinging     # bent 1, -1, 0.5 D at ste
 
 
 def shot(layers, **time):
-    spec = {"name": "s", "source": "toy:none", "time": time or {"steps": [0, 20]},
+    spec = {"name": "s", "source": "toy", "time": time or {"steps": [0, 20]},
             "camera": {"view": "side"}, "size": [64, 48], "layers": layers}
     return from_dict(spec, file="nowhere/s.yml")
 

@@ -14,7 +14,7 @@ VIEWS = {"main": parse_view({"name": "main", "position": [3, 2, 4], "focal": [0,
 
 
 def shot(**extra):
-    spec = {"name": "toy", "source": "toy:none", "time": {"steps": [0, 20]},
+    spec = {"name": "toy", "source": "toy", "time": {"steps": [0, 20]},
             "camera": {"view": "main"}, "size": [160, 90], "antialias": "none",
             "layers": [{"type": "body", "colour": "#ff0000"},
                        {"type": "slice", "normal": "z", "position": 0.5, "field": "speed",

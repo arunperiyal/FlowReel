@@ -21,8 +21,8 @@ from flowreel.scene.errors import ConfigError
 PROJECT_FILE = "flowreel.yml"
 CAMERAS_FILE = "cameras.yml"
 FILM_FILE = "film.yml"
-#: Folders ``project init`` makes for what is written by hand (and ``data/`` for links).
-FOLDERS = ("shots", "text", "cards", "assets", "data")
+#: Folders ``project init`` makes: what is written by hand, and ``data/`` for the tags.
+FOLDERS = ("shots", "panels", "layouts", "assets", "data")
 #: Generated output, under the root.
 OUTPUTS = ("frames", "clips")
 #: Machine state: caches, measured timings, job records.

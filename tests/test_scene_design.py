@@ -108,7 +108,7 @@ def test_a_layout_file_and_a_scene_in_flow_style(root):
 
 def test_follow_boxes_are_placed_by_the_flow(root):
     (root / "shots").mkdir()
-    (root / "shots" / "w.yml").write_text("{name: w, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+    (root / "shots" / "w.yml").write_text("{name: w, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     s = DesignState.open(root / "film.yml", "opening")
     s.boxes = [{"name": "main", "shot": "shots/w.yml"},
                {"name": "label", "text": "here", "follow": {"box": "main", "model": [0, 0, 0]}}]

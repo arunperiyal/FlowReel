@@ -77,7 +77,7 @@ class FrameData:
     ``cached(key, build)`` returns a surface from the renderer's cache, or builds it.
     ``fields`` are the arrays read from the source (default ``FLOW_FIELDS``; a scene
     gives :func:`flow_fields`, with ``p`` when a layer's field needs the pressure).
-    ``reference`` holds the project's reference values (``flowreel.yml``), which derived
+    ``reference`` holds the tag's units (``domain.yml``), which derived
     fields take as parameters (``rho``, ``u_inf``).
     """
 

@@ -8,6 +8,7 @@ from flowreel.project.paths import FOLDERS, IGNORED, NotInProject, find_root, re
 from flowreel.scene.views import load_views
 
 from cli_harness import Shell
+from tag_fixture import tag_project
 
 
 @pytest.fixture
@@ -17,15 +18,13 @@ def sh(tmp_path, monkeypatch):
 
 
 def test_init_makes_the_agreed_folders_and_files(tmp_path):
-    from flowreel import sources
-    made = make_project(tmp_path / "p", sources.create("geometry", body="grooved_cylinder"))
+    made = make_project(tmp_path / "p")
     root = tmp_path / "p"
     assert all((root / name).is_dir() for name in FOLDERS)
     assert {p.name for p in made.wrote if p.is_file()} == \
         {"flowreel.yml", "film.yml", "cameras.yml", ".gitignore"}
-    assert list(load_project(root).bodies) == ["grooved_cylinder"]
-    view = load_views(root / "cameras.yml")["main"]
-    assert view.focal[2] == 0 and view.position[2] > 0          # the domain, seen from +z
+    assert load_project(root).tag_names == ()                    # comments only: no case yet
+    assert load_views(root / "cameras.yml")["main"].position[2] > 0   # a placeholder view
     assert "last_frame: p" in (root / "film.yml").read_text()
     lines = (root / ".gitignore").read_text().splitlines()
     assert all(line in lines for line in IGNORED)
@@ -39,43 +38,18 @@ def test_init_keeps_what_a_person_wrote(tmp_path):
     text = (tmp_path / ".gitignore").read_text()
     assert text.startswith("*.pyc\nframes\n") and text.count("frames") == 1
     assert "clips/" in text and gitignore_text(text) == text      # a second run adds nothing
-    assert load_project(tmp_path).bodies == {}                    # no source: comments only
     with pytest.raises(FileExistsError, match="use --force"):
         make_project(tmp_path)
     make_project(tmp_path, force=True)
     assert (tmp_path / "film.yml").read_text() == "# mine\n"      # even with --force
 
 
-def test_init_links_the_data_and_never_copies_it(sh, tmp_path):
-    run = tmp_path / "run"
-    run.mkdir()
-    (run / "big.dat").write_text("x")
-    status, out, err = sh.run(f"project init -o p --link {run}")
-    assert status == 0, err
-    link = tmp_path / "p" / "data" / "run"
-    assert link.is_symlink() and link.resolve() == run and "linked" in out
-    assert sh.run(f"project init -o p --link {run} --force")[0] == 0   # same link: kept
-    other = tmp_path / "other" / "run"
-    other.mkdir(parents=True)
-    status, _, err = sh.run(f"project init -o q --link {run}")
-    assert status == 0, err
-    (tmp_path / "q" / "flowreel.yml").unlink()
-    status, _, err = sh.run(f"project init -o q --link {other}")
-    assert status != 0 and "not" in err and "use --force to" in err
-    status, _, err = sh.run("project init -o r --link missing")
-    assert status != 0 and "no such file" in err
-
-
-def test_init_reads_the_source_through_the_link(sh, tmp_path):
-    import shutil
-    from pathlib import Path
-    geo = tmp_path / "case"
-    geo.mkdir()
-    examples = Path(__file__).parent.parent / "examples" / "shot_commands"
-    shutil.copy(examples / "shot.yml", geo / "shot.yml")
-    status, out, err = sh.run(f"project init -o p --link {geo} geometry:grooved_cylinder")
-    assert status == 0, err
-    assert "1 body (grooved_cylinder)" in out and "made p:" in out
+def test_init_has_no_link_and_no_source(sh, tmp_path):
+    """The forms before tags are gone: a case comes in as a tag (data import)."""
+    for line in ("project init -o p --link /tmp", "project init -o p geometry:grooved_cylinder"):
+        status, _, err = sh.run(line)
+        assert status != 0, line
+    assert not (tmp_path / "p" / "flowreel.yml").exists()
 
 
 def test_commands_find_the_project_by_walking_up(tmp_path, monkeypatch):
@@ -106,7 +80,7 @@ def test_commands_stop_outside_a_project(sh, tmp_path):
 # -- generated output under the root ------------------------------------------------------
 
 SHOT = """name: g
-source: geometry:grooved_cylinder
+source: g
 time: {frozen: 0, frames: 3}
 camera: {view: main}
 size: [64, 48]
@@ -119,7 +93,7 @@ CAMERAS = "views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up:
 
 @pytest.fixture
 def project(tmp_path):
-    (tmp_path / "flowreel.yml").write_text("")
+    tag_project(tmp_path, "g")
     (tmp_path / "cameras.yml").write_text(CAMERAS)
     (tmp_path / "shots").mkdir()
     (tmp_path / "g.yml").write_text(SHOT)
@@ -198,8 +172,8 @@ def test_camera_commands_write_the_root_file(project, monkeypatch):
 # -- project info and project clean --------------------------------------------------------
 
 def test_project_info_lists_what_the_project_holds(tmp_path, monkeypatch):
-    from flowreel import sources
-    make_project(tmp_path, sources.create("geometry", body="grooved_cylinder"))
+    make_project(tmp_path)
+    tag_project(tmp_path, "g")
     (tmp_path / "shots" / "g.yml").write_text(SHOT)
     (tmp_path / "shots" / "broken.yml").write_text("source: x\nlayers: [\n")   # not YAML: skipped
     (tmp_path / "frames" / "g").mkdir(parents=True)
@@ -211,7 +185,7 @@ def test_project_info_lists_what_the_project_holds(tmp_path, monkeypatch):
     status, out, err = Shell(tmp_path / "store").run("project info")
     assert status == 0, err
     assert f"project {tmp_path}" in out
-    assert "source:  geometry:grooved_cylinder" in out and "bodies:  grooved_cylinder" in out
+    assert "source:  g" in out and "tags:    g (geometry)" in out
     assert "shots/g.yml: g, 2 frames drawn" in out and "broken" not in out
     assert "cameras: views main; tracks none" in out
     assert "film:    film.yml" in out
@@ -253,9 +227,6 @@ def test_info_and_clean_stop_outside_a_project(sh):
 
 def test_info_writes_a_source_on_one_line():
     from flowreel.project.info import _source_text
-    assert _source_text("vtk:flow.pvd") == "vtk:flow.pvd"
-    assert _source_text({"adapter": "geometry", "body": "grooved_cylinder"}) == \
-        "geometry:grooved_cylinder"
-    assert _source_text({"adapter": "vtk", "path": "f.pvd", "body": "w.vtp"}) == "vtk:f.pvd body w.vtp"
-    assert _source_text({"adapter": "vtk", "path": "f.pvd", "body": {"cylinder": "w.vtp"}}) == \
-        "vtk:f.pvd body cylinder=w.vtp"
+    assert _source_text("bare") == "bare"
+    assert _source_text({"tag": "bare"}) == "bare"
+    assert _source_text({"tag": "bare", "margin": 1.0, "cache": None}) == "bare (margin 1.0, cache None)"

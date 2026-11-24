@@ -21,8 +21,8 @@ def project(tmp_path, monkeypatch):
     root = tmp_path / "film"
     root.mkdir()
     (root / "flowreel.yml").write_text("")
-    case.write_case(tmp_path / "cases" / "a", project=False)
-    case.write_case(tmp_path / "cases" / "b", steps=2, project=False)
+    case.write_case(tmp_path / "cases" / "a")
+    case.write_case(tmp_path / "cases" / "b", steps=2)
     monkeypatch.chdir(root)
     return root
 
@@ -167,7 +167,7 @@ def test_remove_leaves_the_case_and_rename_follows_the_files(project):
 
 
 def test_project_init_imports_a_case(tmp_path, monkeypatch):
-    case.write_case(tmp_path / "cases", project=False)
+    case.write_case(tmp_path / "cases")
     monkeypatch.chdir(tmp_path)
     status, out, err = Shell(tmp_path).run(
         f"project init -o film --import plt:{tmp_path / 'cases' / 'case'} --tag bare")
@@ -191,7 +191,7 @@ def test_errors(project, line, message):
 
 
 def test_info_of_a_folder_needs_no_project(tmp_path, monkeypatch):
-    case.write_case(tmp_path / "cases", project=False)
+    case.write_case(tmp_path / "cases")
     monkeypatch.chdir(tmp_path)
     status, out, err = Shell(tmp_path).run(f"data info {tmp_path / 'cases' / 'case'}")
     assert status == 0, err

@@ -13,7 +13,7 @@ from test_panel_series import built
 
 
 def shot(folder, name, crop):
-    spec = {"name": name, "source": "flexflow:case", "time": {"steps": [0, 3]},
+    spec = {"name": name, "source": "flexflow", "time": {"steps": [0, 3]},
             "camera": {"view": "v"}, "crop": crop,
             "layers": [{"type": "outline", "bounds": "crop"}]}
     (folder / f"{name}.yml").write_text(yaml.safe_dump(spec))

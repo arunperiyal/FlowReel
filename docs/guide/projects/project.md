@@ -14,7 +14,7 @@ and 12); this page says what they mean in use. All of FlowReel's rules are liste
 $ flowreel project init -o afms --import plt:/scratch/afms/bare/binary --tag bare
 linked afms/data/bare/plt -> /scratch/afms/bare/binary
 wrote afms/data/bare/domain.yml: fill in the units
-made afms: shots/ text/ cards/ assets/ data/
+made afms: shots/ panels/ layouts/ assets/ data/
 wrote afms/film.yml, afms/cameras.yml, afms/.gitignore
 wrote afms/flowreel.yml; the case's bodies and units are in data/bare/domain.yml
 ```
@@ -86,26 +86,6 @@ tags: [bare, helical]
 Each case's bodies, units and series are in its tag's `domain.yml`
 ([data and tags](data.md)), not here: two cases may then name a body alike.
 
-## Reference values
-
-Going. Before tags, the flow's reference values were given once in `flowreel.yml`, with its
-`bodies:` ([bodies](bodies.md)). Both are still read, for projects that have not moved
-to tags, and go once FlowReel's own tutorials and examples no longer use them. A tag's
-[units](data.md#units) take their place.
-
-```yaml
-reference: {rho: 1000.0, u_inf: 0.5, length: 0.05}
-```
-
-| Key | Type | Default | Meaning |
-|---|---|---|---|
-| `reference.rho` | number > 0 | none | density, in the source's units |
-| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units |
-| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` |
-
-A shot of a tag takes its tag's units instead; the values are part of each frame's key
-either way, so changing them draws the frames that use them again.
-
 ## Finding the project
 
 A command finds its project by walking up from the file it was given (a shot, panel,
@@ -119,7 +99,7 @@ Outside a project the commands stop:
 $ flowreel shot render wake.yml
 Error: /home/a/wake.yml is not in a FlowReel project (no flowreel.yml there or in any
 folder above). Make one with 'flowreel project init' in the project's folder (for
-example: flowreel project init vtk:run/flow.pvd), or cd into one. Reference: docs/guide/projects/project.md
+example: flowreel project init -o afms), or cd into one. Reference: docs/guide/projects/project.md
 ```
 
 `project init`, `data info PATH`, the `template` commands and the `jobs` commands

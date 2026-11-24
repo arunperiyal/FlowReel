@@ -20,7 +20,7 @@ HEADER = """\
 # Shot file written by `flowreel shot template`. Reference: docs/guide/shots/shots.md; layers:
 # docs/guide/shots/layers-flow.md and docs/guide/shots/layers-markers.md; tracks: docs/guide/shots/tracks.md.
 {name_line}
-source: vtk:flow.pvd                  # adapter:location, or {{adapter: vtk, path: ..., body: ...}}
+source: bare                         # a tag: a case imported with `flowreel data import`
 time: {{frozen: 0, frames: 48}}         # or {{steps: [first, last], every: 1}} or {{keys: [[frame, step], ...]}}
 camera: {{view: main}}                  # a view of cameras.yml; or {{track: T}}, {{fit: domain, direction_of: V}}
 size: [1920, 1080]                    # width, height in pixels

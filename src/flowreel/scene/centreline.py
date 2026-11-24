@@ -130,7 +130,7 @@ class Centreline(Layer):
         axis = (body.axis if body else None) or long_axis(surface)
         if axis is None:
             raise ValueError(f"centreline: body {name!r} is not slender; declare its 'axis' "
-                             "in flowreel.yml")
+                             "in the tag's domain.yml")
         d = (body.diameter if body else None) or diameter(surface, axis)
         stations, centres = centreline(surface, axis, count=int(self.raw.get("count", 65)),
                                        slab=0.25 * d)
@@ -150,7 +150,7 @@ class Centreline(Layer):
     def _from_probes(self, data, name, body, time, values):
         if body is None or body.axis is None:
             raise ValueError(f"centreline: from probes needs body {name!r} declared with "
-                             "an 'axis' in flowreel.yml")
+                             "an 'axis' in the tag's domain.yml")
         frame, cols = self._probes(data, name)
         stations = np.sort(frame["station"].unique())
         unit = np.eye(3)[AXES[body.axis]]

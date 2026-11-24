@@ -85,7 +85,7 @@ def test_frames_in_processes(tmp_path):
 
 
 @pytest.mark.parametrize("change, msg", [
-    ({"rows": [{"lines": [{"series": "force"}]}]}, r"rows\[0\]\.lines\[0\]: series 'force' is declared for bare, helical"),
+    ({"rows": [{"lines": [{"series": "force"}]}]}, r"rows\[0\]\.lines\[0\]: series 'force' is declared for t.bare, t.helical"),
     ({"rows": [{"lines": [{"body": "pipe", "series": "force"}]}]}, r"lines\[0\]\.body: no body 'pipe'"),
     ({"rows": [{"lines": [{"body": "bare", "series": "lift"}]}]}, r"lines\[0\]\.series: body 'bare' has no series 'lift'"),
     ({"rows": [{"lines": [{"body": "bare", "series": "force", "colour": "#1"}]}]}, r"lines\[0\]\.colour"),

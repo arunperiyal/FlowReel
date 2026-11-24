@@ -5,9 +5,10 @@ from flowreel.scene.camera_path import load_tracks
 from flowreel.scene.views import View, load_views
 
 from cli_harness import Shell
+from tag_fixture import tag_project
 
 SHOT = """name: g
-source: geometry:grooved_cylinder
+source: g
 time: {frozen: 0, frames: 6}
 camera: {view: main}
 size: [64, 48]
@@ -24,7 +25,7 @@ CAMERAS = ("views:\n  - {name: main, position: [0, -30, 3], focal: [0, 0, 3], up
 def sh(tmp_path, monkeypatch):
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
-    (tmp_path / "flowreel.yml").write_text("")              # a project (docs/guide/projects/project.md)
+    tag_project(tmp_path, "g")                               # a project of one tag, g
     monkeypatch.chdir(tmp_path)
     return Shell(tmp_path / "store")
 

@@ -109,15 +109,13 @@ def frame_times(panel: PanelFile) -> list[float]:
     shows (the shot's source is opened and its steps listed; no field is read)."""
     if not isinstance(panel.times, Path):
         return list(panel.times)
-    from flowreel.project import project_for
-    from flowreel.project.names import declare
     from flowreel.scene.plan import plan
     from flowreel.scene.rendering import open_source
     from flowreel.scene.shot import load as load_shot
     check = Checker(panel.file, ("times", "shot"))
     try:
         shot = load_shot(panel.times)
-        source = declare(open_source(shot), project_for(shot.file))
+        source = open_source(shot)
         fp = plan(shot, source)
     except (ConfigError, OSError, ValueError, KeyError) as exc:
         raise check.error(f"cannot take the frame times of {panel.times}: {exc}") from None

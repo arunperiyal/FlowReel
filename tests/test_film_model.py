@@ -10,7 +10,7 @@ from flowreel.film import model as M
 from flowreel.film.scene_template import film_template, layout_template
 from flowreel.scene.errors import ConfigError
 
-SHOT = {"name": "wake", "source": "x:y", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
+SHOT = {"name": "wake", "source": "x", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
 
 
 @pytest.fixture

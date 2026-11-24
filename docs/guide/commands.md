@@ -447,34 +447,25 @@ Makes the project folder `DIR` ([projects](projects/project.md)) and, with `--im
 brings the first case in as a tag, as [`data import`](#data-import) does: its bodies and
 units are in `data/TAG/domain.yml`, and `cameras.yml`'s first view is fitted to it.
 
-Before tags, `project init SOURCE` read the bodies from a source into `flowreel.yml`;
-that form, described below, goes with the layout before tags. It makes the project folder `DIR` ([projects](projects/project.md)): `shots/`, `text/`, `cards/`,
-`assets/` and `data/`; `film.yml` (from `film template`) and `cameras.yml` (one view
-`main` of the whole domain) at the root, kept if they exist; a `.gitignore` for
-`frames/`, `clips/`, `.flowreel/` and `data/`; and `flowreel.yml` with one body per
-surface zone of `SOURCE`, each under its zone's name. A zone at least 3 times longer in
-one direction than across becomes a beam body, with its `axis` and `diameter` measured
-from the surface; other zones get neither. The supports and series are written
-commented out, to fill in: the files do not say how a body is held, and a guess would
-be drawn as if it were known. See [bodies](projects/bodies.md). Without `SOURCE`, `flowreel.yml`
-has only comments.
+It makes `shots/`, `panels/`, `layouts/`, `assets/` and `data/`; `film.yml` (from
+`film template`) and `cameras.yml` (one view `main`, a placeholder until `--import` fits
+it to the case) at the root, kept if they exist; a `.gitignore` for `frames/`, `clips/`,
+`.flowreel/` and `data/`; and `flowreel.yml`, which marks the folder as a project and has
+only comments. A case's bodies, units and series are written in its tag's `domain.yml`
+([bodies](projects/bodies.md)).
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--import KIND:PATH` | none | the first case, as `data import KIND --path PATH` brings it in; with `--tag` |
 | `--tag TAG` | none | its tag |
-| `SOURCE` (going) | none | `adapter:location`: `plt:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
-| `--body [NAME=]FILE` (going) | none | body file or pattern, for a source that reads it separately (`vtk`). Alone, `FILE` is the body `body`; `NAME=FILE` names it, and is given once per body: `--body cylinder=wall.vtp` |
-| `--step N` (going) | the first | step whose surfaces are measured |
-| `--link PATH` (going) | none | a symbolic link `DIR/data/<name of PATH>` to the data, made before `SOURCE` is read; data is never copied |
 | `-o DIR`, `--out DIR` | `.` | project folder |
-| `--force` | off | overwrite an existing `flowreel.yml` and replace a data link; `film.yml` and `cameras.yml` are kept |
+| `--force` | off | overwrite an existing `flowreel.yml`; `film.yml` and `cameras.yml` are kept |
 
 ```text
 $ flowreel project init -o carve --import plt:/scratch/carve/binary --tag carve
 linked carve/data/carve/plt -> /scratch/carve/binary
 wrote carve/data/carve/domain.yml: fill in the units
-made carve: shots/ text/ cards/ assets/ data/
+made carve: shots/ panels/ layouts/ assets/ data/
 wrote carve/film.yml, carve/cameras.yml, carve/.gitignore
 wrote carve/flowreel.yml; the case's bodies and units are in data/carve/domain.yml
 ```

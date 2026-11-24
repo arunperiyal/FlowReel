@@ -14,7 +14,7 @@ VIEWS = {"side": parse_view({"name": "side", "position": [0, 0, 30], "focal": [0
 
 
 def shot(crop, camera=None):
-    spec = {"name": "w", "source": "flexflow:none", "time": {"frozen": 1, "frames": 4},
+    spec = {"name": "w", "source": "flexflow", "time": {"frozen": 1, "frames": 4},
             "camera": camera or {"view": "side"}, "size": [64, 48], "crop": crop,
             "layers": [{"type": "outline", "bounds": "crop"}]}
     return from_dict(spec, file="nowhere/w.yml")

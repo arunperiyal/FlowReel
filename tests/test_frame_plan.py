@@ -27,7 +27,7 @@ def _layer():
 
 def make(time, layers=None):
     layers = layers or [{"type": "plan_dummy"}]
-    return from_dict({"name": "s", "source": "toy:x", "time": time, "layers": layers})
+    return from_dict({"name": "s", "source": "toy", "time": time, "layers": layers})
 
 
 def test_plan_gives_step_time_and_values_per_frame():

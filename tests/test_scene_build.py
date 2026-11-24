@@ -76,7 +76,7 @@ def test_playback_and_the_plan(root):
 def test_a_missing_shot_names_it(root):
     (root / "shots").mkdir()
     (root / "shots" / "nowhere.yml").write_text(
-        "{name: nowhere, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: nowhere, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = film_file(root, [{"name": "s", "layout": {"boxes": [{"shot": "shots/nowhere.yml"}]}}])
     with pytest.raises(ValueError, match="render it first: flowreel shot render .*nowhere.yml"):
         S.plan(film)

@@ -11,7 +11,7 @@ from flowreel.compose.panel_template import TYPES, template
 from flowreel.scene.shot import load as load_shot
 from panel_project import project
 
-SHOT = {"name": "wake", "source": "x:y", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
+SHOT = {"name": "wake", "source": "x", "time": {"frozen": 0}, "layers": [{"type": "body"}]}
 
 
 @pytest.fixture

@@ -16,7 +16,7 @@ Guide: [guide/shots/shots](../guide/shots/shots.md).
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
 | `name` | string | required | `name: bare_reveal` | [guide/shots/shots](../guide/shots/shots.md#keys) |
-| `source` | a tag; `{tag, ...options}`; `adapter:location`; or a mapping of the adapter's options with `adapter` | required | `source: bare` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `source` | a tag, or `{tag, ...options}` | required | `source: bare` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `size` | `[width, height]`, whole pixels | the size of the box that shows it in a film of scenes; else `[1920, 1080]` | `size: [1280, 720]` | [guide/shots/shots](../guide/shots/shots.md#keys) |
@@ -73,37 +73,10 @@ Guide: [guide/shots/cameras](../guide/shots/cameras.md).
 
 ## Project: `flowreel.yml`
 
-Guide: [guide/projects/bodies](../guide/projects/bodies.md).
+Guide: [guide/projects/project](../guide/projects/project.md).
 
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
-| `bodies.NAME.zone` | the source's surface zone (a name from `source.bodies()`) | the body's name | `zone: cyl` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME.axis` | `x`, `y` or `z`: the span direction; makes it a beam body | none: not a beam | `axis: x` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME.diameter` | positive number, source length unit: symbols and stations scale with it; beam bodies only | measured from the surface when needed | `diameter: 1.0` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME.ends` | list of supports (below); beam bodies only | none | `[{at: 0, support: clamped}]` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME.series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME (virtual).virtual` |  | required | `true` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).shape` |  | required | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).params` |  | the shape's defaults | the shape's parameters, fixed | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).attach` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).drive` |  | none | the shape's parameters as [series tracks](../guide/shots/tracks.md#series-as-a-track); `body` defaults to this virtual body | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME (virtual).series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
-| `bodies.NAME.attach.body`, `.station`, `.point`, `.offset` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
-| `bodies.NAME.ends[].at` | number, length unit | required | the station along the axis | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].support` | one of the supports above | required | how the body is held there | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].tension` | bool | `false` | held by top tension (a riser) | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].stiffness` | positive number | required for `spring` | the spring's stiffness | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].mark` | bool | `false` | `free`: draw a thin ring at the station | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.ends[].direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
-| `bodies.NAME.series.NAME.file` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
-| `bodies.NAME.series.NAME.time` |  | `time` | name of the time column | [guide/projects/bodies](../guide/projects/bodies.md#series) |
-| `bodies.NAME.series.NAME.columns` |  | the file's own | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | [guide/projects/bodies](../guide/projects/bodies.md#series) |
-| `bodies.NAME.series.NAME.by` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
-| `bodies.NAME.series.NAME.stations` |  | none | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | [guide/projects/bodies](../guide/projects/bodies.md#series) |
-| `reference.rho` | number > 0 | none | density, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
-| `reference.u_inf` | number > 0 | none | free-stream speed, in the source's units | [guide/projects/project](../guide/projects/project.md#reference-values) |
-| `reference.length` | number > 0 | none | the unit of the axes layer's `unit: diameters` when it names no `body` | [guide/projects/project](../guide/projects/project.md#reference-values) |
 | `defaults` | mapping | `{}` | what the project's commands start from | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
 | `tags` | list of tag names | the folders of `data/` | the project's [tags](../guide/projects/data.md), listed for checks | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
 | `defaults.backend` | `auto`, `osmesa`, `egl`, `x` | `auto` | the off-screen back end | [guide/projects/project](../guide/projects/project.md#defaults-and-tags) |
@@ -135,6 +108,30 @@ Guide: [guide/projects/data](../guide/projects/data.md).
 | `source.times` |  |  | `vtk`: as the [sources](../guide/projects/sources.md#the-vtk-adapter) page says | [guide/projects/data](../guide/projects/data.md#source) |
 | `source.params` | mapping | `{}` | `geometry`: the body's parameters | [guide/projects/data](../guide/projects/data.md#source) |
 | `source.frames` |  | `1`, `1.0` | `geometry`: its steps and their time | [guide/projects/data](../guide/projects/data.md#source) |
+| `bodies.NAME.zone` | the source's surface zone (a name from `source.bodies()`) | the body's name | `zone: cyl` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.axis` | `x`, `y` or `z`: the span direction; makes it a beam body | none: not a beam | `axis: x` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.diameter` | positive number, source length unit: symbols and stations scale with it; beam bodies only | measured from the surface when needed | `diameter: 1.0` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.ends` | list of supports (below); beam bodies only | none | `[{at: 0, support: clamped}]` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME (virtual).virtual` |  | required | `true` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).shape` |  | required | a registered body function: `pendulum`, `spring`, `mass`, or a plugin's | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).params` |  | the shape's defaults | the shape's parameters, fixed | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).attach` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).drive` |  | none | the shape's parameters as [series tracks](../guide/shots/tracks.md#series-as-a-track); `body` defaults to this virtual body | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME (virtual).series` | mapping of series names to CSV files (below) | none | `force: data/force.csv` | [guide/projects/bodies](../guide/projects/bodies.md#a-body) |
+| `bodies.NAME.attach.body`, `.station`, `.point`, `.offset` |  | `{point: [0, 0, 0]}` | `{body: NAME, station: S}` (that body's centre at the station; without `station`, its centre), or `{point: [x, y, z]}`; either with `offset: [dx, dy, dz]` | [guide/projects/bodies](../guide/projects/bodies.md#virtual-bodies) |
+| `bodies.NAME.ends[].at` | number, length unit | required | the station along the axis | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].support` | one of the supports above | required | how the body is held there | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].tension` | bool | `false` | held by top tension (a riser) | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].free_along` | `x`, `y` or `z` | required for `roller` | the direction a roller slides | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].stiffness` | positive number | required for `spring` | the spring's stiffness | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].mark` | bool | `false` | `free`: draw a thin ring at the station | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.ends[].direction` | axis or `[x, y, z]` | required for `prescribed` | the direction the solver moves it | [guide/projects/bodies](../guide/projects/bodies.md#supports) |
+| `bodies.NAME.series.NAME.file` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.time` |  | `time` | name of the time column | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.columns` |  | the file's own | names to use for columns, `{dy: aleDisp_y}` (new name: name in the file) | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.by` |  | required | the CSV, relative to the project folder; may hold `{node}` (the `by` name in braces) for one file per point | [guide/projects/bodies](../guide/projects/bodies.md#series) |
+| `bodies.NAME.series.NAME.stations` |  | none | where those points are: a list of numbers (in the order of the sorted point numbers), or a CSV with the `by` column and a `station` column; needs `by` | [guide/projects/bodies](../guide/projects/bodies.md#series) |
 
 ## Panel: `panels/NAME.yml`
 
@@ -161,7 +158,7 @@ Guide: [guide/shots/panels](../guide/shots/panels.md).
 | `<cuts>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<cuts>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/shots/panels](../guide/shots/panels.md#where-the-data-comes-from) |
 | `<cuts>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
-| `<cuts>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
+| `<cuts>.params` | mapping of numbers | the tag's [units](../guide/projects/data.md#units) the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<cuts>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<cuts>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<cuts>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
@@ -197,7 +194,7 @@ Guide: [guide/shots/panels](../guide/shots/panels.md).
 | `<section>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<section>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/shots/panels](../guide/shots/panels.md#where-the-data-comes-from) |
 | `<section>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
-| `<section>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
+| `<section>.params` | mapping of numbers | the tag's [units](../guide/projects/data.md#units) the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<section>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<section>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<section>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
@@ -219,7 +216,7 @@ Guide: [guide/shots/panels](../guide/shots/panels.md).
 | `<strip>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<strip>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/shots/panels](../guide/shots/panels.md#where-the-data-comes-from) |
 | `<strip>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
-| `<strip>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
+| `<strip>.params` | mapping of numbers | the tag's [units](../guide/projects/data.md#units) the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |
 | `<strip>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<strip>.colormap` | string | `fire_ice` | `fire_ice` (black at the middle) or a matplotlib name | [guide/shots/panels](../guide/shots/panels.md#map) |
 | `<strip>.levels` | integer | `41` | contour levels from `low` to `high` | [guide/shots/panels](../guide/shots/panels.md#where-the-flow-comes-from) |

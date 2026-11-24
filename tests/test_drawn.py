@@ -60,13 +60,13 @@ def test_span_shot_symbols_keep_their_size(tmp_path):
     from flowreel.scene.rendering import Scene
     from flowreel.scene.shot import from_dict
     from flowreel.scene.views import parse_view
+    from tag_fixture import declare_bodies
     from test_layer_supports import PROJECT, Riser
-    (tmp_path / "flowreel.yml").write_text(PROJECT)
-    shot = from_dict({"name": "s", "source": "toy:none", "time": {"frozen": 0, "frames": 1},
+    shot = from_dict({"name": "s", "source": "toy", "time": {"frozen": 0, "frames": 1},
                       "camera": {"view": "v"}, "size": [320, 180], "antialias": "none",
                       "stretch": {"x": 0.1},
                       "layers": [{"type": "supports", "ends": [0]}]}, file=str(tmp_path / "s.yml"))
-    sc = Scene.make(shot, Riser(), {"v": parse_view({"name": "v", "position": [2, 0, 30],
+    sc = Scene.make(shot, declare_bodies(Riser(), PROJECT, tmp_path), {"v": parse_view({"name": "v", "position": [2, 0, 30],
                                                       "focal": [2, 0, 0]})})
     plotter = pv.Plotter(off_screen=True, window_size=[320, 180])
     try:

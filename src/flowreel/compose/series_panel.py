@@ -1,7 +1,7 @@
 """The ``series`` panel (plan Section 9.2): time histories drawn to the current time.
 
-It reads series declared for bodies in the project's ``flowreel.yml`` (the nearest
-one at or above the panel file; plan Section 5.4), a column at a time.
+It reads series declared for bodies in the project's tags (``data/<tag>/domain.yml``;
+plan Section 5.4), a column at a time.
 
 **series.** Rows of axes share one time axis. Each row has lines; a line runs from the
 start of its series to the current time and ends there at a dot, at the value

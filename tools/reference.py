@@ -230,13 +230,7 @@ def file_types():
             ("tracks.NAME", camera_path.TRACK_KEYS, "guide/shots/cameras.md#camera-tracks"),
             ("tracks.NAME.keys[]", camera_path.TRACK_KEY_KEYS, "guide/shots/cameras.md#camera-tracks"),
         ]),
-        ("Project", "flowreel.yml", "guide/projects/bodies.md", [
-            ("bodies.NAME", bodies.BODY_KEYS, "guide/projects/bodies.md"),
-            ("bodies.NAME (virtual)", bodies.VIRTUAL_KEYS, "guide/projects/bodies.md"),
-            ("bodies.NAME.attach", bodies.ATTACH_KEYS, "guide/projects/bodies.md"),
-            ("bodies.NAME.ends[]", bodies.END_KEYS + supports, "guide/projects/bodies.md"),
-            ("bodies.NAME.series.NAME", bodies.SERIES_KEYS, "guide/projects/bodies.md"),
-            ("reference", project.REFERENCE_KEYS, "guide/projects/project.md#reference-values"),
+        ("Project", "flowreel.yml", "guide/projects/project.md", [
             ("", ("defaults", "tags"), "guide/projects/project.md#defaults-and-tags"),
             ("defaults", project.DEFAULT_KEYS, "guide/projects/project.md#defaults-and-tags"),
         ]),
@@ -245,6 +239,11 @@ def file_types():
             ("units", domain.UNIT_KEYS, "guide/projects/data.md#units"),
             ("source", tuple(dict.fromkeys(k for kind in domain.KINDS for k in domain._source_keys(kind))),
              "guide/projects/data.md#source"),
+            ("bodies.NAME", bodies.BODY_KEYS, "guide/projects/bodies.md"),
+            ("bodies.NAME (virtual)", bodies.VIRTUAL_KEYS, "guide/projects/bodies.md"),
+            ("bodies.NAME.attach", bodies.ATTACH_KEYS, "guide/projects/bodies.md"),
+            ("bodies.NAME.ends[]", bodies.END_KEYS + supports, "guide/projects/bodies.md"),
+            ("bodies.NAME.series.NAME", bodies.SERIES_KEYS, "guide/projects/bodies.md"),
         ]),
         ("Panel", "panels/NAME.yml", "guide/shots/panels.md", panel_parts),
         ("Film", "film.yml", "guide/film/film.md", [

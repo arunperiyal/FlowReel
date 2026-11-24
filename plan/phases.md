@@ -1147,7 +1147,7 @@ reviewable: the tutorials, then the examples, then the removal)
   and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
   tiles, and the `compose` command group (branches 1 and 4 kept them so `main` kept
   building films); the guide's pages on it (`guide/old/`, branch 6)
-- [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
+- [x] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
   `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
   and `--link` (Phase 9 kept them read so
   `main` stayed green)

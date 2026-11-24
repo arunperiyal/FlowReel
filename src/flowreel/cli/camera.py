@@ -446,14 +446,12 @@ class CameraCommand(BaseCommand):
 
 
 def _shot_source(path):
-    """The source of the shot at ``path``, seen through its project's bodies, without
-    making the shot's scene: its camera may be the very track being made."""
-    from flowreel.project import project_for
-    from flowreel.project.names import declare
+    """The source of the shot at ``path``, without making the shot's scene: its camera
+    may be the very track being made."""
     from flowreel.scene.rendering import open_source
     from flowreel.scene.shot import load
     shot = load(path)
-    return declare(open_source(shot), project_for(shot.file))
+    return open_source(shot)
 
 
 def _context_view(store, namespace):

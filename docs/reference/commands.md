@@ -12,47 +12,30 @@ Make a project folder, see what it holds, clean what it made.
 ### `flowreel project init`
 
 ```text
-usage: flowreel project init [-h] [--body [NAME=]FILE] [--step N] [-o DIR]
-                             [--link PATH] [--force] [--import KIND:PATH] [--tag TAG]
-                             [SOURCE]
+usage: flowreel project init [-h] [-o DIR] [--force] [--import KIND:PATH] [--tag TAG]
 
-Make the project folder DIR: shots/, text/, cards/, assets/ and data/,
-film.yml and cameras.yml at the root (kept if they exist), a .gitignore for
-frames/, clips/, .flowreel/ and data/, and flowreel.yml declaring every
-surface zone of SOURCE as a body, with its axis and diameter measured from the
-surface. Supports and series are written commented out, to fill in. Without
-SOURCE, flowreel.yml has only comments.
+Make the project folder DIR: shots/, panels/, layouts/, assets/ and data/,
+flowreel.yml, film.yml and cameras.yml at the root (film.yml and cameras.yml
+are kept if they exist), and a .gitignore for frames/, clips/, .flowreel/ and
+data/.
 
---link puts a symbolic link to the data in data/ (data is never copied),
-before SOURCE is read, so SOURCE can name it there.
-
-positional arguments:
-  SOURCE              adapter:location, e.g. plt:CASE or vtk:FILE (optional)
+A case comes in as a tag: --import KIND:PATH --tag TAG does what data import
+does, and fits the first view of cameras.yml to the case.
 
 options:
   -h, --help          show this help message and exit
-  --body [NAME=]FILE  body file or pattern, for a source that reads it separately
-                      (vtk); NAME=FILE names the body (default 'body'), and may be
-                      given once per body
-  --step N            step to measure (default the first)
   -o DIR, --out DIR   project folder (default the current one)
-  --link PATH         link PATH (a case folder or file) into DIR/data/ under its name
-  --force             overwrite flowreel.yml (and replace a data link) if it exists
+  --force             overwrite flowreel.yml if it exists
   --import KIND:PATH  import a case as a tag as well (plt:PATH, vtk:PATH), as data
                       import does; give --tag
   --tag TAG           the tag of --import
 
 examples:
-  flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
-  flowreel project init vtk:flow.pvd --body body.vtp --step 5000
-  flowreel project init vtk:flow.pvd --body cylinder=wall.vtp
-                                                    the body named cylinder
-  flowreel project init geometry:grooved_cylinder -o carve --force
-  flowreel project init --link /scratch/run vtk:data/run/flow.pvd
-                                                    link the data first, read it there
-  flowreel project init                             the folders only; bodies by hand
+  flowreel project init                             the folders and first files, here
+  flowreel project init -o carve --force            overwrite flowreel.yml
   flowreel project init --import plt:/scratch/run/binary --tag bare
                                                     the folders, and the case as a tag
+  flowreel project init --import vtk:/scratch/run --tag run -o films/afms
 ```
 
 ### `flowreel project info`
@@ -60,11 +43,10 @@ examples:
 ```text
 usage: flowreel project info [-h] [DIR]
 
-Print the project's data links, the sources its shots read, the bodies of
-flowreel.yml, every shot file with the frames drawn for it, the views and
-tracks of cameras.yml, the film's shots and planned length, and the size of
-frames/, clips/ and .flowreel/. Files that do not load are listed with their
-error. Nothing is changed.
+Print the project's tags, the sources its shots read, every shot file with the
+frames drawn for it, the views and tracks of cameras.yml, the film's scenes,
+and the size of frames/, clips/ and .flowreel/. Files that do not load are
+listed with their error. Nothing is changed.
 
 positional arguments:
   DIR         a folder in the project (default: use project:DIR, else here)

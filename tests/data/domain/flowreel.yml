@@ -1,10 +1,1 @@
-# The domain shot's body: the reference film's cylinder, 12 diameters long along x,
-# clamped at both ends. The shot draws the clamps with the supports layer.
-bodies:
-  cylinder:
-    zone: body                     # the vtk source's single body file
-    axis: x
-    diameter: 1.0
-    ends:
-      - {at: 0.0, support: clamped}
-      - {at: 12.0, support: clamped}
+tags: [cylinder]

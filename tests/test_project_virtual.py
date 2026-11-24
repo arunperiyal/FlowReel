@@ -1,14 +1,14 @@
-"""Virtual bodies: declared in flowreel.yml, built from a shape, attached and driven."""
+"""Virtual bodies: declared in a tag's domain.yml, built from a shape, attached and driven."""
 import numpy as np
 import pytest
 import pyvista as pv
 
-from flowreel.project import PROJECT_FILE, load_project
 from flowreel.project.bodies import Attach, parse_bodies
-from flowreel.project.names import DeclaredSource, one_body
+from flowreel.project.names import one_body
 from flowreel.scene.errors import Checker, ConfigError
 from flowreel.sources.bodies import available_bodies, register_body
 
+from tag_fixture import declare_bodies
 from test_layer_supports import Riser          # a riser 40 D long along x, bent 1 D in y
 
 if "stick" not in available_bodies():
@@ -36,8 +36,7 @@ bodies:
 def source(tmp_path):
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "stretch.csv").write_text("time,L\n0,1\n1,2\n")
-    (tmp_path / PROJECT_FILE).write_text(PROJECT)
-    return DeclaredSource(Riser(), load_project(tmp_path).bodies)
+    return declare_bodies(Riser(), PROJECT, tmp_path)
 
 
 def test_the_declaration(source):
@@ -118,8 +117,7 @@ PENDULUM = PROJECT + """\
 def with_pendulum(tmp_path):
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "stretch.csv").write_text("time,L\n0,1\n1,2\n")
-    (tmp_path / PROJECT_FILE).write_text(PENDULUM)
-    return DeclaredSource(Riser(), load_project(tmp_path).bodies)
+    return declare_bodies(Riser(), PENDULUM, tmp_path)
 
 
 def body_layer(spec):

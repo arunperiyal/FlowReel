@@ -4,11 +4,13 @@ import pytest
 from flowreel.jobs import measured
 from flowreel.scene.rendering import missing, render
 
+from tag_fixture import tag_project
 from test_cli_shot import CAMERAS, SHOT
 
 
 @pytest.fixture
 def shot(tmp_path, monkeypatch):
+    tag_project(tmp_path, "g")
     (tmp_path / "g.yml").write_text(SHOT)
     (tmp_path / "cameras.yml").write_text(CAMERAS)
     monkeypatch.chdir(tmp_path)

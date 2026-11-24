@@ -17,8 +17,7 @@ these functions. A runnable example on generated data is `examples/render_shot/r
 ## The source
 
 `render` and `render_frame` open the shot's `source` themselves: a tag of the shot's
-project, or (until it goes) `adapter:location`, a relative location taken from the shot
-file's folder. A shot without `size` is drawn at the size of the box that shows it in the
+project. A shot without `size` is drawn at the size of the box that shows it in the
 film ([shot files](../shots/shots.md)).
 A source that needs more options (a vtk source with a separate body file) is built in code
 and passed as `source=`. With `jobs` processes the source is sent to each process, so it

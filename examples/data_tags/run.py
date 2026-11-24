@@ -57,8 +57,8 @@ def write_history(case: Path) -> None:
 
 def main(folder: Path) -> None:
     folder = folder.resolve()
-    case.write_case(folder / "cases" / "smooth", project=False)
-    case.write_case(folder / "cases" / "grooved", steps=2, project=False)
+    case.write_case(folder / "cases" / "smooth")
+    case.write_case(folder / "cases" / "grooved", steps=2)
     film = folder / "film"
     film.parent.mkdir(parents=True, exist_ok=True)
     flowreel(f"project init -o {film} --import plt:{folder / 'cases/smooth/case'} --tag smooth",

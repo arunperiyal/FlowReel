@@ -21,9 +21,7 @@ Code: `flowreel.project` (`load_project`, `find_project`), `flowreel.project.bod
 Under `bodies:` in a tag's `domain.yml`. A shot of the tag (`source: bare`) sees them by
 their names; a panel of series sees every tag's, as `tag.body` where two tags meet
 ([bodies across tags](data.md#shots-and-panels-name-a-tag)). Series paths are taken from
-the tag's folder (`series/force.csv`). Before tags they were written under `bodies:` in
-`flowreel.yml`, with the same keys; that is still read until it goes
-([reference values](project.md#reference-values)).
+the tag's folder (`series/force.csv`).
 
 ```yaml
 bodies:

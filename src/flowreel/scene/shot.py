@@ -36,11 +36,10 @@ DEFAULT_SIZE = (1920, 1080)
 class Shot:
     """A parsed shot file.
 
-    ``source`` is ``(adapter, location)``, from ``adapter:location``; the mapping form
-    ``{adapter: vtk, path: ..., body: ...}`` also fills ``source_options``, the other
-    keys as written, passed to the adapter (:func:`flowreel.scene.rendering.open_source`
-    resolves paths). ``time`` and
-    ``camera`` hold the mapping as written; the frame plan and the camera code read
+    ``source`` is ``("tag", TAG)``, from ``source: TAG``; the mapping form
+    ``{tag: TAG, step: ...}`` also fills ``source_options``, the other keys as written, the
+    tag's reading options (:func:`flowreel.scene.rendering.source_options` checks them).
+    ``time`` and ``camera`` hold the mapping as written; the frame plan and the camera code read
     them. ``size`` is ``(width, height)`` in pixels. ``crop`` is the box read from the
     source, a :class:`CropAround` that travels with a body, or ``None`` for the whole
     domain. ``layers`` are built layer objects, bottom
@@ -141,32 +140,21 @@ _CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "shape", "foll
 
 
 def _source(value, check: Checker) -> tuple[tuple[str, str], dict]:
+    """``source``: a tag (``bare``) or ``{tag: bare, ...}`` with the tag's reading options;
+    ``((TAG_SOURCE, tag), options)``. The forms before tags (``adapter:path``,
+    ``{adapter: ...}``) are not read: they name the data, and a tag names a case."""
     from flowreel.project.domain import TAG, TAG_SOURCE
     if isinstance(value, dict) and "tag" in value:
-        if "adapter" in value:
-            raise check.error("give 'tag' (a case of the project) or 'adapter', not both")
         tag = check.at("tag").string(value["tag"])
         if not TAG.match(tag):
             raise check.at("tag").error(f"a tag is letters, digits, '-' and '_', got {tag!r}")
         return (TAG_SOURCE, tag), {k: v for k, v in value.items() if k != "tag"}
     if isinstance(value, str) and TAG.match(value):
         return (TAG_SOURCE, value), {}
-    if isinstance(value, dict):
-        if "adapter" not in value:
-            raise check.error("missing key 'adapter' (for example {adapter: vtk, path: flow.pvd})")
-        adapter = check.at("adapter").string(value["adapter"])
-        options = {k: v for k, v in value.items() if k != "adapter"}
-        for k in options:
-            if not isinstance(k, str):
-                raise check.error(f"option names are words, got {k!r}")
-        location = options.get("path", options.get("body", ""))
-        return (adapter, str(location)), options
-    text = check.string(value)
-    adapter, sep, location = text.partition(":")
-    if not sep or not adapter or not location:
-        raise check.error(f"expected a tag (bare), {{tag: bare, ...}}, 'adapter:location' "
-                          f"(plt:bare/BR0SG0U1P0) or {{adapter: ..., path: ...}}, got {text!r}")
-    return (adapter, location), {}
+    if isinstance(value, dict) and "adapter" in value or isinstance(value, str) and ":" in value:
+        raise check.error(f"a source is a tag, a case imported with 'flowreel data import' "
+                          f"(source: bare), not {value!r}; see docs/guide/projects/data.md")
+    raise check.error(f"expected a tag (bare) or {{tag: bare, ...}}, got {value!r}")
 
 
 def _size(value, check: Checker) -> tuple[int, int]:

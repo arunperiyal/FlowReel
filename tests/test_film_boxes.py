@@ -152,7 +152,7 @@ def test_a_text_box_sits_by_its_look_in_its_box(tmp_path):
 def test_shot_and_held_pictures_are_fitted(tmp_path, picture):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: w, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: w, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [
             {"name": "a", "layout": {"boxes": [{"name": "main", "shot": "shots/w.yml", "place": "left"}]}},
             {"name": "b", "seconds": 2, "layout": {"boxes": [{"last_frame": "a", "place": "right"}]}}]},
@@ -170,7 +170,7 @@ def test_shot_and_held_pictures_are_fitted(tmp_path, picture):
 def test_a_box_follows_a_point_of_the_flow(tmp_path):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: w, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: w, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [{"name": "a", "layout": {"boxes": [
         {"name": "main", "shot": "shots/w.yml", "place": "left"},
         {"name": "label", "text": "here", "follow": {"box": "main", "model": [0, 0, 0], "offset": [10, -20]}},
@@ -202,7 +202,7 @@ def test_a_panel_box_is_drawn_at_the_box_size(tmp_path):
 def test_the_points_boxes_follow_for_the_camera_editor(tmp_path):
     (tmp_path / "shots").mkdir()
     (tmp_path / "shots" / "w.yml").write_text(
-        "{name: wake, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+        "{name: wake, source: x, time: {frozen: 0}, layers: [{type: body}]}")
     film = M.from_dict({"scenes": [{"name": "a", "layout": {"boxes": [
         {"name": "main", "shot": "shots/w.yml"},
         {"text": ["Groove", "0.08 D"], "follow": {"box": "main", "model": [6, 0.4, 0.2]}},

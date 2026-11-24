@@ -28,7 +28,7 @@ steps 0.2 time units apart; `--every` and `--box` change that.
 $ flowreel project init -o shedding --import plt:cases/cylinder_re100/binary --tag re100
 linked shedding/data/re100/plt -> /home/you/films/cases/cylinder_re100/binary
 wrote shedding/data/re100/domain.yml: fill in the units
-made shedding: shots/ text/ cards/ assets/ data/
+made shedding: shots/ panels/ layouts/ assets/ data/
 wrote shedding/film.yml, shedding/cameras.yml, shedding/.gitignore
 wrote shedding/flowreel.yml; the case's bodies and units are in data/re100/domain.yml
 $ cd shedding

@@ -16,12 +16,13 @@ import yaml
 from PIL import Image
 
 from cli_harness import Shell
+from tag_fixture import tag_project
 from test_reveal_golden import CLEAR_LIMIT, MEAN_LIMIT, difference
 
 DATA = Path(__file__).parent / "data" / "camera"
 SESSION = yaml.safe_load((DATA / "session.yml").read_text())
 SHOT = """name: picked
-source: geometry:grooved_cylinder
+source: g
 time: {{frozen: 0, frames: {frames}}}
 camera: {camera}
 size: {size}
@@ -82,7 +83,7 @@ def pick(folder: Path) -> None:
 @pytest.fixture(scope="module")
 def session(tmp_path_factory):
     folder = tmp_path_factory.mktemp("camera")
-    (folder / "flowreel.yml").write_text("")                # a project (docs/guide/projects/project.md)
+    tag_project(folder, "g")                                 # a project of one tag, g
     first = SESSION["keys"][0]
     (folder / "cameras.yml").write_text(
         "views:\n  - {name: start, position: %s, focal: %s, up: %s, view_angle: %s}\n"

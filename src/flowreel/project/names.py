@@ -2,7 +2,7 @@
 
 :class:`DeclaredSource` wraps a source so that everything asking it for a body by name
 (layers, the camera's ``follow``, wall fields through ``source.body(step, name)``) uses
-the names of ``flowreel.yml``: a declared name is read as its ``zone``. Undeclared zones
+the names of the tag's ``domain.yml``: a declared name is read as its ``zone``. Undeclared zones
 keep their own names, so no declaration is needed to draw a body.
 
 :func:`one_body` is the body meant when a name is left out where one body is needed
@@ -132,7 +132,7 @@ class DeclaredSource:
             if decl is None:
                 self.zone(body)                             # KeyError for an unknown name
                 raise KeyError(f"body {body!r} is not declared, so it has no series; "
-                               "declare its series in flowreel.yml")
+                               "declare its series in the tag's domain.yml")
             if name not in decl.series:
                 have = ", ".join(decl.series) or "none"
                 raise KeyError(f"body {decl.name!r} has no series {name!r} (series: {have})")
@@ -151,14 +151,6 @@ class DeclaredSource:
     def key(self) -> dict:
         """The declarations as they reach a picture, for frame and surface keys."""
         return {n: b.key() for n, b in sorted(self.declared.items())}
-
-
-def declare(source, project) -> object:
-    """``source`` wrapped with ``project``'s bodies; the source itself when the project
-    is ``None``, declares no body, or the source is already wrapped."""
-    if project is None or not project.bodies or isinstance(source, DeclaredSource):
-        return source
-    return DeclaredSource(source, project.bodies)
 
 
 def one_body(source) -> str:

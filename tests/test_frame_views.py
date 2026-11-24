@@ -16,7 +16,7 @@ TRACKS = {"move": parse_track({"keys": [{"frame": 0, "view": "near"},
 
 
 def shot(**extra):
-    spec = {"name": "toy", "source": "toy:none", "time": {"steps": [0, 20]},
+    spec = {"name": "toy", "source": "toy", "time": {"steps": [0, 20]},
             "camera": {"track": "move"}, "size": [96, 64], "antialias": "none",
             "layers": [{"type": "body", "colour": "#ff0000"}]}
     spec.update(extra)

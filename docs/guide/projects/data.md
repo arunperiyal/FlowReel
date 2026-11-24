@@ -163,8 +163,7 @@ rows:
       - {body: helical.cyl, series: force, column: fy, label: helical}
 ```
 
-Naming `cyl` alone there is an error that lists `smooth.cyl` and `helical.cyl`. The
-bodies of `flowreel.yml`, while it still has them, are named as before ([going](project.md#reference-values)).
+Naming `cyl` alone there is an error that lists `smooth.cyl` and `helical.cyl`.
 
 `project info` and `flowreel doctor` list the tags, and say when a tag's link does not
 resolve.

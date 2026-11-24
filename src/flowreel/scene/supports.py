@@ -12,7 +12,7 @@ in the place's own frame and sized in diameters, so they look the same on a body
   diameter times the layer's ``size``, enlarged for ``min_pixels``).
 
 A new kind is a function and a call to :func:`register_support`, which also lets
-``flowreel.yml`` accept it (with its own keys); no other change to FlowReel.
+``domain.yml`` accept it (with its own keys); no other change to FlowReel.
 """
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ class Place:
 def register_support(name: str, keys: tuple[str, ...] | None = None,
                      required: tuple[str, ...] = ()):
     """Register ``function(end, place) -> [meshes]`` as the symbol of support ``name``
-    (a decorator). ``keys`` are the kind's own keys in ``flowreel.yml`` (``None`` keeps
+    (a decorator). ``keys`` are the kind's own keys in ``domain.yml`` (``None`` keeps
     those already known), ``required`` those that must be given."""
     def add(fn: Symbol) -> Symbol:
         if keys is not None or name not in bodies_mod.SUPPORTS:
@@ -206,7 +206,7 @@ def pixels_per_unit(camera, point, height: int) -> float:
 class Supports(Layer):
     """How the declared bodies are held, drawn at their ends (plan Section 5.4).
 
-    The ends come from ``flowreel.yml`` (``bodies: NAME: ends:``). Each symbol stands at
+    The ends come from the tag's ``domain.yml`` (``bodies: NAME: ends:``). Each symbol stands at
     the body's centre at its station in this frame, so it moves with the body, and is
     sized in diameters (the declared diameter, else measured), so it looks the same on a
     short or a long body. Options: ``body`` (a name, a list, or ``all``: every declared
@@ -249,9 +249,9 @@ class Supports(Layer):
 
     def _bodies(self, source) -> list:
         declared = getattr(source, "declared", None)
-        if declared is None:
+        if not declared:
             raise ValueError("supports: no bodies are declared; declare their ends in "
-                             "flowreel.yml (docs/guide/projects/bodies.md)")
+                             "the tag's domain.yml (docs/guide/projects/bodies.md)")
         spec = self.raw.get("body", "all")
         if spec == "all":
             return [b for b in declared.values() if b.ends]
@@ -260,7 +260,7 @@ class Supports(Layer):
             body = source.declaration(name)
             if body is None:
                 source.zone(name)                           # KeyError for a wrong name
-                raise ValueError(f"supports: body {name!r} is not declared in flowreel.yml")
+                raise ValueError(f"supports: body {name!r} is not declared in the tag's domain.yml")
             if not body.ends:
                 raise ValueError(f"supports: body {body.name!r} declares no ends")
             out.append(body)

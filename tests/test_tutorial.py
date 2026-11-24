@@ -150,7 +150,7 @@ def test_following_the_tutorial_makes_a_20_second_film(tmp_path):
     film["scenes"] = [s for s in film["scenes"] if s["name"] == "wake"]
     film["size"] = FILM_SIZE
     (root / "film.yml").write_text(yaml.safe_dump(film, sort_keys=False))
-    run("shot", "render", "shots/wake.yml", "-j", "4")
+    run("shot", "render", "shots/wake.yml", "-j", "2")
     from PIL import Image
     assert Image.open(root / "frames" / "wake" / "frame_00000.png").size == tuple(FILM_SIZE)
     assert re.search(r"wake\s+0\.00 s\s+7\.00 s", run("scene", "list"))
@@ -161,7 +161,7 @@ def test_following_the_tutorial_makes_a_20_second_film(tmp_path):
     take("layouts/compare.yml")
     take("layouts/title.yml")
     take("film.yml", FILM_SIZE)
-    run("shot", "render", "shots/sweep.yml", "-j", "4")
+    run("shot", "render", "shots/sweep.yml", "-j", "2")
     assert Image.open(root / "frames" / "sweep" / "frame_00000.png").size == (FILM_SIZE[0], FILM_SIZE[1] // 2)
     run("scene", "preview", "compare", "--at", "1", "4.5")
     run("scene", "preview", "title", "--at", "2")

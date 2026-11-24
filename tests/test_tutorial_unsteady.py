@@ -117,7 +117,7 @@ def test_following_the_tutorial_makes_a_17_second_film(tmp_path):
     film = yaml.safe_load((REFERENCE / "film.yml").read_text())
     film["scenes"] = [s for s in film["scenes"] if s["name"] == "board"]
     (root / "film.yml").write_text(yaml.safe_dump(film, sort_keys=False))
-    run("shot", "render", "shots/wake.yml", "-j", "4")
+    run("shot", "render", "shots/wake.yml", "-j", "2")
     run("scene", "preview", "board", "--at", "1.5", "4")
     assert (root / "frames" / "scenes" / "board" / "at_4.00.png").is_file()
     # 5. the film

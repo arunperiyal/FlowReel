@@ -75,7 +75,7 @@ def _flow_files(kind: str, path: Path) -> list[Path]:
 def _vtk_flow(path: Path, flow: str | None) -> str:
     """The flow file within ``path``: ``flow`` if given, else the one ``.pvd``."""
     if flow:
-        if not (path / flow).exists():
+        if not (path / flow).exists() and not any(path.glob(flow)):
             raise DataError(f"no {flow} in {path}")
         return flow
     pvds = sorted(p.name for p in path.glob("*.pvd"))

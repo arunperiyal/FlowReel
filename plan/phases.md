@@ -1088,7 +1088,7 @@ The decisions, for every branch:
   boxes; each box's `at` and fade
 - [x] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
   `follow` placing text and shapes on a point of a shot box; `last_frame`
-- [ ] Tests against pictures drawn by hand and the old captions' golden pictures
+- [x] Tests against pictures drawn by hand and the old captions' golden pictures
 
 **Branch 3: `phase10/scene-build`**
 - [ ] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;

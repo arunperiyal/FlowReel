@@ -22,6 +22,11 @@ left out: `flowreel project init` alone makes the folders and a `flowreel.yml` w
 comments, which is enough to make a folder a project (for example on a laptop with only
 saved surfaces and `cameras.yml`, to run `camera edit`). Options: [commands](../commands.md#project-init).
 
+`--import plt:PATH --tag TAG` (or `vtk:PATH`) makes the folders and brings the case in as
+a [tag](data.md), its bodies and units in `data/TAG/domain.yml`, not in `flowreel.yml`.
+That is the layout FlowReel is moving to; `SOURCE` and `--link` are kept until the
+tutorials move to tags.
+
 ## What is in it
 
 ```text
@@ -45,7 +50,7 @@ afms/
 | `film.yml` | you (`project init` writes `film template`'s) | yes | [film](../film/film.md) |
 | `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](../shots/cameras.md) |
 | `shots/`, `text/`, `cards/`, `assets/` | you | yes | the names are a convention; files anywhere in the project work |
-| `data/` | `project init --link` | no | symbolic links to the data |
+| `data/` | `data import`, `project init --import` | no | the [tags](data.md): links to the data, and `domain.yml` |
 | `frames/`, `clips/` | `shot render`, `compose`, `film build` | no | removed by `project clean --frames`, `--clips` |
 | `.flowreel/` | every command | no | `cache/` removed by `project clean`; see below |
 

@@ -956,14 +956,16 @@ The decisions, for every branch:
   tag)
 
 **Branch 2: `phase9/data-import`**
-- [ ] `data import plt|vtk|geometry --path PATH --tag TAG` (`--body NAME=FILE` for VTK;
+- [x] `data import plt|vtk|geometry --path PATH --tag TAG` (`--body NAME=FILE` for VTK;
   `--name FUNCTION --param K=V` for geometry): the link, or `--copy` after the size check;
   `domain.yml` written as above; `--force`
-- [ ] `data list`, `data info TAG|PATH`, `data remove TAG` (the links and `domain.yml`,
+- [x] `data list`, `data info TAG|PATH`, `data remove TAG` (the links and `domain.yml`,
   never the case), `data rename OLD NEW` (and every file of the project that names it),
   `data check` (links that do not resolve, units not given, series files missing)
-- [ ] `project init` makes the folders only, with `--import KIND:PATH --tag TAG`
-- [ ] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs
+- [x] `project init` makes the folders only, with `--import KIND:PATH --tag TAG`. Its `SOURCE`
+  and `--link` forms stay until Phase 10's last branch, as `bodies:` does (the tutorials use
+  them; decided while implementing, 2026-11-24)
+- [x] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs
 
 **Branch 3: `phase9/data-history`**
 - [ ] `data import history --path PATH --tag TAG`: OTHD and OISD with FlexFlow Analyzer's
@@ -1110,7 +1112,8 @@ The decisions, for every branch:
   scripts write tags; their pictures made again; their follow-along tests
 - [ ] Every example and its test on tags and scenes
 - [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
-  `reference:`, and `source: adapter:path` in shots and panels (Phase 9 kept them read so
+  `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
+  and `--link` (Phase 9 kept them read so
   `main` stayed green)
 
 **Phase 10 is done when** the AFMS film is made from its two cases as tags and scenes

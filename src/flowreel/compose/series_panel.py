@@ -87,8 +87,8 @@ def find_project(panel, check: Checker):
     from flowreel.project import find_project as find, load_project
     found = find(panel.file or ".")
     if found is None:
-        raise check.error("no flowreel.yml at or above the panel file, so no series are "
-                          "declared; declare the bodies' series there")
+        raise check.error("no flowreel.yml at or above the panel file, so no project and "
+                          "no series; declare the bodies' series in a tag's domain.yml")
     return load_project(found)
 
 
@@ -97,23 +97,24 @@ def parse_line(spec, check: Checker, project, keys=LINE_KEYS) -> Line:
     spec = check.mapping(spec, keys, required=("series",))
     name = check.at("series").string(spec["series"])
     if spec.get("body") is None:
-        owners = [b for b in project.bodies.values() if name in b.series]
+        owners = project.owners(name)
         if len(owners) != 1:
-            which = ", ".join(b.name for b in owners) or "no body"
+            which = ", ".join(owners) or "no body"
             raise check.error(f"series {name!r} is declared for {which}; say which with 'body'")
-        body = owners[0]
+        body_name = owners[0]
+        body = project.body(body_name)
     else:
         body_name = check.at("body").string(spec["body"])
-        if body_name not in project.bodies:
-            raise check.at("body").error(f"no body {body_name!r} in {project.file} "
-                                         f"(bodies: {', '.join(project.bodies) or 'none'})")
-        body = project.bodies[body_name]
+        try:
+            body = project.body(body_name)
+        except LookupError as exc:
+            raise check.at("body").error(str(exc.args[0])) from None
         if name not in body.series:
-            raise check.at("series").error(f"body {body.name!r} has no series {name!r} "
+            raise check.at("series").error(f"body {body_name!r} has no series {name!r} "
                                            f"(series: {', '.join(body.series) or 'none'})")
     column = None if spec.get("column") is None else check.at("column").string(spec["column"])
     label = None if spec.get("label") is None else check.at("label").string(spec["label"])
-    return Line(body.name, name, column, body.series[name],
+    return Line(body_name, name, column, body.series[name],
                 check.at("scale").number(spec.get("scale", 1.0)),
                 check.at("offset").number(spec.get("offset", 0.0)), label,
                 None if spec.get("colour") is None else colour(spec["colour"], check.at("colour")))

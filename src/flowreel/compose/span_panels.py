@@ -240,13 +240,13 @@ class LocatorPanel(PanelType):
         if "body" not in options:
             raise check.error("missing key 'body' (the long body to show)")
         name = check.at("body").string(options["body"])
-        if name not in project.bodies:
-            raise check.at("body").error(f"no body {name!r} in {project.file} "
-                                         f"(bodies: {', '.join(project.bodies) or 'none'})")
-        self.body = project.bodies[name]
+        try:
+            self.body = project.body(name)
+        except LookupError as exc:
+            raise check.at("body").error(str(exc.args[0])) from None
         if self.body.axis is None:
             raise check.at("body").error(f"body {name!r} has no axis, so no span; declare "
-                                         "its 'axis' in flowreel.yml")
+                                         "its 'axis' (in its tag's domain.yml)")
         self.axis = AXES.index(self.body.axis)
         self.colour = colour(options.get("colour", BODY), check.at("colour"))
         self.shape = None

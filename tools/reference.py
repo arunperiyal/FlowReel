@@ -218,6 +218,7 @@ def file_types():
     return [
         ("Shot file", "shots/NAME.yml", "guide/shots/shots.md", [
             ("", shot.KEYS, "guide/shots/shots.md"),
+            ("source", ("tag", "kind"), "guide/projects/data.md#shots-and-panels-name-a-tag"),
             ("time", shot._TIME_KEYS, "guide/shots/shots.md"),
             ("camera", shot._CAMERA_KEYS, "guide/shots/cameras.md#a-shots-camera"),
             ("watermark", shot_watermark, "guide/film/captions.md#the-watermark"),

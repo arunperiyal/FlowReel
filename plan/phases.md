@@ -18,7 +18,7 @@ Each phase ends with something checkable.
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 | 8 | Editor and workflow improvements asked for while using FlowReel, collected as they come | each one checked as its task says; the list closed by Arun |
-| 9 | Data by tag: a `data` command group, each case under `data/<tag>/` with its own `domain.yml`, shots naming a tag | branches 1 to 5 done, their tests and examples on tags (the tutorials move in Phase 10) |
+| 9 | Data by tag: a `data` command group, each case under `data/<tag>/` with its own `domain.yml`, shots naming a tag | branches 1 to 5 done, their tests and examples on tags (the tutorials move in Phase 10) (done 2026-11-24) |
 | 10 | The film as levels: a film of scenes, a scene a layout of boxes (text, image, shape, shot, panel); `scene` and `panel` commands; a window to design a layout; the documentation and both tutorials rewritten | the AFMS film made from its cases as tags and scenes; both tutorials rewritten; the guide by levels |
 
 ### 19.1 Phase 1 tasks
@@ -981,11 +981,11 @@ The decisions, for every branch:
 - [x] Tests (the analytic pressure force of PR #84's tests), docs, an example
 
 **Branch 5: `phase9/source-tags`**
-- [ ] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
+- [x] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
   too; bodies as `tag.body` where tags meet; `source: adapter:path` still read until
   Phase 10's last branch removes it
-- [ ] Frame keys, `project info`, the doctor and the camera editor follow
-- [ ] Tests, docs, the YAML reference
+- [x] Frame keys, `project info`, the doctor and the camera editor follow
+- [x] Tests, docs, the YAML reference
 
 **Branch 6: `phase9/data-migrate`** (moved to Phase 10, 2026-11-24)
 - [x] Moved: the tutorials, the examples and the docs change once for both phases, in
@@ -997,7 +997,8 @@ The decisions, for every branch:
 
 **Phase 9 is done when** branches 1 to 5 are done, with the tests and the examples on
 tags. The AFMS film and both tutorials move in Phase 10, which also changes the film's
-files.
+files. Done 2026-11-24: branches 1 to 5 with their tests (full suite 1381 passed),
+and `examples/data_tags` on two tags (import, history, extract, a shot and a panel).
 
 ### 19.11 Phase 10 tasks
 

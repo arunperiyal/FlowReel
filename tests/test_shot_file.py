@@ -38,7 +38,7 @@ def test_full_shot():
     ({"antialias": "ssa"}, r"antialias: .*did you mean 'ssaa'"),
     ({"size": [640]}, r"size: expected \[width, height\]"),
     ({"size": [640, 0]}, r"size\[1\]: must be at least 1"),
-    ({"source": "run.pvd"}, r"source: expected 'adapter:location'"),
+    ({"source": "run.pvd"}, r"source: expected a tag \(bare\)"),
     ({"crop": {"x": [3, 1], "y": [0, 1], "z": [0, 1]}}, r"crop.x: .*low < high"),
     ({"crop": {"x": [0, 1]}}, r"crop: missing key 'y'"),
     ({"layers": []}, r"layers: expected at least 1"),

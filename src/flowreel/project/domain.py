@@ -274,3 +274,39 @@ def note_lines(folder: str | Path, title: str, notes: list[str]) -> None:
         at = next((i for i, l in enumerate(lines) if l.startswith("measured:")), len(lines))
         lines[at:at] = [head, *("#   " + n for n in notes)]
     path.write_text("\n".join(lines) + "\n")
+
+
+#: The adapter name a shot's source of a tag is held under (``source: bare``).
+TAG_SOURCE = "tag"
+
+
+def find_tag(start, name: str) -> Domain:
+    """The tag ``name`` of the project holding ``start`` (a file or a folder; default the
+    current folder). Raises ``LookupError`` saying what is there when it is not found."""
+    from flowreel.project.paths import find_root
+    root = find_root(start)
+    if root is None:
+        raise LookupError(f"source {name!r} names a tag, but there is no project (no "
+                          f"flowreel.yml at or above {start or Path.cwd()})")
+    folder = root / "data" / name
+    if not (folder / DOMAIN_FILE).is_file():
+        have = sorted(d.name for d in (root / "data").iterdir()
+                      if (d / DOMAIN_FILE).is_file()) if (root / "data").is_dir() else []
+        raise LookupError(f"no tag {name!r} in {root} (tags: {', '.join(have) or 'none'}; "
+                          f"data import brings a case in)")
+    return load_domain(folder)
+
+
+def tag_options(domain: Domain, options: dict) -> dict:
+    """A shot's options for its tag's reader, checked: ``kind``, when given, must be the
+    tag's, and the rest must be options of that reader."""
+    options = dict(options)
+    kind = options.pop("kind", None)
+    if kind is not None and kind != domain.kind:
+        raise ValueError(f"tag {domain.tag!r} holds a {domain.kind} case, not {kind}")
+    allowed = _source_keys(domain.kind)
+    unknown = [k for k in options if k not in allowed]
+    if unknown:
+        raise ValueError(f"not an option of a {domain.kind} tag: {', '.join(unknown)} "
+                         f"(options: {', '.join(allowed)})")
+    return options

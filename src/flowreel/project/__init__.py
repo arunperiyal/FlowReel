@@ -55,6 +55,44 @@ class Project:
         """The project folder (where relative paths in ``flowreel.yml`` start)."""
         return None if self.file is None else self.file.parent
 
+    def named_bodies(self) -> dict:
+        """Every body a panel of the project may name: ``flowreel.yml``'s by their names,
+        each tag's as ``tag.body``, and a tag's body by its own name too when no other
+        tag and no ``flowreel.yml`` body has that name."""
+        out = dict(self.bodies)
+        owners: dict[str, list[str]] = {}
+        for tag, domain in self.tags.items():
+            for name, body in domain.bodies.items():
+                out[f"{tag}.{name}"] = body
+                owners.setdefault(name, []).append(f"{tag}.{name}")
+        for name, names in owners.items():
+            if name not in out and len(names) == 1:
+                out[name] = out[names[0]]
+        return out
+
+    def body(self, name: str):
+        """The :class:`~flowreel.project.bodies.Body` a panel names (see
+        :meth:`named_bodies`). Raises ``LookupError`` saying what to write instead."""
+        named = self.named_bodies()
+        if name in named:
+            return named[name]
+        same = [n for n in named if n.endswith("." + name)]
+        if same:
+            raise LookupError(f"several tags have a body {name!r}: name one as "
+                              f"{' or '.join(same)}")
+        raise LookupError(f"no body {name!r} in {self.file} or its tags (bodies: "
+                          f"{', '.join(named) or 'none'})")
+
+    def owners(self, series: str) -> list[str]:
+        """The names (as :meth:`named_bodies` gives them, each body once, ``tag.body``
+        for a tag's) of the bodies declaring a series called ``series``."""
+        seen, out = set(), []
+        for name, body in self.named_bodies().items():
+            if series in body.series and id(body) not in seen:
+                seen.add(id(body))
+                out.append(name)
+        return out
+
 
 def load_project(path: str | Path) -> Project:
     """Read and check ``flowreel.yml`` at ``path`` (a file, or a folder holding one)."""

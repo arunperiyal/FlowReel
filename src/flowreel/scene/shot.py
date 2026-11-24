@@ -130,6 +130,16 @@ _CAMERA_KEYS = ("view", "track", "fit", "direction_of", "margin", "shape", "foll
 
 
 def _source(value, check: Checker) -> tuple[tuple[str, str], dict]:
+    from flowreel.project.domain import TAG, TAG_SOURCE
+    if isinstance(value, dict) and "tag" in value:
+        if "adapter" in value:
+            raise check.error("give 'tag' (a case of the project) or 'adapter', not both")
+        tag = check.at("tag").string(value["tag"])
+        if not TAG.match(tag):
+            raise check.at("tag").error(f"a tag is letters, digits, '-' and '_', got {tag!r}")
+        return (TAG_SOURCE, tag), {k: v for k, v in value.items() if k != "tag"}
+    if isinstance(value, str) and TAG.match(value):
+        return (TAG_SOURCE, value), {}
     if isinstance(value, dict):
         if "adapter" not in value:
             raise check.error("missing key 'adapter' (for example {adapter: vtk, path: flow.pvd})")
@@ -143,8 +153,8 @@ def _source(value, check: Checker) -> tuple[tuple[str, str], dict]:
     text = check.string(value)
     adapter, sep, location = text.partition(":")
     if not sep or not adapter or not location:
-        raise check.error(f"expected 'adapter:location' (for example plt:bare/BR0SG0U1P0) "
-                          f"or {{adapter: ..., path: ...}}, got {text!r}")
+        raise check.error(f"expected a tag (bare), {{tag: bare, ...}}, 'adapter:location' "
+                          f"(plt:bare/BR0SG0U1P0) or {{adapter: ..., path: ...}}, got {text!r}")
     return (adapter, location), {}
 
 

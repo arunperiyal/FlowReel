@@ -22,8 +22,8 @@ wherever the command runs, unless `-o` (or `--clips`, `--slurm`) names another p
 *Why:* a render started in `shots/` and one started at the root must not make two copies.
 [Where output goes](project.md#where-output-goes)
 
-**3. Edit only what you can see.** `flowreel.yml`, `film.yml`, `cameras.yml` and your
-files in `shots/`, `text/`, `cards/` and `assets/` are yours. `.flowreel/`, `frames/` and
+**3. Edit only what you can see.** `flowreel.yml`, `film.yml`, `cameras.yml`, each tag's
+`domain.yml` and your files in `shots/`, `panels/`, `layouts/` and `assets/` are yours. `.flowreel/`, `frames/` and
 `clips/` are FlowReel's. *Why:* deleting FlowReel's folders costs only the time to make
 them again, so `project clean` can remove them safely. It never removes a file you wrote.
 [Looking at a project, and cleaning it](project.md#looking-at-a-project-and-cleaning-it)
@@ -43,15 +43,15 @@ gigabytes, and it belongs to the simulation, not the film. *Broken:* a copy abov
 without `--yes` stops before anything is copied. [Bringing a case in](data.md#bringing-a-case-in)
 [What is in it](project.md#what-is-in-it)
 
-**6. A path in a file is relative to that file.** Examples are a shot's `source`, a film
-shot's `frames`, a caption file and an `include`. *Why:* a file keeps working when the
+**6. A path in a file is relative to that file.** Examples are a tag's `source.path`, a
+shot box's shot file, a layout file's pictures (`../assets/logo.png`) and an `include`. *Why:* a file keeps working when the
 folder around it is moved or copied. Paths typed on the command line are relative to
 the current folder, as usual.
 
 **7. Logos, pictures and music you use stay outside FlowReel's repository.** Keep them
 in your project's `assets/`. Use only what you have the right to use. *Why:* FlowReel is
 public, and a film's logos and licensed tracks belong to that film.
-[Cards](../film/cards.md), [captions](../film/captions.md)
+[Image boxes](../film/boxes.md#image), [audio](../film/film.md#audio)
 
 **8. Unknown keys are errors.** Every YAML file is checked when it is read. A misspelt key
 or choice stops the command with the file, the key path and the nearest valid name.
@@ -77,14 +77,36 @@ made the wall shear 4.6 times too large on bricks and 18.5 times on tetrahedra.
 **11. The flow is never interpolated in time.** A frame shows a saved step: the nearest
 one, or the earlier at a tie. *Why:* an in-between flow would be made up, and showing
 the earlier step means a frame never shows the flow later than asked.
-[Time](../shots/shots.md#time), [panels](../composing/panels.md#where-the-flow-comes-from)
+[Time](../shots/shots.md#time), [panels](../shots/panels.md#where-the-flow-comes-from)
 
 **12. A panel's colour range is given, not found from the data.** A panel coloured by a
 field must be given its range. *Why:* a range taken from each frame would change from frame to frame,
 so a colour would not mean the same value all through the film.
-[Panels](../composing/panels.md#where-the-flow-comes-from)
+[Panels](../shots/panels.md#where-the-flow-comes-from)
+
+## The film
 
 **13. A shot's frame rate divides the film's.** In a film at 24 frames a second, a shot
-may run at 8 or 12 frames a second, but not at 7. *Why:* each flow frame then lasts a
-whole number of output frames, so live plots over a layout stay in step.
-[Shots of a film](../film/film.md#shots)
+or panel box may run at 8 or 12 frames a second, but not at 7. *Why:* each flow frame
+then lasts a whole number of output frames, so the boxes of a scene stay in step.
+*Broken:* the film file does not load, naming the box's `rate`.
+[Shot boxes](../film/boxes.md#shot)
+
+**14. A scene's length is said once.** A scene with a shot or panel box lasts as long as
+its main box plays; a scene without one gives `seconds`, and a scene with one may not.
+*Why:* a length written beside the frames that set it could only disagree with them.
+*Broken:* the film file does not load, naming the scene and `seconds`.
+[Scenes](../film/film.md#scenes)
+
+**15. Shots are rendered before the film is built.** `film build` reads a shot box's
+frames; it does not render them. *Why:* rendering takes hours and belongs on a cluster
+(`shot render --submit`), while a build takes minutes and is run again and again.
+*Broken:* the build stops before encoding anything, naming the shot and the command that
+renders it. A shot without `size` is rendered at the size of its box.
+[Building the film](../making/build.md#length)
+
+**16. A box shows one thing.** Each box has exactly one of `text`, `image`, `shape`,
+`shot`, `panel` or `last_frame`; two names in a layout are never the same. *Why:* a box
+is the unit that is placed, timed and faded, so what it shows must be one thing.
+*Broken:* the film file (or the layout file) does not load, naming the box.
+[Layouts and boxes](../film/layouts.md#boxes)

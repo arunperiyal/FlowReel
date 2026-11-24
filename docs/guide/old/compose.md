@@ -1,12 +1,15 @@
 # Compose
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 `compose` puts several folders of frames and matplotlib panels together in one
 picture (plan Section 9). The pieces have their own pages:
 
 | Page | What |
 |---|---|
 | [Layouts](layouts.md) | tiles of frame folders, shots at several `stations`, panel tiles, `rate: output` |
-| [Panels](panels.md) | figures drawn per frame: `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` |
+| [Panels](../shots/panels.md) | figures drawn per frame: `series`, `phase`, `map`, `locator`, `section`, `cuts`, `strip` |
 | [Commands](../commands.md#compose-layout) | `flowreel compose layout` and `flowreel compose panel` |
 
 ## The AFMS comparison and lift map, from files

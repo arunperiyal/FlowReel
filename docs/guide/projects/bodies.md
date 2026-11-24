@@ -2,8 +2,9 @@
 
 A source's files say where a body's surface is and nothing else: not which way its span
 runs, how thick it is, or how its ends are held. FlowReel does not look for that in the
-solver's other files. It is written once, in the project's `flowreel.yml`, and every
-shot uses the body by its name.
+solver's other files. It is written once, under `bodies:` in the case's
+[`domain.yml`](data.md#domainyml) (`data/<tag>/domain.yml`), and every shot and panel of
+that tag uses the body by its name; across tags it is `tag.body`.
 
 Every body is a surface zone of the source (for `plt`, a surface zone of the PLT
 file). A slender one, given an `axis`, is a **beam body**: it has a span, a diameter,
@@ -15,12 +16,14 @@ Code: `flowreel.project` (`load_project`, `find_project`), `flowreel.project.bod
 (centre, centreline, diameter). A runnable example on generated data is
 `examples/bodies/run.py`.
 
-## The project file
+## Where bodies are declared
 
-A project is a folder with `flowreel.yml`. A shot uses the nearest one: in the shot
-file's own folder, or the nearest folder above it. So `films/afms/flowreel.yml` serves
-`films/afms/shots/carve.yml`. So far the file holds `bodies:`; other keys come with the
-phases that use them.
+Under `bodies:` in a tag's `domain.yml`. A shot of the tag (`source: bare`) sees them by
+their names; a panel of series sees every tag's, as `tag.body` where two tags meet
+([bodies across tags](data.md#shots-and-panels-name-a-tag)). Series paths are taken from
+the tag's folder (`series/force.csv`). Before tags they were written under `bodies:` in
+`flowreel.yml`, with the same keys; that is still read until it goes
+([reference values](project.md#reference-values)).
 
 ```yaml
 bodies:
@@ -40,8 +43,9 @@ bodies:
     ends: [{at: 0.0, support: clamped}, {at: 12.0, support: clamped}]
 ```
 
-`flowreel project init SOURCE` writes this block with one body per surface zone, its
-axis and diameter measured, and the supports left to fill ([commands](../commands.md#project-init)).
+`flowreel data import` writes this block with one body per surface zone, its axis and
+diameter measured, and the supports left to fill
+([bringing a case in](data.md#bringing-a-case-in)).
 
 ## A body
 
@@ -185,7 +189,7 @@ share a station.
 
 A new kind is a symbol function registered with
 `flowreel.scene.supports.register_support(name, keys=..., required=...)`, which also
-lets `flowreel.yml` accept it with its own keys.
+lets a body's `ends` accept it with its own keys.
 
 ## Series
 
@@ -228,7 +232,7 @@ In a project with tags, `flowreel data import history --path CASE --tag TAG` rea
 case's `othd_files/` and `oisd_files/` and writes each group as CSV under the tag's
 `series/`, declared under its body: no export needed
 ([histories from FlexFlow](data.md#histories-from-flexflow)). The rest of this section is
-for a project without tags.
+for CSV written by FlexFlow Analyzer itself.
 
 ### Exporting from FlexFlow Analyzer
 

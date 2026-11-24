@@ -9,12 +9,12 @@ large to load whole. This page gathers what FlowReel does about it (plan Section
 |---|---|
 | See the flow somewhere along the span | a **window**: `crop: {around: ...}` follows the body; only the window is read |
 | Travel along the span | the window's `station` is a track, and the camera's `follow` takes it |
-| See the shape of the whole span | the [`centreline`](../shots/layers-markers.md#centreline) layer, from the surface or the probes, with `amplify` |
+| See the shape of the whole span | the [`centreline`](layers-markers.md#centreline) layer, from the surface or the probes, with `amplify` |
 | Fit the whole span in a frame | `stretch` draws the model compressed along one axis, and says so in the frame |
 | Files too large to load | windowed reading of PLT files, and a memory check before rendering |
-| Several stations at once | a [`stations`](../composing/layouts.md#one-shot-at-several-stations-stations) layout tiles one shot at several stations |
-| Span against time, and where the window is | the [`map` and `locator`](../composing/panels.md#histories-along-a-long-body-map-and-locator) panels |
-| The flow across the body at several stations | the [`cuts`](../composing/panels.md#cuts) panel, and the [`section`](../composing/panels.md#section) panel at one station; both read through a window |
+| Several stations at once | a [`stations`](../old/layouts.md#one-shot-at-several-stations-stations) layout tiles one shot at several stations |
+| Span against time, and where the window is | the [`map` and `locator`](panels.md#histories-along-a-long-body-map-and-locator) panels |
+| The flow across the body at several stations | the [`cuts`](panels.md#cuts) panel, and the [`section`](panels.md#section) panel at one station; both read through a window |
 
 A runnable example on a generated case is `examples/long_span/run.py`: a channel 200
 long whose floor is the body, read through a window that travels along it, and the
@@ -69,7 +69,7 @@ wall is read the same way: only its own nodes.
 | `cache` | folder of the span index; `null` keeps it in memory only | `~/.cache/flowreel/windows` |
 
 ```yaml
-source: {adapter: plt, path: cases/riser500, margin: 2.0}
+source: {tag: riser500, margin: 2.0}     # the tag's plt reader, with a margin
 ```
 
 ## `stretch`

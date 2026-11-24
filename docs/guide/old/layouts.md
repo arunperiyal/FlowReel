@@ -1,5 +1,8 @@
 # Layouts
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 A layout puts several folders of frames side by side in one picture: two cases
 compared, a wake beside its plots, or one shot seen at several stations of a long body
 (plan Section 9.1). Each tile is a folder of `frame_00000.png` files, as
@@ -100,7 +103,7 @@ tiles:
 ```
 
 A `stations` entry makes one tile per station, from one shot of a long body (see
-[long bodies](../rendering/long-bodies.md)). The shot must move with a station: it crops around a
+[long bodies](../shots/long-bodies.md)). The shot must move with a station: it crops around a
 body (`crop: {around: ...}`) or its camera follows one (`camera: {follow: ...}`). For
 each station, FlowReel takes a copy of the shot with that station, fixed, in the crop's
 `around` and in the camera's `station` (when the camera gives its own; otherwise the
@@ -131,7 +134,7 @@ tiles:
   - {panel: panels/lift.yml, at: [1280, 0], size: [640, 1080]}
 ```
 
-A `panel` entry names a [panel file](panels.md). `compose.layout` draws the panel first,
+A `panel` entry names a [panel file](../shots/panels.md). `compose.layout` draws the panel first,
 into `OUT/<panel>/` (through `compose.panel`, which skips its own fresh frames), then
 tiles its frames by index like any folder of frames: composed frame *i* shows the
 panel's frame *i*, drawn at the panel's `times[i]`. Give the panel the times of the

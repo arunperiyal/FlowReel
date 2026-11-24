@@ -1,4 +1,4 @@
-# The opening card. Reference: docs/guide/film/cards.md.
+# The opening card. Reference: docs/guide/old/cards.md.
 blocks:
   - {title: ['Flow past a cylinder'], size: 76, y: 380}
   - {divider: 320, gap: 40}

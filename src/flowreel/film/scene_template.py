@@ -12,7 +12,7 @@ from flowreel.film.model import (DEFAULT_LOOKS, DIRECTIONS, FITS, KINDS, LOOKS, 
 from flowreel.film.schema import CORNERS, DEFAULT_SIZE, MATHS, TO_OUTPUT, Audio, Watermark
 from flowreel.film.template import _line, _v
 
-REFERENCE = "docs/guide/film/scenes.md"
+REFERENCE = "docs/guide/film/film.md"
 
 
 def _look_line(name: str, look: Look) -> str:

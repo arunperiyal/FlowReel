@@ -180,3 +180,16 @@ def test_a_panel_box_is_drawn_at_the_box_size(tmp_path):
     first, later = drawer.at(0.5), drawer.at(1.5)
     assert first.size == (640, 360) and later.size == (640, 360)
     assert np.asarray(first).tolist() != np.asarray(later).tolist()
+
+
+def test_the_points_boxes_follow_for_the_camera_editor(tmp_path):
+    (tmp_path / "shots").mkdir()
+    (tmp_path / "shots" / "w.yml").write_text(
+        "{name: wake, source: 'x:y', time: {frozen: 0}, layers: [{type: body}]}")
+    film = M.from_dict({"scenes": [{"name": "a", "layout": {"boxes": [
+        {"name": "main", "shot": "shots/w.yml"},
+        {"text": ["Groove", "0.08 D"], "follow": {"box": "main", "model": [6, 0.4, 0.2]}},
+        {"name": "tip", "shape": "arrow", "size": [40, 40], "follow": {"box": "main", "model": [1, 2, 3]}}]}}]},
+        file=str(tmp_path / "film.yml"))
+    assert B.follow_points(film, "wake") == [("Groove", (6.0, 0.4, 0.2)), ("tip", (1.0, 2.0, 3.0))]
+    assert B.follow_points(film, "other") == []

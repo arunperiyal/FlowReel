@@ -3,7 +3,7 @@
 A panel is a matplotlib figure drawn once per frame, at that frame's time: plots of
 lift moving along with the film, a dot at the current value (plan Section 9.2). A
 panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`, so a
-[layout](layouts.md) tiles them beside the flow.
+[layout](../old/layouts.md) tiles them beside the flow.
 
 A runnable example on generated histories is `examples/panels/run.py`; one on a
 generated flow is `examples/flow_panels/run.py`.
@@ -31,7 +31,7 @@ style: styles/film.yml
 frame shows. A panel and a shot with the same times then line up frame by frame in a
 layout. A list must not decrease. A layout can also tile a panel itself (`panel:
 FILE`), and draw it at the film's output rate, between flow frames
-([layouts](layouts.md#panels-at-the-output-rate-rate-output)).
+([layouts](../old/layouts.md#panels-at-the-output-rate-rate-output)).
 
 ## Style
 
@@ -144,7 +144,7 @@ pair up correctly.
 
 These two read a history at many points along a body: a series declared with `by` (the
 column that numbers the points) and `stations` (where each point is along the body),
-such as the riser's probes ([bodies](../projects/bodies.md), [long bodies](../rendering/long-bodies.md)). A
+such as the riser's probes ([bodies](../projects/bodies.md), [long bodies](long-bodies.md)). A
 runnable example on the generated riser case is `examples/riser500/panels.py`, which
 drew the picture above.
 
@@ -242,7 +242,7 @@ These three read the flow itself, not histories. A runnable example on a generat
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder |
-| `body` | string | the one body | the body, by its name in `flowreel.yml` or its zone |
+| `body` | string | the one body | the body, by its name in the tag's `domain.yml` or its zone |
 | `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../projects/fields.md)) |
 | `params` | mapping of numbers | the project's [`reference`](../projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |
 | `range` | `[low, high]` | required | the colours' range; values outside it take the end colours |
@@ -262,10 +262,10 @@ These three read the flow itself, not histories. A runnable example on a generat
 ### Cuts across a body
 
 `section` and `cuts` cut the flow across a body: the plane normal to the body's axis
-(declared in `flowreel.yml`, or its long axis), at a station along it. Only a slab of
+(declared in its tag's `domain.yml`, or its long axis), at a station along it. Only a slab of
 the step round the cut is read: `depth` each side of the plane, and the view plus
 `depth` in the plane. The slab is the source's crop, so a PLT file is read through a
-window ([long bodies](../rendering/long-bodies.md)), and a cut of a riser 500 diameters long reads
+window ([long bodies](long-bodies.md)), and a cut of a riser 500 diameters long reads
 a few diameters of it. A cell is read when it lies wholly in the slab, so `depth` must
 be larger than a cell; a cut that finds no cell says so.
 
@@ -388,7 +388,7 @@ friction changes sign where the flow leaves the wall).
   up direction follows from the side: seen from `+y` with the span along x, up is
   `-z`; seen from `-y`, up is `+z`.
 
-## Drawing: `compose.panel`
+## Drawing: `panel draw`, `compose.panel`
 
 ```python
 from flowreel import compose

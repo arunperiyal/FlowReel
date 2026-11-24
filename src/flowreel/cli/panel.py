@@ -20,7 +20,7 @@ EXAMPLES = {
   flowreel panel draw panels/lift.yml -j 4
   flowreel panel template --type map -o panels/liftmap.yml
 
-Reference: docs/guide/composing/panels.md and docs/guide/commands.md.""",
+Reference: docs/guide/shots/panels.md and docs/guide/commands.md.""",
     "draw": """examples:
   flowreel panel draw panels/lift.yml              every frame, into frames/lift/
   flowreel panel draw panels/lift.yml -j 8         eight runs of frames at once

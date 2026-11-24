@@ -154,7 +154,7 @@ shot below the root is an error that says to move it.
 | `direction_of` | a view name; with `fit`, required | | `direction_of: main` |
 | `margin` | number > 0; with `fit` | `1.1` | `margin: 1.3` |
 | `shape` | `picture` or `sphere`; with `fit` | `picture` | `shape: sphere` |
-| `follow` | a body name (declared in `flowreel.yml`, or a zone of the source), or `true` for the one body | | `{view: close, follow: riser, station: 6}` |
+| `follow` | a body name (declared in the tag's `domain.yml`, or a zone of the source), or `true` for the one body | | `{view: close, follow: riser, station: 6}` |
 | `station` | track, length unit along `axis`; with `follow`, required | | `{from: 2, to: 10, frames: [0, 120]}` |
 | `axis` | `x`, `y` or `z`, the body's long axis; with `follow` | the body's declared `axis`, else its measured long axis, else `z` | `axis: x` |
 | `motion` | boolean; with `follow` | `true` | `motion: false` |
@@ -183,7 +183,7 @@ camera keeps still while the body vibrates.
   the declared diameter, else 2% of the body's length but no more than a quarter of its
   width, so a long body is cut thin. With `motion: false` the centre is taken from the
   body at rest, so a vibrating body stays visibly moving. `station` may be a track. The
-  name is a body declared in the project's `flowreel.yml` ([bodies](../projects/bodies.md)) or a
+  name is a body declared in the tag's `domain.yml` ([bodies](../projects/bodies.md)) or a
   zone of the source; `follow: true` takes the one body there is (the only declared one,
   else the source's only zone).
 
@@ -205,4 +205,4 @@ white) and `specular` (default 0.3).
 
 `project(view, points, size)` returns the pixel `x` (right) and `y` (down from the top
 left) of model points, and their depth in front of the camera. It matches VTK's own
-projection, tested to 1e-6 px. Use it to place captions and arrows.
+projection, tested to 1e-6 px. Text and shape boxes that [follow a point](../film/layouts.md#follow-a-box-on-a-point-of-the-flow) use it.

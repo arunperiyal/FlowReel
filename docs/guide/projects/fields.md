@@ -73,8 +73,8 @@ Frobenius norms. `q = rho u_inf² / 2` is the reference dynamic pressure.
 - **`pressure_coefficient`**: 1 at a stagnation point of steady inviscid flow, negative
   where the pressure is below the free stream's (suction). `rho` and `u_inf` are
   required: a silent default of 1 would be wrong for a dimensional source. In a
-  project they can be given once, in `flowreel.yml`'s
-  [`reference`](project.md#reference-values), for every shot and panel.
+  project they are the tag's [units](data.md#units), given once in its `domain.yml`
+  for every shot and panel of the tag.
 
 ### Accuracy of the gradient
 

@@ -43,7 +43,7 @@ Or start FlowReel's shell with `flowreel` alone and type the commands without th
 FlowReel draws its frames off screen, so a machine without a display (a cluster node, an
 `ssh` session) renders the same frames. It picks the first back end that works: EGL on
 a GPU, OSMesa on the CPU, or X. `flowreel shot render --backend osmesa` forces one. See
-[rendering](../../guide/rendering/rendering.md).
+[rendering](../../guide/making/rendering.md).
 
 ## Check
 

@@ -123,7 +123,7 @@ by the section's length. The result is `fx, fy, fz`, a force per unit length on 
   `--sections N` (48), `--steps FIRST LAST`, `--every N`, `--margin L` (flow read round
   the wall, 0.5), `-j N` (steps at once, one process each).
 
-A [`map`](../composing/panels.md#map) panel draws it against the span and time.
+A [`map`](../shots/panels.md#map) panel draws it against the span and time.
 
 ## Shots and panels name a tag
 
@@ -164,7 +164,7 @@ rows:
 ```
 
 Naming `cyl` alone there is an error that lists `smooth.cyl` and `helical.cyl`. The
-bodies of `flowreel.yml`, while it still has them, are named as before.
+bodies of `flowreel.yml`, while it still has them, are named as before ([going](project.md#reference-values)).
 
 `project info` and `flowreel doctor` list the tags, and say when a tag's link does not
 resolve.
@@ -244,5 +244,5 @@ shot or a panel of the tag needs no `params` of its own.
 | `units.p_inf` | number | `0` | free-stream pressure |
 | `units.length` | number > 0 | none | the length lengths are shown in: the axes layer's `unit: diameters` |
 
-A shot's [frames are keyed](../rendering/rendering.md) by its tag's units too, so changing
+A shot's [frames are keyed](../making/rendering.md) by its tag's units too, so changing
 them draws the frames that use them again.

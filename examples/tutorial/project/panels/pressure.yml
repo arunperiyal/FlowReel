@@ -1,5 +1,5 @@
 # The pressure round the cylinder: filled contours, streamlines and the body, cut
-# across its axis (z). Reference: docs/guide/composing/panels.md.
+# across its axis (z). Reference: docs/guide/shots/panels.md.
 type: section
 name: pressure
 size: [1920, 1080]

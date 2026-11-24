@@ -127,7 +127,7 @@ while they do not change.
 ## `supports`
 
 How the declared bodies are held, drawn at their ends. The ends are not options of the
-layer: they are written once under each body in `flowreel.yml` ([bodies](../projects/bodies.md#supports)),
+layer: they are written once under each body in its tag's `domain.yml` ([bodies](../projects/bodies.md#supports)),
 so every shot of the project draws the same supports. Each symbol stands at the body's
 centre at its station **in that frame**, so it moves with a vibrating body, and is sized
 in **diameters** (the declared diameter, else measured), so it looks the same on a body
@@ -247,7 +247,7 @@ are drawn over the model, never hidden by it.
 | `origin` | `arrows` only, required: `[x, y, z]`, or `{body: NAME, end: 0 \| 1}` for the centre of the body's low (0) or high (1) end along its axis | | `{body: riser, end: 0}` |
 | `length` | track, `arrows`: length of an arrow, in `unit` | `1` | `3` |
 | `unit` | `model` or `diameters` (`arrows` and `ruled`) | `model` | `diameters` |
-| `body` | the body whose diameter is the unit: declared in `flowreel.yml`, else measured; default the project's [`reference.length`](../projects/project.md#reference-values) when given, else the `origin`'s body or the one body | | `riser` |
+| `body` | the body whose diameter is the unit: declared in its tag's `domain.yml`, else measured; default the tag's [`units.length`](../projects/data.md#units) when given, else the `origin`'s body or the one body | | `riser` |
 | `bounds` | `ruled` only: a box ([boxes](#boxes-bounds-and-in)) | `domain` | `{x: [0, 12], y: [-1.5, 1.5], z: [-1.5, 1.5]}` |
 | `ticks` | `ruled` only: spacing in `unit`, or `auto` | `auto` | `0.5` |
 

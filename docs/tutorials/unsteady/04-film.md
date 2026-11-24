@@ -26,7 +26,7 @@ The board's captions, `text/board.yml`:
 A caption is centred across the whole picture by default, and this picture has the
 panel on its right, so these are placed by pixels instead: `place: [x, y]` puts the
 caption's upper left corner there, and `align: left` lines its lines up on that
-edge ([captions](../../guide/film/captions.md)). The freeze's, `text/freeze.yml`, goes under the
+edge ([captions](../../guide/old/captions.md)). The freeze's, `text/freeze.yml`, goes under the
 shot, which ends at `y = 900`:
 
 ```yaml

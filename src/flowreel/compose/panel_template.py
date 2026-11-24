@@ -2,12 +2,12 @@
 
 Each template is a working example of its type, written for a project of tags (bodies
 named ``tag.body``, sources by tag), followed by the type's other keys, commented out.
-The keys and their meaning are in the guide (``docs/guide/composing/panels.md``).
+The keys and their meaning are in the guide (``docs/guide/shots/panels.md``).
 """
 from __future__ import annotations
 
 HEAD = """# A {type} panel, written by `flowreel panel template --type {type}`. Reference:
-# docs/guide/composing/panels.md#{anchor}. A panel is drawn with matplotlib; in a film of
+# docs/guide/shots/panels.md#{anchor}. A panel is drawn with matplotlib; in a film of
 # scenes, a panel box draws it at the box's size (`panel draw` draws its own frames).
 type: {type}
 size: {size}                         # width, height in pixels (a panel box uses its own)

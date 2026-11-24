@@ -374,3 +374,32 @@ class PanelDrawer:
             self._canvas.draw()
             return Image.frombuffer("RGBA", self._canvas.get_width_height(),
                                     self._canvas.buffer_rgba(), "raw", "RGBA", 0, 1).convert("RGB")
+
+
+def follow_points(film: Film, shot_name: str | None = None) -> list[tuple[str, tuple]]:
+    """The points of the flow that boxes of ``film`` follow, as ``(label, model)``: of
+    shot boxes showing the shot called ``shot_name`` (every shot box when ``None``). The
+    label is a text box's first line, else the box's name (for the camera editor)."""
+    from flowreel.scene.shot import load
+    names: dict = {}
+    out = []
+    for scene in film.scenes:
+        layout = scene.layout
+        for box in layout.boxes:
+            if box.follow is None:
+                continue
+            shot = layout.box(box.follow.box).content
+            if shot.file is None:
+                continue
+            if shot.file not in names:
+                try:
+                    names[shot.file] = load(shot.file).name
+                except Exception:                       # a shot that does not load
+                    names[shot.file] = None
+            if shot_name is not None and names[shot.file] != shot_name:
+                continue
+            label = box.content.lines[0] if box.kind == "text" else box.name
+            point = (label, box.follow.model)
+            if point not in out:
+                out.append(point)
+    return out

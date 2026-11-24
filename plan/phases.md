@@ -1081,7 +1081,7 @@ The decisions, for every branch:
   so the text's `size` and the box's `size: [w, h]` do not meet
 - [x] `film template` and a layout template, every key commented; the YAML reference
   (`film template --scenes` and `--layout` until branch 3 makes scenes the default)
-- [ ] Tests on generated films
+- [x] Tests on generated films
 
 **Branch 2: `phase10/boxes`** (drawing a frame of a scene)
 - [ ] Text boxes (lines, looks, shadow and box, maths), image boxes (fit, opacity), shape

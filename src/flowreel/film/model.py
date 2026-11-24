@@ -95,7 +95,7 @@ TEXT_KEYS = ("lines", "look", "subtitle") + LOOK_KEYS
 IMAGE_KEYS = ("file", "fit", "opacity")
 FITS = ("contain", "cover", "stretch")
 SHAPES = ("line", "arrow", "rectangle", "circle")
-SHAPE_KEYS = ("kind", "colour", "width", "fill", "head", "direction", "radius")
+SHAPE_KEYS = ("kind", "colour", "width", "fill", "head", "direction", "radius", "shadow")
 #: Which way a line or arrow crosses its box, from the middle of one side (or a corner)
 #: to the opposite one.
 DIRECTIONS = ("right", "left", "up", "down", "up_right", "up_left", "down_right", "down_left")
@@ -171,7 +171,8 @@ class Shape:
     """A shape box's content: a ``kind`` (:data:`SHAPES`) drawn in its box: a rectangle
     its outline (``radius`` rounds the corners), a circle the ellipse within it, a line or
     arrow across it in ``direction``. ``colour`` (``None``: the film's text colour), line
-    ``width`` and arrow ``head`` in pixels, ``fill`` (a colour, or ``None``)."""
+    ``width`` and arrow ``head`` in pixels, ``fill`` (a colour, or ``None``), and a soft
+    ``shadow`` as text has."""
 
     kind: str
     colour: str | None = None
@@ -180,6 +181,7 @@ class Shape:
     head: float = 18.0
     direction: str = "right"
     radius: float = 0.0
+    shadow: bool = False
 
 
 @dataclass(frozen=True)
@@ -598,7 +600,8 @@ def _shape(value, check: Checker, folder: Path, fps: int) -> Shape:
     return Shape(kind, colour, _positive(spec.get("width", 4.0), check.at("width"), zero=False),
                  fill, _positive(spec.get("head", 18.0), check.at("head"), zero=False),
                  check.at("direction").choice(spec.get("direction", "right"), DIRECTIONS),
-                 _positive(spec.get("radius", 0.0), check.at("radius")))
+                 _positive(spec.get("radius", 0.0), check.at("radius")),
+                 _bool(spec.get("shadow", False), check.at("shadow")))
 
 
 def _shot(value, check: Checker, folder: Path, fps: int) -> ShotBox:

@@ -187,6 +187,7 @@ Short: the kind. A shape is drawn in its box, so it is placed like any box.
 | `shape.head` | pixels | `18` | an arrow's head |
 | `shape.fill` | colour | none | inside a rectangle or circle; `#rrggbbaa` for see-through |
 | `shape.radius` | pixels | `0` | a rectangle's rounded corners |
+| `shape.shadow` | true or false | `false` | a soft shadow, as text has: an arrow over a picture stays readable |
 
 A divider is a `line` box a few pixels high. An arrow to a point of the flow is an arrow
 box with `follow`.
@@ -211,6 +212,21 @@ rendered beforehand (`shot render`, or on Slurm).
 |---|---|---|---|
 | `panel.file` | path | required | a panel file; the build draws it at the box's size, at the film's rate |
 | `last_frame` | a scene's name | required | that scene's last frame, held (give the scene `seconds`) |
+
+## How a frame is drawn
+
+A scene's frame at a time is its layout's background, then each box that shows at that
+time, the first at the back. A box with `at` fades in over its fade's first number and
+out over its second, and a text box with `at` and no `fade` takes its look's. A box
+without `at` shows for the whole scene and does not fade: the scene's own `fade` and
+`cross` take it in and out.
+
+Text is set as captions are, in the film's font with `$...$` as mathematics, and given
+a soft shadow or a dark box. A text box at `pos` in the `text` look draws the same
+pixels as a caption placed there, so captions move to text boxes unchanged. A shot's,
+panel's or held frame is fitted to its box, its aspect kept, and centred. A box that
+follows a point is left out of a frame where the point is behind the camera or off the
+picture.
 
 ## Errors
 

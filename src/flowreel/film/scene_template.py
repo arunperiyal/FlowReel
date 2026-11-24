@@ -125,7 +125,7 @@ def layout_template() -> str:
         _line("    at: [1.0, 6.0]", "seconds into the scene; end ~: to the scene's end"),
         _line(f"    fade: {_v(t.fade)}", "in and out; or [in, out]"),
         _line("  - name: pointer", ""),
-        _line("    shape: {kind: arrow, colour: ~, width: 4, head: 18, direction: down_left}",
+        _line("    shape: {kind: arrow, colour: ~, width: 4, head: 18, direction: down_left, shadow: true}",
               "kinds " + ", ".join(SHAPES) + "; directions " + ", ".join(DIRECTIONS)),
         _line("    follow: {box: main, model: [6, 0.42, 0.18]}", "the arrow's tip on the point"),
         _line("    size: [120, 90]", ""),

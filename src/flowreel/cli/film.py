@@ -72,6 +72,16 @@ def _project_film(store, namespace):
     return None if folder is None else str(Path(folder) / "film.yml")
 
 
+def _scenes(path) -> bool:
+    """Whether the film file at ``path`` is a film of scenes (``scenes:``)."""
+    from flowreel.film.model import is_scene_film
+    from flowreel.yamlfile import read_yaml
+    try:
+        return is_scene_film(read_yaml(path))
+    except Exception:
+        return False
+
+
 def _film_arg(parser):
     add_context_arg(parser, "project", "film", required=False, default="film.yml",
                     resolve=_project_film, metavar="FILM",
@@ -229,10 +239,16 @@ class FilmCommand(BaseCommand):
 
         def once():
             start = time.perf_counter()
-            built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
-                          preview=args.preview,
-                          crf=PREVIEW_CRF if args.crf is None else args.crf, only=args.only,
-                          panels={"jobs": args.jobs})
+            if _scenes(args.film):
+                from flowreel.film.scene_build import build as build_scenes
+                built = build_scenes(args.film, folder=args.clips, force=args.force,
+                                     mute=args.mute, preview=args.preview, crf=args.crf,
+                                     only=args.only)
+            else:
+                built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
+                              preview=args.preview,
+                              crf=PREVIEW_CRF if args.crf is None else args.crf, only=args.only,
+                              panels={"jobs": args.jobs})
             for line in built.table():
                 ctx.out(line)
             ctx.out(f"built in {time.perf_counter() - start:.1f} s")
@@ -253,6 +269,12 @@ class FilmCommand(BaseCommand):
         if args.columns < 1 or args.width < 2:
             raise CommandError("--columns must be at least 1 and --width at least 2")
         start = time.perf_counter()
+        if _scenes(args.film):
+            from flowreel.film.scene_build import contact as contact_scenes
+            path = contact_scenes(args.film, args.at, args.output, columns=args.columns,
+                                  width=args.width, folder=args.clips, force=args.force)
+            ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
+            return 0
         path = contact(args.film, args.at, args.output, columns=args.columns,
                        width=args.width, folder=args.clips, force=args.force,
                        panels={"jobs": args.jobs})
@@ -266,6 +288,8 @@ class FilmCommand(BaseCommand):
 
     def do_lengths(self, args, ctx):
         from flowreel.film.build import lengths
+        if _scenes(args.film):
+            from flowreel.film.scene_build import lengths
         for line in lengths(args.film, folder=args.clips).table():
             ctx.out(line)
         return 0
@@ -273,6 +297,15 @@ class FilmCommand(BaseCommand):
     def do_srt(self, args, ctx):
         from flowreel.film import load, timeline
         from flowreel.film.check import srt
+        if _scenes(args.film):
+            from flowreel.film.model import load as load_scenes
+            from flowreel.film.scene_build import plan, write_srt
+            line = plan(load_scenes(args.film))
+            if not line.subtitles:
+                raise CommandError("the film has no timed text boxes (a text box with 'at')")
+            path = write_srt(line, args.output)
+            ctx.out(f"wrote {path}: {len(line.subtitles)} subtitles")
+            return 0
         line = timeline(load(args.film))
         if not line.captions:
             raise CommandError("the film has no captions")
@@ -283,9 +316,14 @@ class FilmCommand(BaseCommand):
     def do_chapters(self, args, ctx):
         from flowreel.film import load, timeline
         from flowreel.film.chapters import youtube_notes, youtube_text
-        chapters = timeline(load(args.film)).chapters
+        if _scenes(args.film):
+            from flowreel.film.model import load as load_scenes
+            from flowreel.film.scene_build import plan
+            chapters = plan(load_scenes(args.film)).chapters
+        else:
+            chapters = timeline(load(args.film)).chapters
         if not chapters:
-            raise CommandError("the film has no chapters (a shot's 'chapter: TITLE')")
+            raise CommandError("the film has no chapters (a scene's or shot's 'chapter: TITLE')")
         text = youtube_text(chapters)
         for note in youtube_notes(chapters):
             ctx.warn(note)

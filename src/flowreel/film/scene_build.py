@@ -177,6 +177,7 @@ class Plan:
 
 def plan(film: Film) -> Plan:
     """Lay ``film`` out (see the module)."""
+    from flowreel.film.timeline import TimedChapter
     placed, start = [], 0.0
     for k, scene in enumerate(film.scenes):
         length = scene_length(scene, film)
@@ -189,7 +190,19 @@ def plan(film: Film) -> Plan:
         frames = round(length * film.fps)
         placed.append(Placed(scene, start, frames / film.fps, frames))
         start += frames / film.fps - scene.cross
-    return Plan(film, placed, placed[-1].end)
+    total = placed[-1].end
+    marks = [(p.start + p.scene.chapter.at, p) for p in placed if p.scene.chapter is not None]
+    chapters = [TimedChapter(p.scene.chapter.title, p.scene.name, at,
+                             marks[i + 1][0] if i + 1 < len(marks) else total)
+                for i, (at, p) in enumerate(marks)]
+    subtitles = []
+    for p in placed:
+        for box in p.scene.layout.boxes:
+            if box.kind == "text" and box.at is not None and box.content.subtitle:
+                end = p.length if box.at[1] is None else box.at[1]
+                subtitles.append(Subtitle(p.start + box.at[0], p.start + end, box.content.lines))
+    subtitles.sort(key=lambda s: s.start)
+    return Plan(film, placed, total, chapters, subtitles)
 
 
 # ---- pictures of timed boxes --------------------------------------------------------
@@ -494,3 +507,227 @@ class SceneBuilder:
             for t in timed.values():
                 t.close()
         os.replace(tmp, path)
+
+
+# ---- the film -----------------------------------------------------------------------
+
+def _join(plan_: Plan, clips: list[Path], out: Path, folder: Path) -> list:
+    """ffmpeg's inputs and mapping for the picture: the clips joined (see the module)."""
+    from flowreel.film.build import concat_list
+    if not any(p.scene.cross for p in plan_.scenes[:-1]):
+        listing = concat_list(clips, folder / "film_list.txt")
+        return ["-f", "concat", "-safe", 0, "-i", listing], ["-map", "0:v", "-c:v", "copy"]
+    from flowreel.film.clips import encode_args
+    picture = folder / "film_picture.mp4"
+    inputs, graph = [], []
+    for k, c in enumerate(clips):
+        inputs += ["-i", c]
+        graph.append(f"[{k}:v]settb=AVTB,setpts=PTS-STARTPTS[s{k}]")   # one timebase for all
+    cur = "[s0]"
+    for k in range(1, len(clips)):
+        before = plan_.scenes[k - 1].scene.cross
+        label = f"[v{k}]"
+        if before > 0:
+            graph.append(f"{cur}[s{k}]xfade=transition=fade:duration={before:g}:"
+                         f"offset={plan_.scenes[k].start:.6f}{label}")
+        else:
+            graph.append(f"{cur}[s{k}]concat=n=2:v=1:a=0{label}")
+        cur = label
+    ff.run(*inputs, "-filter_complex", ";".join(graph), "-map", cur,
+           *encode_args(plan_.film.fps), *QUALITY, picture)
+    return ["-i", picture], ["-map", "0:v", "-c:v", "copy"]
+
+
+def srt_text(plan_: Plan) -> str:
+    """The subtitles of ``plan_`` as a SubRip file's text."""
+    from flowreel.film.check import plain, srt_time
+    return "\n".join(
+        f"{k}\n{srt_time(s.start)} --> {srt_time(s.end)}\n"
+        + "\n".join(plain(line) for line in s.lines) + "\n"
+        for k, s in enumerate(plan_.subtitles, start=1))
+
+
+def write_srt(plan_: Plan, path: Path | None = None) -> Path:
+    """Write the subtitles of ``plan_`` (default beside the film: ``film.srt``)."""
+    from flowreel.film.check import srt_path
+    path = Path(path) if path is not None else srt_path(plan_.film.output)
+    path.write_text(srt_text(plan_), encoding="utf-8")
+    return path
+
+
+def build(film, *, folder=None, force: bool = False, mute: bool = False,
+          preview: int | None = None, crf: int | None = None, only: str | None = None):
+    """Build a film of scenes into its ``output`` (as
+    :func:`flowreel.film.build.build` does a film of shots; ``only`` names a scene).
+    Returns a :class:`~flowreel.film.build.Built`, its rows the scenes."""
+    from flowreel.film import chapters as ch
+    from flowreel.film.build import (PREVIEW_CRF, ShotLength, _check_preview, audio_graph,
+                                     only_path, plan_tracks, write_preview)
+    Built = scene_built()
+    from flowreel.film.model import load
+    film = film if isinstance(film, Film) else load(film)
+    crf = PREVIEW_CRF if crf is None else crf
+    if only is not None:
+        film.scene(only)
+        if preview is not None:
+            raise ValueError("preview: a preview copy is of the whole film, not one scene")
+    if preview is not None:
+        _check_preview(film, preview, crf)
+    builder = SceneBuilder(film, folder, force)
+    line = builder.plan
+    if only is not None:
+        clip = builder.clip(only)
+        out = only_path(Path(film.output), only)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(clip.path, out)
+        p = line.placed(only)
+        row = ShotLength(only, p.length, ff.length(clip.path), clip.built)
+        return Built(out, [row], p.length, row.measured, [], None, None, None)
+    rows, paths = [], []
+    for p in line.scenes:
+        clip = builder.clip(p.scene.name)
+        paths.append(clip.path)
+        rows.append(ShotLength(p.scene.name, p.length, ff.length(clip.path), clip.built))
+    measured = sum(r.measured for r in rows) - sum(p.scene.cross for p in line.scenes[:-1])
+    out = Path(film.output)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    args, maps = _join(line, paths, out, builder.folder)
+    notes, youtube = [], None
+    if line.chapters:
+        meta = builder.folder / "film_chapters.txt"
+        meta.write_text(ch.metadata_text(line.chapters, measured), encoding="utf-8")
+        args += ["-f", "ffmetadata", "-i", meta]
+        maps += ["-map_chapters", 1]
+        youtube = ch.chapters_path(out)
+        notes += ch.youtube_notes(line.chapters)
+    if film.audio and not mute:
+        plans = plan_tracks(film.audio, measured)
+        inputs, graph = audio_graph(plans, 2 if line.chapters else 1, measured)
+        args += inputs
+        maps += ["-filter_complex", graph, "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
+        for t in plans:
+            notes.append(f"audio {Path(t.audio.file).name}: {t.start:.2f} to {t.end:.2f} s "
+                         f"of the film (file {t.length:.2f} s)")
+    elif film.audio:
+        notes.append("audio: muted")
+    tmp = out.with_name(out.stem + ".part" + out.suffix)
+    ff.run(*args, *maps, "-t", f"{measured:.6f}", "-movflags", "+faststart", tmp)
+    os.replace(tmp, out)
+    copy = write_preview(film, out, preview, crf) if preview is not None else None
+    subtitles = write_srt(line) if line.subtitles else None
+    if youtube is not None:
+        youtube.write_text(ch.youtube_text(line.chapters), encoding="utf-8")
+    return Built(out, rows, line.length, measured, notes, copy, subtitles, youtube)
+
+
+def _scenes_table(lines: list[str]) -> list[str]:
+    """A report's lines with its first column headed ``scene``."""
+    head = lines[0]
+    return [head.replace("shot ", "scene", 1) if head.startswith("shot ") else head] + lines[1:]
+
+
+def scene_built():
+    """:class:`~flowreel.film.build.Built` for a film of scenes: its rows are scenes."""
+    from flowreel.film.build import Built
+
+    class SceneBuilt(Built):
+        def table(self) -> list[str]:
+            return _scenes_table(super().table())
+    return SceneBuilt
+
+
+def lengths(film, *, folder=None):
+    """Each scene's planned length and, when its clip is built and current, its
+    measured one, without building (``film lengths``): a
+    :class:`~flowreel.film.build.Lengths` whose rows are scenes, its measured film the
+    clips less the crosses."""
+    from flowreel.film.build import Lengths, ShotLength
+    from flowreel.film.model import load
+    film = film if isinstance(film, Film) else load(film)
+    builder = SceneBuilder(film, folder)
+    crosses = sum(p.scene.cross for p in builder.plan.scenes[:-1])
+
+    class SceneLengths(Lengths):
+        @property
+        def measured(self):
+            total = Lengths.measured.fget(self)
+            return None if total is None else total - crosses
+
+        def table(self):
+            return _scenes_table(super().table())
+
+    rows = []
+    for p in builder.plan.scenes:
+        path = builder.folder / f"scene_{p.scene.name}_{builder.key(p.scene.name)}.mp4"
+        rows.append(ShotLength(p.scene.name, p.length,
+                               ff.length(path) if path.is_file() else None, False))
+    return SceneLengths(rows, builder.plan.chapters, builder.plan.length)
+
+
+def contact(film, at: str = "caption", path: Path | None = None, *, columns: int = 4,
+            width: int = 480, folder=None, force: bool = False) -> Path:
+    """The contact sheet of a film of scenes (as :func:`flowreel.film.check.contact`):
+    stills at the middle of each timed text box (``caption``), of each freeze of a main
+    box (``freeze``), or ``every:S`` seconds, from the scenes' clips."""
+    from PIL import Image, ImageDraw
+
+    from flowreel.film.cards import font
+    from flowreel.film.check import contact_path, grab, plain
+    from flowreel.film.model import load
+    film = film if isinstance(film, Film) else load(film)
+    builder = SceneBuilder(film, folder, force)
+    line = builder.plan
+    stills = []                                   # (film time, scene, why)
+    if at == "caption":
+        for p in line.scenes:
+            for box in p.scene.layout.boxes:
+                if box.kind == "text" and box.at is not None:
+                    end = p.length if box.at[1] is None else box.at[1]
+                    stills.append((p.start + (box.at[0] + end) / 2, p, plain(box.content.lines[0])))
+    elif at == "freeze":
+        for p in line.scenes:
+            main = p.scene.layout.main
+            shift = 0.0
+            for f in (main.content.freezes if main is not None else ()):
+                stills.append((p.start + f.at + shift + f.hold / 2, p, "freeze"))
+                shift += f.hold
+    elif at.startswith("every:"):
+        try:
+            step = float(at.split(":", 1)[1])
+        except ValueError:
+            step = 0.0
+        if not step > 0:
+            raise ValueError(f"contact: 'every:S' needs a number of seconds above 0, got {at!r}")
+        for k in range(math.ceil(line.length / step - EPS)):
+            t = k * step
+            p = next((q for q in reversed(line.scenes) if q.start <= t + EPS), line.scenes[0])
+            stills.append((t, p, ""))
+    else:
+        raise ValueError(f"contact: at is 'caption', 'freeze' or 'every:S', got {at!r}")
+    if not stills:
+        raise ValueError(f"contact: the film has no {at.split(':')[0]}s to take stills at")
+    fw, fh = film.size
+    w = min(width, fw)
+    w -= w % 2
+    h = round(fh * w / fw)
+    label, gap = max(14, round(w / 28)), max(4, round(w / 60))
+    fnt = font("regular", label)
+    cols = max(1, min(columns, len(stills)))
+    rows = math.ceil(len(stills) / cols)
+    cell = h + label * 2 + gap
+    sheet = Image.new("RGB", (gap + cols * (w + gap), gap + rows * cell), (24, 24, 24))
+    draw = ImageDraw.Draw(sheet)
+    for k, (t, p, why) in enumerate(stills):
+        frame = min(int((t - p.start) * film.fps + EPS), p.frames - 1)
+        image = grab(builder.clip(p.scene.name).path, frame, (w, h))
+        x = gap + (k % cols) * (w + gap)
+        y = gap + (k // cols) * cell
+        sheet.paste(image, (x, y))
+        text = f"{t:.2f} s  {p.scene.name}" + (f"  {why}" if why else "")
+        while draw.textlength(text, font=fnt) > w and len(text) > 4:
+            text = text[:-2] + "…"
+        draw.text((x, y + h + label * 0.4), text, font=fnt, fill=(220, 220, 220))
+    path = Path(path) if path is not None else contact_path(film.output)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(path)
+    return path

@@ -1094,7 +1094,7 @@ The decisions, for every branch:
 **Branch 3: `phase10/scene-build`**
 - [x] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;
   fades and cross-fades; a clip per scene, cached by its key
-- [ ] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
+- [x] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
   chapters from scenes; the contact sheet
 - [ ] Tests: lengths planned and measured, one changed caption rebuilding one scene
 

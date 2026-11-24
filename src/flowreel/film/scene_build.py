@@ -93,7 +93,13 @@ def frame_files(folder: Path) -> list[Path]:
 
 def _shot_label(box: Box) -> str:
     c = box.content
-    return f"shot {c.file}" if c.file is not None else f"frames {c.frames}"
+    return f"shot {_tidy(c.file)}" if c.file is not None else f"frames {_tidy(c.frames)}"
+
+
+def _tidy(path) -> str:
+    """A path for a message: ``layouts/../shots/wake.yml`` as ``shots/wake.yml``."""
+    import os
+    return os.path.normpath(str(path))
 
 
 def playback(box: Box, film: Film) -> Playback:
@@ -105,8 +111,8 @@ def playback(box: Box, film: Film) -> Playback:
         folder = shot_frames(box)
         n = len(frame_files(folder))
         if not n:
-            hint = (f"; render it first: flowreel shot render {c.file}" if c.file is not None
-                    else "")
+            hint = (f"; render it first: flowreel shot render {_tidy(c.file)}"
+                    if c.file is not None else "")
             raise ValueError(f"box {box.name!r}: {_shot_label(box)} has no frames in "
                              f"{folder}{hint}")
     elif box.kind == "panel":

@@ -518,6 +518,18 @@ Links the case under `data/TAG/` (or copies it with `--copy`) and writes its mea
 OTHD and OISD groups to CSV in a tag that holds its flow, and declares them under its
 bodies ([histories from FlexFlow](projects/data.md#histories-from-flexflow)).
 
+## `data extract`
+
+```text
+flowreel data extract sections TAG [--body NAME] [--axis x|y|z] [--sections N]
+                      [--steps FIRST LAST] [--every N] [--margin L] [-j N] [--force]
+```
+
+Computes a series from a tag's flow into `data/TAG/series/` and declares it under the
+body. `sections` gives the force on equal sections along the body's axis, step by step,
+with the constants from the tag's units. Steps already in the file are kept
+([series from the flow](projects/data.md#series-from-the-flow-data-extract)).
+
 ## `data list`, `info`, `check`, `rename`, `remove`
 
 ```text

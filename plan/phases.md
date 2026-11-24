@@ -1112,19 +1112,24 @@ The decisions, for every branch:
 - [x] Its state tested without a window (as the camera editor's), and off screen
 
 **Branch 6: `phase10/docs`**
-- [ ] The guide restructured by the levels (Section 19.11's list), each page one level;
+- [x] The guide restructured by the levels (Section 19.11's list), each page one level;
   every page rewritten for tags and scenes; the rules page; the site's first page
 - [ ] The reference generator and its tests follow
 
-**Branch 7: `phase10/tutorials`**
+**Branch 7: `phase10/tutorials`** (branch 7 split in three, 2026-11-24, so each PR stays
+reviewable: the tutorials, then the examples, then the removal)
 - [ ] Both tutorials rewritten from scratch around the levels (a project and its data, a
   shot, a scene of one box, a layout of several, the film), on data tags; their data
   scripts write tags; their pictures made again; their follow-along tests
+
+**Branch 8: `phase10/examples`**
 - [ ] Every example and its test on tags and scenes
+
+**Branch 9: `phase10/remove-old`**
 - [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
   and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
-  tiles (Phase 10 branch 1 kept them so `main` kept building films; and the `compose`
-  command group)
+  tiles, and the `compose` command group (branches 1 and 4 kept them so `main` kept
+  building films); the guide's pages on it (`guide/old/`, branch 6)
 - [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
   `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
   and `--link` (Phase 9 kept them read so

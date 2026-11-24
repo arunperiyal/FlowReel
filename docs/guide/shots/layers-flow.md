@@ -126,7 +126,7 @@ The seeds:
 
 Each line runs `length` each way from its seed, or stops where it leaves the flow or the
 flow stops. `relative: true` traces the lines in the velocity relative to the body, so a
-moving body's wake is drawn as the body sees it, as the [section panel](../composing/panels.md)
+moving body's wake is drawn as the body sees it, as the [section panel](panels.md)
 draws its streamlines. The body's speed comes from its centre at the saved steps either
 side; `true` takes the body and station of `round` seeds, and with other seeds give
 `{body: NAME, station: S}`.

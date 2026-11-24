@@ -1,5 +1,8 @@
 # Building the film
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 `film.build` turns a [film file](film.md) into `film.mp4`: every
 shot's [finished clip](clips.md), joined in order, with the film's sound under it.
 From the command line it is `flowreel film build`, and the checks below are `film
@@ -204,9 +207,9 @@ sh examples/film_commands/run.sh /tmp/film_commands_example
 
 `examples/film_project/run.py` builds a silent film from a project folder of generated
 data, with what a real film uses: an opening card, the comparison of two cases as a
-[layout](../composing/layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
+[layout](layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
 text, the last frame held with its plots under a closing line, and a watermark of text.
-The cases and their wake frames come from the [comparison example](../composing/compose.md)
+The cases and their wake frames come from the [comparison example](compose.md)
 (`examples/compare/case_data.py`).
 
 ```bash

@@ -2,8 +2,8 @@
 
 FlowReel makes films of flow simulations from configuration files. Each shot (the data,
 the fields, the layers, the camera) is a YAML file. FlowReel renders the frames, on a
-laptop or on a cluster, and builds the film from one more file, with its cards,
-captions, freezes and sound. Every picture can be made again from the files that
+laptop or on a cluster, and builds the film from one more file: its scenes, each a
+layout of boxes (text, pictures, shapes, shots, plots), with its freezes and sound. Every picture can be made again from the files that
 describe it.
 
 ![A frame of the tutorial's film](tutorials/steady/images/04-camera.png)
@@ -25,15 +25,17 @@ the first.
 
 ## The user guide
 
-Each part of FlowReel, in the order a film is made:
+A film is described in levels, and the guide follows them, in the order a film is made:
 
-| Part | Pages |
+| Level | Pages |
 |---|---|
-| Projects and data | [projects](guide/projects/project.md), [the rules](guide/projects/rules.md) every project follows, [sources](guide/projects/sources.md) of data, [bodies](guide/projects/bodies.md), [derived fields](guide/projects/fields.md) |
-| Shots | [shot files](guide/shots/shots.md), [flow layers](guide/shots/layers-flow.md), [layers without flow data](guide/shots/layers-markers.md), [tracks](guide/shots/tracks.md) (values that change along a shot), [cameras](guide/shots/cameras.md), [the camera editor](guide/shots/camera-editor.md) |
-| Rendering | [rendering and caching](guide/rendering/rendering.md), [long bodies](guide/rendering/long-bodies.md), [Slurm](guide/rendering/slurm.md) |
-| Composing | [compose](guide/composing/compose.md), [layouts](guide/composing/layouts.md), [panels](guide/composing/panels.md) |
-| The film | [the film file](guide/film/film.md), [captions and shapes](guide/film/captions.md), [cards](guide/film/cards.md), [clips](guide/film/clips.md), [building the film](guide/film/build.md) |
+| The project and its data | [projects](guide/projects/project.md), [the rules](guide/projects/rules.md) every project follows, [data and tags](guide/projects/data.md) (each case under `data/<tag>/`), [sources](guide/projects/sources.md), [bodies](guide/projects/bodies.md), [derived fields](guide/projects/fields.md) |
+| Shots and panels | [shot files](guide/shots/shots.md), [flow layers](guide/shots/layers-flow.md), [layers without flow data](guide/shots/layers-markers.md), [tracks](guide/shots/tracks.md) (values that change along a shot), [cameras](guide/shots/cameras.md), [the camera editor](guide/shots/camera-editor.md), [long bodies](guide/shots/long-bodies.md), [panels](guide/shots/panels.md) (plots drawn with matplotlib) |
+| The film | [the film and its scenes](guide/film/film.md), [layouts and boxes](guide/film/layouts.md) (and the window that designs them), [boxes](guide/film/boxes.md): text, image, shape, shot, panel, a held frame |
+| Making it | [rendering and caching](guide/making/rendering.md), [Slurm](guide/making/slurm.md), [building the film](guide/making/build.md), [checking it](guide/making/check.md) |
+
+The film of shots that came before scenes (cards, caption files, tiled layouts,
+`compose`) is [described apart](guide/old/index.md) until it goes.
 
 ## The reference
 

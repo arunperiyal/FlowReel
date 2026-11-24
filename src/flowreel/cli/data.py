@@ -45,7 +45,7 @@ Reference: docs/guide/projects/data.md and docs/guide/commands.md.""",
   flowreel data extract sections bare --sections 96 --force
                                             start again with another count
 
-Draw it with a map panel (docs/guide/composing/panels.md#map).""",
+Draw it with a map panel (docs/guide/shots/panels.md#map).""",
     "list": """examples:
   flowreel data list""",
     "info": """examples:

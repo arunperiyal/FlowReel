@@ -79,37 +79,42 @@ nav:
           - 5. On a cluster: tutorials/unsteady/05-cluster.md
           - The data: tutorials/unsteady/data.md
   - User guide:
-      - Projects and data:
+      - The project and its data:
           - Projects: guide/projects/project.md
           - Rules: guide/projects/rules.md
           - Data and tags: guide/projects/data.md
           - Sources: guide/projects/sources.md
           - Bodies: guide/projects/bodies.md
           - Derived fields: guide/projects/fields.md
-      - Shots:
+      - Shots and panels:
           - Shot files: guide/shots/shots.md
           - Flow layers: guide/shots/layers-flow.md
           - Layers without flow data: guide/shots/layers-markers.md
           - Tracks: guide/shots/tracks.md
           - Cameras and lights: guide/shots/cameras.md
           - The camera editor: guide/shots/camera-editor.md
-      - Rendering:
-          - Rendering and caching: guide/rendering/rendering.md
-          - Long bodies: guide/rendering/long-bodies.md
-          - Rendering on Slurm: guide/rendering/slurm.md
-      - Composing:
-          - Compose: guide/composing/compose.md
-          - Layouts: guide/composing/layouts.md
-          - Panels: guide/composing/panels.md
+          - Long bodies: guide/shots/long-bodies.md
+          - Panels: guide/shots/panels.md
       - The film:
-          - A film of scenes: guide/film/scenes.md
-          - The film file: guide/film/film.md
-          - Captions and shapes: guide/film/captions.md
-          - Cards: guide/film/cards.md
-          - Clips: guide/film/clips.md
-          - Building the film: guide/film/build.md
+          - The film and its scenes: guide/film/film.md
+          - Layouts and boxes: guide/film/layouts.md
+          - Boxes: guide/film/boxes.md
+      - Making it:
+          - Rendering and caching: guide/making/rendering.md
+          - Rendering on Slurm: guide/making/slurm.md
+          - Building the film: guide/making/build.md
+          - Checking the film: guide/making/check.md
       - Worked example:
           - The reveal look: guide/reveal.md
+      - The film of shots (going):
+          - About these pages: guide/old/index.md
+          - The film file: guide/old/film.md
+          - Captions and shapes: guide/old/captions.md
+          - Cards: guide/old/cards.md
+          - Clips: guide/old/clips.md
+          - Building a film of shots: guide/old/build.md
+          - Compose: guide/old/compose.md
+          - Tiled layouts: guide/old/layouts.md
   - Reference:
       - Commands, by example: guide/commands.md
       - Every command and option: reference/commands.md

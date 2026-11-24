@@ -33,7 +33,7 @@ Every action reads and writes one cameras.yml: -c FILE, else the project's, at i
 root. Reference: docs/guide/commands.md, docs/guide/shots/camera-editor.md.""",
     "edit": """examples:
   flowreel camera edit wake.yml --track approach     a window on the shot's first step
-  flowreel camera edit wake.yml --track approach --film film.yml   with the captions' points
+  flowreel camera edit wake.yml --track approach --film film.yml   with the points boxes follow
   flowreel camera edit --vtp wake_vtp --track approach --frames 240 -c cameras.yml
                                                      away from the data (shot render --save-vtp)
 
@@ -279,10 +279,16 @@ class CameraCommand(BaseCommand):
     def _anchors(self, args, scene):
         if not args.film:
             return []
+        name = scene.shot.name if scene is not None else None
+        from flowreel.film.model import is_scene_film
+        from flowreel.yamlfile import read_yaml
+        if is_scene_film(read_yaml(args.film)):
+            from flowreel.film.boxes import follow_points
+            from flowreel.film.model import load as load_scenes
+            return follow_points(load_scenes(args.film), name)
         from flowreel.film import load
         from flowreel.film.anchors import anchors_for_frames
         film = load(args.film)
-        name = scene.shot.name if scene is not None else None
         out = []
         for s in film.shots:
             if s.kind == "frames" and (name is None or Path(s.source).name == name):

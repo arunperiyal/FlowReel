@@ -16,8 +16,10 @@ these functions. A runnable example on generated data is `examples/render_shot/r
 
 ## The source
 
-`render` and `render_frame` open the shot's `source: adapter:location` themselves; a
-relative location is taken from the shot file's folder, and `geometry:NAME` names a body.
+`render` and `render_frame` open the shot's `source` themselves: a tag of the shot's
+project, or (until it goes) `adapter:location`, a relative location taken from the shot
+file's folder. A shot without `size` is drawn at the size of the box that shows it in the
+film ([shot files](../shots/shots.md)).
 A source that needs more options (a vtk source with a separate body file) is built in code
 and passed as `source=`. With `jobs` processes the source is sent to each process, so it
 must pickle (a class defined at the top level of a module does).
@@ -29,7 +31,7 @@ must pickle (a class defined at the top level of a module does).
 | frames at the shot's size | `<out>/<shot name>/frame_00000.png` |
 | draft frames | `<out>/<shot name>@<W>x<H>/frame_00000.png` |
 | frame keys | `.keys.json` in each frame folder |
-| each frame's camera | `.views.json` in each frame folder: view, picture size and stretch, for [captions in the model](../film/captions.md#points-in-the-model) |
+| each frame's camera | `.views.json` in each frame folder: view, picture size and stretch, for boxes that [follow a point](../film/layouts.md#follow-a-box-on-a-point-of-the-flow) |
 | cached surfaces | `.flowreel/cache/surfaces/` at the project root; `<out>/.cache/surfaces/` outside a project |
 
 `out` defaults to `frames` (the commands use `frames/` at the project root,

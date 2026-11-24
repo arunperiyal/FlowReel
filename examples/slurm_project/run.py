@@ -11,7 +11,7 @@ Usage: python run.py [DIR]   (default ./slurm_project_example)
 3. `--submit --missing`: one task, for the frames left; nothing else is redrawn.
 4. `flowreel jobs status` lists the jobs.
 
-On a cluster the same commands, without the fake, submit real jobs (docs/guide/rendering/slurm.md).
+On a cluster the same commands, without the fake, submit real jobs (docs/guide/making/slurm.md).
 """
 import os
 import shutil

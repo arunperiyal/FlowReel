@@ -1,5 +1,5 @@
 # The freeze's caption, pinned to the top of the cylinder: a point in the model, so it
-# stays on the cylinder whatever the camera does. Reference: docs/guide/film/captions.md.
+# stays on the cylinder whatever the camera does. Reference: docs/guide/old/captions.md.
 - lines: ['The cylinder, diameter 1']
   place: {model: [2.5, 0.5, 0.05], offset: [60, -190]}
   size: 44

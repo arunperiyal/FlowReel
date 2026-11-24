@@ -23,7 +23,7 @@ EXAMPLES = {
   flowreel scene preview opening --at 2.5
   flowreel scene design compare
 
-Reference: docs/guide/film/scenes.md and docs/guide/commands.md.""",
+Reference: docs/guide/film/film.md and docs/guide/commands.md.""",
     "list": """examples:
   flowreel scene list                        the project's film.yml
   flowreel scene list films/short.yml""",
@@ -121,7 +121,7 @@ class SceneCommand(BaseCommand):
             raise CommandError(f"no film file {path} (flowreel film template --scenes)")
         if not is_scene_film(read_yaml(path)):
             raise CommandError(f"{path} is a film of shots; scenes are in a film with "
-                               "'scenes:' (docs/guide/film/scenes.md)")
+                               "'scenes:' (docs/guide/film/film.md)")
         return load(path)
 
     def do_list(self, args, ctx):

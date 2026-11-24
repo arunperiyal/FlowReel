@@ -1,5 +1,8 @@
 # Cards
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 A card is a still shot, such as an opening title or the credits at the
 end. It is a file of blocks placed down a background, not code, so a different
 competition's layout is a different file (plan Section 10.5). A film names it as a shot:

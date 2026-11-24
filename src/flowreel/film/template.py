@@ -34,8 +34,8 @@ def template(name: str = "my_shot", fps: int = 24) -> str:
     ``frames/<name>``), at ``fps`` frames a second."""
     st, cap, a, w = FilmStyle(), CaptionStyle(), Audio(file=None), Watermark()
     lines = [
-        "# Film file written by `flowreel film template`. Reference: docs/guide/film/film.md; captions",
-        "# and shapes: docs/guide/film/captions.md; cards: docs/guide/film/cards.md; the build: docs/guide/film/build.md.",
+        "# Film file written by `flowreel film template`. Reference: docs/guide/old/film.md; captions",
+        "# and shapes: docs/guide/old/captions.md; cards: docs/guide/old/cards.md; the build: docs/guide/old/build.md.",
         _line("output: film.mp4", "the film, from this file's folder"),
         _line(f"fps: {fps}", "frames a second of the film"),
         _line(f"size: {_v(DEFAULT_SIZE)}", "width, height in pixels"),

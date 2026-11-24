@@ -1,5 +1,8 @@
 # Captions, shapes and the watermark, drawn
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 A caption written in a text file (see [the film file](film.md#captions))
 becomes one transparent picture the size of the film, which the build lays over its
 shot with its own fades ([clips](clips.md)). The film's watermark is drawn the same way. This page
@@ -123,7 +126,7 @@ arrow follows its target while the camera moves. Code: `flowreel.film.anchors`.
 
 - **Which camera.** The one that drew the frame on screen. `shot render` records every
   frame's view, picture size and stretch in the frame folder (`.views.json`,
-  [rendering](../rendering/rendering.md#frames-and-folders)), so a camera track, `follow` or `fit`
+  [rendering](../making/rendering.md#frames-and-folders)), so a camera track, `follow` or `fit`
   is followed without saying so here. Why record rather than name the camera in the
   caption: a film shot names a folder of frames, not the shot file that drew them, and
   a camera moved by `follow` cannot be worked out again without the data. `view` or

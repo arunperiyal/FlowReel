@@ -11,10 +11,11 @@
 
 The commands are a thin layer over library functions (`flowreel.scene.render`,
 `flowreel.scene.memory.measure`, `flowreel.scene.template.template`,
-`flowreel.compose.layout`, `flowreel.compose.panel`, `flowreel.film.build.build`,
-`flowreel.film.check.contact`), so everything here can also be done from Python;
-[rendering](rendering/rendering.md), [layouts](composing/layouts.md), [panels](composing/panels.md) and
-[building the film](film/build.md) explain what those do. Runnable examples that need no
+`flowreel.compose.panel`, `flowreel.film.scene_build.build`,
+`flowreel.film.scene_build.contact`), so everything here can also be done from Python;
+[rendering](making/rendering.md), [panels](shots/panels.md),
+[building the film](making/build.md) and [checking it](making/check.md) explain what
+those do. Runnable examples that need no
 data are `examples/project/run.sh` (a [project](projects/project.md) made, used, looked at and
 cleaned), `examples/shot_commands/run.sh`, `examples/compose_commands/run.sh` and
 `examples/film_commands/run.sh` (that one needs ffmpeg). The
@@ -59,7 +60,7 @@ With `--slurm FILE` or `--submit`, the render becomes a Slurm job array instead 
 running here; see [Slurm options](#slurm-options).
 
 Renders the shot's frames to `DIR/<shot>/frame_00000.png`. Frames whose key did not
-change since they were drawn are skipped (see [rendering](rendering/rendering.md#frame-keys-what-is-drawn-again)).
+change since they were drawn are skipped (see [rendering](making/rendering.md#frame-keys-what-is-drawn-again)).
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -72,7 +73,7 @@ change since they were drawn are skipped (see [rendering](rendering/rendering.md
 | `-j N`, `--jobs N` | 1 | frames drawn at once, each in its own process |
 | `--threads T` | `min(4, cores / N)` | threads per job |
 | `--backend B` | `auto` | `auto` (OSMesa, else EGL), `osmesa`, `egl` or `x` |
-| `--no-memory-check` | off | draw even if the jobs look too big for the free memory ([long bodies](rendering/long-bodies.md#memory)) |
+| `--no-memory-check` | off | draw even if the jobs look too big for the free memory ([long bodies](shots/long-bodies.md#memory)) |
 | `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
 
 Drafts go to `DIR/<shot>@<W>x<H>/` and never mix with the full-size frames. Each frame is
@@ -114,7 +115,7 @@ flowreel shot memory [SHOT] [--frame N] [--scale S | --size W H] [--threads T] [
 
 Draws one frame in a fresh process, as `render` does, and reports its peak memory, the
 free memory and cores (this machine's, or in a Slurm job the job's; the brackets say
-which, see [rendering](rendering/rendering.md#inside-a-slurm-job)), and the number of jobs that
+which, see [rendering](making/rendering.md#inside-a-slurm-job)), and the number of jobs that
 fit (80% of the free memory, at most one per core, or cores / T with `--threads T`):
 
 ```text
@@ -170,7 +171,7 @@ Frame slider, press `s` to save a key. Keys: `s` save, `u` undo, `r` replace nea
 | `--track NAME` | required | the track to make, or to take up where it was left |
 | `--frames N` | the shot's frames | the track's length; needed with `--vtp` and no shot |
 | `--vtp DIR` | none | open surfaces saved by `shot render --save-vtp DIR` instead of the data |
-| `--film FILE` | none | mark the points in the model that this film's captions point at on the shot's frames |
+| `--film FILE` | none | mark the points of the flow that this film's boxes follow on the shot (or, in a film of shots, its captions point at) |
 | `--spline` | off | write the track with `path: spline` |
 | `--size W H` | `1280 720` | the window's size |
 
@@ -278,7 +279,7 @@ flowreel panel draw PANEL [--frames SPEC] [--force] [-j N] [-o DIR] [Slurm optio
 ```
 
 Draws a panel's own frames into `frames/<panel>/`, frame *i* at the panel's time *i*,
-skipping frames whose key did not change ([panels](composing/panels.md)); it replaces
+skipping frames whose key did not change ([panels](shots/panels.md)); it replaces
 `compose panel`, which stays until the film of shots goes. In a film of scenes a panel
 box needs no draw: the build draws the panel at the box's size.
 
@@ -298,7 +299,7 @@ flowreel scene list [FILM]
 ```
 
 Each scene of a film of scenes: where it starts, how long it lasts, its boxes (the main
-one marked), its layout file, chapter and cross ([a film of scenes](film/scenes.md)). A
+one marked), its layout file, chapter and cross ([a film of scenes](film/film.md)). A
 scene whose shot has no frames yet is listed with its length unknown, and says why.
 
 ## `scene preview`
@@ -320,16 +321,19 @@ flowreel scene design NAME [--grid PX] [--film FILM]
 
 A window to draw, move, resize, name and fill a scene's boxes, with the scene drawn at
 a time you choose; every change is checked and written at once
-([designing a layout](film/scenes.md#designing-a-layout-scene-design)).
+([designing a layout](film/layouts.md#designing-a-layout-scene-design)).
 
 ## `compose layout`
+
+Going, with the [film of shots](old/index.md) it serves: a layout of shot and panel boxes
+in a scene takes its place.
 
 ```text
 flowreel compose layout LAYOUT [--frames SPEC] [--scale S | --size W H] [--force]
                         [-j N] [-o DIR]
 ```
 
-Composes the frames of a [layout file](composing/layouts.md) into `DIR/<layout>/frame_00000.png`.
+Composes the frames of a [layout file](old/layouts.md) into `DIR/<layout>/frame_00000.png`.
 The shots of its `stations` tiles are rendered and its `panel` tiles drawn first, each
 skipping its own fresh frames; then each composed frame whose key did not change is
 skipped. A draft goes to `DIR/<layout>@<W>x<H>/`, with positions, tiles and labels
@@ -353,15 +357,17 @@ $ flowreel compose layout compare.yml --scale 0.5
 ```
 
 `rate: output` tiles are composed like any panel tile here; the film build draws them
-at its output frames ([layouts](composing/layouts.md#panels-at-the-output-rate-rate-output)).
+at its output frames ([layouts](old/layouts.md#panels-at-the-output-rate-rate-output)).
 
 ## `compose panel`
+
+Going: it is [`panel draw`](#panel-draw).
 
 ```text
 flowreel compose panel PANEL [--frames SPEC] [--force] [-j N] [-o DIR]
 ```
 
-Draws the frames of a [panel file](composing/panels.md) into `DIR/<panel>/frame_00000.png`,
+Draws the frames of a [panel file](shots/panels.md) into `DIR/<panel>/frame_00000.png`,
 frame *i* at the panel's time *i*. Frames whose key did not change are skipped. With
 `-j N` the frames are cut into N runs of consecutive frames, each drawn by its own
 process, which builds the figure once and moves it along in time.
@@ -388,12 +394,12 @@ flowreel film build [FILM] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
                     [--crf N] [--watch] [--clips DIR] [-j N]
 ```
 
-Builds the [film](film/film.md): every shot's [finished clip](film/clips.md), kept when its key
+Builds the [film](old/film.md): every shot's [finished clip](old/clips.md), kept when its key
 did not change, joined into the film's `output` with its sound and chapters; then
-`film.srt` and `chapters.txt` beside it ([building the film](film/build.md)). Prints each
+`film.srt` and `chapters.txt` beside it ([building the film](old/build.md)). Prints each
 shot's planned and measured length and whether its clip was built or kept.
 
-A film of scenes (`scenes:`, [a film of scenes](film/scenes.md)) is built a clip per
+A film of scenes (`scenes:`, [a film of scenes](film/film.md)) is built a clip per
 scene instead, and `--only` names a scene; `film check`, `lengths`, `srt` and `chapters`
 read it too. `-j` is for a film of shots' panels.
 
@@ -405,7 +411,7 @@ read it too. `-j` is for a film of shots' panels.
 | `--force` | off | build every clip again, even when its key did not change |
 | `--preview HEIGHT` | none | also write `film_<HEIGHT>p.mp4`, scaled to HEIGHT pixels (even, at most the film's) |
 | `--crf N` | `28` | quality of the preview copy, 0 to 51, lower is better and larger; needs `--preview` |
-| `--watch` | off | build, then build again on each change to a file the film may be made from, until Ctrl-C ([building as you edit](film/build.md#building-as-you-edit---watch)) |
+| `--watch` | off | build, then build again on each change to a file the film may be made from, until Ctrl-C ([building as you edit](old/build.md#building-as-you-edit---watch)) |
 | `--clips DIR` | `clips/` at the project root | folder of the clips |
 | `-j N`, `--jobs N` | `1` | processes drawing a layout's `rate: output` panels |
 
@@ -430,22 +436,20 @@ flowreel film check [FILM] [--at WHEN] [--columns N] [--width PX] [-o FILE] [--f
                     [--clips DIR] [-j N]
 ```
 
-Draws a [contact sheet](film/build.md#contact-sheet-contactpng): stills of the finished film,
-each labelled with its time and shot, the captions drawn as they show. Missing finished
-clips are built; the film is not joined, so the sheet comes before the build.
+Draws a [contact sheet](making/check.md#contact-sheet-contactpng): stills of the finished
+film, each labelled with its time and scene. Missing scene clips are built; the film is
+not joined, so the sheet comes before the build.
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--at WHEN` | `caption` | `caption` (the middle of each caption), `freeze` (the middle of each freeze) or `every:S` (every S seconds) |
+| `--at WHEN` | `caption` | `caption` (the middle of each timed text box), `freeze` (the middle of each freeze) or `every:S` (every S seconds) |
 | `--columns N` | `4` | stills across the sheet |
 | `--width PX` | `480` | width of a still, at most the film's |
 | `-o FILE`, `--output FILE` | `contact.png` beside the film | the sheet |
 
-`--force`, `--clips` and `-j` are those of `film build`.
-
-A caption with [points in the model](film/captions.md#points-in-the-model) that are hidden for
-a while (behind the camera or off the frame) is named in a warning, with its shot and
-the film times.
+`--force`, `--clips` and `-j` are those of `film build`. In a film of shots, a caption whose
+[point in the model](old/captions.md#points-in-the-model) is hidden for a while is named
+in a warning.
 
 ## `film lengths`
 
@@ -453,15 +457,13 @@ the film times.
 flowreel film lengths [FILM] [--clips DIR]
 ```
 
-Prints each shot's planned length, from the [timeline](film/film.md#the-timeline-filmtimeline),
-and its measured length, from its finished clip of the last build (`-` when it has
-none), then each chapter's start and length. Nothing is drawn or built, so it answers
-at once; a clip may be older than the film file, and `film build` reports the lengths
-of what it builds.
+Prints each scene's planned length and its measured length, from its clip when it is
+built and current (`-` when it is not), then each chapter's start and length
+([checking the film](making/check.md)). Nothing is drawn or built, so it answers at once.
 
 ```text
 $ flowreel film lengths
-shot     planned  measured
+scene    planned  measured
 opening    2.00 s    2.00 s
 wake       4.50 s    4.50 s
 end        2.00 s    2.00 s
@@ -478,8 +480,9 @@ Thanks       0:07     7.00 s    1.50 s
 flowreel film srt [FILM] [-o FILE]
 ```
 
-Writes the captions as [SubRip subtitles](film/build.md#subtitles-filmsrt) at their film
-times (default `film.srt` beside the film), maths as plain text. Nothing is built.
+Writes the timed text boxes as [SubRip subtitles](making/build.md#subtitles-filmsrt) at
+their film times (default `film.srt` beside the film), maths as plain text. Nothing is
+built.
 
 ## `film chapters`
 
@@ -487,7 +490,7 @@ times (default `film.srt` beside the film), maths as plain text. Nothing is buil
 flowreel film chapters [FILM] [-o FILE]
 ```
 
-Prints the [chapters](film/build.md#chapters) as `chapters.txt` holds them, `0:00 Title` per
+Prints the [chapters](making/build.md#chapters) as `chapters.txt` holds them, `0:00 Title` per
 line, ready for a YouTube description, or writes them to FILE. What YouTube would
 refuse (no chapter at 0:00, fewer than three, one shorter than 10 s) is noted on
 stderr, so the printed list can be piped. Nothing is built.
@@ -495,25 +498,29 @@ stderr, so the printed list can be piped. Nothing is built.
 ## `film template`
 
 ```text
-flowreel film template [NAME] [--fps N] [-o FILE] [--force]
+flowreel film template --scenes [NAME] [--fps N] [-o FILE] [--force]
+flowreel film template --layout [-o FILE] [--force]
 ```
 
-Prints a film file with every key at its default, each with a comment, and one frames
-shot `NAME` (default `my_shot`) reading `frames/NAME`. The defaults are taken from the
-code, so the file is always current; audio, a watermark, a card and a hold are written
-commented out.
+`--scenes` prints a film of scenes with every key at its default, each with a comment: a
+title scene, a scene of the shot `shots/NAME.yml` (default `my_shot`), and an end scene
+holding its last frame ([the film](film/film.md)). `--layout` prints a layout file with
+one box of each kind ([layouts and boxes](film/layouts.md)). The defaults are taken from
+the code, so the files are always current. Without either, it prints a film of shots
+([going](old/index.md)).
 
 ## `project init`
 
 ```text
-flowreel project init [SOURCE] [--body [NAME=]FILE ...] [--step N] [--link PATH] [-o DIR] [--force]
-flowreel project init --import plt|vtk:PATH --tag TAG [-o DIR]
+flowreel project init [--import plt|vtk:PATH --tag TAG] [-o DIR] [--force]
 ```
 
-With `--import`, the case comes in as a tag, as [`data import`](#data-import) does, and
-`flowreel.yml` declares no bodies: they are in `data/TAG/domain.yml`. Without it:
+Makes the project folder `DIR` ([projects](projects/project.md)) and, with `--import`,
+brings the first case in as a tag, as [`data import`](#data-import) does: its bodies and
+units are in `data/TAG/domain.yml`, and `cameras.yml`'s first view is fitted to it.
 
-Makes the project folder `DIR` ([projects](projects/project.md)): `shots/`, `text/`, `cards/`,
+Before tags, `project init SOURCE` read the bodies from a source into `flowreel.yml`;
+that form, described below, goes with the layout before tags. It makes the project folder `DIR` ([projects](projects/project.md)): `shots/`, `text/`, `cards/`,
 `assets/` and `data/`; `film.yml` (from `film template`) and `cameras.yml` (one view
 `main` of the whole domain) at the root, kept if they exist; a `.gitignore` for
 `frames/`, `clips/`, `.flowreel/` and `data/`; and `flowreel.yml` with one body per
@@ -526,18 +533,22 @@ has only comments.
 
 | Option | Default | Meaning |
 |---|---|---|
-| `SOURCE` | none | `adapter:location`: `plt:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
-| `--body [NAME=]FILE` | none | body file or pattern, for a source that reads it separately (`vtk`). Alone, `FILE` is the body `body`; `NAME=FILE` names it, and is given once per body: `--body cylinder=wall.vtp` |
-| `--step N` | the first | step whose surfaces are measured |
-| `--link PATH` | none | a symbolic link `DIR/data/<name of PATH>` to the data, made before `SOURCE` is read; data is never copied |
+| `--import KIND:PATH` | none | the first case, as `data import KIND --path PATH` brings it in; with `--tag` |
+| `--tag TAG` | none | its tag |
+| `SOURCE` (going) | none | `adapter:location`: `plt:CASE`, `vtk:flow.pvd`, `geometry:NAME` |
+| `--body [NAME=]FILE` (going) | none | body file or pattern, for a source that reads it separately (`vtk`). Alone, `FILE` is the body `body`; `NAME=FILE` names it, and is given once per body: `--body cylinder=wall.vtp` |
+| `--step N` (going) | the first | step whose surfaces are measured |
+| `--link PATH` (going) | none | a symbolic link `DIR/data/<name of PATH>` to the data, made before `SOURCE` is read; data is never copied |
 | `-o DIR`, `--out DIR` | `.` | project folder |
 | `--force` | off | overwrite an existing `flowreel.yml` and replace a data link; `film.yml` and `cameras.yml` are kept |
 
 ```text
-$ flowreel project init geometry:grooved_cylinder -o carve
+$ flowreel project init -o carve --import plt:/scratch/carve/binary --tag carve
+linked carve/data/carve/plt -> /scratch/carve/binary
+wrote carve/data/carve/domain.yml: fill in the units
 made carve: shots/ text/ cards/ assets/ data/
 wrote carve/film.yml, carve/cameras.yml, carve/.gitignore
-wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
+wrote carve/flowreel.yml; the case's bodies and units are in data/carve/domain.yml
 ```
 
 ## `project info`
@@ -546,9 +557,9 @@ wrote carve/flowreel.yml: 1 body (grooved_cylinder); fill in the supports
 flowreel project info [DIR]
 ```
 
-Prints what the project holds: its data links, the sources its shots read, the bodies
-of `flowreel.yml`, every shot file with the frames drawn for it, the views and tracks of
-`cameras.yml`, the film's shots and planned length, and the size of `frames/`, `clips/`
+Prints what the project holds: its tags, the sources its shots read, the bodies (of
+the tags, as `tag.body`), every shot file with the frames drawn for it, the views and tracks of
+`cameras.yml`, the film's scenes and layout files, and the size of `frames/`, `clips/`
 and `.flowreel/`. A file that does not load is listed with its error. Nothing is
 changed. `DIR` is any folder in the project (default: the shell's project, else the
 current folder).
@@ -623,17 +634,18 @@ that is a symbolic link is skipped, since what it points to may be shared.
 
 ## Slurm options
 
-`shot render`, `compose layout`, `compose panel` and `film build` run as Slurm jobs when
+`shot render`, `panel draw` and `film build` (and, until they go, `compose layout` and
+`compose panel`) run as Slurm jobs when
 given `--slurm FILE` (write the job script to FILE) or `--submit` (write it, to
 `jobs/NAME.sh` unless `--slurm` names one, and hand it to `sbatch`). The job runs the
-same command in this folder, from this environment. See [Slurm](rendering/slurm.md) for how a
+same command in this folder, from this environment. See [Slurm](making/slurm.md) for how a
 render is sized and split.
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--slurm FILE` | | write the job script to FILE |
 | `--submit` | off | submit it with `sbatch`; prints the job id and the log |
-| `--cluster NAME` | `FLOWREEL_CLUSTER`, else this host's | the cluster of [the partition table](rendering/slurm.md#clusters-and-partitions) |
+| `--cluster NAME` | `FLOWREEL_CLUSTER`, else this host's | the cluster of [the partition table](making/slurm.md#clusters-and-partitions) |
 | `--partition NAME` | the shortest that takes the job | the partition |
 | `--time T` | estimated for a render, 2 h otherwise | `90m`, `3h`, `1-12:00:00` |
 | `--mem SIZE` | worked out for a render, 16 GB otherwise | `32G`, `500M` |
@@ -660,13 +672,13 @@ wrote jobs/reveal.sh (job array of 1 task)
 submitted job 1311; log logs/reveal_1311_*.log
 ```
 
-A film as a chain: render the shots, then compose after them, then build after that.
+A film as a chain: render the shots, then build the film after them (the build draws
+the panel boxes itself).
 
 ```bash
-flowreel shot render bare_panel.yml --submit          # job 1320
-flowreel shot render helical_panel.yml --submit       # job 1321
-flowreel compose layout compare.yml --submit --after 1320 --after 1321 -j 16 --cpus 16   # 1322
-flowreel film build --submit --after 1322 --preview 480
+flowreel shot render bare_wake.yml --submit           # job 1320
+flowreel shot render helical_wake.yml --submit        # job 1321
+flowreel film build --submit --after 1320 --after 1321 --preview 480
 ```
 
 ## `jobs partitions`, `jobs check`, `jobs status`

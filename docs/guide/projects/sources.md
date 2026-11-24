@@ -298,7 +298,7 @@ lift = src.series("force")
 | `volume` | text | found in the file | name of the volume zone; default the first zone of tetrahedra or bricks |
 | `body` | text or list | found in the file | name of the wall zone, or several; default every zone of triangles or quadrilaterals. Examples: `cyl`, `[wing, flap]` |
 | `nen` | integer | from the file | nodes per element of the volume zone, when the file's zone type is wrong |
-| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](../rendering/long-bodies.md#reading-only-the-window) |
+| `window`, `margin`, `cache` | | `true`, `0`, `~/.cache/flowreel/windows` | read a crop through a window: see [long bodies](../shots/long-bodies.md#reading-only-the-window) |
 | `name` | text | `plt` | label of the source |
 
 - **Time** is the solution time stored in each file.
@@ -310,8 +310,9 @@ lift = src.series("force")
   `flowreel.fields` for vorticity and Q instead.
 - **Crop** keeps the cells with every node inside the box. It is read through a window:
   only the box's nodes of the asked variables leave the disk ([long
-  bodies](../rendering/long-bodies.md#reading-only-the-window)).
-- **Series:** a body's time histories come from CSV files declared in `flowreel.yml`
+  bodies](../shots/long-bodies.md#reading-only-the-window)).
+- **Series:** a body's time histories come from CSV files declared under the body in its
+  tag's `domain.yml` (or, before tags, `flowreel.yml`)
   ([bodies](bodies.md#series)), for any number of bodies and whatever wrote them. As a
   quick look at a FlexFlow case with one body, the adapter also reads FlexFlow's own:
   `displacement` from `othd_files/*.othd` (columns `time`, `probe`, `dx`,

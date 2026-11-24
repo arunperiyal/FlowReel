@@ -1,5 +1,8 @@
 # Clips: each shot encoded once
 
+!!! note "Going"
+    This page is about the film of shots, which a [film of scenes](../film/film.md) replaces; it goes when nothing uses it ([about these pages](index.md)).
+
 Before the film is [joined](build.md), every shot becomes two clips in
 `clips/` at the project root ([projects](../projects/project.md); beside the film file outside a
 project):
@@ -71,7 +74,7 @@ AFMS film did.
    half its time on screen). Because the fades came first, a caption can sit on black.
    A caption running across a cut shows to the end of its first shot and from the start
    of the next without a fade at the cut.
-3. **The film's watermark**, on the shots and seconds it [shows on](captions.md#the-watermark).
+3. **The film's watermark**, on the shots and seconds it [shows on](../film/film.md#the-watermark).
 
 Captions are converted to BT.709 before they are laid on, so `'#ff0000'` stays red.
 

@@ -29,9 +29,10 @@ VTK's own meaning of these four letters (`s` surface, `r` reset camera, `u` user
 `q` quit, `f` fly to the point under the mouse).
 
 The line at the top says how many views are saved, the frame and the step, and what the
-last key did. The film's points in the model (captions and shapes [anchored](../film/captions.md#points-in-the-model)
-to the shot's frames) are shown as small yellow markers with their caption's first line,
-so a view can leave room for the words.
+last key did. The film's points in the model (text and shape boxes that
+[follow a point](../film/layouts.md#follow-a-box-on-a-point-of-the-flow) of the shot) are
+shown as small yellow markers with their box's name or first line, so a view can leave
+room for the words.
 
 ## What is written
 

@@ -28,7 +28,7 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `source` | a tag; `{tag, ...options}`; `adapter:location`; or a mapping of the adapter's options with `adapter` | required | `source: bare` |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` |
-| `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` |
+| `size` | `[width, height]`, whole pixels | the size of the box that shows it in a film of scenes; else `[1920, 1080]` | `size: [1280, 720]` |
 | `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](../rendering/long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` |
 | `background` | colour | `black` | `background: '#101010'` |
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` |

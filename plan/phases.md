@@ -1103,7 +1103,7 @@ The decisions, for every branch:
   drawing at the size of the box that shows the shot unless the shot gives `size`.
   `compose` stays until branch 7 with the film of shots it serves (decided while
   implementing, 2026-11-24)
-- [ ] Help, the command reference, the doctor and `project info` (scenes, layouts)
+- [x] Help, the command reference, the doctor and `project info` (scenes, layouts)
 
 **Branch 5: `phase10/scene-design`**
 - [ ] `scene design NAME`: a matplotlib window on the scene's layout: draw, move and

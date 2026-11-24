@@ -312,6 +312,16 @@ Stills of one scene, as the build draws its frames (before the scene's fades), i
 encoded, so a layout's places and text are seen in seconds. Shot boxes need their
 frames; a held last frame shows once its scene's clip is built.
 
+## `scene design`
+
+```text
+flowreel scene design NAME [--grid PX] [--film FILM]
+```
+
+A window to draw, move, resize, name and fill a scene's boxes, with the scene drawn at
+a time you choose; every change is checked and written at once
+([designing a layout](film/scenes.md#designing-a-layout-scene-design)).
+
 ## `compose layout`
 
 ```text

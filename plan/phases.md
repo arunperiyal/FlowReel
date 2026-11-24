@@ -1106,10 +1106,10 @@ The decisions, for every branch:
 - [x] Help, the command reference, the doctor and `project info` (scenes, layouts)
 
 **Branch 5: `phase10/scene-design`**
-- [ ] `scene design NAME`: a matplotlib window on the scene's layout: draw, move and
+- [x] `scene design NAME`: a matplotlib window on the scene's layout: draw, move and
   resize boxes, snap to a grid and to edges; name and fill boxes; previews of their
   contents; a time slider; saving the layout inline or to its file
-- [ ] Its state tested without a window (as the camera editor's), and off screen
+- [x] Its state tested without a window (as the camera editor's), and off screen
 
 **Branch 6: `phase10/docs`**
 - [ ] The guide restructured by the levels (Section 19.11's list), each page one level;

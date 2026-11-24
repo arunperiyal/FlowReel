@@ -229,6 +229,32 @@ panel's or held frame is fitted to its box, its aspect kept, and centred. A box 
 follows a point is left out of a frame where the point is behind the camera or off the
 picture.
 
+## Designing a layout: `scene design`
+
+```text
+flowreel scene design compare
+```
+
+A window on one scene's layout, drawn as the build draws it at the *Time* slider's
+moment: shots' frames, panels, pictures and text, with each box's outline and name over
+them.
+
+- **Drag on empty space** to draw a box (a text box, to fill); **drag a box** to move it;
+  **drag a corner** of the selected box to resize it. Edges, and a box's centre, snap
+  to other boxes' edges and centres and to the frame's within 8 pixels, else to the grid
+  (`--grid`, 20 pixels; `g` turns it off).
+- **Name and fill** the selected box in the panel on the right: its kind, and a line of
+  content (a text's lines with `|` between them; a file for an image, shot or panel; a
+  shape's kind; a scene's name for `last_frame`), then *Apply*.
+- **Keys:** `u` undo, `delete` remove the selected box, `t` the next second.
+
+Every change is checked as the film would read it and written at once: to the layout's
+file, or for a layout written in the scene, to that scene's `layout:` block of
+`film.yml`, the rest of the file, comments and all, as it was. A change that would not
+read is not made, and the status line says why. A box moved or resized is written with
+`pos` and `size` (a `place` becomes them); a box that follows a point of the flow is
+placed by the flow, so it is not moved by hand.
+
 ## Building it
 
 `flowreel film build` makes a clip per scene, then the film.

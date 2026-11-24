@@ -775,6 +775,31 @@ examples:
   flowreel scene preview compare --every 2   a still every 2 seconds
 ```
 
+### `flowreel scene design`
+
+```text
+usage: flowreel scene design [-h] [--grid PX] [--film FILM] NAME
+
+Open a window on one scene's layout, drawn as the build draws it at the Time
+slider's moment. Drag on empty space to draw a box, drag a box to move it, a
+corner to resize it; edges snap to other boxes, the frame and the grid. The
+panel names and fills the selected box. Every change is checked and written at
+once: to layouts/NAME.yml, or to the scene's layout block in film.yml. Keys: u
+undo, delete remove, g grid, t the next second.
+
+positional arguments:
+  NAME         the scene
+
+options:
+  -h, --help   show this help message and exit
+  --grid PX    snap to a grid of PX pixels (default 20; 0 for none)
+  --film FILM  the film file (default the project's film.yml)
+
+examples:
+  flowreel scene design opening              a window on the scene's layout
+  flowreel scene design compare --grid 10    snap to a 10-pixel grid (0: none)
+```
+
 ## `compose`
 
 Compose layouts and draw panels.

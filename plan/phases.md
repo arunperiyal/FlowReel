@@ -985,7 +985,7 @@ The decisions, for every branch:
   too; bodies as `tag.body` where tags meet; `source: adapter:path` still read until
   Phase 10's last branch removes it
 - [x] Frame keys, `project info`, the doctor and the camera editor follow
-- [ ] Tests, docs, the YAML reference
+- [x] Tests, docs, the YAML reference
 
 **Branch 6: `phase9/data-migrate`** (moved to Phase 10, 2026-11-24)
 - [x] Moved: the tutorials, the examples and the docs change once for both phases, in

@@ -19,7 +19,7 @@ data/
 name their zones alike: the AFMS film's smooth and grooved cylinders are both `cyl`. A
 body, its units and its series belong to its case, so each tag declares its own, and two
 tags may both have a body called `cyl`. Shots name a tag, so a shot file does not change
-when the case moves (`source: TAG` in shots comes with a later branch of Phase 9).
+when the case moves ([below](#shots-and-panels-name-a-tag)).
 
 ## Bringing a case in
 
@@ -124,6 +124,50 @@ by the section's length. The result is `fx, fy, fz`, a force per unit length on 
   the wall, 0.5), `-j N` (steps at once, one process each).
 
 A [`map`](../composing/panels.md#map) panel draws it against the span and time.
+
+## Shots and panels name a tag
+
+```yaml
+# shots/wake.yml
+source: smooth                       # the tag: data/smooth/
+```
+
+```yaml
+source: {tag: smooth, margin: 1.0}   # with a reading option of the tag's kind
+```
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `source.tag` | tag name | required in the mapping form | the case, under `data/<tag>/`; `source: bare` alone says the same |
+| `source.kind` | `plt`, `vtk` or `geometry` | the tag's | the tag's kind, checked: another is an error |
+
+Other keys of the mapping are reading options of the tag's kind ([`source`](#source)).
+
+A shot (and a flow panel: `section`, `cuts`, `strip`) whose `source` is a tag reads the
+case as its `domain.yml` says: the reader and its options, the bodies, and the units as
+the parameters of the derived fields (a pressure coefficient needs no `params`). The
+mapping form adds reading options of the tag's kind ([`source`](#source)). It may say the
+`kind` too, which must be the tag's. A shot's frames are keyed by the tag's kind, options
+and units, so editing them draws the frames again.
+
+**Bodies across tags.** Within a shot, a body is named as its tag names it (`body: cyl`).
+A panel of series is not tied to one case, so its bodies come from every tag. There a
+body is `tag.body`, and a body's own name is enough when only one tag has it:
+
+```yaml
+# panels/lift.yml: the two cylinders, both declared as cyl in their tags
+type: series
+rows:
+  - lines:
+      - {body: smooth.cyl, series: force, column: fy, label: smooth}
+      - {body: helical.cyl, series: force, column: fy, label: helical}
+```
+
+Naming `cyl` alone there is an error that lists `smooth.cyl` and `helical.cyl`. The
+bodies of `flowreel.yml`, while it still has them, are named as before.
+
+`project info` and `flowreel doctor` list the tags, and say when a tag's link does not
+resolve.
 
 ## Looking after the tags
 

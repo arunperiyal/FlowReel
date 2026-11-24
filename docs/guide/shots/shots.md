@@ -25,7 +25,7 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | Key | Type | Default | Example |
 |---|---|---|---|
 | `name` | string | required | `name: bare_reveal` |
-| `source` | `adapter:location`, or a mapping of the adapter's options with `adapter` | required | `source: vtk:run/flow.pvd` |
+| `source` | a tag; `{tag, ...options}`; `adapter:location`; or a mapping of the adapter's options with `adapter` | required | `source: bare` |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` |
 | `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` |
@@ -37,7 +37,12 @@ Code: `flowreel.scene.shot` (`load`, `from_dict`), `flowreel.scene.timing`,
 | `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](../film/captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below |
 
-`source` in its short form gives the adapter one location (a path, or a body name for
+`source: bare` names a [tag](../projects/data.md#shots-and-panels-name-a-tag), a case of
+the project under `data/bare/`: the shot then reads it with the tag's bodies and units,
+and a reading option goes in the mapping form, `source: {tag: bare, margin: 1.0}`. The
+forms below name the files themselves; they are kept until the tutorials move to tags.
+
+`source: adapter:location` gives the adapter one location (a path, or a body name for
 `geometry`). When the adapter needs more, write the mapping form: `adapter` plus the
 adapter's options ([sources](../projects/sources.md)), for example
 `source: {adapter: vtk, path: "flow_*.vti", body: body.vtp}`. A relative `path`, and a
@@ -47,7 +52,8 @@ folder, so a shot and its data can move together.
 `crop` is passed to the source, which applies it while reading where the format allows, so
 a small box also means less memory. `camera` takes a view, a camera track or a fit, and
 may follow a body; its keys are in [cameras](cameras.md#a-shots-camera). Body names in
-layers and in `follow` are those declared in the project's `flowreel.yml`, or the
+layers and in `follow` are those declared in the tag's `domain.yml` (or the project's
+`flowreel.yml`), or the
 source's own zone names ([bodies](../projects/bodies.md)). Without
 `lights` the shot keeps VTK's own light kit, which the reveal's golden frame was drawn
 with. To render a shot, see [rendering](../rendering/rendering.md).

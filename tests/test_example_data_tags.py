@@ -16,6 +16,9 @@ def test_example_imports_checks_renames_and_removes(tmp_path):
     assert "othd group 0: series/othd_0.csv, 12 rows, 3 nodes; declared as cyl's displacement" in out
     assert "oisd group 0: series/oisd_0.csv, 4 rows; declared as cyl's force" in out
     assert "declared as cyl's sections in data/smooth/domain.yml" in out
+    assert "4 drawn, 0 skipped" in out and "frames/liftmap" in out
+    assert "tags:    grooved (plt, 2 steps); smooth (plt, 4 steps)" in out
+    assert "shots/wake.yml: wake" in out
     assert "renamed data/grooved/ to data/helical/" in out
     assert "the case itself is untouched" in out
     assert list((tmp_path / "ex" / "cases" / "grooved" / "case").glob("*.plt"))

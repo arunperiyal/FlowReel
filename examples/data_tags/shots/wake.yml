@@ -1,0 +1,8 @@
+# A shot of the tag smooth: its reader, bodies and units come from data/smooth/domain.yml.
+name: wake
+source: smooth
+time: {frozen: 0}
+camera: {view: main}
+layers:
+  - {type: body, body: cyl}
+  - {type: slice, normal: x, position: 2.0, field: pressure_coefficient, range: [-1, 1]}

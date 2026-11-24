@@ -1,0 +1,13 @@
+# The sectional force of the smooth cylinder against the span and time, from the series
+# `flowreel data extract sections smooth` wrote into the tag (run.py). The body is named
+# smooth.cyl, since two tags of the project both have a body cyl.
+type: map
+size: [960, 360]
+times: [0, 0.5, 1.0, 1.5]
+x: {label: '$t$'}
+y: {label: 'Span $x/D$'}
+rows:
+  - {body: smooth.cyl, series: sections, column: fz, title: 'Sectional force $f_z$'}
+colormap: fire_ice
+range: [-1, 1]
+colorbar: {label: '$f_z$'}

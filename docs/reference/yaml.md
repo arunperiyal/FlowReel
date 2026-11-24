@@ -16,7 +16,7 @@ Guide: [guide/shots/shots](../guide/shots/shots.md).
 | Key | Type | Default | Meaning | Section |
 |---|---|---|---|---|
 | `name` | string | required | `name: bare_reveal` | [guide/shots/shots](../guide/shots/shots.md#keys) |
-| `source` | `adapter:location`, or a mapping of the adapter's options with `adapter` | required | `source: vtk:run/flow.pvd` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `source` | a tag; `{tag, ...options}`; `adapter:location`; or a mapping of the adapter's options with `adapter` | required | `source: bare` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` | [guide/shots/shots](../guide/shots/shots.md#keys) |
@@ -27,6 +27,8 @@ Guide: [guide/shots/shots](../guide/shots/shots.md).
 | `stretch` | `{x: 0.05}`: the model drawn scaled along axes, with a note in the frame ([long bodies](../guide/rendering/long-bodies.md#stretch)) | none | `{x: 0.1, note: false}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `watermark` | a signature, logo or line of text drawn into every frame, scaled in drafts ([watermark](../guide/film/captions.md#the-watermark)) | none | `{text: 'A. Periyal', corner: lower_right, size: 28}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `layers` | list of layers, drawn bottom first, at least one | required | see below | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `source.tag` | tag name | required in the mapping form | the case, under `data/<tag>/`; `source: bare` alone says the same | [guide/projects/data](../guide/projects/data.md#shots-and-panels-name-a-tag) |
+| `source.kind` | `plt`, `vtk` or `geometry` | the tag's | the tag's kind, checked: another is an error | [guide/projects/data](../guide/projects/data.md#shots-and-panels-name-a-tag) |
 | `time.steps`, `.every` |  |  | `steps: [first, last]`, `every` (whole number, default 1) | [guide/shots/shots](../guide/shots/shots.md#time) |
 | `time.frozen`, `.frames` |  |  | `frozen: step`, `frames` (default 1) | [guide/shots/shots](../guide/shots/shots.md#time) |
 | `time.keys`, `.ease` |  |  | `keys: [[frame, step], ...]`, `ease` (default `linear`), `frames` | [guide/shots/shots](../guide/shots/shots.md#time) |
@@ -185,8 +187,8 @@ Guide: [guide/composing/panels](../guide/composing/panels.md).
 | `style.dot_size` | number | `8` | the current-time dot's diameter, points | [guide/composing/panels](../guide/composing/panels.md#style) |
 | `style.colours` | list of colours | five film colours | given in turn to lines that name none | [guide/composing/panels](../guide/composing/panels.md#style) |
 | `style.pad` | number | `0.12` | share of a data range added above and below, for ranges found from the data | [guide/composing/panels](../guide/composing/panels.md#style) |
-| `<cuts>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
-| `<cuts>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<cuts>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<cuts>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<cuts>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<cuts>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<cuts>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
@@ -201,7 +203,7 @@ Guide: [guide/composing/panels](../guide/composing/panels.md).
 | `<cuts>.stations` | list of numbers | required | one cut each, left to right | [guide/composing/panels](../guide/composing/panels.md#cuts) |
 | `<cuts>.label` | string | none | the line's name in the legend | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<cuts>.gap` | number | `0.008` | space between cuts, share of the figure's width | [guide/composing/panels](../guide/composing/panels.md#cuts) |
-| `<locator>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<locator>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<locator>.shape` | `{series, column, scale, offset, amplify, colour}` | none | the body's displacement history at many points | [guide/composing/panels](../guide/composing/panels.md#locator) |
 | `<locator>.supports` | bool | `true` | the declared ends: pinned ▲, roller ●, clamped ■, spring ✕, prescribed ◆, free only with `mark`; `tension` adds an arrow | [guide/composing/panels](../guide/composing/panels.md#locator) |
 | `<locator>.windows` | list of `{shot, colour, label}` | none | shots whose crops are marked | [guide/composing/panels](../guide/composing/panels.md#locator) |
@@ -221,8 +223,8 @@ Guide: [guide/composing/panels](../guide/composing/panels.md).
 | `<phase>.y` | a line's keys (no `colour`) with `label` and `range` | required | the two histories and their axes | [guide/composing/panels](../guide/composing/panels.md#phase) |
 | `<phase>.colour` | colour | the style's colours in turn |  | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<phase>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
-| `<section>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
-| `<section>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<section>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<section>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<section>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<section>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<section>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
@@ -243,8 +245,8 @@ Guide: [guide/composing/panels](../guide/composing/panels.md).
 | `<series>.lines` | list of lines ([where the data comes from](../guide/composing/panels.md#where-the-data-comes-from)) | required | the row's lines; `lines` alone with `y` for a panel of one row | [guide/composing/panels](../guide/composing/panels.md#series) |
 | `<series>.legend` | bool | `true` | the first row's labelled lines, in their colours, above it | [guide/composing/panels](../guide/composing/panels.md#series) |
 | `<series>.margins` | `{left, right, top, bottom, space}` | `0.18, 0.95, 0.86, 0.16, 0.18` | axes' edges as shares of the figure; `space` between rows, as a share of a row's height | [guide/composing/panels](../guide/composing/panels.md#series) |
-| `<strip>.source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
-| `<strip>.body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<strip>.source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
+| `<strip>.body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<strip>.field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../guide/projects/fields.md)) | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<strip>.params` | mapping of numbers | the project's [`reference`](../guide/projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's | [guide/composing/panels](../guide/composing/panels.md#where-the-flow-comes-from) |
 | `<strip>.range` | `[low, high]` | `[-a, a]`, `a` the largest magnitude | the colours' range | [guide/composing/panels](../guide/composing/panels.md#map) |
@@ -257,7 +259,7 @@ Guide: [guide/composing/panels](../guide/composing/panels.md).
 | `<strip>.zero` | `{colour, width}` or `false` | `{colour: '#f2f2f2', width: 2.5}` | the zero line; width in points | [guide/composing/panels](../guide/composing/panels.md#strip) |
 | `<strip>.margin` | number | half a diameter | the flow read round the body, length unit | [guide/composing/panels](../guide/composing/panels.md#strip) |
 | `<strip>.aspect` | `auto` or `equal` | `auto` | `equal` keeps lengths true; `auto` fills the panel, which a long body needs | [guide/composing/panels](../guide/composing/panels.md#strip) |
-| `<series>.lines[].body` | string | the one body with that series | the declared body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
+| `<series>.lines[].body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<series>.lines[].series` | string | required | the series' name under the body | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<series>.lines[].column` | string | the series' only value column | the column, as renamed by `columns` | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |
 | `<series>.lines[].scale`, `.offset` | number | `1`, `0` | the value drawn is `value * scale + offset` | [guide/composing/panels](../guide/composing/panels.md#where-the-data-comes-from) |

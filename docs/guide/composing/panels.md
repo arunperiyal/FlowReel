@@ -58,15 +58,17 @@ Lato has no maths glyphs; DejaVu Sans sits well beside it.
 
 ## Where the data comes from
 
-The `series`, `phase`, `map` and `locator` panels read time histories declared for bodies in the project's `flowreel.yml`
-(the nearest one at or above the panel file), under the body's `series`
-([bodies](../projects/bodies.md)). A line names its series and, unless one body declares a series
-of that name, its body:
+The `series`, `phase`, `map` and `locator` panels read time histories declared for bodies
+under the body's `series` ([bodies](../projects/bodies.md)), in the tags of the project
+(the nearest `flowreel.yml` at or above the panel file) or in `flowreel.yml` itself. A
+line names its series and, unless one body declares a series of that name, its body. A
+tag's body is `tag.body` (`smooth.cyl`), or its own name when no other tag has it
+([bodies across tags](../projects/data.md#shots-and-panels-name-a-tag)):
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `series` | string | required | the series' name under the body |
-| `body` | string | the one body with that series | the declared body |
+| `body` | string | the one body with that series | the declared body: `tag.body`, or its name when only one has it |
 | `column` | string | the series' only value column | the column, as renamed by `columns` |
 | `scale`, `offset` | number | `1`, `0` | the value drawn is `value * scale + offset` |
 | `label` | string | none | the line's name in the legend |
@@ -239,7 +241,7 @@ These three read the flow itself, not histories. A runnable example on a generat
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `source` | as a shot's `source` | the source of the shot in `times: {shot: FILE}` | the flow to read; relative paths from the panel file's folder |
+| `source` | as a shot's `source`: a tag, or the files | the source of the shot in `times: {shot: FILE}` | the flow to read; a tag brings its units as the field's parameters; relative paths from the panel file's folder |
 | `body` | string | the one body | the body, by its name in `flowreel.yml` or its zone |
 | `field` | string | required | a field the source gives (`U`, `p`) or a derived one (`vorticity_x`, `lambda2`, ...; see [fields](../projects/fields.md)) |
 | `params` | mapping of numbers | the project's [`reference`](../projects/project.md#reference-values) values the field takes | parameters of derived fields: `{rho: 1, u_inf: 1}` for `pressure_coefficient`, `{mu: 0.001}` for `wall_shear`; a value here wins over the project's |

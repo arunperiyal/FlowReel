@@ -10,7 +10,7 @@ multiplies the image's own transparency.
 Two levels use it:
 
 - **Film level** (``watermark:`` in ``film.yml``): drawn at the build with the captions,
-  over the shots and seconds :func:`spans` gives, so changing it never re-renders a
+  over the scenes and seconds it names, so changing it never re-renders a
   frame.
 - **Shot level** (``watermark:`` in a shot file, for frames used outside a film):
   :func:`stamp` draws it into each frame after the screenshot; its look is part of the
@@ -88,27 +88,4 @@ def key_fields(w: Watermark | None):
     if w.image is not None:
         st = Path(w.image).stat()
         out["image_file"] = [st.st_size, st.st_mtime_ns]
-    return out
-
-
-def spans(w: Watermark | None, timeline) -> list[tuple[str, float, float]]:
-    """When the film's watermark shows: ``(shot, start, end)``, in seconds of each
-    finished shot, for the shots of ``timeline`` it shows on. By default it shows over
-    every shot but cards; ``shots`` names the shots, ``seconds`` a span of film time,
-    and ``cards`` adds the cards."""
-    if w is None:
-        return []
-    out = []
-    for ts in timeline.shots:
-        s = ts.shot
-        if s.kind == "card" and not w.cards:
-            continue
-        if w.shots is not None and s.name not in w.shots:
-            continue
-        start, end = ts.start, ts.end
-        if w.seconds is not None:
-            start, end = max(start, w.seconds[0]), min(end, w.seconds[1])
-            if end <= start:
-                continue
-        out.append((s.name, start - ts.start, end - ts.start))
     return out

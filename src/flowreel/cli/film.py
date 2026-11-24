@@ -1,7 +1,7 @@
 """``flowreel film``: build a film, check it, print its lengths, subtitles and chapters.
 
-Each action is a thin layer over a library function (``flowreel.film.build.build``,
-``flowreel.film.check.contact`` ...); the work and its checks live there. ``FILM`` is
+Each action is a thin layer over a library function (``flowreel.film.scene_build.build``,
+``contact`` ...); the work and its checks live there. ``FILM`` is
 the film file; left out, it is ``film.yml`` of the ``project`` context (``use
 project:DIR`` in the shell), else ``film.yml`` in the current folder.
 """
@@ -29,7 +29,7 @@ Reference: docs/guide/commands.md.""",
   flowreel film build talk.yml --mute        without its sound
   flowreel film build --preview 480          and film_480p.mp4, to send to someone
   flowreel film build --preview 720 --crf 23 a better preview copy
-  flowreel film build --only compare         one shot alone, as film_compare.mp4
+  flowreel film build --only compare         one scene alone, as film_compare.mp4
   flowreel film build --force                build every clip again
   flowreel film build --watch --preview 540  again on each change, until Ctrl-C
   flowreel film build --submit --after 1312  as a Slurm job, after the composes""",
@@ -51,10 +51,8 @@ the frame), with the caption, shot and times.""",
   flowreel film chapters                     print chapters.txt, for YouTube
   flowreel film chapters -o chapters.txt""",
     "template": """examples:
-  flowreel film template                     print a film file with the defaults
+  flowreel film template                     print a film of scenes (title, the shot, an end)
   flowreel film template wake --fps 30 -o film.yml
-  flowreel film template --scenes wake -o film.yml
-                                             a film of scenes (title, the shot, an end)
   flowreel film template --layout -o layouts/compare.yml
                                              a layout file, one box of each kind""",
 }
@@ -72,16 +70,6 @@ def _project_film(store, namespace):
     return None if folder is None else str(Path(folder) / "film.yml")
 
 
-def _scenes(path) -> bool:
-    """Whether the film file at ``path`` is a film of scenes (``scenes:``)."""
-    from flowreel.film.model import is_scene_film
-    from flowreel.yamlfile import read_yaml
-    try:
-        return is_scene_film(read_yaml(path))
-    except Exception:
-        return False
-
-
 def _film_arg(parser):
     add_context_arg(parser, "project", "film", required=False, default="film.yml",
                     resolve=_project_film, metavar="FILM",
@@ -92,8 +80,6 @@ def _film_arg(parser):
 def _clips_arg(parser):
     parser.add_argument("--clips", metavar="DIR",
                         help="folder of the clips (default clips/ at the project root)")
-    parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
-                        help="processes drawing a layout's live panels (default 1)")
 
 
 class FilmCommand(BaseCommand):
@@ -111,13 +97,13 @@ class FilmCommand(BaseCommand):
 
         b = _parser(
             actions, "build", help="build the film from its file",
-            description="Build every shot's finished clip (clips whose key did not change "
+            description="Build every scene's finished clip (clips whose key did not change "
                         "are kept), join them into the film's output with its sound and "
                         "chapters, and write film.srt and chapters.txt beside it. Prints "
-                        "each shot's planned and measured length.")
+                        "each scene's planned and measured length.")
         _film_arg(b)
-        b.add_argument("--only", metavar="SHOT",
-                       help="build this shot's finished clip alone, as film_SHOT.mp4, silent")
+        b.add_argument("--only", metavar="SCENE",
+                       help="build this scene's finished clip alone, as film_SCENE.mp4, silent")
         b.add_argument("--mute", action="store_true", help="build the film without its sound")
         b.add_argument("--force", action="store_true",
                        help="build every clip again, even when its key did not change")
@@ -135,7 +121,7 @@ class FilmCommand(BaseCommand):
         c = _parser(
             actions, "check", help="contact sheet of stills, with the text in place",
             description="Draw contact.png beside the film: stills of the finished film, each "
-                        "labelled with its time and shot, the captions drawn as they show. "
+                        "labelled with its time and scene, the text drawn as it shows. "
                         "Missing finished clips are built; the film is not joined.")
         _film_arg(c)
         c.add_argument("--at", default="caption", metavar="WHEN",
@@ -152,8 +138,8 @@ class FilmCommand(BaseCommand):
         _clips_arg(c)
 
         n = _parser(
-            actions, "lengths", help="planned and measured length per shot, and chapters",
-            description="Print each shot's planned length (from the timeline) and its "
+            actions, "lengths", help="planned and measured length per scene, and chapters",
+            description="Print each scene's planned length (from the plan) and its "
                         "measured length (from its finished clip of the last build; - when "
                         "none), the film's, and each chapter's start and length. Nothing is "
                         "built.")
@@ -162,8 +148,8 @@ class FilmCommand(BaseCommand):
                        help="folder of the clips (default clips/ at the project root)")
 
         t = _parser(
-            actions, "srt", help="write the captions as a subtitle file",
-            description="Write the captions as SubRip subtitles, at their film times, with "
+            actions, "srt", help="write the timed text as a subtitle file",
+            description="Write the timed text boxes as SubRip subtitles, at their film times, with "
                         "maths between $ as plain text. Nothing is built.")
         _film_arg(t)
         t.add_argument("-o", "--output", metavar="FILE",
@@ -179,20 +165,18 @@ class FilmCommand(BaseCommand):
 
         m = _parser(
             actions, "template", help="write a commented film file with the defaults",
-            description="Print (or write with -o) a film file with every key at its "
-                        "default, each with a comment, and one frames shot.")
+            description="Print (or write with -o) a film of scenes with every key at its "
+                        "default, each with a comment: a title, the shot, an end. With "
+                        "--layout, a layout file with one box of each kind.")
         m.add_argument("name", nargs="?", default="my_shot",
-                       help="the shot's name; its frames are in frames/NAME (default my_shot)")
+                       help="the shot the film shows (default my_shot)")
         m.add_argument("--fps", type=int, default=24, metavar="N",
                        help="frames a second of the film (default 24)")
         m.add_argument("-o", "--output", metavar="FILE",
                        help="write to FILE instead of printing").completer = paths((".yml", ".yaml"))
         m.add_argument("--force", action="store_true", help="overwrite FILE if it exists")
-        which = m.add_mutually_exclusive_group()
-        which.add_argument("--scenes", action="store_true",
-                           help="a film of scenes, each a layout of boxes (Phase 10's model)")
-        which.add_argument("--layout", action="store_true",
-                           help="a layout file (layouts/NAME.yml) with one box of each kind")
+        m.add_argument("--layout", action="store_true",
+                       help="a layout file (layouts/NAME.yml) with one box of each kind")
         return p
 
     def execute(self, args, ctx):
@@ -200,8 +184,6 @@ class FilmCommand(BaseCommand):
         if not args.film_cmd:
             ctx.error("give an action: flowreel film --help")
             return 2
-        if getattr(args, "jobs", 1) < 1:
-            raise CommandError("-j must be at least 1")
         if args.film_cmd != "template":
             from flowreel.cli.project import project_root
             project_root(ctx, getattr(args, "film", None))
@@ -220,7 +202,6 @@ class FilmCommand(BaseCommand):
 
     def do_build(self, args, ctx):
         from flowreel.cli.jobs import run_single, slurm_wanted
-        from flowreel.film.build import PREVIEW_CRF, build
         if args.crf is not None and args.preview is None:
             raise CommandError("--crf sets the preview copy's quality; give --preview too")
         if args.watch and slurm_wanted(args):
@@ -229,7 +210,7 @@ class FilmCommand(BaseCommand):
             raise CommandError("--watch with --force would build every clip on every change")
         if slurm_wanted(args):
             from flowreel.cli.jobs import job_path
-            cmd = ["flowreel", "film", "build", job_path(args.film), "-j", str(args.jobs)]
+            cmd = ["flowreel", "film", "build", job_path(args.film)]
             for flag, value in (("--only", args.only), ("--preview", args.preview),
                                 ("--crf", args.crf), ("--clips", args.clips)):
                 if value is not None:
@@ -239,16 +220,9 @@ class FilmCommand(BaseCommand):
 
         def once():
             start = time.perf_counter()
-            if _scenes(args.film):
-                from flowreel.film.scene_build import build as build_scenes
-                built = build_scenes(args.film, folder=args.clips, force=args.force,
-                                     mute=args.mute, preview=args.preview, crf=args.crf,
-                                     only=args.only)
-            else:
-                built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
-                              preview=args.preview,
-                              crf=PREVIEW_CRF if args.crf is None else args.crf, only=args.only,
-                              panels={"jobs": args.jobs})
+            from flowreel.film.scene_build import build
+            built = build(args.film, folder=args.clips, force=args.force, mute=args.mute,
+                          preview=args.preview, crf=args.crf, only=args.only)
             for line in built.table():
                 ctx.out(line)
             ctx.out(f"built in {time.perf_counter() - start:.1f} s")
@@ -265,65 +239,38 @@ class FilmCommand(BaseCommand):
         return 0
 
     def do_check(self, args, ctx):
-        from flowreel.film.check import contact
+        from flowreel.film.scene_build import contact
         if args.columns < 1 or args.width < 2:
             raise CommandError("--columns must be at least 1 and --width at least 2")
         start = time.perf_counter()
-        if _scenes(args.film):
-            from flowreel.film.scene_build import contact as contact_scenes
-            path = contact_scenes(args.film, args.at, args.output, columns=args.columns,
-                                  width=args.width, folder=args.clips, force=args.force)
-            ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
-            return 0
         path = contact(args.film, args.at, args.output, columns=args.columns,
-                       width=args.width, folder=args.clips, force=args.force,
-                       panels={"jobs": args.jobs})
+                       width=args.width, folder=args.clips, force=args.force)
         ctx.out(f"wrote {path} in {time.perf_counter() - start:.1f} s")
-        from flowreel.film import load
-        from flowreel.film.anchors import hidden_spans
-        from flowreel.film.clips import Clips
-        for hidden in hidden_spans(Clips(load(args.film), folder=args.clips)):
-            ctx.warn(hidden.message())
         return 0
 
     def do_lengths(self, args, ctx):
-        from flowreel.film.build import lengths
-        if _scenes(args.film):
-            from flowreel.film.scene_build import lengths
+        from flowreel.film.scene_build import lengths
         for line in lengths(args.film, folder=args.clips).table():
             ctx.out(line)
         return 0
 
     def do_srt(self, args, ctx):
-        from flowreel.film import load, timeline
-        from flowreel.film.check import srt
-        if _scenes(args.film):
-            from flowreel.film.model import load as load_scenes
-            from flowreel.film.scene_build import plan, write_srt
-            line = plan(load_scenes(args.film))
-            if not line.subtitles:
-                raise CommandError("the film has no timed text boxes (a text box with 'at')")
-            path = write_srt(line, args.output)
-            ctx.out(f"wrote {path}: {len(line.subtitles)} subtitles")
-            return 0
-        line = timeline(load(args.film))
-        if not line.captions:
-            raise CommandError("the film has no captions")
-        path = srt(line, args.output)
-        ctx.out(f"wrote {path}: {len(line.captions)} captions")
+        from flowreel.film.model import load
+        from flowreel.film.scene_build import plan, write_srt
+        line = plan(load(args.film))
+        if not line.subtitles:
+            raise CommandError("the film has no timed text boxes (a text box with 'at')")
+        path = write_srt(line, args.output)
+        ctx.out(f"wrote {path}: {len(line.subtitles)} subtitles")
         return 0
 
     def do_chapters(self, args, ctx):
-        from flowreel.film import load, timeline
         from flowreel.film.chapters import youtube_notes, youtube_text
-        if _scenes(args.film):
-            from flowreel.film.model import load as load_scenes
-            from flowreel.film.scene_build import plan
-            chapters = plan(load_scenes(args.film)).chapters
-        else:
-            chapters = timeline(load(args.film)).chapters
+        from flowreel.film.model import load
+        from flowreel.film.scene_build import plan
+        chapters = plan(load(args.film)).chapters
         if not chapters:
-            raise CommandError("the film has no chapters (a scene's or shot's 'chapter: TITLE')")
+            raise CommandError("the film has no chapters (a scene's 'chapter: TITLE')")
         text = youtube_text(chapters)
         for note in youtube_notes(chapters):
             ctx.warn(note)
@@ -335,12 +282,10 @@ class FilmCommand(BaseCommand):
         return 0
 
     def do_template(self, args, ctx):
-        from flowreel.film.template import template
+        from flowreel.film.scene_template import film_template, layout_template
         if args.fps < 1:
             raise CommandError("--fps must be at least 1")
-        from flowreel.film.scene_template import film_template, layout_template
-        text = (film_template(args.name, args.fps) if args.scenes
-                else layout_template() if args.layout else template(args.name, args.fps))
+        text = layout_template() if args.layout else film_template(args.name, args.fps)
         if not args.output:
             ctx.out(text, end="")
             return 0

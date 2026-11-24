@@ -20,7 +20,7 @@ run.tone(folder / "tone.wav")
 PY
 cd "$DIR"
 $FLOWREEL project init --force >/dev/null              # a project
-$FLOWREEL film template --scenes -o template.yml --force   # a film of scenes to start from
+$FLOWREEL film template -o template.yml --force   # a film of scenes to start from
 $FLOWREEL film lengths                                 # planned; nothing built yet
 $FLOWREEL film build --preview 180
 $FLOWREEL film lengths                                 # now measured too

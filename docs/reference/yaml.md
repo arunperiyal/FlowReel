@@ -136,35 +136,6 @@ Guide: [guide/projects/data](../guide/projects/data.md).
 | `source.params` | mapping | `{}` | `geometry`: the body's parameters | [guide/projects/data](../guide/projects/data.md#source) |
 | `source.frames` |  | `1`, `1.0` | `geometry`: its steps and their time | [guide/projects/data](../guide/projects/data.md#source) |
 
-## Tiled layout (going): `NAME.yml (compose layout)`
-
-Guide: [guide/old/layouts](../guide/old/layouts.md).
-
-| Key | Type | Default | Meaning | Section |
-|---|---|---|---|---|
-| `name` | string | the file's name without `.yml` | the output folder, `OUT/<name>/` | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `background` | colour | `black` | a colour name or `'#rrggbb'`; shows in gaps and bars | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `grid` | `[rows, cols]` | none | place the tiles automatically (below) | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `gap` | whole number | `0` | pixels between grid cells; only with `grid` | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `missing` | `error` or `hold` | `error` | what a tile without frame *i* does (below) | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles` | list | required | the tiles: `frames`, `stations` and `panel` entries | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].frames` | path | required | folder of `frame_NNNNN.png` | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].stations` | list | required | the tiles: `frames`, `stations` and `panel` entries | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].panel` | path | required | the panel file, from the layout file's folder | [guide/old/layouts](../guide/old/layouts.md#panel-tiles-panel) |
-| `tiles[].rate` | `flow` or `output` | `flow` | `output`: drawn at the film's output frames (below) | [guide/old/layouts](../guide/old/layouts.md#panel-tiles-panel) |
-| `tiles[].at` | `[x, y]` | required without `grid` | upper left corner, pixels | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].along` | `row`, `column` | `row` | how the tiles split the area; not with `grid` | [guide/old/layouts](../guide/old/layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].fit` | `contain`, `cover`, `stretch` | `contain` | how a frame of another shape fills the tile | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].label` | text or mapping | none | text over the tile | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].stations.shot` | path | required | the shot file, from the layout's folder | [guide/old/layouts](../guide/old/layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].stations.at` | list of numbers | required | stations, in the body's length unit | [guide/old/layouts](../guide/old/layouts.md#one-shot-at-several-stations-stations) |
-| `tiles[].label.text` | string | required | the words | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].label.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `upper_left` | where | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].label.size` | `[width, height]` | `[1920, 1080]` | the composed picture, pixels | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-| `tiles[].label.colour` | colour | `'#ffffff'` |  | [guide/old/layouts](../guide/old/layouts.md#a-layout-file) |
-
 ## Panel: `panels/NAME.yml`
 
 Guide: [guide/shots/panels](../guide/shots/panels.md).
@@ -280,67 +251,6 @@ Guide: [guide/shots/panels](../guide/shots/panels.md).
 | `<strip>.zero.colour` | colour | the style's colours in turn |  | [guide/shots/panels](../guide/shots/panels.md#where-the-data-comes-from) |
 | `<strip>.zero.width` |  | `'#ffffff'`, `0.55`, `0.7`, `0.8` | width in points; `arrow` is the arrow size | [guide/shots/panels](../guide/shots/panels.md#section) |
 
-## Film of shots (going): `film.yml with shots:`
-
-Guide: [guide/old/film](../guide/old/film.md).
-
-| Key | Type | Default | Meaning | Section |
-|---|---|---|---|---|
-| `output` | path | `film.mp4` | the film written | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `fps` | whole number | `24` | frames a second of the film | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `size` | `[width, height]` | `[1920, 1080]` | pixels | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `style` | mapping | below | fonts, colours, caption defaults | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `audio` | a track, or a list of them | none | below | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `watermark` | mapping | none | below | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `shots` | list | required | the shots, in order | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `style.font`, `.maths` | `font`, `dejavusans`, `dejavuserif`, `cm`, `stix`, `stixsans` | `font` | maths in the text's own font (as the AFMS film), or a matplotlib maths font | [guide/old/film](../guide/old/film.md#style) |
-| `style.colours` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [guide/old/film](../guide/old/film.md#style) |
-| `style.caption` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [guide/old/film](../guide/old/film.md#style) |
-| `style.colours.text`, `.muted` | colour | `'#f2f2f2'`, `'#96a5b2'` | text, and quieter text (card headings) | [guide/old/film](../guide/old/film.md#style) |
-| `style.caption.size` |  | `50`, `true`, `false`, `0.8`, `centre` | defaults of the caption keys above | [guide/old/film](../guide/old/film.md#style) |
-| `style.caption.shadow` | bool | the style's (`true`) | a soft shadow behind the text | [guide/old/film](../guide/old/film.md#captions) |
-| `style.caption.box` | bool | the style's (`false`) | a dark panel behind the text | [guide/old/film](../guide/old/film.md#captions) |
-| `style.caption.fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/old/film](../guide/old/film.md#shots) |
-| `style.caption.margin` | number | `80` | pixels from the edge for `top` and `bottom` | [guide/old/film](../guide/old/film.md#style) |
-| `style.caption.align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [guide/old/film](../guide/old/film.md#captions) |
-| `style.caption.spacing` | number | `1.3` | line spacing, times the size | [guide/old/film](../guide/old/film.md#style) |
-| `audio[].file` | path | required | the sound file, from the film file's folder | [guide/old/film](../guide/old/film.md#audio) |
-| `audio[].offset` | seconds | `0` | where in the file to start playing | [guide/old/film](../guide/old/film.md#audio) |
-| `audio[].start` | seconds | `0` | when in the film the track starts | [guide/old/film](../guide/old/film.md#audio) |
-| `audio[].volume` | number | `1` | gain; `1` is as recorded | [guide/old/film](../guide/old/film.md#audio) |
-| `audio[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/old/film](../guide/old/film.md#shots) |
-| `audio[].licence` | text | none | a note, not used | [guide/old/film](../guide/old/film.md#audio) |
-| `watermark.image` | file |  | a picture (PNG with transparency is best), kept **outside** the repository; it must exist | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.text` | string |  | a line of text in Lato; give `image` or `text` | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.corner` | `upper_left`, `upper_right`, `lower_left`, `lower_right` | `lower_right` | 2% of the picture's height from the edges | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.place` | `[x, y]` |  | its upper left corner, instead of `corner` | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.size` | number | `32` | pixels high: an image's height, or the text's font size (as a caption's `size`) | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.opacity` | 0 to 1 | `0.7` | multiplies the image's own transparency | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.colour` | colour | `'#f2f2f2'` | of text | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.shots` | list of names |  | a film of shots only: show it on these shots | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.seconds` | `[start, end]` |  | film level only: show it between these film seconds | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `watermark.cards` | bool | `false` | a film of shots only: show it on cards too | [guide/film/film](../guide/film/film.md#the-watermark) |
-| `shots[].frames` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].layout` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].card` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].hold_last_of` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].name` | string | required | unique in the film; captions, holds and `--only` name the shot by it | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].seconds` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].rate` |  |  |  | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].freezes` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].fade_out_at` | number | so the fade ends with the shot | start the fade out early; what follows is black, so a caption can sit on it | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].text` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].overlays` | bool | `true` | a hold of a layout shot: with its `rate: output` panels | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].chapter` | `TITLE` or `{title, at}` | none | the shot starts a chapter, `at` seconds into the finished shot (`0`); see [chapters](../guide/old/build.md#chapters) | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].rate.fps` | whole number | `24` | frames a second of the film | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `shots[].rate.to_output` | `{fps, to_output}` | `{fps: <film fps>}` | the shot's own frames a second, and how they are made up to the film's: `interpolate` (motion-compensated), `repeat` or `blend` | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].freezes[].at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [guide/old/film](../guide/old/film.md#captions) |
-| `shots[].freezes[].hold` | list of `{at, hold, text}` | none | stop on a frame for a while (below) | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].freezes[].text` | a text file, or captions written in place | none | the shot's captions | [guide/old/film](../guide/old/film.md#shots) |
-| `shots[].chapter.title` | text, or `{title, at}` | none | a one-line title | [guide/old/build](../guide/old/build.md#chapters) |
-| `shots[].chapter.at` | seconds | `0` | where in the finished shot (freezes included) it starts; must be inside the shot | [guide/old/build](../guide/old/build.md#chapters) |
-
 ## Film: `film.yml`
 
 Guide: [guide/film/film](../guide/film/film.md).
@@ -425,57 +335,6 @@ Guide: [guide/film/layouts](../guide/film/layouts.md).
 | `boxes[].panel.freezes` | list of `{at, hold}` | none | as a shot's | [guide/film/boxes](../guide/film/boxes.md#panel-and-last_frame) |
 | `boxes[].panel.freezes[].at` | seconds | required | when, in seconds of the shot's own frames | [guide/film/boxes](../guide/film/boxes.md#shot) |
 | `boxes[].panel.freezes[].hold` | seconds > 0 | required | how long the frame is held | [guide/film/boxes](../guide/film/boxes.md#shot) |
-
-## Captions: `text/NAME.yml, or a shot's text`
-
-Guide: [guide/old/film](../guide/old/film.md).
-
-| Key | Type | Default | Meaning | Section |
-|---|---|---|---|---|
-| `lines` | list of strings, or one | required | one string per line; `$...$` is mathematics | [guide/old/film](../guide/old/film.md#captions) |
-| `at` | `[start, end]` or `start` | from 0 to the shot's end | seconds from the start of the finished shot, freezes included | [guide/old/film](../guide/old/film.md#captions) |
-| `place` | `top`, `bottom`, `centre`, `[x, y]`, `[centre, y]` | `bottom` | `[x, y]` is the text's upper left corner in pixels; `[centre, y]` centres it across with its top at `y` | [guide/old/film](../guide/old/film.md#captions) |
-| `size` | `[width, height]` | `[1920, 1080]` | pixels | [guide/old/film](../guide/old/film.md#the-film-file) |
-| `align` | `centre`, `left`, `right` | the style's (`centre`) | the lines against each other | [guide/old/film](../guide/old/film.md#captions) |
-| `colour` | colour | the style's text colour |  | [guide/old/film](../guide/old/film.md#captions) |
-| `box` | bool | the style's (`false`) | a dark panel behind the text | [guide/old/film](../guide/old/film.md#captions) |
-| `shadow` | bool | the style's (`true`) | a soft shadow behind the text | [guide/old/film](../guide/old/film.md#captions) |
-| `fade` | `[in, out]` or one number | `[0, 0]` | seconds of fade from and to black | [guide/old/film](../guide/old/film.md#shots) |
-| `shapes` | list | none | 2D shapes on the frame: `arrow`, `line`, `box`, `circle`, `ellipse`, `bracket`, `dimension`, `highlight` ([their keys](../guide/old/captions.md#shapes)) | [guide/old/film](../guide/old/film.md#captions) |
-| `id` | string | none | a name for the caption, for other commands | [guide/old/film](../guide/old/film.md#captions) |
-| `[].place, a point in the model.model` | `[x, y, z]`, the source's units; required |  | `model: [6, 0.42, 0.18]` | [guide/old/captions](../guide/old/captions.md#points-in-the-model) |
-| `[].place, a point in the model.offset` | `[dx, dy]` pixels, `y` down, added after projection | `[0, 0]` | `offset: [40, -60]` | [guide/old/captions](../guide/old/captions.md#points-in-the-model) |
-| `[].place, a point in the model.view` | a view of the project's `cameras.yml` | the frame's own camera | `view: main` | [guide/old/captions](../guide/old/captions.md#points-in-the-model) |
-| `[].place, a point in the model.track` | a camera track of the same file, taken at the frame's number | the frame's own camera | `track: carve` | [guide/old/captions](../guide/old/captions.md#points-in-the-model) |
-| `[].shapes[].arrow.from`, `.to`, `.width`, `.head`, `.colour` |  | `width: 4`, `head: 4.5 × width` | a line with a filled head at `to`, `head` pixels long and half as wide | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].line.from`, `.to`, `.width`, `.colour` |  | `width: 4` | a straight line | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].box.from`, `.to`, `.width`, `.radius`, `.fill`, `.colour` |  | `width: 4`, `radius: 0`, no fill | a rectangle, corners rounded by `radius` | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].circle.centre`, `.radius`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | a circle | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].ellipse.centre`, `.radii`, `.width`, `.fill`, `.colour` |  | `width: 4`, no fill | an ellipse with its axes along `x` and `y` | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].bracket.from`, `.to`, `.depth`, `.width`, `.colour` |  | `depth: 20`, `width: 4` | a square bracket: a back from `from` to `to`, with tips `depth` pixels long | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].dimension.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | `offset: 0`, `width: 2`, `head: 14`, `size: 0.8 × the caption's` | a measured length: a line with heads at both ends, moved `offset` pixels away with lines back to the ends, and `value` (text, `$...$` allowed) beside its middle | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].highlight.from`, `.to`, `.dim`, `.radius` |  | `dim: 0.6`, `radius: 0` | the picture darkened outside a box, by `dim` (0: not at all, 1: black) | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].label.at`, `.text`, `.size`, `.colour` |  | `size: 0.8 × the caption's` | `text` (`$...$` allowed) centred on the point `at` | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].label3d.at`, `.text`, `.offset`, `.size`, `.colour` |  | `offset: [0, 0]` | a `label` at a point of the model, moved `offset` pixels on screen | [guide/old/captions](../guide/old/captions.md#shapes) |
-| `[].shapes[].dimension3d.from`, `.to`, `.value`, `.offset`, `.width`, `.head`, `.size`, `.colour` |  | as `dimension` | a `dimension` between two points of the model; its `value` is text, not measured | [guide/old/captions](../guide/old/captions.md#shapes) |
-
-## Card: `cards/NAME.yml`
-
-Guide: [guide/old/cards](../guide/old/cards.md).
-
-| Key | Type | Default | Meaning | Section |
-|---|---|---|---|---|
-| `size` | `[width, height]` | `[1920, 1080]` | the size the card's pixels are written for; a film of another size scales the whole card | [guide/old/cards](../guide/old/cards.md#the-card-file) |
-| `background` | colour | `black` |  | [guide/old/cards](../guide/old/cards.md#the-card-file) |
-| `background_image` | file | none | a picture scaled to cover the card and centred, beneath the blocks | [guide/old/cards](../guide/old/cards.md#the-card-file) |
-| `blocks` | list | required | the blocks, top to bottom (below) | [guide/old/cards](../guide/old/cards.md#the-card-file) |
-| `blocks[].y` | pixels | none | the block's top, from the card's top | [guide/old/cards](../guide/old/cards.md#where-a-block-goes) |
-| `blocks[].gap` | pixels | `0` | the block's top, below the end of the block before it; used without `y` | [guide/old/cards](../guide/old/cards.md#where-a-block-goes) |
-| `blocks[] (image).image`, `.height`, `.width` |  | the file's own size | a picture, scaled keeping its shape, with its transparency | [guide/old/cards](../guide/old/cards.md#blocks) |
-| `blocks[] (title).title`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 60`, `spacing: 1.3 × size`, `regular`, the film's text colour | the title | [guide/old/cards](../guide/old/cards.md#blocks) |
-| `blocks[] (divider).divider`, `.thickness`, `.colour` |  | `320`, `2`, the film's muted colour | a horizontal line | [guide/old/cards](../guide/old/cards.md#blocks) |
-| `blocks[] (names).names`, `.heading`, `.size`, `.spacing`, `.weight`, `.colour`, `.heading_size`, `.heading_gap`, `.heading_weight`, `.heading_colour` |  | `size: 42`, `spacing: 58`, `light`, text colour; heading `28`, `44`, `regular`, muted colour | a heading (optional) and a list of names under it | [guide/old/cards](../guide/old/cards.md#blocks) |
-| `blocks[] (text).text`, `.size`, `.spacing`, `.weight`, `.colour` |  | `size: 24`, `spacing: 1.3 × size`, `regular`, the film's muted colour | small print: a licence, a credit, a date | [guide/old/cards](../guide/old/cards.md#blocks) |
 
 ## Shot layers
 

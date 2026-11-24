@@ -356,6 +356,10 @@ def load(path: str | Path) -> Film:
 def from_dict(data, file: str | None = None) -> Film:
     """Check ``data`` (a parsed YAML mapping) and build the :class:`Film`."""
     check = Checker(file)
+    if isinstance(data, dict) and "shots" in data and "scenes" not in data:
+        raise check.error("a film of shots is not read any more: write 'scenes:', each a "
+                          "layout of boxes (flowreel film template; "
+                          "docs/guide/film/film.md)")
     data = check.mapping(data, KEYS, required=("scenes",))
     folder = Path(file).parent if file else Path(".")
     fps = check.at("fps").integer(data.get("fps", 24), minimum=1)
@@ -708,7 +712,6 @@ def shot_box_size(shot_file) -> tuple[int, int] | None:
     film of scenes (``film.yml`` at the project root), the largest when several do;
     ``None`` when no film of scenes shows it (or the film does not load)."""
     from flowreel.project.paths import find_root
-    from flowreel.yamlfile import read_yaml
     root = find_root(shot_file)
     if root is None or not (root / "film.yml").is_file():
         return None
@@ -717,16 +720,15 @@ def shot_box_size(shot_file) -> tuple[int, int] | None:
     if _BOX_SIZES.get(path, (None,))[0] != stamp:
         sizes: dict = {}
         try:
-            if is_scene_film(read_yaml(path)):
-                film = load(path)
-                for scene in film.scenes:
-                    for box in scene.layout.boxes:
-                        if box.kind == "shot" and box.content.file is not None:
-                            w, h = box.rect(film.size)[2:]
-                            key = Path(box.content.file).resolve()
-                            size = (max(round(w), 1), max(round(h), 1))
-                            if size[0] * size[1] > sizes.get(key, (0, 0))[0] * sizes.get(key, (0, 0))[1]:
-                                sizes[key] = size
+            film = load(path)
+            for scene in film.scenes:
+                for box in scene.layout.boxes:
+                    if box.kind == "shot" and box.content.file is not None:
+                        w, h = box.rect(film.size)[2:]
+                        key = Path(box.content.file).resolve()
+                        size = (max(round(w), 1), max(round(h), 1))
+                        if size[0] * size[1] > sizes.get(key, (0, 0))[0] * sizes.get(key, (0, 0))[1]:
+                            sizes[key] = size
         except Exception:                          # a film that does not load sizes nothing
             sizes = {}
         _BOX_SIZES[path] = (stamp, sizes)

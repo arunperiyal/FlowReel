@@ -161,3 +161,37 @@ def length(path) -> float:
 def frame_count(path) -> int:
     """The number of video frames in ``path``, counted by decoding."""
     return int(probe(path, "stream=nb_read_frames", count=True))
+
+
+SMOOTH = "minterpolate=fps={fps}:mi_mode=mci:mc_mode=aobmc:vsbmc=1:scd=none"
+
+
+def encode_args(fps: int) -> list[str]:
+    """The encoding every clip shares, so the film joins them without re-encoding."""
+    return ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", str(fps), "-fps_mode", "cfr",
+            "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+            "-video_track_timescale", str(fps * 1000)]
+
+
+def rate_filter(fps: float, film_fps: int, to_output: str) -> str:
+    """The filters that bring frames at ``fps`` to the film's ``film_fps`` , ending on the last frame held for a whole step."""
+    ratio = round(film_fps / fps)
+    if ratio == 1:
+        return "null"
+    # minterpolate never outputs its last input frame; given it twice, it reaches it.
+    step = {"interpolate": f"tpad=stop_mode=clone:stop=1,{SMOOTH.format(fps=film_fps)}",
+            "repeat": f"fps={film_fps}", "blend": f"framerate=fps={film_fps}"}[to_output]
+    return f"{step},tpad=stop_mode=clone:stop={ratio}"
+
+
+def stamp(path: Path) -> list:
+    """A file's name, size and modification time: a redrawn frame changes its key."""
+    st = path.stat()
+    return [path.name, st.st_size, st.st_mtime_ns]
+
+
+
+def stamp(path: Path) -> list:
+    """A file's name, size and modification time: a redrawn frame changes its key."""
+    st = path.stat()
+    return [path.name, st.st_size, st.st_mtime_ns]

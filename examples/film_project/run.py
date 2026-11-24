@@ -35,7 +35,7 @@ def main(folder: Path) -> None:
         shutil.copytree(COMPARE / sub, folder / sub, dirs_exist_ok=True)
     shutil.copytree(HERE / "layouts", folder / "layouts", dirs_exist_ok=True)
     shutil.copy(HERE / "film.yml", folder / "film.yml")
-    built = flowreel(folder, "film", "build", "-j", "2")
+    built = flowreel(folder, "film", "build")
     for line in built.splitlines():
         line = re.sub(r" in [\d.]+ s", "", line)
         if not line.startswith("built"):

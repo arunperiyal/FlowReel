@@ -4,9 +4,10 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from flowreel.film import from_dict, timeline
+from flowreel.film import model as M
+from flowreel.film.scene_build import _watermark_on
 from flowreel.film.schema import parse_watermark
-from flowreel.film.watermark import key_fields, spans, stamp, watermark_image
+from flowreel.film.watermark import key_fields, stamp, watermark_image
 from flowreel.scene.errors import Checker, ConfigError
 
 PICTURE = (400, 200)
@@ -74,28 +75,26 @@ def test_the_key_follows_the_look_and_the_image_file(tmp_path, logo):
 
 
 def film(tmp_path, **watermark):
-    card = tmp_path / "card.yml"
-    card.write_text("{}\n")
-    for name in ("a", "b"):
-        (tmp_path / name).mkdir(exist_ok=True)
-        for i in range(48):
-            (tmp_path / name / f"frame_{i:05d}.png").touch()
-    f = from_dict({"shots": [{"name": "card", "card": "card.yml", "seconds": 3},
-                             {"name": "a", "frames": "a"}, {"name": "b", "frames": "b"}],
-                   "watermark": watermark}, file=str(tmp_path / "film.yml"))
-    return f.watermark, timeline(f)
+    scenes = [{"name": name, "seconds": 2, "layout": {"boxes": [{"text": name}]}}
+              for name in ("a", "b")]
+    return M.from_dict({"scenes": scenes, "watermark": watermark},
+                       file=str(tmp_path / "film.yml"))
 
 
-def test_by_default_it_shows_over_every_shot_but_cards(tmp_path):
-    w, tl = film(tmp_path, text="w")
-    assert spans(w, tl) == [("a", 0, 2), ("b", 0, 2)]
-    w, tl = film(tmp_path, text="w", cards=True)
-    assert spans(w, tl)[0] == ("card", 0, 3)
+def shown(film, at):
+    """Whether the watermark shows at film second ``at`` (scenes of 2 s)."""
+    scene = film.scenes[int(at // 2)]
+    return _watermark_on(film.watermark, scene, int(at // 2) * 2.0, at % 2)
 
 
-def test_shots_or_seconds_say_when(tmp_path):
-    w, tl = film(tmp_path, text="w", shots=["b"])
-    assert spans(w, tl) == [("b", 0, 2)]
-    w, tl = film(tmp_path, text="w", seconds=[4, 6])          # card 0-3, a 3-5, b 5-7
-    assert spans(w, tl) == [("a", 1, 2), ("b", 0, 1)]
-    assert spans(None, tl) == []
+def test_by_default_it_shows_over_every_scene(tmp_path):
+    f = film(tmp_path, text="w")
+    assert [shown(f, t) for t in (0.5, 2.5)] == [True, True]
+
+
+def test_scenes_or_seconds_say_when(tmp_path):
+    f = film(tmp_path, text="w", scenes=["b"])
+    assert [shown(f, t) for t in (0.5, 2.5)] == [False, True]
+    f = film(tmp_path, text="w", seconds=[1, 3])
+    assert [shown(f, t) for t in (0.5, 1.5, 2.5, 3.5)] == [False, True, True, False]
+    assert _watermark_on(None, f.scenes[0], 0.0, 0.0) is False

@@ -32,12 +32,20 @@ def frames(folder, n: int, size=SIZE, start=0):
     return folder
 
 
-def film_file(folder, shots, **top):
-    """Write ``film.yml`` in ``folder`` with ``shots`` and a film size of :data:`SIZE`."""
-    data = {"fps": 24, "size": list(SIZE), "shots": shots, **top}
+def scene_film(folder, scenes, **top):
+    """Write ``film.yml`` in ``folder`` with ``scenes`` and a film size of :data:`SIZE`;
+    returns its path."""
+    data = {"fps": 24, "size": list(SIZE), "scenes": scenes, **top}
     path = folder / "film.yml"
     path.write_text(yaml.safe_dump(data, sort_keys=False))
     return path
+
+
+def shot_scenes(frames_folders, **rates):
+    """A scene of one shot box over each frame folder name in ``frames_folders``; ``rates``
+    gives a shot's options by folder name (``b={"rate": {...}}``)."""
+    return [{"name": n, "layout": {"boxes": [{"shot": {"frames": n, **rates.get(n, {})}}]}}
+            for n in frames_folders]
 
 
 def decode(path) -> np.ndarray:

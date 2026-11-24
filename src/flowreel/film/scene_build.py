@@ -15,7 +15,7 @@ less the freezes passed (and stopped at a freeze's ``at`` during it):
 - a shot at the film's rate, or under ``to_output: repeat``: the frame there;
 - ``blend``: the two frames around it, cross-faded;
 - ``interpolate``: a frame of the shot's **base clip**, its frames brought to the film's
-  rate by ffmpeg's ``minterpolate`` (:func:`flowreel.film.clips.rate_filter`), scaled to
+  rate by ffmpeg's ``minterpolate`` (:func:`flowreel.film.ffmpeg.rate_filter`), scaled to
   the box and kept losslessly (FFV1) by its key under ``clips/``;
 - a panel: drawn at the box's size at the time between its two frames, so a plot's dot
   moves smoothly and is never smeared.
@@ -23,7 +23,7 @@ less the freezes passed (and stopped at a freeze's ``at`` during it):
 **A clip per scene.** Every frame is drawn (:func:`flowreel.film.boxes.draw_frame`),
 faded from and to black by the scene's ``fade``, given the watermark when it shows
 there, and piped to ffmpeg, encoded as every clip is
-(:func:`flowreel.film.clips.encode_args`). The clip's name holds a key of everything in
+(:func:`flowreel.film.ffmpeg.encode_args`). The clip's name holds a key of everything in
 it (the scene and film settings, each file it reads, the held frame's scene), so a
 changed caption rebuilds one scene and the others are kept. Its last frame is kept
 beside it, for a ``last_frame`` box of another scene.
@@ -166,7 +166,7 @@ class Subtitle:
 @dataclass
 class Plan:
     """The film laid out: its scenes :class:`Placed`, its ``length``, ``chapters``
-    (:class:`~flowreel.film.timeline.TimedChapter`) and ``subtitles``."""
+    (:class:`~flowreel.film.chapters.TimedChapter`) and ``subtitles``."""
 
     film: Film
     scenes: list
@@ -184,7 +184,7 @@ class Plan:
 
 def plan(film: Film) -> Plan:
     """Lay ``film`` out (see the module)."""
-    from flowreel.film.timeline import TimedChapter
+    from flowreel.film.chapters import TimedChapter
     placed, start = [], 0.0
     for k, scene in enumerate(film.scenes):
         length = scene_length(scene, film)
@@ -238,7 +238,7 @@ class ShotPictures:
 
     def key(self) -> dict:
         """What decides the pictures: every frame file, the record, the rate."""
-        from flowreel.film.clips import stamp
+        from flowreel.film.ffmpeg import stamp
         record = self.folder / ".views.json"
         return {"frames": [stamp(f) for f in self.files],
                 "views": stamp(record) if record.is_file() else None,
@@ -271,7 +271,7 @@ class ShotPictures:
     def base(self) -> Path:
         """The shot's frames at the film's rate, interpolated and scaled to the box: a
         lossless clip kept under ``clips/`` by its key."""
-        from flowreel.film.clips import rate_filter
+        from flowreel.film.ffmpeg import rate_filter
         from flowreel.scene.keys import digest
         key = digest({"version": VERSION, **self.key(), "fps": self.film.fps})[:16]
         path = self.clips / f"base_{self.box.name}_{key}.mkv"
@@ -399,7 +399,7 @@ class SceneBuilder:
         """The key of scene ``name``'s clip (see the module)."""
         if name in self._keys:
             return self._keys[name]
-        from flowreel.film.clips import stamp
+        from flowreel.film.ffmpeg import stamp
         from flowreel.film.watermark import key_fields
         from flowreel.scene.keys import code_version, digest
         p = self.plan.placed(name)
@@ -470,7 +470,7 @@ class SceneBuilder:
         return draw_frame(self.film, p.scene, t, contents, length=p.length, cache=stills)
 
     def _encode(self, p: Placed, held: dict, path: Path, last: Path) -> None:
-        from flowreel.film.clips import encode_args
+        from flowreel.film.ffmpeg import encode_args
         from flowreel.film.watermark import stamp
         film, scene = self.film, p.scene
         w, h = film.size
@@ -525,7 +525,7 @@ def _join(plan_: Plan, clips: list[Path], out: Path, folder: Path) -> list:
     if not any(p.scene.cross for p in plan_.scenes[:-1]):
         listing = concat_list(clips, folder / "film_list.txt")
         return ["-f", "concat", "-safe", 0, "-i", listing], ["-map", "0:v", "-c:v", "copy"]
-    from flowreel.film.clips import encode_args
+    from flowreel.film.ffmpeg import encode_args
     picture = folder / "film_picture.mp4"
     inputs, graph = [], []
     for k, c in enumerate(clips):
@@ -679,8 +679,7 @@ def contact(film, at: str = "caption", path: Path | None = None, *, columns: int
     box (``freeze``), or ``every:S`` seconds, from the scenes' clips."""
     from PIL import Image, ImageDraw
 
-    from flowreel.film.cards import font
-    from flowreel.film.check import contact_path, grab, plain
+    from flowreel.film.check import contact_path, font, grab, plain
     from flowreel.film.model import load
     film = film if isinstance(film, Film) else load(film)
     builder = SceneBuilder(film, folder, force)

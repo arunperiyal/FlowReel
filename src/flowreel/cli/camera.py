@@ -280,20 +280,9 @@ class CameraCommand(BaseCommand):
         if not args.film:
             return []
         name = scene.shot.name if scene is not None else None
-        from flowreel.film.model import is_scene_film
-        from flowreel.yamlfile import read_yaml
-        if is_scene_film(read_yaml(args.film)):
-            from flowreel.film.boxes import follow_points
-            from flowreel.film.model import load as load_scenes
-            return follow_points(load_scenes(args.film), name)
-        from flowreel.film import load
-        from flowreel.film.anchors import anchors_for_frames
-        film = load(args.film)
-        out = []
-        for s in film.shots:
-            if s.kind == "frames" and (name is None or Path(s.source).name == name):
-                out += [a for a in anchors_for_frames(film, s.source) if a not in out]
-        return out
+        from flowreel.film.boxes import follow_points
+        from flowreel.film.model import load as load_scenes
+        return follow_points(load_scenes(args.film), name)
 
     # -- path, orbit, import ----------------------------------------------------------
 

@@ -37,7 +37,6 @@ def command_groups():
     """``(name, description, [(action, help text), ...])`` for every command group."""
     os.environ["COLUMNS"] = str(COLUMNS)          # argparse wraps to this width
     from flowreel.cli.camera import CameraCommand
-    from flowreel.cli.compose import ComposeCommand
     from flowreel.cli.data import DataCommand
     from flowreel.cli.panel import PanelCommand
     from flowreel.cli.scene import SceneCommand
@@ -48,7 +47,7 @@ def command_groups():
     from flowreel.cli.shot import ShotCommand
     groups = []
     for cls in (ProjectCommand, DataCommand, ShotCommand, CameraCommand, PanelCommand,
-                SceneCommand, ComposeCommand, FilmCommand, JobsCommand, DoctorCommand):
+                SceneCommand, FilmCommand, JobsCommand, DoctorCommand):
         parser = argparse.ArgumentParser(prog="flowreel")
         group = cls().setup_parser(parser.add_subparsers())
         actions = [a for a in group._actions if isinstance(a, argparse._SubParsersAction)]
@@ -191,12 +190,12 @@ def find_row(rows: list[Row], path: str) -> Row | None:
 
 def file_types():
     """``(title, file, guide page, [(prefix, keys, page), ...])`` for every file type."""
-    from flowreel.compose import layout_file, panel_file, panels
+    from flowreel.compose import panel_file, panels
     from flowreel.film import model
     from flowreel.compose.flow_panels import SectionPanel, StripPanel
     from flowreel.compose.series_panel import AXIS_KEYS, LINE_KEYS, MARGIN_KEYS
     from flowreel.compose.style import KEYS as STYLE_KEYS
-    from flowreel.film import anchors, cards, schema, shapes, text
+    from flowreel.film import schema
     from flowreel import project
     from flowreel.project import domain
     from flowreel.project import bodies
@@ -247,25 +246,7 @@ def file_types():
             ("source", tuple(dict.fromkeys(k for kind in domain.KINDS for k in domain._source_keys(kind))),
              "guide/projects/data.md#source"),
         ]),
-        ("Tiled layout (going)", "NAME.yml (compose layout)", "guide/old/layouts.md", [
-            ("", layout_file.KEYS, "guide/old/layouts.md"),
-            ("tiles[]", layout_file.TILE_KEYS, "guide/old/layouts.md"),
-            ("tiles[].stations", layout_file.STATIONS_KEYS, "guide/old/layouts.md"),
-            ("tiles[].label", layout_file.LABEL_KEYS, "guide/old/layouts.md"),
-        ]),
         ("Panel", "panels/NAME.yml", "guide/shots/panels.md", panel_parts),
-        ("Film of shots (going)", "film.yml with shots:", "guide/old/film.md", [
-            ("", schema.KEYS, "guide/old/film.md"),
-            ("style", schema.STYLE_KEYS, "guide/old/film.md"),
-            ("style.colours", schema.COLOUR_KEYS, "guide/old/film.md"),
-            ("style.caption", schema.CAPTION_KEYS, "guide/old/film.md"),
-            ("audio[]", schema.AUDIO_KEYS, "guide/old/film.md"),
-            ("watermark", schema.WATERMARK_KEYS, "guide/film/film.md#the-watermark"),
-            ("shots[]", schema.SHOT_KEYS, "guide/old/film.md"),
-            ("shots[].rate", schema.RATE_KEYS, "guide/old/film.md"),
-            ("shots[].freezes[]", schema.FREEZE_KEYS, "guide/old/film.md"),
-            ("shots[].chapter", schema.CHAPTER_KEYS, "guide/old/build.md"),
-        ]),
         ("Film", "film.yml", "guide/film/film.md", [
             ("", model.KEYS, "guide/film/film.md#the-films-keys"),
             ("style", model.STYLE_KEYS, "guide/film/film.md#style"),
@@ -287,16 +268,6 @@ def file_types():
             ("boxes[].panel", model.PANEL_KEYS, "guide/film/boxes.md#panel-and-last_frame"),
             ("boxes[].panel.freezes[]", model.FREEZE_KEYS, "guide/film/boxes.md#shot"),
         ]),
-        ("Captions", "text/NAME.yml, or a shot's text", "guide/old/film.md", [
-            ("[]", text.KEYS, "guide/old/film.md"),
-            ("[].place, a point in the model", anchors.ANCHOR_KEYS, "guide/old/captions.md"),
-        ] + [(f"[].shapes[].{kind}", keys, "guide/old/captions.md#shapes")
-             for kind, keys in shapes.KEYS.items()]),
-        ("Card", "cards/NAME.yml", "guide/old/cards.md", [
-            ("", cards.KEYS, "guide/old/cards.md"),
-            ("blocks[]", cards.PLACE_KEYS, "guide/old/cards.md"),
-        ] + [(f"blocks[] ({kind})", keys, "guide/old/cards.md#blocks")
-             for kind, keys in cards.BLOCK_KEYS.items()]),
     ]
 
 

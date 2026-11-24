@@ -159,15 +159,6 @@ def _source_text(value) -> str:
     return text
 
 
-def _scene_film(path: Path) -> bool:
-    from flowreel.film.model import is_scene_film
-    from flowreel.yamlfile import read_yaml
-    try:
-        return is_scene_film(read_yaml(path))
-    except Exception:
-        return False
-
-
 def info(root: str | Path) -> ProjectInfo:
     """What the project at ``root`` holds (see the module)."""
     from flowreel.project import load_project
@@ -212,7 +203,7 @@ def info(root: str | Path) -> ProjectInfo:
         except Exception as exc:
             out.errors.append(str(exc))
     film = root / FILM_FILE
-    if film.exists() and _scene_film(film):
+    if film.exists():
         from flowreel.film.model import load as load_scenes
         try:
             f = load_scenes(film)
@@ -222,20 +213,6 @@ def info(root: str | Path) -> ProjectInfo:
         except Exception as exc:
             out.film = f"{FILM_FILE}: does not load"
             out.errors.append(str(exc))
-    elif film.exists():
-        from flowreel.film.schema import load
-        from flowreel.film.timeline import timeline
-        try:
-            f = load(film)
-        except Exception as exc:
-            out.film = f"{FILM_FILE}: does not load"
-            out.errors.append(str(exc))
-        else:
-            out.film = f"{FILM_FILE}: {len(f.shots)} shot{'s' * (len(f.shots) != 1)}"
-            try:                                  # needs the frames: a new film has none
-                out.film += f", {timeline(f).length:.1f} s planned"
-            except Exception as exc:
-                out.film += f", length not known yet ({getattr(exc, 'problem', exc)})"
     out.layouts = sorted(p.stem for p in (root / "layouts").glob("*.yml")) \
         if (root / "layouts").is_dir() else []
     data = root / "data"

@@ -26,7 +26,7 @@ def test_init_makes_the_agreed_folders_and_files(tmp_path):
     assert list(load_project(root).bodies) == ["grooved_cylinder"]
     view = load_views(root / "cameras.yml")["main"]
     assert view.focal[2] == 0 and view.position[2] > 0          # the domain, seen from +z
-    assert "frames: frames/p" in (root / "film.yml").read_text()
+    assert "last_frame: p" in (root / "film.yml").read_text()
     lines = (root / ".gitignore").read_text().splitlines()
     assert all(line in lines for line in IGNORED)
 
@@ -93,7 +93,7 @@ def test_commands_stop_outside_a_project(sh, tmp_path):
         require_root(tmp_path)
     (tmp_path / "s.yml").write_text("name: s\n")
     for line in ("shot render s.yml", "shot preview s.yml", "camera project --view main "
-                 "--points 0,0,0", "compose layout s.yml", "film lengths"):
+                 "--points 0,0,0", "panel draw s.yml", "film lengths"):
         status, _, err = sh.run(line)
         assert status != 0 and "not in a FlowReel project" in err, line
         assert "flowreel project init" in err
@@ -214,7 +214,7 @@ def test_project_info_lists_what_the_project_holds(tmp_path, monkeypatch):
     assert "source:  geometry:grooved_cylinder" in out and "bodies:  grooved_cylinder" in out
     assert "shots/g.yml: g, 2 frames drawn" in out and "broken" not in out
     assert "cameras: views main; tracks none" in out
-    assert "film:    film.yml: 1 shot" in out          # the template's shot; its frames are missing
+    assert "film:    film.yml" in out
     assert "frames/ 1.0 kB" in out and ".flowreel/ 2.0 kB" in out
 
 

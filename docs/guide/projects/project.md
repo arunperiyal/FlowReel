@@ -46,7 +46,7 @@ afms/
 | Path | Written by | Kept in git | Notes |
 |---|---|---|---|
 | `flowreel.yml` | you (`project init` starts it) | yes | marks the project root; [defaults and tags](#defaults-and-tags) |
-| `film.yml` | you (`film template --scenes` starts one) | yes | [the film](../film/film.md) |
+| `film.yml` | you (`film template` starts one) | yes | [the film](../film/film.md) |
 | `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](../shots/cameras.md) |
 | `shots/`, `panels/`, `layouts/`, `assets/` | you | yes | the names are a convention; files anywhere in the project work |
 | `data/` | `data import`, `project init --import` | each tag's `domain.yml` only | the [tags](data.md): links to the data, `domain.yml`, series |
@@ -54,8 +54,7 @@ afms/
 | `.flowreel/` | every command | no | `cache/` removed by `project clean`; see below |
 
 `project init` never overwrites `film.yml` or `cameras.yml` (not even with `--force`), and
-adds to an existing `.gitignore` only the lines it lacks. It still makes `text/` and
-`cards/`, the folders of the [film of shots](../old/index.md), until that goes.
+adds to an existing `.gitignore` only the lines it lacks.
 
 **Why `flowreel.yml` is visible and `.flowreel/` hidden.** What a person edits stays in
 plain view; what only FlowReel reads is out of the way, so `ls` shows the film and not

@@ -184,7 +184,7 @@ def make_project(folder: str | Path, source=None, step: int | None = None, *,
     (:func:`cameras_text`), the ``.gitignore`` and, with ``link``, the data link
     (:func:`make_link`). ``film.yml`` and ``cameras.yml`` are written only when
     missing. Returns what was done as :class:`Made`."""
-    from flowreel.film.template import template as film_template
+    from flowreel.film.scene_template import film_template
     root = Path(folder)
     done = Made(root)
     if (root / PROJECT_FILE).exists() and not force:

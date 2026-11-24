@@ -171,7 +171,7 @@ Frame slider, press `s` to save a key. Keys: `s` save, `u` undo, `r` replace nea
 | `--track NAME` | required | the track to make, or to take up where it was left |
 | `--frames N` | the shot's frames | the track's length; needed with `--vtp` and no shot |
 | `--vtp DIR` | none | open surfaces saved by `shot render --save-vtp DIR` instead of the data |
-| `--film FILE` | none | mark the points of the flow that this film's boxes follow on the shot (or, in a film of shots, its captions point at) |
+| `--film FILE` | none | mark the points of the flow that this film's boxes follow on the shot |
 | `--spline` | off | write the track with `path: spline` |
 | `--size W H` | `1280 720` | the window's size |
 
@@ -279,9 +279,8 @@ flowreel panel draw PANEL [--frames SPEC] [--force] [-j N] [-o DIR] [Slurm optio
 ```
 
 Draws a panel's own frames into `frames/<panel>/`, frame *i* at the panel's time *i*,
-skipping frames whose key did not change ([panels](shots/panels.md)); it replaces
-`compose panel`, which stays until the film of shots goes. In a film of scenes a panel
-box needs no draw: the build draws the panel at the box's size.
+skipping frames whose key did not change ([panels](shots/panels.md)). In a film of scenes
+a panel box needs no draw: the build draws the panel at the box's size.
 
 ## `panel template`
 
@@ -323,97 +322,29 @@ A window to draw, move, resize, name and fill a scene's boxes, with the scene dr
 a time you choose; every change is checked and written at once
 ([designing a layout](film/layouts.md#designing-a-layout-scene-design)).
 
-## `compose layout`
-
-Going, with the [film of shots](old/index.md) it serves: a layout of shot and panel boxes
-in a scene takes its place.
-
-```text
-flowreel compose layout LAYOUT [--frames SPEC] [--scale S | --size W H] [--force]
-                        [-j N] [-o DIR]
-```
-
-Composes the frames of a [layout file](old/layouts.md) into `DIR/<layout>/frame_00000.png`.
-The shots of its `stations` tiles are rendered and its `panel` tiles drawn first, each
-skipping its own fresh frames; then each composed frame whose key did not change is
-skipped. A draft goes to `DIR/<layout>@<W>x<H>/`, with positions, tiles and labels
-scaled.
-
-| Option | Default | Meaning |
-|---|---|---|
-| `LAYOUT` | | the layout file |
-| `--frames SPEC` | every frame | composed frames, as for `shot render` |
-| `--scale S` | `1` | a draft at the layout's size times S |
-| `--size W H` | | a draft at W x H pixels |
-| `--force` | off | compose again, and render and draw the tiles again |
-| `-j N`, `--jobs N` | `1` | processes for the stations' renders and the panels' frames |
-| `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
-
-```text
-$ flowreel compose layout compare.yml --scale 0.5
-  frame_00000.png composed
-  ...
-16 composed, 0 skipped in 1.2 s -> frames/compare@960x540
-```
-
-`rate: output` tiles are composed like any panel tile here; the film build draws them
-at its output frames ([layouts](old/layouts.md#panels-at-the-output-rate-rate-output)).
-
-## `compose panel`
-
-Going: it is [`panel draw`](#panel-draw).
-
-```text
-flowreel compose panel PANEL [--frames SPEC] [--force] [-j N] [-o DIR]
-```
-
-Draws the frames of a [panel file](shots/panels.md) into `DIR/<panel>/frame_00000.png`,
-frame *i* at the panel's time *i*. Frames whose key did not change are skipped. With
-`-j N` the frames are cut into N runs of consecutive frames, each drawn by its own
-process, which builds the figure once and moves it along in time.
-
-| Option | Default | Meaning |
-|---|---|---|
-| `PANEL` | | the panel file |
-| `--frames SPEC` | every frame | frames, as for `shot render` |
-| `--force` | off | draw every frame again |
-| `-j N`, `--jobs N` | `1` | processes, one run of frames each |
-| `-o DIR`, `--out DIR` | `frames/` at the project root | folder of the frame folders |
-
-```text
-$ flowreel compose panel lift.yml -j 4
-  frame_00000.png drawn
-  ...
-120 drawn, 0 skipped in 9.8 s -> frames/lift
-```
-
 ## `film build`
 
 ```text
-flowreel film build [FILM] [--only SHOT] [--mute] [--force] [--preview HEIGHT]
-                    [--crf N] [--watch] [--clips DIR] [-j N]
+flowreel film build [FILM] [--only SCENE] [--mute] [--force] [--preview HEIGHT]
+                    [--crf N] [--watch] [--clips DIR] [Slurm options]
 ```
 
-Builds the [film](old/film.md): every shot's [finished clip](old/clips.md), kept when its key
-did not change, joined into the film's `output` with its sound and chapters; then
-`film.srt` and `chapters.txt` beside it ([building the film](old/build.md)). Prints each
-shot's planned and measured length and whether its clip was built or kept.
-
-A film of scenes (`scenes:`, [a film of scenes](film/film.md)) is built a clip per
-scene instead, and `--only` names a scene; `film check`, `lengths`, `srt` and `chapters`
-read it too. `-j` is for a film of shots' panels.
+Builds the [film](film/film.md): every scene's finished clip, kept when its key did not
+change, joined into the film's `output` with its sound and chapters; then `film.srt` and
+`chapters.txt` beside it ([building the film](making/build.md)). Prints each scene's
+planned and measured length and whether its clip was built or kept. `film check`,
+`lengths`, `srt` and `chapters` read the same file.
 
 | Option | Default | Meaning |
 |---|---|---|
 | `FILM` | the project's `film.yml`, else `./film.yml` | the film file |
-| `--only SHOT` | none | build that shot's finished clip alone, copied to `film_SHOT.mp4`, silent, for checking its text |
+| `--only SCENE` | none | build that scene's finished clip alone, copied to `film_SCENE.mp4`, silent, for checking its text |
 | `--mute` | off | build the film without its sound |
 | `--force` | off | build every clip again, even when its key did not change |
 | `--preview HEIGHT` | none | also write `film_<HEIGHT>p.mp4`, scaled to HEIGHT pixels (even, at most the film's) |
 | `--crf N` | `28` | quality of the preview copy, 0 to 51, lower is better and larger; needs `--preview` |
-| `--watch` | off | build, then build again on each change to a file the film may be made from, until Ctrl-C ([building as you edit](old/build.md#building-as-you-edit---watch)) |
+| `--watch` | off | build, then build again on each change to a file the film may be made from, until Ctrl-C ([building as you edit](making/build.md#building-as-you-edit---watch)) |
 | `--clips DIR` | `clips/` at the project root | folder of the clips |
-| `-j N`, `--jobs N` | `1` | processes drawing a layout's `rate: output` panels |
 
 ```text
 $ flowreel film build --preview 180
@@ -447,9 +378,7 @@ not joined, so the sheet comes before the build.
 | `--width PX` | `480` | width of a still, at most the film's |
 | `-o FILE`, `--output FILE` | `contact.png` beside the film | the sheet |
 
-`--force`, `--clips` and `-j` are those of `film build`. In a film of shots, a caption whose
-[point in the model](old/captions.md#points-in-the-model) is hidden for a while is named
-in a warning.
+`--force` and `--clips` are those of `film build`.
 
 ## `film lengths`
 
@@ -498,16 +427,15 @@ stderr, so the printed list can be piped. Nothing is built.
 ## `film template`
 
 ```text
-flowreel film template --scenes [NAME] [--fps N] [-o FILE] [--force]
+flowreel film template [NAME] [--fps N] [-o FILE] [--force]
 flowreel film template --layout [-o FILE] [--force]
 ```
 
-`--scenes` prints a film of scenes with every key at its default, each with a comment: a
+`film template` prints a film of scenes with every key at its default, each with a comment: a
 title scene, a scene of the shot `shots/NAME.yml` (default `my_shot`), and an end scene
 holding its last frame ([the film](film/film.md)). `--layout` prints a layout file with
 one box of each kind ([layouts and boxes](film/layouts.md)). The defaults are taken from
-the code, so the files are always current. Without either, it prints a film of shots
-([going](old/index.md)).
+the code, so the files are always current.
 
 ## `project init`
 
@@ -634,8 +562,7 @@ that is a symbolic link is skipped, since what it points to may be shared.
 
 ## Slurm options
 
-`shot render`, `panel draw` and `film build` (and, until they go, `compose layout` and
-`compose panel`) run as Slurm jobs when
+`shot render`, `panel draw` and `film build` run as Slurm jobs when
 given `--slurm FILE` (write the job script to FILE) or `--submit` (write it, to
 `jobs/NAME.sh` unless `--slurm` names one, and hand it to `sbatch`). The job runs the
 same command in this folder, from this environment. See [Slurm](making/slurm.md) for how a

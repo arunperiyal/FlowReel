@@ -1143,7 +1143,7 @@ reviewable: the tutorials, then the examples, then the removal)
   test)
 
 **Branch 9: `phase10/remove-old`**
-- [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
+- [x] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
   and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
   tiles, and the `compose` command group (branches 1 and 4 kept them so `main` kept
   building films); the guide's pages on it (`guide/old/`, branch 6)

@@ -6,8 +6,7 @@ undone on the way, as a person would. ``flowreel shot render`` then draws the sh
 that track, and its frames are compared with golden frames drawn by
 ``tools/make_camera_golden.py`` with plain pyvista from the same numbers, without any of
 FlowReel's camera code: a key's own view, the view halfway between two keys, and a
-nearby frame that must fail. The arrow of a caption anchored to the body is compared
-with goldens whose tip VTK's own camera transform placed.
+nearby frame that must fail.
 """
 from pathlib import Path
 
@@ -131,31 +130,3 @@ def test_a_nearby_frame_fails_the_same_limits(session):
     golden = np.asarray(Image.open(DATA / "golden_mid.png").convert("RGB"))
     mean, clear = difference(picture(session, SESSION["golden"]["near"]), golden)
     assert mean > MEAN_LIMIT and clear > CLEAR_LIMIT, (mean, clear)
-
-
-def test_the_anchored_arrow_matches_its_goldens(session):
-    from flowreel import film
-    from flowreel.film.clips import Clips
-    from flowreel.film.draw import caption_image
-    a = SESSION["arrow"]
-    caption = {"lines": [" "], "place": [0, 0], "shadow": False, "colour": a["colour"],
-               "at": [0, 0.5],
-               "shapes": [{"arrow": {"from": a["from"], "to": {"model": a["to"]},
-                                     "width": a["width"]}}]}
-    (session / "film.yml").write_text(yaml.safe_dump({
-        "fps": 24, "size": SESSION["size"],
-        "shots": [{"name": "picked", "frames": "frames/picked", "text": [caption]}]}))
-    clips = Clips(film.load(session / "film.yml"))
-    (c, start, end, *_), = clips.captions("picked")
-    placed = dict(clips.placed("picked", c, start, end))
-    black = Image.new("RGBA", tuple(SESSION["size"]), (0, 0, 0, 255))
-    for f in a["frames"]:
-        image, _ = caption_image(placed[f].caption, clips.film.style, tuple(SESSION["size"]))
-        got = np.asarray(Image.alpha_composite(black, image).convert("RGB"))
-        want = np.asarray(Image.alpha_composite(black, Image.open(DATA / f"arrow_{f:05d}.png"))
-                          .convert("RGB"))
-        mean, clear = difference(got, want)
-        assert mean < MEAN_LIMIT and clear < CLEAR_LIMIT, (f, mean, clear)
-    first = np.asarray(Image.alpha_composite(black, Image.open(DATA / "arrow_00000.png")).convert("RGB"))
-    mean, clear = difference(got, first)                 # frame 12 against frame 0's arrow
-    assert mean > 0.05 and clear > 0.0005, (mean, clear)

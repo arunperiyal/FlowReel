@@ -2,8 +2,8 @@
 
 A panel is a matplotlib figure drawn once per frame, at that frame's time: plots of
 lift moving along with the film, a dot at the current value (plan Section 9.2). A
-panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`, so a
-[layout](../old/layouts.md) tiles them beside the flow.
+panel's frames go into a frame folder like a shot's, `OUT/<name>/frame_00000.png`; in a
+film a [panel box](../film/boxes.md#panel-and-last_frame) draws the panel beside the flow.
 
 A runnable example on generated histories is `examples/panels/run.py`; one on a
 generated flow is `examples/flow_panels/run.py`.
@@ -29,9 +29,8 @@ style: styles/film.yml
 **Times.** Frame *i* is drawn at `times[i]`, in the source's time unit. With
 `{shot: FILE}` the times are those of the shot's frames, the time of the step each
 frame shows. A panel and a shot with the same times then line up frame by frame in a
-layout. A list must not decrease. A layout can also tile a panel itself (`panel:
-FILE`), and draw it at the film's output rate, between flow frames
-([layouts](../old/layouts.md#panels-at-the-output-rate-rate-output)).
+film. A list must not decrease. A panel box draws the panel itself, and at the film's
+output rate, between flow frames (`rate` on the [box](../film/boxes.md#panel-and-last_frame)).
 
 ## Style
 

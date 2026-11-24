@@ -140,7 +140,7 @@ def test_the_templates_load(folder):
 
 def test_the_commands(folder, monkeypatch):
     monkeypatch.chdir(folder)
-    status, out, _ = Shell(folder).run("film template --scenes wake")
+    status, out, _ = Shell(folder).run("film template wake")
     assert status == 0 and "scenes:" in out and "shots/wake.yml" in out
     status, out, _ = Shell(folder).run("film template --layout")
     assert status == 0 and "boxes:" in out

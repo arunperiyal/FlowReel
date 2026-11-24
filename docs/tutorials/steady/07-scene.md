@@ -35,7 +35,7 @@ scenes:
           at: [4.8, 6.3]
 ```
 
-`flowreel film template --scenes` prints a film file with every key and its default, to
+`flowreel film template` prints a film file with every key and its default, to
 read once. What this one says:
 
 - **The film's properties**: its file, 24 frames a second, 1920 by 1080, and a `style`.

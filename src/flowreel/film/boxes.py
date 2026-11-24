@@ -8,7 +8,7 @@ shows at that moment, the picture of a shot, panel or held frame, is given in
 scene build's to say (branch 3), as is the last frame of another scene.
 
 - **Text** is set by matplotlib in the film's font, so ``$...$`` is mathematics, then
-  given a soft shadow or a dark box as captions are (:mod:`flowreel.film.draw`). In a box
+  given a soft shadow or a dark box as captions were. In a box
   of its own size it sits by its look's ``align`` and ``valign`` within ``margin`` of the
   edges; at ``pos`` alone (or following a point) its upper left corner is there and the
   box is as large as the text. A text box at ``pos`` in the ``text`` look draws the same
@@ -129,8 +129,6 @@ def text_image(lines, look: Look, style: Style, picture: tuple[int, int], *,
     from PIL import Image, ImageDraw, ImageFilter
 
     from flowreel.compose.style import register_fonts
-    from flowreel.film.draw import BOX_ALPHA, BOX_RADIUS, SHADOW_BLUR, SHADOW_GROW, _figure
-    from flowreel.film.draw import maths_settings
     register_fonts()
     width, height = picture
     colour = colour_of(look.colour, style)
@@ -182,7 +180,6 @@ def shape_image(shape, rect, style: Style, picture: tuple[int, int]):
     """A shape box's ``shape`` drawn in ``rect`` on a transparent picture."""
     from PIL import Image, ImageDraw
 
-    from flowreel.film.shapes import _rgba, arrow
     out = Image.new("RGBA", picture, (0, 0, 0, 0))
     draw = ImageDraw.Draw(out)
     x, y, w, h = rect
@@ -211,7 +208,6 @@ def _shadowed(image):
     """``image`` over a soft shadow of itself, as a caption's text has."""
     from PIL import Image, ImageFilter
 
-    from flowreel.film.draw import SHADOW_BLUR, SHADOW_GROW
     back = Image.new("RGBA", image.size, (0, 0, 0, 0))
     back.putalpha(image.getchannel("A").filter(ImageFilter.MaxFilter(SHADOW_GROW))
                   .filter(ImageFilter.GaussianBlur(SHADOW_BLUR)))
@@ -220,10 +216,75 @@ def _shadowed(image):
 
 def _fill(value: str) -> tuple[int, int, int, int]:
     """A fill colour, with its alpha when written ``#rrggbbaa``."""
-    from flowreel.film.shapes import _rgba
     if isinstance(value, str) and value.startswith("#") and len(value) == 9:
         return (*_rgba(value[:7])[:3], int(value[7:], 16))
     return _rgba(value)
+
+
+# ---- pieces text and shapes are drawn with -------------------------------------------
+
+BOX_ALPHA = 175            # of 255, the dark box behind boxed text
+BOX_RADIUS = 12            # pixels
+SHADOW_GROW = 9            # pixels, the text's outline widened by this (an odd size)
+SHADOW_BLUR = 12           # pixels, Gaussian blur of the widened outline
+HEAD = 4.5                 # an arrow head's length, times the line's width
+
+
+def maths_settings(style: Style) -> dict:
+    """matplotlib's settings for text in ``style``: the font, and the maths font set
+    (``font``: the text's own font, upright, italic and bold, as the AFMS film)."""
+    family = style.font
+    rc = {"font.family": [family, "DejaVu Sans"]}
+    if style.maths == "font":
+        rc.update({"mathtext.fontset": "custom", "mathtext.rm": family,
+                   "mathtext.it": f"{family}:italic", "mathtext.bf": f"{family}:bold",
+                   # \mathcal: matplotlib looks for a 'cursive' font, which few have
+                   "mathtext.cal": f"{family}:italic"})
+    else:
+        rc["mathtext.fontset"] = style.maths
+    return rc
+
+
+def _figure(picture: tuple[int, int]):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    width, height = picture
+    fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
+    fig.patch.set_alpha(0)
+    return fig
+
+
+def _rgba(colour: str, alpha: int = 255) -> tuple[int, int, int, int]:
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(colour)
+    return (round(r * 255), round(g * 255), round(b * 255), alpha)
+
+
+def _xy(z: complex) -> tuple[float, float]:
+    return (z.real, z.imag)
+
+
+def arrow(draw, start, end, colour, width: float, head: float | None = None) -> None:
+    """A straight arrow from ``start`` to ``end`` with a filled head at ``end``,
+    ``head`` pixels long (default 4.5 widths) and half as wide."""
+    start, end = complex(*start), complex(*end)
+    along = (end - start) / abs(end - start)
+    head = HEAD * width if head is None else head
+    base = end - head * along
+    side = along * 1j * head * 0.5
+    draw.line([_xy(start), _xy(base)], fill=colour, width=round(width))
+    draw.polygon([_xy(end), _xy(base + side), _xy(base - side)], fill=colour)
+
+
+def fitting(drawn: tuple[int, int], film: tuple[int, int]) -> tuple[float, float, float, float]:
+    """``(sx, sy, ox, oy)``: a pixel ``(x, y)`` of a picture of size ``drawn`` lands at
+    ``(x * sx + ox, y * sy + oy)`` of the film once fitted and centred, as ffmpeg's
+    ``scale`` (aspect kept, rounded) and ``pad`` do when the build fits a picture."""
+    (w, h), (fw, fh) = drawn, film
+    s = min(fw / w, fh / h)
+    iw, ih = round(w * s), round(h * s)
+    return iw / w, ih / h, float((fw - iw) // 2), float((fh - ih) // 2)
 
 
 # ---- following a point --------------------------------------------------------------
@@ -231,7 +292,6 @@ def _fill(value: str) -> tuple[int, int, int, int]:
 def follow_point(box: Box, layout, contents: Contents, film_size) -> tuple[float, float] | None:
     """Where ``box``'s point is in the film this frame (offset added), or ``None`` when
     it is hidden or the shot box shows nothing."""
-    from flowreel.film.anchors import fitting
     f = box.follow
     view = contents.views.get(f.box)
     if view is None:

@@ -1,5 +1,5 @@
 """Commented templates of a film of scenes and of a layout file (plan Section 19.11;
-``flowreel film template --scenes`` and ``--layout``).
+``flowreel film template`` and ``--layout``).
 
 Every key is written at its default (taken from :mod:`flowreel.film.model`'s own
 dataclasses) or as an example, each with a comment. The film template loads once its
@@ -7,13 +7,29 @@ shot file exists; the layout template loads as it is.
 """
 from __future__ import annotations
 
+import yaml
+
 from flowreel.film.model import (DEFAULT_LOOKS, DIRECTIONS, FITS, KINDS, LOOKS, PLACES,
                                  SHAPES, Look, Style)
 from flowreel.film.schema import CORNERS, DEFAULT_SIZE, MATHS, TO_OUTPUT, Audio, Watermark
-from flowreel.film.template import _line, _v
 
 REFERENCE = "docs/guide/film/film.md"
 
+
+COLUMN = 40
+
+
+def _v(value) -> str:
+    """``value`` as YAML in one line."""
+    if isinstance(value, tuple):
+        value = list(value)
+    text = yaml.safe_dump(value, default_flow_style=True, width=1000).strip()
+    return text.removesuffix("...").strip()
+
+
+def _line(text: str, comment: str = "") -> str:
+    # A comment needs a space before '#' in YAML, even when the text is past the column.
+    return f"{text.ljust(COLUMN - 1)} # {comment}" if comment else text
 
 def _look_line(name: str, look: Look) -> str:
     colour = "~" if look.colour is None else look.colour
@@ -28,7 +44,7 @@ def film_template(name: str = "my_shot", fps: int = 24) -> str:
     (``shots/<name>.yml``) and an end scene holding its last frame, at ``fps``."""
     st, a, w = Style(), Audio(file=None), Watermark()
     lines = [
-        "# A film of scenes, written by `flowreel film template --scenes`. Reference:",
+        "# A film of scenes, written by `flowreel film template`. Reference:",
         f"# {REFERENCE}. Levels: the film's properties, audio, watermark, then its scenes;",
         "# a scene has a layout of boxes (text, image, shape, shot, panel, last_frame).",
         _line("output: film.mp4", "the film, from this file's folder"),

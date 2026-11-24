@@ -83,19 +83,11 @@ def test_missing_plans_only_frames_not_drawn(sh, tmp_path):
     assert status != 0 and "every frame is drawn already" in err
 
 
-def test_compose_and_film_as_jobs_after_others(sh, tmp_path):
-    (tmp_path / "board.yml").write_text("size: [10, 10]\ntiles: []\n")
-    status, out, err = sh.run("compose layout board.yml --slurm c.sh --scale 0.5 -j 8 "
-                              "--cpus 8 --mem 32G --after 1310")
-    assert status == 0, err
-    assert "8 cores, 32G, 02:00:00 on airavata part1" in out
-    text = (tmp_path / "c.sh").read_text()
-    assert "flowreel compose layout board.yml --scale 0.5 -j 8 -o frames\n" in text
-    assert "#SBATCH --dependency=afterok:1310" in text
+def test_film_as_a_job(sh, tmp_path):
     status, out, err = sh.run("film build --submit --preview 480 --mute --time 30m")
     assert status == 0, err
     assert "submitted job 1310" in out
-    assert "flowreel film build film.yml -j 1 --preview 480 --mute\n" in \
+    assert "flowreel film build film.yml --preview 480 --mute\n" in \
         (tmp_path / "jobs" / "film.sh").read_text()
 
 

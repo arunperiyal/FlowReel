@@ -84,6 +84,10 @@ reported as it finishes, then a summary:
 2 rendered, 1 skipped in 6.8 s -> frames/reveal (backend osmesa)
 ```
 
+
+A shot file without `size` is drawn at the size of the box that shows it in the
+project's film of scenes (the largest, when several do), so its frames are made at the
+size they are seen; a draft (`--scale`, `--size`) scales from there.
 ## `shot preview`
 
 ```text
@@ -266,6 +270,47 @@ the camera move in a second or two, without rendering the shot. Frames go to
 `0.25`; 1920x1080 with `--vtp` and no shot).
 
 See `examples/camera_commands/run.sh`, which runs each of these on generated data.
+
+## `panel draw`
+
+```text
+flowreel panel draw PANEL [--frames SPEC] [--force] [-j N] [-o DIR] [Slurm options]
+```
+
+Draws a panel's own frames into `frames/<panel>/`, frame *i* at the panel's time *i*,
+skipping frames whose key did not change ([panels](composing/panels.md)); it replaces
+`compose panel`, which stays until the film of shots goes. In a film of scenes a panel
+box needs no draw: the build draws the panel at the box's size.
+
+## `panel template`
+
+```text
+flowreel panel template [--type series|phase|map|locator|section|cuts|strip] [-o FILE] [--force]
+```
+
+A working panel file of a type, for a project of tags (bodies as `tag.body`, sources by
+tag), with the type's other keys commented.
+
+## `scene list`
+
+```text
+flowreel scene list [FILM]
+```
+
+Each scene of a film of scenes: where it starts, how long it lasts, its boxes (the main
+one marked), its layout file, chapter and cross ([a film of scenes](film/scenes.md)). A
+scene whose shot has no frames yet is listed with its length unknown, and says why.
+
+## `scene preview`
+
+```text
+flowreel scene preview NAME [--at S ...] [--every S] [-o DIR] [--film FILM]
+```
+
+Stills of one scene, as the build draws its frames (before the scene's fades), into
+`frames/scenes/NAME/at_S.png`: by default at its start, middle and end. Nothing is
+encoded, so a layout's places and text are seen in seconds. Shot boxes need their
+frames; a held last frame shows once its scene's clip is built.
 
 ## `compose layout`
 

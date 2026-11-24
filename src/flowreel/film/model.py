@@ -694,3 +694,36 @@ def _box_check(scene: Scene, check: Checker, index: int, key: str) -> Checker:
     if scene.layout.file is not None:
         return Checker(scene.layout.file, ("boxes", index, key))
     return check.at("layout", "boxes", index, key)
+
+
+_BOX_SIZES: dict = {}
+
+
+def shot_box_size(shot_file) -> tuple[int, int] | None:
+    """The size of the shot box that shows the shot file ``shot_file`` in its project's
+    film of scenes (``film.yml`` at the project root), the largest when several do;
+    ``None`` when no film of scenes shows it (or the film does not load)."""
+    from flowreel.project.paths import find_root
+    from flowreel.yamlfile import read_yaml
+    root = find_root(shot_file)
+    if root is None or not (root / "film.yml").is_file():
+        return None
+    path = root / "film.yml"
+    stamp = path.stat().st_mtime_ns
+    if _BOX_SIZES.get(path, (None,))[0] != stamp:
+        sizes: dict = {}
+        try:
+            if is_scene_film(read_yaml(path)):
+                film = load(path)
+                for scene in film.scenes:
+                    for box in scene.layout.boxes:
+                        if box.kind == "shot" and box.content.file is not None:
+                            w, h = box.rect(film.size)[2:]
+                            key = Path(box.content.file).resolve()
+                            size = (max(round(w), 1), max(round(h), 1))
+                            if size[0] * size[1] > sizes.get(key, (0, 0))[0] * sizes.get(key, (0, 0))[1]:
+                                sizes[key] = size
+        except Exception:                          # a film that does not load sizes nothing
+            sizes = {}
+        _BOX_SIZES[path] = (stamp, sizes)
+    return _BOX_SIZES[path][1].get(Path(shot_file).resolve())

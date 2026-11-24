@@ -19,7 +19,7 @@ Guide: [guide/shots/shots](../guide/shots/shots.md).
 | `source` | a tag; `{tag, ...options}`; `adapter:location`; or a mapping of the adapter's options with `adapter` | required | `source: bare` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `time` | mapping, see below | required | `time: {frozen: 5000, frames: 120}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `camera` | mapping (`view`, `track`, ...) | `{}` | `camera: {view: main}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
-| `size` | `[width, height]`, whole pixels | `[1920, 1080]` | `size: [1280, 720]` | [guide/shots/shots](../guide/shots/shots.md#keys) |
+| `size` | `[width, height]`, whole pixels | the size of the box that shows it in a film of scenes; else `[1920, 1080]` | `size: [1280, 720]` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `crop` | a box `{x: [lo, hi], y: [...], z: [...]}`, or `{around: {body, station}, half: [hx, hy, hz]}`, a window that travels with a body ([long bodies](../guide/rendering/long-bodies.md)) | none: the whole domain | `{x: [-1, 13], y: [-6, 6], z: [-2, 25]}` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `background` | colour | `black` | `background: '#101010'` | [guide/shots/shots](../guide/shots/shots.md#keys) |
 | `antialias` | `none`, `fxaa` or `ssaa` | `ssaa` | `antialias: fxaa` | [guide/shots/shots](../guide/shots/shots.md#keys) |

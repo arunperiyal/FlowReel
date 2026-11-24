@@ -655,6 +655,126 @@ examples:
   flowreel camera preview approach --vtp wake_vtp -c cameras.yml --every 8
 ```
 
+## `panel`
+
+Draw a panel's frames, or start a panel file.
+
+### `flowreel panel draw`
+
+```text
+usage: flowreel panel draw [-h] [--frames SPEC] [--force] [-j N] [-o DIR]
+                           [--slurm FILE] [--submit] [--cluster NAME]
+                           [--partition NAME] [--time T] [--mem SIZE] [--cpus N]
+                           [--after JOBID]
+                           panel
+
+Draw the frames of a panel file into OUT/<panel>/frame_00000.png, frame i at
+the panel's time i. Frames whose key did not change are skipped. With -j N the
+frames are cut into N runs of consecutive frames, each drawn by its own
+process. A panel box of a film of scenes needs no draw: the build draws it at
+the box's size.
+
+positional arguments:
+  panel              the panel file
+
+options:
+  -h, --help         show this help message and exit
+  --frames SPEC      frames to draw: A, A:B (both included), A:B:E, or a comma list
+  --force            draw the frames even when their key did not change
+  -j N, --jobs N     processes drawing at once (default 1)
+  -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
+
+Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+  --slurm FILE       write a Slurm job script to FILE instead of running here
+  --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
+                     unless --slurm FILE)
+  --cluster NAME     the cluster (default: FLOWREEL_CLUSTER, or this host's)
+  --partition NAME   the partition (default: the shortest that takes the job)
+  --time T           time a job may run: 90m, 3h, 1-12:00:00 (default: estimated)
+  --mem SIZE         memory of a job: 32G, 500M (default: worked out)
+  --cpus N           cores of a job (default: 16 for a render, 4 otherwise)
+  --after JOBID      start only when job JOBID ended well (may be repeated)
+
+examples:
+  flowreel panel draw panels/lift.yml              every frame, into frames/lift/
+  flowreel panel draw panels/lift.yml -j 8         eight runs of frames at once
+  flowreel panel draw panels/lift.yml --frames 0:10 --force
+```
+
+### `flowreel panel template`
+
+```text
+usage: flowreel panel template [-h]
+                               [--type {series,phase,map,locator,section,cuts,strip}]
+                               [-o FILE] [--force]
+
+Print (or write with -o) a panel file of a type: a working example for a
+project of tags, with the type's other keys commented.
+
+options:
+  -h, --help            show this help message and exit
+  --type {series,phase,map,locator,section,cuts,strip}
+                        the panel's type (default series)
+  -o FILE, --output FILE
+                        write it here instead
+  --force               overwrite FILE
+
+examples:
+  flowreel panel template                          a series panel
+  flowreel panel template --type section -o panels/wake_section.yml
+```
+
+## `scene`
+
+A film's scenes: list them, preview one.
+
+### `flowreel scene list`
+
+```text
+usage: flowreel scene list [-h] [FILM]
+
+List the scenes of a film of scenes: where each starts in the film, how long
+it lasts (its seconds, or its main box's frames), its boxes and its chapter. A
+scene whose shot has no frames yet is listed with its length unknown.
+
+positional arguments:
+  FILM        the film file (default the project's film.yml)
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel scene list                        the project's film.yml
+  flowreel scene list films/short.yml
+```
+
+### `flowreel scene preview`
+
+```text
+usage: flowreel scene preview [-h] [--at S [S ...] | --every S] [-o DIR] [--film FILM]
+                              NAME
+
+Draw stills of one scene into OUT/scenes/NAME/at_S.png (default frames/ at the
+project root): its boxes at those seconds, as the build draws them, without
+the scene's fades. Shot boxes need their frames; a held last frame shows once
+its scene's clip is built.
+
+positional arguments:
+  NAME               the scene
+
+options:
+  -h, --help         show this help message and exit
+  --at S [S ...]     seconds into the scene (default its start, middle and end)
+  --every S          a still every S seconds
+  -o DIR, --out DIR  folder of the stills (default frames/scenes/NAME)
+  --film FILM        the film file (default the project's film.yml)
+
+examples:
+  flowreel scene preview opening             stills at the start, middle and end
+  flowreel scene preview compare --at 1 4.5 9 -o previews/
+  flowreel scene preview compare --every 2   a still every 2 seconds
+```
+
 ## `compose`
 
 Compose layouts and draw panels.

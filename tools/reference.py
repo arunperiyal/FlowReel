@@ -39,14 +39,16 @@ def command_groups():
     from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
     from flowreel.cli.data import DataCommand
+    from flowreel.cli.panel import PanelCommand
+    from flowreel.cli.scene import SceneCommand
     from flowreel.cli.doctor import DoctorCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
     from flowreel.cli.project import ProjectCommand
     from flowreel.cli.shot import ShotCommand
     groups = []
-    for cls in (ProjectCommand, DataCommand, ShotCommand, CameraCommand, ComposeCommand,
-                FilmCommand, JobsCommand, DoctorCommand):
+    for cls in (ProjectCommand, DataCommand, ShotCommand, CameraCommand, PanelCommand,
+                SceneCommand, ComposeCommand, FilmCommand, JobsCommand, DoctorCommand):
         parser = argparse.ArgumentParser(prog="flowreel")
         group = cls().setup_parser(parser.add_subparsers())
         actions = [a for a in group._actions if isinstance(a, argparse._SubParsersAction)]

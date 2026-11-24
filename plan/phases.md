@@ -1099,9 +1099,11 @@ The decisions, for every branch:
 - [x] Tests: lengths planned and measured, one changed caption rebuilding one scene
 
 **Branch 4: `phase10/commands`**
-- [ ] `panel draw|template`, `scene preview|list`; `compose` removed; `shot render`
-  drawing at the size of the box that shows the shot unless the shot gives `size`
-- [ ] Help, the command reference, the doctor and `project info` (scenes, layouts)
+- [x] `panel draw|template`, `scene preview|list`; `compose` removed; `shot render`
+  drawing at the size of the box that shows the shot unless the shot gives `size`.
+  `compose` stays until branch 7 with the film of shots it serves (decided while
+  implementing, 2026-11-24)
+- [x] Help, the command reference, the doctor and `project info` (scenes, layouts)
 
 **Branch 5: `phase10/scene-design`**
 - [ ] `scene design NAME`: a matplotlib window on the scene's layout: draw, move and
@@ -1121,7 +1123,8 @@ The decisions, for every branch:
 - [ ] Every example and its test on tags and scenes
 - [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`
   and `hold_last_of`, card files, caption files, `text/` and `cards/`, layout files of
-  tiles (Phase 10 branch 1 kept them so `main` kept building films)
+  tiles (Phase 10 branch 1 kept them so `main` kept building films; and the `compose`
+  command group)
 - [ ] The layout before tags removed, once nothing uses it: `flowreel.yml`'s `bodies:` and
   `reference:`, and `source: adapter:path` in shots and panels, and `project init SOURCE`
   and `--link` (Phase 9 kept them read so

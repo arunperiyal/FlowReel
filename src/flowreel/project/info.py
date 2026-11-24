@@ -76,6 +76,8 @@ class ProjectInfo:
     root: Path
     bodies: list[str] = field(default_factory=list)
     tags: list[tuple[str, str, bool]] = field(default_factory=list)
+    layouts: list[str] = field(default_factory=list)
+    scenes: list[str] = field(default_factory=list)
     shots: list[ShotEntry] = field(default_factory=list)
     views: list[str] = field(default_factory=list)
     tracks: list[str] = field(default_factory=list)
@@ -107,6 +109,10 @@ class ProjectInfo:
             lines.append(f"  {s.path}: {what}")
         lines.append(f"cameras: views {names(self.views)}; tracks {names(self.tracks)}")
         lines.append(f"film:    {self.film or 'none'}")
+        if self.scenes:
+            lines.append(f"scenes:  {', '.join(self.scenes)}")
+        if self.layouts:
+            lines.append(f"layouts: {', '.join(self.layouts)}")
         lines.append("output:  " + ", ".join(f"{k} {human(v)}" for k, v in self.sizes.items()))
         lines += [f"error:   {e}" for e in self.errors]
         return "\n".join(lines)
@@ -211,6 +217,7 @@ def info(root: str | Path) -> ProjectInfo:
             f = load_scenes(film)
             n = len(f.scenes)
             out.film = f"{FILM_FILE}: {n} scene{'s' * (n != 1)}"
+            out.scenes = [s.name for s in f.scenes]
         except Exception as exc:
             out.film = f"{FILM_FILE}: does not load"
             out.errors.append(str(exc))
@@ -228,6 +235,8 @@ def info(root: str | Path) -> ProjectInfo:
                 out.film += f", {timeline(f).length:.1f} s planned"
             except Exception as exc:
                 out.film += f", length not known yet ({getattr(exc, 'problem', exc)})"
+    out.layouts = sorted(p.stem for p in (root / "layouts").glob("*.yml")) \
+        if (root / "layouts").is_dir() else []
     data = root / "data"
     if data.is_dir():
         out.links = [(p.name, str(p.readlink())) for p in sorted(data.iterdir()) if p.is_symlink()]

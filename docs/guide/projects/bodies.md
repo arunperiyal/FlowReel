@@ -216,6 +216,14 @@ number and `station`, then the value columns. Where a restart repeats a time, th
 later row wins. A missing file or column is reported with the file's name and the
 columns it has.
 
+### From a FlexFlow case's OTHD and OISD files
+
+In a project with tags, `flowreel data import history --path CASE --tag TAG` reads the
+case's `othd_files/` and `oisd_files/` and writes each group as CSV under the tag's
+`series/`, declared under its body: no export needed
+([histories from FlexFlow](data.md#histories-from-flexflow)). The rest of this section is
+for a project without tags.
+
 ### Exporting from FlexFlow Analyzer
 
 For a FlexFlow case, the series come from FlexFlow Analyzer's `data table`, which handles

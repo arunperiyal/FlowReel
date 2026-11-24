@@ -112,31 +112,38 @@ A project's data by tag: each case's domain.yml.
 ```text
 usage: flowreel data import [-h] [--path PATH] --tag TAG [--body NAME=FILE]
                             [--flow FILE] [--name FUNCTION] [--param KEY=VALUE]
-                            [--copy] [--yes] [--force]
-                            {plt,vtk,geometry}
+                            [--group N=BODY] [--copy] [--yes] [--force]
+                            {plt,vtk,geometry,history}
 
-Link the folder a case's files are in under data/TAG/ (plt or vtk; geometry
-links nothing) and write data/TAG/domain.yml with what was measured: the
-reader's options, each wall zone as a body with its axis and diameter, and the
-steps, zones, fields and bounds; the units are left to fill in. --copy copies
-the files instead, after saying their size. A tag holding a case already is
-refused unless --force, which replaces the link and keeps the edits of
-domain.yml.
+history: link a FlexFlow case's othd_files/ and oisd_files/ into the tag,
+convert each group (othId, osgId) once to CSV under data/TAG/series/, restarts
+resolved (a later run wins), and declare it under its body in domain.yml.
+Otherwise: link the folder a case's files are in under data/TAG/ (plt or vtk;
+geometry links nothing) and write data/TAG/domain.yml with what was measured:
+the reader's options, each wall zone as a body with its axis and diameter, and
+the steps, zones, fields and bounds; the units are left to fill in. --copy
+copies the files instead, after saying their size. A tag holding a case
+already is refused unless --force, which replaces the link and keeps the edits
+of domain.yml.
 
 positional arguments:
-  {plt,vtk,geometry}  what the case is
+  {plt,vtk,geometry,history}
+                        what the case is; history: its OTHD and OISD files, into a tag
+                        already imported
 
 options:
-  -h, --help          show this help message and exit
-  --path PATH         the folder the files are in
-  --tag TAG           the tag: letters, digits, - and _
-  --body NAME=FILE    vtk: a body's surface file, by name (repeat for each)
-  --flow FILE         vtk: the flow within PATH (default its one .pvd)
-  --name FUNCTION     geometry: the body made in code
-  --param KEY=VALUE   geometry: a parameter of the body (repeat)
-  --copy              copy the files instead of linking
-  --yes               copy even above 5 GB
-  --force             replace the tag's link (domain.yml keeps its edits)
+  -h, --help            show this help message and exit
+  --path PATH           the folder the files are in
+  --tag TAG             the tag: letters, digits, - and _
+  --body NAME=FILE      vtk: a body's surface file, by name (repeat for each)
+  --flow FILE           vtk: the flow within PATH (default its one .pvd)
+  --name FUNCTION       geometry: the body made in code
+  --param KEY=VALUE     geometry: a parameter of the body (repeat)
+  --group N=BODY        history: the body group N is declared under (repeat; default
+                        the one body, when the files hold one group)
+  --copy                copy the files instead of linking
+  --yes                 copy even above 5 GB
+  --force               replace the tag's link (domain.yml keeps its edits)
 
 examples:
   flowreel data import plt --path /scratch/run/binary --tag bare
@@ -147,6 +154,9 @@ examples:
   flowreel data import geometry --name grooved_cylinder --tag carve --param grooves=4
   flowreel data import plt --path /scratch/run2/binary --tag bare --force
                                             point bare at another folder; edits kept
+  flowreel data import history --path /scratch/run --tag bare
+                                            othd_files/ and oisd_files/, a CSV per group
+  flowreel data import history --path /scratch/run --tag two --group 0=riser --group 1=ball
 ```
 
 ### `flowreel data list`

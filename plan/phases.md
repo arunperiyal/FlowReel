@@ -962,7 +962,7 @@ The decisions, for every branch:
 - [x] `data list`, `data info TAG|PATH`, `data remove TAG` (the links and `domain.yml`,
   never the case), `data rename OLD NEW` (and every file of the project that names it),
   `data check` (links that do not resolve, units not given, series files missing)
-- [ ] `project init` makes the folders only, with `--import KIND:PATH --tag TAG`. Its `SOURCE`
+- [x] `project init` makes the folders only, with `--import KIND:PATH --tag TAG`. Its `SOURCE`
   and `--link` forms stay until Phase 10's last branch, as `bodies:` does (the tutorials use
   them; decided while implementing, 2026-11-24)
 - [ ] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs

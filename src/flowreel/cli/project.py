@@ -31,7 +31,9 @@ Reference: docs/guide/projects/project.md, docs/guide/projects/bodies.md and doc
   flowreel project init geometry:grooved_cylinder -o carve --force
   flowreel project init --link /scratch/run vtk:data/run/flow.pvd
                                                     link the data first, read it there
-  flowreel project init                             the folders only; bodies by hand""",
+  flowreel project init                             the folders only; bodies by hand
+  flowreel project init --import plt:/scratch/run/binary --tag bare
+                                                    the folders, and the case as a tag""",
     "info": """examples:
   flowreel project info                             the project of this folder
   flowreel project info films/afms""",
@@ -107,6 +109,25 @@ def open_source(text: str, body: str | dict | None = None):
         raise CommandError(str(exc.args[0]) if exc.args else str(exc)) from None
 
 
+def _import_into(folder: Path, spec: str, tag: str, made, ctx) -> None:
+    """``project init --import KIND:PATH --tag TAG``: import the case, then fit the first
+    view of a cameras.yml written just now to it."""
+    from flowreel.project.domain import load_domain, open_tag
+    from flowreel.project.imports import import_data
+    from flowreel.project.init import cameras_text
+    from flowreel.project.paths import CAMERAS_FILE
+    kind, sep, path = spec.partition(":")
+    if not sep or kind not in ("plt", "vtk"):
+        raise CommandError(f"--import expects plt:PATH or vtk:PATH, got {spec!r}")
+    done = import_data(folder, kind, path, tag, say=ctx.out)
+    for link in done.linked:
+        ctx.out(f"linked {link} -> {Path(link).readlink()}")
+    ctx.out(f"wrote {done.domain}: fill in the units")
+    cameras = folder / CAMERAS_FILE
+    if cameras in made.wrote:
+        cameras.write_text(cameras_text(open_tag(load_domain(done.folder)), label=f"tag {tag}"))
+
+
 class ProjectCommand(BaseCommand):
     """The ``project`` command group."""
 
@@ -144,6 +165,10 @@ class ProjectCommand(BaseCommand):
                        help="link PATH (a case folder or file) into DIR/data/ under its name")
         i.add_argument("--force", action="store_true",
                        help="overwrite flowreel.yml (and replace a data link) if it exists")
+        i.add_argument("--import", dest="import_", metavar="KIND:PATH",
+                       help="import a case as a tag as well (plt:PATH, vtk:PATH), as "
+                            "data import does; give --tag")
+        i.add_argument("--tag", metavar="TAG", help="the tag of --import")
 
         n = actions.add_parser(
             "info", help="what the project holds, and the size of what it made",
@@ -216,6 +241,11 @@ class ProjectCommand(BaseCommand):
                                "film.yml and cameras.yml are kept either way)")
         if args.source is None and (args.body or args.step is not None):
             raise CommandError("--body and --step need a SOURCE")
+        if args.import_ and (args.source or args.link):
+            raise CommandError("--import brings the case in as a tag: give it without SOURCE "
+                               "and --link")
+        if bool(args.import_) != bool(args.tag):
+            raise CommandError("--import and --tag go together")
         try:
             if args.link:                     # first, so that SOURCE may read the data there
                 link = make_link(folder, args.link, args.force)
@@ -227,6 +257,8 @@ class ProjectCommand(BaseCommand):
                     raise CommandError(f"step {args.step} is not saved (steps "
                                        f"{source.steps()[0]} to {source.steps()[-1]})")
             made = make_project(folder, source, args.step, label=args.source, force=args.force)
+            if args.import_:
+                _import_into(folder, args.import_, args.tag, made, ctx)
         except (FileExistsError, LookupError, ValueError) as exc:
             raise CommandError(str(exc)) from None
         made_dirs = [p.name + "/" for p in made.wrote if p.is_dir()]
@@ -237,9 +269,12 @@ class ProjectCommand(BaseCommand):
             if files:
                 ctx.out(f"{verb} {', '.join(files)}")
         path = folder / PROJECT_FILE
-        if source is None:
-            ctx.out(f"wrote {path} without bodies: declare them, or run project init SOURCE "
-                    f"--force")
+        if args.import_:
+            ctx.out(f"wrote {path}; the case's bodies and units are in "
+                    f"data/{args.tag}/domain.yml")
+        elif source is None:
+            ctx.out(f"wrote {path} without bodies: declare them, import a case with data "
+                    f"import, or run project init SOURCE --force")
         else:
             names = source.bodies()
             ctx.out(f"wrote {path}: {len(names)} {'body' if len(names) == 1 else 'bodies'} "

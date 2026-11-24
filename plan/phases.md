@@ -949,7 +949,7 @@ The decisions, for every branch:
   `reference:` are still read: FlowReel's own tutorials, examples and tests use them, and
   making them errors now would leave `main` failing until Phase 10 moves them; Phase 10's
   last branch removes them (decided while implementing, 2026-11-24)
-- [ ] Sources opened from a tag (`plt`, `vtk`, `geometry`) with the tag's bodies and units
+- [x] Sources opened from a tag (`plt`, `vtk`, `geometry`) with the tag's bodies and units
   declared on them; the fields' parameters (`rho`, `mu`, `u_inf`) taken from the units
 - [ ] `data template`: every key of `domain.yml`, commented; the YAML reference covers it
 - [ ] Tests on generated tags; docs (projects, bodies, sources, rules: a new rule, data by

@@ -123,3 +123,16 @@ def domains(root: str | Path) -> dict[str, Domain]:
         return {}
     return {d.name: load_domain(d) for d in sorted(data.iterdir())
             if (d / DOMAIN_FILE).is_file()}
+
+
+def open_tag(domain: Domain, **options):
+    """The source of ``domain``: its kind's adapter with its ``source`` options (and any
+    ``options`` given, which win), its bodies declared on it, and its units as
+    ``source.units``."""
+    from flowreel import sources
+    from flowreel.project.names import DeclaredSource
+    opened = sources.create(domain.kind, **{**domain.source, **options})
+    tagged = DeclaredSource(opened, domain.bodies)
+    tagged.units = dict(domain.units)
+    tagged.tag = domain.tag
+    return tagged

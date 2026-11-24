@@ -1,12 +1,8 @@
 # The pendulum hung from the riser at mid-span: a virtual body, drawn as a ghost (see-
 # through, outlined) because it is modelled by equations and not meshed. Its angle
-# follows data/pendulum.csv, its pivot the riser's centre at station 20.
+# follows series/pendulum.csv, its pivot the riser's centre at station 20.
 name: pendulum
-source:
-  adapter: vtk
-  path: "data/flow_*.vti"
-  dt: 0.1
-  body: {cyl: data/cyl.vtp, ball: data/ball.vtp}
+source: bent                     # the tag: data/bent/
 time: {steps: [0, 9]}
 camera: {view: close, follow: riser, station: 20}
 size: [640, 360]

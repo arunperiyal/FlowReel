@@ -12,15 +12,15 @@ Needs no data and no solver: everything is made from formulas, at test time or w
   beside the first (z = 2.5, x 100 to 112). The riser vibrates across the flow in its
   third mode: ``y = AMP sin(3 pi x / length) sin(2 pi t / PERIOD)``. The flow is a wake
   that follows the riser, so a slice shows it.
-- ``data/riser_disp_<node>.csv``: the riser's displacement at ``PROBES`` probe nodes, 0
+- ``data/riser/series/riser_disp_<node>.csv``: the riser's displacement at ``PROBES`` probe nodes, 0
   to ``length``, as FlexFlow Analyzer exports it (``tsId, time, aleDisp_y``), sampled
-  every ``DT / 5``; ``data/riser_nodes.csv`` (``node, station``) says where each is.
-- ``data/pendulum.csv``: the swing of a pendulum hung from the riser at mid-span
+  every ``DT / 5``; ``series/riser_nodes.csv`` (``node, station``) says where each is.
+- ``data/riser/series/pendulum.csv``: the swing of a pendulum hung from the riser at mid-span
   (``time, pendDisp``, radians), ``SWING sin(2 pi t / PERIOD)``.
 
-The project file and the shots that read it are beside this module (``flowreel.yml``,
-``travel.yml``, ``span.yml``, ``pendulum.yml``, ``cameras.yml``); ``write_case`` copies
-them into ``folder`` unless ``project=False`` (they are for the 500-long case).
+``make_project(folder)`` then makes ``folder`` a project with the case as the tag ``riser``
+(``data/riser/domain.yml``, beside this module) and copies the shots, panels, layout, film
+and cameras that read it (they are for the 500-long case).
 
 Sizes: a channel 500 long has 1000 x 8 x 8 bricks and a riser of 2001 rings, about 4 MB
 a step; it is coarse across the flow, so that the suite stays fast, and long, so that a
@@ -29,6 +29,7 @@ window reads a small part of it.
 from __future__ import annotations
 
 import shutil
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +37,10 @@ import numpy as np
 from flowreel.sources.plt.writer import write_plt
 
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from tag_project import make_project as _make_project  # noqa: E402
+
+TAG = "riser"
 LENGTH = 500.0
 STEPS = 8
 DT = 0.5
@@ -49,7 +54,7 @@ ACROSS = 8            # bricks across, in y and in z
 RINGS_PER_D = 4       # riser rings per diameter
 SIDES = 16
 VARS = ["X", "Y", "Z", "U", "V", "W", "Pressure"]
-FILES = ("flowreel.yml", "cameras.yml", "travel.yml", "span.yml", "pendulum.yml")
+COPIED = ("shots", "panels", "layouts")      # folders of the example copied into a project
 
 
 def displacement(x, t, length: float = LENGTH):
@@ -89,10 +94,10 @@ def _tube(x0: float, x1: float, centre_y: float, centre_z: float, rings: int):
     return points, np.column_stack([a, b, b + SIDES, a + SIDES])
 
 
-def write_case(folder, length: float = LENGTH, steps: int = STEPS, project: bool = True) -> Path:
+def write_case(folder, length: float = LENGTH, steps: int = STEPS) -> Path:
     """Write the case into ``folder`` (see the module); returns ``folder``."""
     folder = Path(folder)
-    case, data = folder / "case", folder / "data"
+    case, data = folder / "case", folder / "data" / TAG / "series"
     case.mkdir(parents=True, exist_ok=True)
     data.mkdir(parents=True, exist_ok=True)
     fluid, bricks = _channel(length)
@@ -125,7 +130,17 @@ def write_case(folder, length: float = LENGTH, steps: int = STEPS, project: bool
             f"{i + 1},{t:.12g},{d:.12g}\n" for i, (t, d) in enumerate(zip(times, dy))))
     (data / "pendulum.csv").write_text("time,pendDisp\n" + "".join(
         f"{t:.12g},{a:.12g}\n" for t, a in zip(times, swing(times))))
-    if project:
-        for name in FILES:
-            shutil.copy(HERE / name, folder / name)
+    return folder
+
+
+def make_project(folder) -> Path:
+    """Make ``folder`` (with its case written) a project: the case as the tag ``riser``
+    (units and bodies from ``data/riser/domain.yml``), and the example's shots, panels,
+    layout, film and cameras copied in. Returns ``folder``."""
+    folder = Path(folder)
+    _make_project(folder, TAG, HERE / "data" / TAG / "domain.yml")
+    for sub in COPIED:
+        shutil.copytree(HERE / sub, folder / sub, dirs_exist_ok=True)
+    for name in ("film.yml", "cameras.yml"):
+        shutil.copy(HERE / name, folder / name)
     return folder

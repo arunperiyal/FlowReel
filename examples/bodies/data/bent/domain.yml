@@ -1,9 +1,15 @@
-# The project of examples/bodies, as a person writes it after `project init`: the zones
-# get names a shot can use, the measured axis and diameter are checked, and the supports
-# are filled in. run.py writes the data this refers to into data/.
+# The tag 'bent' of examples/bodies, as a person writes it after `data import vtk`: the
+# surface files get the names a shot can use, the measured axis and diameter are checked,
+# and the supports are filled in. run.py writes the files this refers to into case/ and
+# series/. Reference: docs/guide/projects/data.md and docs/guide/projects/bodies.md.
+kind: vtk
+source:
+  path: vtk/flow_*.vti
+  dt: 0.1
+  body: {cyl: vtk/cyl.vtp, ball: vtk/ball.vtp}
 bodies:
   riser:
-    zone: cyl                    # the surface zone in data/; shots say riser
+    zone: cyl                    # the surface file cyl; shots say riser
     axis: x
     diameter: 1.0
     ends:
@@ -11,7 +17,7 @@ bodies:
       - {at: 40.0, support: roller, free_along: x, tension: true}
     series:
       displacement:              # one CSV per probe node, as FlexFlow Analyzer writes them
-        file: data/riser_disp_{node}.csv
+        file: series/riser_disp_{node}.csv
         by: node
         stations: [0.0, 10.0, 20.0, 30.0, 40.0]
         columns: {dy: aleDisp_y}
@@ -25,4 +31,4 @@ bodies:
     drive:
       angle: {series: swing, column: pendDisp}                     # radians
     series:
-      swing: data/pendulum.csv
+      swing: series/pendulum.csv

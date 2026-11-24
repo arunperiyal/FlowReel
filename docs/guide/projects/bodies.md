@@ -131,7 +131,7 @@ bodies:
 | `mass` | `size` (edge), `x`, `y`, `z` (the centre from the origin; drive one with a displacement) |
 
 A shape is a registered body function (`flowreel.sources.bodies.register_body`), so a
-new mechanism is a small plugin. `examples/bodies/pendulum.yml` hangs a pendulum from
+new mechanism is a small plugin. `examples/bodies/shots/pendulum.yml` hangs a pendulum from
 the riser at mid-span and swings it from a generated `pendDisp` series.
 
 ## Stations, centre and diameter

@@ -1,7 +1,0 @@
-# window.yml at three stations along the channel, in a row, each labelled.
-size: [960, 180]
-tiles:
-  - stations: {shot: window.yml, at: [40, 100, 160]}
-    at: [0, 0]
-    size: [960, 180]
-    label: 'x = {station:g}'

@@ -1,12 +1,8 @@
 # A close camera travels along a bent riser 40 diameters long, its focal point on the
 # riser's centre at each station. The shot names the body `riser`, as declared in
-# flowreel.yml; the axis (x) and the section's width come from that declaration too.
+# the tag's domain.yml; the axis (x) and the section's width come from that declaration too.
 name: riser_travel
-source:
-  adapter: vtk
-  path: "data/flow_*.vti"
-  dt: 0.1
-  body: {cyl: data/cyl.vtp, ball: data/ball.vtp}
+source: bent                     # the tag: data/bent/
 time: {frozen: 0, frames: 12}
 camera:
   view: close

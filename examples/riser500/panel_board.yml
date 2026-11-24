@@ -1,5 +1,0 @@
-# The locator over the map.
-size: [960, 540]
-tiles:
-  - {frames: frames/locator, at: [0, 0], size: [960, 180]}
-  - {frames: frames/span_map, at: [0, 180], size: [960, 360]}

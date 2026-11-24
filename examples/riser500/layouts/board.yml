@@ -1,0 +1,11 @@
+# The locator over the map, each panel drawn by the build at its box's size, one time
+# per frame of shots/travel.yml: eight times 0.5 apart, so at 2 frames a second.
+# Paths are from this file's folder. Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: locator
+    panel: {file: ../panels/locator.yml, rate: {fps: 2}}
+    pos: [0, 0]
+    size: [960, 180]
+  - panel: {file: ../panels/span_map.yml, rate: {fps: 2}}
+    pos: [0, 180]
+    size: [960, 360]

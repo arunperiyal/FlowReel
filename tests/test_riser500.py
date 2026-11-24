@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 
 from flowreel.box import Box
-from flowreel.project import load_project
 from flowreel.project.measure import diameter, long_axis
 from flowreel.sources.plt import PltSource
 
@@ -17,7 +16,7 @@ import riser500_case as case  # noqa: E402
 
 @pytest.fixture(scope="module")
 def folder(tmp_path_factory):
-    return case.write_case(tmp_path_factory.mktemp("riser500"))
+    return case.make_project(case.write_case(tmp_path_factory.mktemp("riser500")))
 
 
 def test_the_case_is_a_riser_500_long_and_a_second_body(folder):
@@ -36,14 +35,15 @@ def test_the_case_is_a_riser_500_long_and_a_second_body(folder):
 
 
 def test_the_project_declares_supports_tension_and_series(folder):
-    bodies = load_project(folder).bodies
+    from flowreel.project.domain import find_tag, open_tag
+    tag = find_tag(folder, "riser")
+    bodies = tag.bodies
     assert sorted(bodies) == ["downstream", "pendulum", "riser"]
     riser = bodies["riser"]
     assert [(e.at, e.support, e.tension) for e in riser.ends] == [
         (0.0, "pinned", False), (500.0, "roller", True)]
     assert bodies["pendulum"].virtual and bodies["pendulum"].attach.station == 250
-    from flowreel.project.names import declare
-    source = declare(PltSource(folder / "case", cache=None), load_project(folder))
+    source = open_tag(tag, cache=None)
     disp = source.series("displacement", body="riser")
     assert disp.node.nunique() == case.PROBES
     assert (disp.station.min(), disp.station.max()) == (0, 500)
@@ -55,13 +55,13 @@ def test_the_project_declares_supports_tension_and_series(folder):
 
 def test_the_three_shots_read_the_case(folder):
     from flowreel.scene.rendering import Scene
-    travel = Scene.make(folder / "travel.yml")
+    travel = Scene.make(folder / "shots" / "travel.yml")
     assert travel.plan.n_frames == case.STEPS
     boxes = [travel.crop(i) for i in (0, case.STEPS - 1)]
     assert [b.lo[0] + 10 for b in boxes] == pytest.approx([20, 480], abs=0.05)
-    span = Scene.make(folder / "span.yml")
+    span = Scene.make(folder / "shots" / "span.yml")
     assert span.shot.stretch.scale == (0.02, 1.0, 1.0) and span.shot.crop is None
-    pendulum = Scene.make(folder / "pendulum.yml")
+    pendulum = Scene.make(folder / "shots" / "pendulum.yml")
     assert pendulum.crop(3).lo[0] == pytest.approx(244, abs=0.05)
     assert pendulum.source.is_virtual("pendulum")
 
@@ -70,7 +70,7 @@ def test_the_three_shots_read_the_case(folder):
 def test_the_frames_render(folder, tmp_path, shot):
     from flowreel.scene import render
     try:
-        report = render(folder / f"{shot}.yml", [0, 3, 7], out=tmp_path, jobs=1, scale=0.5)
+        report = render(folder / "shots" / f"{shot}.yml", [0, 3, 7], out=tmp_path, jobs=1, scale=0.5)
     except (RuntimeError, OSError) as error:
         pytest.skip(f"off-screen rendering is not available: {error}")
     assert report.count("rendered") == 3                  # first, middle and last
@@ -83,7 +83,7 @@ def test_the_frames_render(folder, tmp_path, shot):
 
 def test_the_window_reads_a_small_part_of_the_file(folder):
     from flowreel.scene.rendering import Scene
-    travel = Scene.make(folder / "travel.yml")
+    travel = Scene.make(folder / "shots" / "travel.yml")
     source = travel.source
     whole = PltSource(folder / "case", cache=None)
     total = 1000 * 8 * 8
@@ -99,7 +99,7 @@ def test_the_window_reads_a_small_part_of_the_file(folder):
 
 def test_the_window_does_not_grow_with_the_span(folder, tmp_path):
     """The Phase 2B check: the same window costs the same in a case half as long."""
-    half = case.write_case(tmp_path / "half", length=250.0, project=False)
+    half = case.write_case(tmp_path / "half", length=250.0)
     long = PltSource(folder / "case", cache=None, margin=1.0)
     short = PltSource(half / "case", cache=None, margin=1.0)
     box = Box((90, -4, -4), (110, 4, 4))
@@ -110,7 +110,7 @@ def test_the_window_does_not_grow_with_the_span(folder, tmp_path):
 
 def test_the_pendulum_follows_its_series(folder):
     from flowreel.scene.rendering import Scene
-    sc = Scene.make(folder / "pendulum.yml")
+    sc = Scene.make(folder / "shots" / "pendulum.yml")
     for i in range(sc.plan.n_frames):
         step = sc.plan.time.step(i)
         t = sc.source.time(step)

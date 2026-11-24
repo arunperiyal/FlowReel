@@ -1,9 +1,9 @@
 # Where travel.yml's window is along the riser, and the riser's shape, 100 times larger.
 type: locator
 size: [960, 180]
-times: {shot: travel.yml}
+times: {shot: ../shots/travel.yml}
 style: {font_size: 14}
 body: riser
 shape: {series: displacement, column: dy, amplify: 100}
-windows: [{shot: travel.yml, label: travel.yml}]
+windows: [{shot: ../shots/travel.yml, label: travel.yml}]
 x: {label: 'Span $x/D$'}

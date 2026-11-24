@@ -1127,12 +1127,13 @@ reviewable: the tutorials, then the examples, then the removal)
   `marker_layers`, `shot_commands`, `project`, `slurm_project`) as projects with a
   `geometry` tag; shots fed in code (`render_shot`, `flow_layers`, `camera_editor`,
   `anchored_caption`) name a bare tag
-- [ ] Shots and panels on PLT data (`bodies`, `long_span`, `riser500`, `compare`,
-  `panels`, `flow_panels`, `compose_layout`'s window) as tags: bodies in `domain.yml`,
-  `reference:` as `units:`
+- [x] Shots and panels on data (`bodies`, `long_span`, `riser500`, `compare`, `panels`,
+  `flow_panels`) as tags: bodies in `domain.yml`, `reference:` as `units:`; histories
+  without a flow ride on a geometry tag
 - [ ] The films (`film_build`, `film_captions`, `film_cards`, `film_clips`,
   `film_commands`, `film_project`, `film_timeline`, `anchored_caption`) as scenes and
-  layouts; `compose_layout` and `compose_commands` as panels and layouts
+  layouts; `compose_layout` becomes `scene_layouts` (frame folders in boxes; the old
+  `stations` tile has no scene form) and `compose_commands` goes with the commands it shows
 - [ ] Each example's test follows; nothing in `examples/` or `tests/test_example_*` uses
   the film of shots or the layout before tags
 

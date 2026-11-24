@@ -1,7 +1,7 @@
 # The riser's displacement against span and time, filling in with the travelling shot.
 type: map
 size: [960, 360]
-times: {shot: travel.yml}
+times: {shot: ../shots/travel.yml}
 style: {font_size: 14}
 rows:
   - {body: riser, series: displacement, column: dy, title: riser}

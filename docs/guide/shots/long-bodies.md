@@ -105,18 +105,18 @@ yet, so the case is generated: `examples/riser500/riser500_case.py` writes, at t
 asked, eight steps of a channel 500 long round a riser of diameter 1 that vibrates in
 its third mode, a second cylinder 12 long beside it, the riser's displacement at 51
 probes (one CSV per probe, as FlexFlow Analyzer exports them) and a pendulum's swing.
-The folder's `flowreel.yml` declares the riser pinned at 0 and on a roller under
-tension at 500, the second cylinder clamped at both ends, and the pendulum hung from
-the riser at mid-span. Nothing of it is checked in (about 45 MB).
+The tag `riser` (`examples/riser500/data/riser/domain.yml`) declares the riser pinned at 0
+and on a roller under tension at 500, the second cylinder clamped at both ends, and the
+pendulum hung from the riser at mid-span. The case itself is not checked in (about 45 MB).
 
 Three shots read it:
 
-- `travel.yml`: a window 20 long travels from station 20 to 480, the camera with it.
+- `shots/travel.yml`: a window 20 long travels from station 20 to 480, the camera with it.
   Each step reads about 2500 of the 64 000 cells, 0.6 MB instead of 15.6.
-- `span.yml`: the whole riser over the run from its probes, not the flow files: the
+- `shots/span.yml`: the whole riser over the run from its probes, not the flow files: the
   centreline coloured by displacement, the rest line, the envelope, the supports, a
   ruled box in diameters, the span drawn at 1/50 of its length.
-- `pendulum.yml`: the pendulum, a ghost because it is modelled and not meshed, swinging
+- `shots/pendulum.yml`: the pendulum, a ghost because it is modelled and not meshed, swinging
   from the riser's centre at station 250 as its series says; a step reads 12 of the
   500.
 

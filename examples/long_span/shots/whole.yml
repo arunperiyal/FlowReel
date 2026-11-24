@@ -1,6 +1,6 @@
 # The whole channel, its length drawn at a tenth so it fits the frame; the frame says so.
 name: whole
-source: {adapter: plt, path: case}
+source: channel                  # the tag: data/channel/
 time: {frozen: 5, frames: 1}
 camera: {view: whole}
 size: [480, 270]

@@ -144,6 +144,7 @@ class Placed:
 
     @property
     def end(self) -> float:
+        """Film seconds where the scene ends."""
         return self.start + self.length
 
 
@@ -341,7 +342,7 @@ class PanelPictures:
         return self.drawer.at(time), None
 
     def close(self) -> None:
-        pass
+        """Nothing to stop: a panel is drawn here."""
 
 
 # ---- a scene's clip -----------------------------------------------------------------

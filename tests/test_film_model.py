@@ -147,6 +147,6 @@ def test_the_commands(folder, monkeypatch):
     (folder / "film.yml").write_text(film_template("wake"))
     (folder / "flowreel.yml").write_text("")
     status, _, err = Shell(folder).run("film check")
-    assert status != 0 and "film of scenes" in err
+    assert status != 0 and "render it first: flowreel shot render" in err   # read, no frames
     from flowreel.project.info import info
     assert info(folder).film == "film.yml: 3 scenes"

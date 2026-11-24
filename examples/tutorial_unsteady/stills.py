@@ -2,16 +2,18 @@
 
     python examples/tutorial_unsteady/stills.py PROJECT [-o docs/tutorials/unsteady/images]
 
-``PROJECT`` is the tutorial's project at the end of chapter 4: the shot rendered at full
-size, the panel and the layout composed, ``film.mp4`` and ``contact.png`` built. The
+``PROJECT`` is the tutorial's project at the end of chapter 5: the shot rendered at the
+size of its box, ``panel draw`` run, ``scene preview board --at 1.5 4`` run, ``film.mp4``
+and ``contact.png`` built. The
 data (Zenodo record 5039610) is CC BY 4.0, so the pictures may be kept and shown, with
 its credit on the tutorial's pages.
 
 | File | Chapter | What |
 |---|---|---|
 | ``02-shot.png`` | 2 | frames 0 and 100 of ``wake``, side by side |
-| ``03-board.png`` | 3 | frame 150 of the layout ``board`` |
-| ``04-check.png`` | 4 | the contact sheet of ``film check`` |
+| ``03-panel.png`` | 3 | frame 150 of the panel ``force`` |
+| ``04-layout.png`` | 4 | ``scene preview board --at 1.5 4``: the caption, then the freeze |
+| ``05-check.png`` | 5 | the contact sheet of ``film check`` |
 | ``film.gif`` | index | the film, small and at 8 frames a second |
 """
 from __future__ import annotations
@@ -23,7 +25,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 IMAGES = HERE.parent.parent / "docs" / "tutorials" / "unsteady" / "images"
 sys.path.insert(0, str(HERE.parent / "tutorial"))
-from stills import WIDTH, frame, row  # noqa: E402  (the first tutorial's helpers)
+from stills import WIDTH, frame, row, still  # noqa: E402  (the first tutorial's helpers)
 
 
 def stills(project: str | Path, out: str | Path = IMAGES) -> list[Path]:
@@ -35,8 +37,9 @@ def stills(project: str | Path, out: str | Path = IMAGES) -> list[Path]:
     out.mkdir(parents=True, exist_ok=True)
     pictures = {
         "02-shot.png": row([frame(project, "wake", 0), frame(project, "wake", 100)]),
-        "03-board.png": row([frame(project, "board", 150)]),
-        "04-check.png": row([Image.open(project / "contact.png").convert("RGB")]),
+        "03-panel.png": row([frame(project, "force", 150)], width=WIDTH // 3),
+        "04-layout.png": row([still(project, "board", 1.5), still(project, "board", 4)]),
+        "05-check.png": row([Image.open(project / "contact.png").convert("RGB")]),
     }
     written = []
     for name, picture in pictures.items():

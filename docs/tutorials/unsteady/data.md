@@ -11,12 +11,12 @@ density is 1.
 
 **Licence:** Creative Commons Attribution 4.0 International (CC BY 4.0). It may be shown
 and shared, the film included, with credit to its author, as the tutorial's title card
-gives it. The converted data stays out of the repository (`data/` is ignored); the
+gives it. The converted data stays outside the project and the repository (in `cases/`); the
 pictures of these pages are made from it by `examples/tutorial_unsteady/stills.py`.
 
 ## Getting it
 
-`examples/tutorial_unsteady/get_data.py PROJECT` downloads two of the record's files and
+`examples/tutorial_unsteady/get_data.py [DIR]` (default `cases`) downloads two of the record's files and
 checks each one's SHA-256 (pinned in the script, after checking them against the MD5
 sums the record publishes):
 

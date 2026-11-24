@@ -1,15 +1,21 @@
+# The second tutorial's film: three scenes, 17.2 seconds. Reference: docs/guide/film/film.md.
 output: film.mp4
 fps: 24
 size: [1920, 1080]
-shots:
-  - {name: title, card: cards/title.yml, seconds: 3, fade: [0.5, 0.5]}
-  - name: board                       # 221 frames at 24 a second: 9.2 s, and a 2 s freeze
-    frames: frames/board
+scenes:
+  - name: title
+    seconds: 3
+    fade: [0.5, 0.5]
+    layout: title                     # layouts/title.yml
+  - name: board                       # 9.2 s of frames and a 2 s freeze
     fade: [0.5, 0]
-    text: text/board.yml
-    freezes: [{at: 3.0, hold: 2, text: text/freeze.yml}]
+    layout: board                     # layouts/board.yml
   - name: end
-    hold_last_of: board
     seconds: 3
     fade: [0, 1.5]
-    text: [{lines: ['Made with FlowReel'], at: [0.3, 2.5], place: [60, 960], align: left}]
+    layout:
+      boxes:
+        - last_frame: board
+        - text: {lines: ['Made with FlowReel'], align: left, valign: top}
+          pos: [60, 960]
+          at: [0.3, 2.5]

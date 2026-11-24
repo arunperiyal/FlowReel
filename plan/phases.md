@@ -18,6 +18,7 @@ Each phase ends with something checkable.
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 | 8 | Editor and workflow improvements asked for while using FlowReel, collected as they come | each one checked as its task says; the list closed by Arun |
+| 9 | Data by tag: a `data` command group, cases imported under `data/<tag>/` with their own `domain.yml`, shots naming a tag | the AFMS film made from its two cases imported as tags, both tutorials following the new layout |
 
 ### 19.1 Phase 1 tasks
 
@@ -874,3 +875,63 @@ they could be done by agents in parallel, but each one regenerates the reference
 so they are done one after another.
 
 **Phase 8 is done when** every task listed here is done and Arun closes the list.
+
+### 19.10 Phase 9 tasks
+
+Added 2026-11-24, asked by Arun (Section 24, question 11): a `data` command group that
+works on a project's data, each case imported under `data/<tag>/` with its own
+`domain.yml` (its bodies, units, reference values and series), so a project can hold
+several cases whose zones share names (the AFMS film's two cylinders are both `cyl`), and
+shots name a tag instead of a path. The branches go from the smallest change of code to
+the largest; each is stacked on the one before. The AFMS port (Section 19.9, branch 12's
+use) waits for branch 6 and is the phase's check.
+
+**Branch 1: `phase9/data-group`** (small: reads only)
+- [ ] A `data` command group: `data list` (each tag, its kind, steps, size, whether its
+  links resolve) and `data info TAG` (zones, fields, steps and times, bounds, series)
+- [ ] `project sections` becomes `data extract sections`; the old name stays one phase,
+  saying where it went
+- [ ] Help, the commands page, the reference
+
+**Branch 2: `phase9/data-import`** (medium)
+- [ ] `data import plt|vtk --path PATH --tag TAG`: links the case's files under
+  `data/TAG/plt/` or `data/TAG/vtk/` (nothing copied; `--copy` copies, for a small case
+  or a project that must travel without the cases), and writes `data/TAG/domain.yml`
+  with what it measured (zones, steps, fields, bounds) and, commented, what to fill in
+  (bodies, units, reference values)
+- [ ] `data remove TAG` (the links and `domain.yml`, never the case) and `data check`
+  (links that no longer resolve, steps missing from a window, units not given)
+- [ ] Tests on generated cases, help, docs, the rules page (data by tag)
+
+**Branch 3: `phase9/data-history`** (medium)
+- [ ] `data import history --path PATH --tag TAG`: OTHD and OISD read with FlexFlow
+  Analyzer's handling borrowed into FlowReel (restarts, and the groups of several bodies
+  by `othId` and `osgId`, which today's reader refuses), written as CSV series under
+  `data/TAG/series/` and listed in its `domain.yml`
+- [ ] Tests on generated files with several groups and a restart, docs
+
+**Branch 4: `phase9/domain-file`** (large)
+- [ ] `data/TAG/domain.yml`: the case's bodies (their zones, axes, diameters, ends,
+  series), its units and reference values; read for every source of that tag, so two
+  tags may name a zone alike. `flowreel.yml` keeps what is the project's own
+- [ ] `project init` and the project loader follow; a project in the old layout keeps
+  working, with a note saying how to move it (`data import`)
+- [ ] Tests, docs (projects, bodies, sources, rules), the YAML reference
+
+**Branch 5: `phase9/source-tags`** (large)
+- [ ] Shots, panels, layouts and cameras name a tag: `source: bare` (and `{tag: bare,
+  ...}` with options); `adapter:path` still works
+- [ ] Frame keys, `project info`, `data info` and the doctor follow
+- [ ] Tests, docs, the YAML reference
+
+**Branch 6: `phase9/data-migrate`** (large, mostly docs)
+- [ ] Both tutorials, the examples and their tests use `data import` and tags
+- [ ] The rules page, the commands page, the site's first page
+
+**Branch 7: `phase9/data-extract`** (medium a kind; when a film needs one)
+- [ ] `data extract probe|table`, borrowed from FlexFlow Analyzer's `data` and `field`
+  commands, writing CSV series under `data/TAG/series/`; each added with its own task
+  when a film asks for it
+
+**Phase 9 is done when** the AFMS film is made from its two cases imported as tags (the
+port of Section 19.9), and both tutorials follow the new layout.

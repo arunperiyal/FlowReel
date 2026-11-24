@@ -965,7 +965,7 @@ The decisions, for every branch:
 - [x] `project init` makes the folders only, with `--import KIND:PATH --tag TAG`. Its `SOURCE`
   and `--link` forms stay until Phase 10's last branch, as `bodies:` does (the tutorials use
   them; decided while implementing, 2026-11-24)
-- [ ] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs
+- [x] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs
 
 **Branch 3: `phase9/data-history`**
 - [ ] `data import history --path PATH --tag TAG`: OTHD and OISD with FlexFlow Analyzer's

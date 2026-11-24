@@ -34,7 +34,7 @@ it out, and print `Using shot: ...`. `unuse shot` clears it.
 ([projects](projects/project.md)). The `film` commands then use its `film.yml` when no film file
 is given, from any folder; without a project they use `./film.yml`.
 
-Every command except `project init`, the `template` commands and `jobs` works inside a
+Every command except `project init`, `data info PATH`, the `template` commands and `jobs` works inside a
 project. It finds the project by walking up from the file it is given (or the shell's
 project, or the current folder) and stops outside one with an error saying how to make
 one. Output goes under the project root wherever the command runs: frames to
@@ -448,7 +448,11 @@ commented out.
 
 ```text
 flowreel project init [SOURCE] [--body [NAME=]FILE ...] [--step N] [--link PATH] [-o DIR] [--force]
+flowreel project init --import plt|vtk:PATH --tag TAG [-o DIR]
 ```
+
+With `--import`, the case comes in as a tag, as [`data import`](#data-import) does, and
+`flowreel.yml` declares no bodies: they are in `data/TAG/domain.yml`. Without it:
 
 Makes the project folder `DIR` ([projects](projects/project.md)): `shots/`, `text/`, `cards/`,
 `assets/` and `data/`; `film.yml` (from `film template`) and `cameras.yml` (one view
@@ -497,8 +501,32 @@ flowreel data template [--kind plt|vtk|geometry] [-o FILE] [--force]
 ```
 
 Prints a tag's `domain.yml` with every key, at its default or as an example, each with
-a comment ([data and tags](projects/data.md)); `-o` writes it. The other `data` actions
-(import, list, info, remove, rename, check, extract) come with Phase 9's next branches.
+a comment ([data and tags](projects/data.md)); `-o` writes it.
+
+## `data import`
+
+```text
+flowreel data import plt|vtk|geometry --tag TAG [--path PATH] [--copy [--yes]] [--force]
+                     [--body NAME=FILE ...] [--flow FILE]        (vtk)
+                     [--name FUNCTION] [--param KEY=VALUE ...]   (geometry)
+```
+
+Links the case under `data/TAG/` (or copies it with `--copy`) and writes its measured
+`domain.yml`; `--force` re-imports into a tag, keeping the file's edits
+([bringing a case in](projects/data.md#bringing-a-case-in)).
+
+## `data list`, `info`, `check`, `rename`, `remove`
+
+```text
+flowreel data list
+flowreel data info TAG|PATH
+flowreel data check [TAG ...]
+flowreel data rename OLD NEW
+flowreel data remove TAG [--yes]
+```
+
+See [looking after the tags](projects/data.md#looking-after-the-tags). `data info PATH`
+works outside a project; `data check` exits with status 1 when a tag has a problem.
 
 ## `project clean`
 

@@ -36,9 +36,11 @@ root is an error saying to move it. FlowReel never reads it or silently skips it
 
 ## Data and files
 
-**5. Data is linked, never copied.** `project init --link` puts a symbolic link to the case
-in `data/`, and `data/` is kept out of git. *Why:* a case can be hundreds of gigabytes, and
-it belongs to the simulation, not the film.
+**5. Data is linked unless you ask for a copy.** `data import` (and `project init
+--import` or `--link`) puts a symbolic link to the case in `data/`, and `data/` is kept out
+of git; `--copy` copies, and asks for `--yes` above 5 GB. *Why:* a case can be hundreds of
+gigabytes, and it belongs to the simulation, not the film. *Broken:* a copy above 5 GB
+without `--yes` stops before anything is copied. [Bringing a case in](data.md#bringing-a-case-in)
 [What is in it](project.md#what-is-in-it)
 
 **6. A path in a file is relative to that file.** Examples are a shot's `source`, a film

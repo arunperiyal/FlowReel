@@ -19,8 +19,53 @@ data/
 name their zones alike: the AFMS film's smooth and grooved cylinders are both `cyl`. A
 body, its units and its series belong to its case, so each tag declares its own, and two
 tags may both have a body called `cyl`. Shots name a tag, so a shot file does not change
-when the case moves (Phase 9 of the plan; `data import` and `source: TAG` in shots come
-in its next branches).
+when the case moves (`source: TAG` in shots comes with a later branch of Phase 9).
+
+## Bringing a case in
+
+```text
+$ flowreel data import plt --path /scratch/run/binary --tag smooth
+linked data/smooth/plt -> /scratch/run/binary
+wrote data/smooth/domain.yml: fill in the units (docs/guide/projects/data.md#units)
+```
+
+`data import` links the folder the case's files are in as `data/TAG/plt` (or `vtk`) and
+writes `domain.yml` with what it measured: the reader's options, each wall zone as a body
+with its axis and diameter, and `measured:` (steps, times, zones, fields, bounds). The
+units are left for you: FlowReel cannot know them from the files. Then edit the file:
+it is yours.
+
+- **Link, or copy.** A link costs nothing, and the case stays where the simulation put
+  it. `--copy` copies the files instead (for a small case you will move to another
+  machine), after saying their size; above 5 GB it asks for `--yes`. A copy's SHA-256
+  sums are kept under `measured.checksums`.
+- **Importing again.** A tag holds one case: a second import into it is refused unless
+  `--force`, which points the link at the new folder and replaces `measured:`, but keeps
+  every other line of `domain.yml`, your units and bodies included. A tag of another kind
+  is always refused; import it under a new tag.
+- **VTK.** `--path` is the folder of the flow files; its one `.pvd` is the flow, or name
+  it with `--flow`. Bodies in separate files are given by name, `--body cylinder=FILE`; a
+  file outside the folder is linked beside `domain.yml`.
+- **Geometry.** A body made in code, no files: `data import geometry --name
+  grooved_cylinder --param grooves=4 --tag carve`.
+- **With a new project.** `project init --import plt:PATH --tag TAG` makes the folders
+  and imports the case, and fits `cameras.yml`'s first view to it.
+
+## Looking after the tags
+
+| Command | What it does |
+|---|---|
+| `data list` | each tag: kind, steps, size, and where its link points, or that it does not resolve |
+| `data info TAG` | steps and times, zones, fields, bounds, units and bodies |
+| `data info PATH` | the same for any folder of PLT or VTK files; no project needed |
+| `data check [TAG ...]` | links resolve, sources open, units given, series files there; exit status 1 if not |
+| `data rename OLD NEW` | the folder, and every file that names it: `source:`/`tag:` values, `OLD.body` names, `tags:` |
+| `data remove TAG` | the tag's folder: links (never what they point at), `domain.yml`, series; `--yes` for a copy |
+
+A case that moved shows in `data list` and `data check` as a link that does not
+resolve; `data import ... --force` with the new path mends it and keeps your edits.
+
+The example `examples/data_tags/run.py` does all of this on two generated cases.
 
 ## `domain.yml`
 

@@ -13,7 +13,7 @@ Make a project folder, see what it holds, clean what it made.
 
 ```text
 usage: flowreel project init [-h] [--body [NAME=]FILE] [--step N] [-o DIR]
-                             [--link PATH] [--force]
+                             [--link PATH] [--force] [--import KIND:PATH] [--tag TAG]
                              [SOURCE]
 
 Make the project folder DIR: shots/, text/, cards/, assets/ and data/,
@@ -38,6 +38,9 @@ options:
   -o DIR, --out DIR   project folder (default the current one)
   --link PATH         link PATH (a case folder or file) into DIR/data/ under its name
   --force             overwrite flowreel.yml (and replace a data link) if it exists
+  --import KIND:PATH  import a case as a tag as well (plt:PATH, vtk:PATH), as data
+                      import does; give --tag
+  --tag TAG           the tag of --import
 
 examples:
   flowreel project init plt:bare/BR0SG0U1P0          one body per surface zone
@@ -48,6 +51,8 @@ examples:
   flowreel project init --link /scratch/run vtk:data/run/flow.pvd
                                                     link the data first, read it there
   flowreel project init                             the folders only; bodies by hand
+  flowreel project init --import plt:/scratch/run/binary --tag bare
+                                                    the folders, and the case as a tag
 ```
 
 ### `flowreel project info`
@@ -101,6 +106,141 @@ examples:
 ## `data`
 
 A project's data by tag: each case's domain.yml.
+
+### `flowreel data import`
+
+```text
+usage: flowreel data import [-h] [--path PATH] --tag TAG [--body NAME=FILE]
+                            [--flow FILE] [--name FUNCTION] [--param KEY=VALUE]
+                            [--copy] [--yes] [--force]
+                            {plt,vtk,geometry}
+
+Link the folder a case's files are in under data/TAG/ (plt or vtk; geometry
+links nothing) and write data/TAG/domain.yml with what was measured: the
+reader's options, each wall zone as a body with its axis and diameter, and the
+steps, zones, fields and bounds; the units are left to fill in. --copy copies
+the files instead, after saying their size. A tag holding a case already is
+refused unless --force, which replaces the link and keeps the edits of
+domain.yml.
+
+positional arguments:
+  {plt,vtk,geometry}  what the case is
+
+options:
+  -h, --help          show this help message and exit
+  --path PATH         the folder the files are in
+  --tag TAG           the tag: letters, digits, - and _
+  --body NAME=FILE    vtk: a body's surface file, by name (repeat for each)
+  --flow FILE         vtk: the flow within PATH (default its one .pvd)
+  --name FUNCTION     geometry: the body made in code
+  --param KEY=VALUE   geometry: a parameter of the body (repeat)
+  --copy              copy the files instead of linking
+  --yes               copy even above 5 GB
+  --force             replace the tag's link (domain.yml keeps its edits)
+
+examples:
+  flowreel data import plt --path /scratch/run/binary --tag bare
+                                            link the folder of PLT files as data/bare/plt
+  flowreel data import vtk --path runs/cyl35 --tag cyl35 --body cylinder=runs/cyl35/cylinder.vtp
+  flowreel data import plt --path small_case --tag test --copy
+                                            copy instead of link (asks --yes above 5 GB)
+  flowreel data import geometry --name grooved_cylinder --tag carve --param grooves=4
+  flowreel data import plt --path /scratch/run2/binary --tag bare --force
+                                            point bare at another folder; edits kept
+```
+
+### `flowreel data list`
+
+```text
+usage: flowreel data list [-h]
+
+List every tag under data/: its kind, its steps, its size, and where its link
+points (or that it does not resolve).
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel data list
+```
+
+### `flowreel data info`
+
+```text
+usage: flowreel data info [-h] TAG|PATH
+
+Describe a tag of the project, or any folder of PLT or VTK files (no project
+needed): steps and times, zones, fields, bounds, and, for a tag, its units and
+bodies.
+
+positional arguments:
+  TAG|PATH    a tag, or a folder of files
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel data info bare                   a tag of this project
+  flowreel data info /scratch/run/binary    any folder of PLT or VTK files, no project needed
+```
+
+### `flowreel data remove`
+
+```text
+usage: flowreel data remove [-h] [--yes] TAG
+
+Remove data/TAG/: its links (not what they point at), its domain.yml and the
+series FlowReel wrote there. A tag whose files were copied asks for --yes.
+
+positional arguments:
+  TAG
+
+options:
+  -h, --help  show this help message and exit
+  --yes       remove copied files too
+
+examples:
+  flowreel data remove test                 the links and domain.yml; never the case
+```
+
+### `flowreel data rename`
+
+```text
+usage: flowreel data rename [-h] OLD NEW
+
+Rename data/OLD/ to data/NEW/, and every file of the project that names it:
+source: and tag: values, OLD.body names, and the tags: list of flowreel.yml.
+
+positional arguments:
+  OLD
+  NEW
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel data rename bare smooth          the folder, and every file that names it
+```
+
+### `flowreel data check`
+
+```text
+usage: flowreel data check [-h] [TAG ...]
+
+For every tag (or the ones given): its link resolves, its source opens, its
+units are given, and its series files exist. Exit status 1 when something is
+wrong.
+
+positional arguments:
+  TAG
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel data check                       every tag: links, sources, units, series
+  flowreel data check bare
+```
 
 ### `flowreel data template`
 

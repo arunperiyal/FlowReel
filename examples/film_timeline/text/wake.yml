@@ -1,5 +1,0 @@
-- lines: ['A smooth cylinder in a steady current']
-  at: [0.5, 3]
-- lines: ['Each cycle sheds one vortex from each side,', 'pushing it up and down']
-  at: [3.2, {shot: compare, at: 1}]     # runs on across the cut
-  box: true

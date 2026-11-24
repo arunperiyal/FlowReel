@@ -109,6 +109,7 @@ for s in c.line.shots:
 
 ## Example
 
-`examples/film_clips/run.py` builds the clips of a small film from generated frames: a
-card, a shot at 8 frames a second interpolated with a freeze and two captions, and a hold
-with a closing line on black. It prints each clip's planned and measured frames.
+The example of this page, `examples/film_clips/`, went into `examples/film_build/run.py`,
+which builds a film of scenes from generated frames: a shot at 8 frames a second
+interpolated with a freeze and captions, and a hold with a closing line. It prints each
+scene's planned and measured length.

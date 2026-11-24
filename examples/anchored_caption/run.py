@@ -1,77 +1,38 @@
-"""Render a panning shot, then build a film whose caption follows the body.
+"""A panning shot rendered, and a text and an arrow that follow the body in it.
 
 Usage: python run.py [DIR]   (default ./anchored_caption_example)
 
-Needs no data, only off-screen rendering and ffmpeg. It renders shot.yml (a sphere, the
-camera panning round it) to DIR/frames/anchored/, where shot render also records each
-frame's camera (.views.json). It then builds DIR/film.mp4 from film.yml: a caption, an
-arrow, a label and a dimension, all given as points of the model, drawn where those
-points are on every frame. Prints where the top of the sphere (the arrow's tip) lands
-in the film at the start, middle and end, and any stretch where a point is hidden. Run
-it twice: the second run draws nothing and keeps every clip.
+Needs no data, only ffmpeg: vortex_case.py (examples/) makes DIR a project with a generated
+vortex round a sphere as the tag ``vortex``. shots/pan.yml pans the camera round the
+sphere with the flow frozen (24 frames). ``shot render`` records each frame's camera beside
+the frames, which is what lets film.yml's text and arrow follow a point of the model: the
+sphere's centre, and its top. The film is built into DIR/film.mp4, and stills of the scene
+at three times show the text moving with the sphere (DIR/frames/scenes/pan/).
 """
+import re
 import shutil
 import sys
 from pathlib import Path
 
-import pyvista as pv
-
-from flowreel import film
-from flowreel.box import Box
-from flowreel.film.anchors import Anchor, ShotProjector, hidden_spans
-from flowreel.film.build import build
-from flowreel.film.clips import Clips
-from flowreel.scene import render
-
 HERE = Path(__file__).parent
-
-
-class Vortex:
-    """A source with one step: a solid-body vortex round a sphere. At module level so
-    worker processes can load it."""
-
-    name = "vortex"
-
-    def steps(self):
-        return [0]
-
-    def time(self, step):
-        return 0.0
-
-    def flow(self, step, fields, crop):
-        grid = pv.ImageData(dimensions=(9, 9, 5), spacing=(0.25, 0.25, 0.25),
-                            origin=(-1, -1, 0)).cast_to_unstructured_grid()
-        x, y = grid.points[:, 0], grid.points[:, 1]
-        for name, value in {"U": -y, "V": x, "W": 0 * x}.items():
-            grid.point_data[name] = value
-        return grid
-
-    def body(self, step, name=None):
-        return pv.Sphere(radius=0.2, center=(0, 0, 0.5))
-
-    def bounds(self):
-        return Box((-1, -1, 0), (1, 1, 1))
-
-    def memory_per_step(self, crop):
-        return 9 * 9 * 5 * 8 * 8 / 1024 ** 3
+sys.path.insert(0, str(HERE.parent))
+import vortex_case  # noqa: E402
+from tag_project import flowreel  # noqa: E402
 
 
 def main(folder: Path) -> None:
     folder.mkdir(parents=True, exist_ok=True)
-    for name in ("shot.yml", "cameras.yml", "film.yml"):
-        shutil.copy(HERE / name, folder / name)
-    report = render(folder / "shot.yml", source=Vortex(), out=folder / "frames", jobs=2)
-    print(f"rendered {report.count('rendered')} frames, {report.count('skipped')} kept")
-    built = build(folder / "film.yml")
-    print(f"built {built.output.relative_to(folder)}")
-    clips = Clips(film.load(folder / "film.yml"))
-    projector = ShotProjector(clips.film, clips.line, "pan")
-    last = round(clips.line.shot("pan").length * clips.film.fps) - 1
-    for j in (0, last // 2, last):
-        x, y = projector.point(Anchor((0, 0, 0.72)), j)
-        print(f"frame {j:2d}: top of the sphere at ({x:.0f}, {y:.0f})")
-    for hidden in hidden_spans(clips):
-        print("hidden:", hidden.message())
+    vortex_case.make_project(folder)
+    (folder / "shots").mkdir(exist_ok=True)
+    shutil.copy(HERE / "shots" / "pan.yml", folder / "shots" / "pan.yml")
+    shutil.copy(HERE / "cameras.yml", folder / "cameras.yml")
+    shutil.copy(HERE / "film.yml", folder / "film.yml")
+    rendered = flowreel(folder, "shot", "render", "shots/pan.yml", "-j", "2")
+    print(re.search(r"(\d+) rendered, (\d+) skipped", rendered).group(0))
+    flowreel(folder, "film", "build")
+    print("built film.mp4")
+    out = flowreel(folder, "scene", "preview", "pan", "--at", "0.3", "1.0", "1.7")
+    print(re.sub(r" in [\d.]+ s", "", out.strip().splitlines()[-1]).replace(f"{folder}/", ""))
 
 
 if __name__ == "__main__":

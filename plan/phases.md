@@ -1130,10 +1130,11 @@ reviewable: the tutorials, then the examples, then the removal)
 - [x] Shots and panels on data (`bodies`, `long_span`, `riser500`, `compare`, `panels`,
   `flow_panels`) as tags: bodies in `domain.yml`, `reference:` as `units:`; histories
   without a flow ride on a geometry tag
-- [ ] The films (`film_build`, `film_captions`, `film_cards`, `film_clips`,
-  `film_commands`, `film_project`, `film_timeline`, `anchored_caption`) as scenes and
-  layouts; `compose_layout` becomes `scene_layouts` (frame folders in boxes; the old
-  `stations` tile has no scene form) and `compose_commands` goes with the commands it shows
+- [x] The films as scenes and layouts: `film_build` (with `film_clips` folded in),
+  `film_commands`, `film_project`, `film_timeline`, `anchored_caption`; `film_cards` and
+  `film_captions` become `text_boxes`; `compose_layout` becomes `scene_layouts` (frame
+  folders in boxes; the old `stations` tile has no scene form) and `compose_commands` goes
+  with the commands it shows
 - [ ] Each example's test follows; nothing in `examples/` or `tests/test_example_*` uses
   the film of shots or the layout before tags
 

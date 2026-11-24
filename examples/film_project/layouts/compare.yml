@@ -1,0 +1,30 @@
+# The comparison at this film's size (960 x 540): the two generated wakes stacked on the
+# left, the live plots of the compare example's panels/plots.yml on the right. The wakes
+# play at 8 frames a second, interpolated to the film's 24; the plots are drawn by the
+# build at 24, up to the time of the wake frame shown, and never interpolated. Both stop
+# for 1.5 s at 1.5 s. Paths are from this file's folder. Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: bare
+    shot:
+      frames: ../frames/bare_wake
+      rate: {fps: 8, to_output: interpolate}
+      freezes: [{at: 1.5, hold: 1.5}]
+    pos: [0, 0]
+    size: [640, 270]
+  - shot:
+      frames: ../frames/helical_wake
+      rate: {fps: 8, to_output: interpolate}
+      freezes: [{at: 1.5, hold: 1.5}]
+    pos: [0, 270]
+    size: [640, 270]
+  - panel: {file: ../panels/plots.yml, rate: {fps: 8}, freezes: [{at: 1.5, hold: 1.5}]}
+    pos: [640, 0]
+    size: [320, 540]
+  - text: {lines: [Bare], size: 22, align: left, colour: '#e8b04a'}
+    pos: [20, 14]
+  - text: {lines: [Helical], size: 22, align: left, colour: '#6ac1c8'}
+    pos: [20, 284]
+  - text: {lines: ['Frozen: the bare cylinder swings,', 'the grooved one hardly moves'], size: 22, align: left, box: true}
+    pos: [24, 200]
+    size: [560, 80]
+    at: [1.5, 3.0]

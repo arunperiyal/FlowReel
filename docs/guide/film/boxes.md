@@ -65,3 +65,11 @@ rendered beforehand (`shot render`, or on Slurm).
 | `panel.rate` | `{fps}` | the film's rate | its frames a second (its `times` in order); the build draws every output frame at the time between two frames, so a panel is never interpolated |
 | `panel.freezes` | list of `{at, hold}` | none | as a shot's |
 | `last_frame` | a scene's name | required | that scene's last frame, held (give the scene `seconds`) |
+
+## Examples
+
+- `examples/text_boxes/run.py DIR`: a title, a logo, a divider, text with maths and in a
+  box, an arrow, a circle, an ellipse and a rounded rectangle over a picture, drawn as one
+  still by `scene preview`.
+- `examples/anchored_caption/run.py DIR` (needs ffmpeg): a text and an arrow that follow
+  the sphere of a panning shot (`follow`).

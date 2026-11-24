@@ -186,7 +186,8 @@ a hold (`hold_last_of`) or a freeze, and pause the player there.
 ## Example
 
 `examples/film_build/run.py` builds a small film from generated frames and a generated
-440 Hz tone, with no data, logo or music: an opening card, a wake with a freeze and
+440 Hz tone, with no data, logo or music. It is now a film of scenes (its opening is a
+scene of text boxes, not a card); the film it builds is the same in kind: an opening, a wake with a freeze and
 captions, its last frame held under a closing line, and three chapters. It writes
 `film.mp4`, `film_180p.mp4`, `film.srt`, `chapters.txt` and `contact.png` and prints the
 report. Run it twice: the second run keeps every clip and only joins again.
@@ -206,8 +207,8 @@ sh examples/film_commands/run.sh /tmp/film_commands_example
 ## A film project
 
 `examples/film_project/run.py` builds a silent film from a project folder of generated
-data, with what a real film uses: an opening card, the comparison of two cases as a
-[layout](layouts.md) whose live plots are a `rate: output` panel, a freeze with its own
+data, with what a real film uses, now as scenes: an opening, the comparison of two cases as a
+layout whose live plots are a panel box, a freeze with its own
 text, the last frame held with its plots under a closing line, and a watermark of text.
 The cases and their wake frames come from the [comparison example](compose.md)
 (`examples/compare/case_data.py`).

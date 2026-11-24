@@ -18,7 +18,8 @@ Each phase ends with something checkable.
 | 6 | Camera editor, anchored annotations, `srt` | a new camera track picked in the window and rendered (done 2026-11-22) |
 | 7 | Documentation: a tutorial reproducing a short film from a public data set | a new user makes a 20 s film from the tutorial |
 | 8 | Editor and workflow improvements asked for while using FlowReel, collected as they come | each one checked as its task says; the list closed by Arun |
-| 9 | Data by tag: a `data` command group, each case under `data/<tag>/` with its own `domain.yml`, shots naming a tag | the AFMS film made from its two cases imported as tags; both tutorials on the new layout |
+| 9 | Data by tag: a `data` command group, each case under `data/<tag>/` with its own `domain.yml`, shots naming a tag | branches 1 to 5 done, their tests and examples on tags (the tutorials move in Phase 10) |
+| 10 | The film as levels: a film of scenes, a scene a layout of boxes (text, image, shape, shot, panel); `scene` and `panel` commands; a window to design a layout; the documentation and both tutorials rewritten | the AFMS film made from its cases as tags and scenes; both tutorials rewritten; the guide by levels |
 
 ### 19.1 Phase 1 tasks
 
@@ -981,15 +982,132 @@ The decisions, for every branch:
 - [ ] Frame keys, `project info`, the doctor and the camera editor follow
 - [ ] Tests, docs, the YAML reference
 
-**Branch 6: `phase9/data-migrate`** (mostly docs)
-- [ ] Both tutorials (their data scripts write tags, their pages use `data import` and
-  `source: TAG`), every example and their tests
-- [ ] The rules page, the commands page, the site's first page
+**Branch 6: `phase9/data-migrate`** (moved to Phase 10, 2026-11-24)
+- [x] Moved: the tutorials, the examples and the docs change once for both phases, in
+  Phase 10's branches 6 and 7 (Section 19.11)
 
 **Branch 7: `phase9/extract-more`** (as films need them)
 - [ ] `data extract probe|table`, borrowed from FlexFlow Analyzer's `data` and `field`
   commands; each with its own task when a film asks for it
 
-**Phase 9 is done when** the AFMS film is made from its two cases imported as tags (its
-port, waiting for this phase), and both tutorials follow the new layout.
+**Phase 9 is done when** branches 1 to 5 are done, with the tests and the examples on
+tags. The AFMS film and both tutorials move in Phase 10, which also changes the film's
+files.
+
+### 19.11 Phase 10 tasks
+
+Added 2026-11-24, asked by Arun after reading the tutorial ("a bit difficult to
+follow"), and settled in five rounds of questions the same day (Section 24, question
+12). A film is described in **levels**:
+
+```text
+film            film.yml
+├── properties  output, fps, size, style
+├── audio
+├── watermark
+└── scenes      each: a layout, a length, fades or a cross-fade, a chapter
+    └── layout  inline in film.yml, or layouts/NAME.yml
+        └── boxes, each one element:
+            text    lines and a look; timed captions; pinned to a point of a shot box
+            image   a picture: fit, opacity
+            shape   a line, arrow, rectangle or circle
+            shot    a shot's frames: rate, freezes
+            panel   a panel's frames, drawn at the box's size
+```
+
+It replaces seven kinds of thing (film shots of kinds `card`, `frames`, `layout`,
+`hold_last_of`; layout files of tiles; card files; caption files) with three nested ones:
+a film of scenes, a scene a layout, a layout of boxes. A title card or credits are a
+scene of text and image boxes; a plain shot is a scene of one box.
+
+The decisions, for every branch:
+
+- **Layouts** are written in `film.yml` under their scene, or in `layouts/NAME.yml` and
+  named by it. A box has a `name`; its place is `pos: [x, y]` and `size: [w, h]` in the
+  film's pixels, or `place:` (top, bottom, centre, left or right half ...); a box with
+  neither fills the frame.
+- **Time.** Any box shows for the whole scene unless it gives `at: [start, end]` (seconds
+  into the scene) and `fade`. A scene lasts as long as its main box's frames (its shot
+  or panel box, the first, or the one named `main`), freezes included; a scene of text
+  and pictures gives `seconds`.
+- **Text boxes** hold lines (`$...$` maths as now) and a look: `look:` (title, text,
+  small) or `size`, `colour`, `align`, `weight`, `shadow`, `box`; the film's `style`
+  gives the defaults. `follow: {box, model: [x, y, z], offset}` pins one to a point of
+  the flow shown in a shot box, placed each frame from the camera that drew it.
+- **Shape boxes** draw a line, arrow, rectangle or circle (a card's divider, a caption's
+  arrow), placed like any box or following a point.
+- **Image boxes** show a picture with `fit` (contain, cover, stretch), `opacity`, `at`
+  and `fade`.
+- **Shot and panel boxes** carry their playback: `rate: {fps, to_output}` and `freezes:
+  [{at, hold}]`; other boxes go on through a freeze. Shots are rendered beforehand
+  (`shot render`, or Slurm) at the size of the box that shows them unless the shot says
+  otherwise; `film build` stops, naming the shot, when frames are missing. Panels in
+  boxes are drawn by the build. `last_frame: SCENE` holds another scene's last frame.
+- **Between scenes:** `fade: [in, out]` from and to black, and `cross: SECONDS` to
+  dissolve into the next.
+- **Building.** Each scene's finished clip is kept under `clips/` with a key of
+  everything in it, so one changed caption rebuilds one scene. A scene's `chapter:`
+  starts a chapter; every timed text box is a subtitle in `film.srt` unless it says
+  `subtitle: false`.
+- **Commands.** `compose` goes: `panel draw|template`; `scene preview|design|list`;
+  `film build|check|lengths|srt|chapters|template` work on scenes.
+- **Folders.** `shots/`, `panels/`, `layouts/`, `assets/` (pictures, fonts, sound) and
+  `data/` (Phase 9); `text/` and `cards/` go.
+- **The design window** (`scene design NAME`, drawn with matplotlib): draw, move and
+  resize boxes, snapping to a grid and to other boxes' edges; name a box and say what
+  fills it; see each box's contents (a shot's or panel's first frame, pictures, text as
+  it will look); scrub through the scene's time, boxes appearing and fading. It saves
+  the layout, inline or in its file.
+- **The documentation** follows the levels: the tutorials; the guide in the model's
+  order (the project and its data; shots and panels; the film, its scenes and layouts,
+  and each kind of box; rendering, Slurm, building and checking); the reference. Both
+  tutorials are rewritten from scratch around the levels.
+
+**Branch 1: `phase10/film-model`** (the files)
+- [ ] `film.yml`'s schema: properties, audio, watermark and scenes (name, layout inline
+  or a file, seconds, fade, cross, chapter); the layout's schema: boxes (name, pos,
+  size, place, at, fade, and one of text, image, shape, shot, panel, last_frame); loader
+  and checks, errors naming the key; card and caption files and the old shot kinds go
+- [ ] `film template` and a layout template, every key commented; the YAML reference
+- [ ] Tests on generated films
+
+**Branch 2: `phase10/boxes`** (drawing a frame of a scene)
+- [ ] Text boxes (lines, looks, shadow and box, maths), image boxes (fit, opacity), shape
+  boxes; each box's `at` and fade
+- [ ] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
+  `follow` placing text and shapes on a point of a shot box; `last_frame`
+- [ ] Tests against pictures drawn by hand and the old captions' golden pictures
+
+**Branch 3: `phase10/scene-build`**
+- [ ] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;
+  fades and cross-fades; a clip per scene, cached by its key
+- [ ] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
+  chapters from scenes; the contact sheet
+- [ ] Tests: lengths planned and measured, one changed caption rebuilding one scene
+
+**Branch 4: `phase10/commands`**
+- [ ] `panel draw|template`, `scene preview|list`; `compose` removed; `shot render`
+  drawing at the size of the box that shows the shot unless the shot gives `size`
+- [ ] Help, the command reference, the doctor and `project info` (scenes, layouts)
+
+**Branch 5: `phase10/scene-design`**
+- [ ] `scene design NAME`: a matplotlib window on the scene's layout: draw, move and
+  resize boxes, snap to a grid and to edges; name and fill boxes; previews of their
+  contents; a time slider; saving the layout inline or to its file
+- [ ] Its state tested without a window (as the camera editor's), and off screen
+
+**Branch 6: `phase10/docs`**
+- [ ] The guide restructured by the levels (Section 19.11's list), each page one level;
+  every page rewritten for tags and scenes; the rules page; the site's first page
+- [ ] The reference generator and its tests follow
+
+**Branch 7: `phase10/tutorials`**
+- [ ] Both tutorials rewritten from scratch around the levels (a project and its data, a
+  shot, a scene of one box, a layout of several, the film), on data tags; their data
+  scripts write tags; their pictures made again; their follow-along tests
+- [ ] Every example and its test on tags and scenes
+
+**Phase 10 is done when** the AFMS film is made from its two cases as tags and scenes
+(its port, waiting for Phases 9 and 10), both tutorials are rewritten, and the guide
+follows the levels.
 

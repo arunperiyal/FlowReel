@@ -63,7 +63,7 @@ def faces_point_out(grid):
 
 def test_the_stand_in_converts_to_the_names_and_fields_of_the_real_data(gd, tmp_path):
     out = gd.get(tmp_path, stand_in=True, say=quiet)
-    assert out == tmp_path / "data" / "cylinder_crossflow"
+    assert out == tmp_path / "cylinder_crossflow"
     for name in ("flow.pvd", "flow_0.vtu", "cylinder.vtp", "LICENSE", "README.md",
                  "ensight/cylinder_Re35.case"):
         assert (out / name).is_file(), name

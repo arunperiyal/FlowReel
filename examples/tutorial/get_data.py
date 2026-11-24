@@ -3,8 +3,9 @@
     python examples/tutorial/get_data.py [DIR]               download and convert
     python examples/tutorial/get_data.py [DIR] --stand-in    a small generated copy, offline
 
-The files go in ``DIR/data/cylinder_crossflow/`` (``DIR`` defaults to the current
-folder, the tutorial's project folder). The script:
+The files go in ``DIR/cylinder_crossflow/`` (``DIR`` defaults to ``cases``), outside the
+film's project, as a simulation's output would be; the project brings the case in as a
+tag (``flowreel data import vtk``, which the script prints). The script:
 
 1. Downloads the EnSight case (five files, 0.7 MB) and its licence from the
    ``pyvista/data`` repository, at a fixed commit. It checks each file's SHA-256, and
@@ -21,10 +22,10 @@ folder, the tutorial's project folder). The script:
 3. Writes ``LICENSE`` and ``README.md`` beside the data, saying where it comes from and
    how to cite it.
 
-The result, read with ``vtk:data/cylinder_crossflow/flow.pvd`` and the body
-``data/cylinder_crossflow/cylinder.vtp``, is:
+The result, imported with ``flowreel data import vtk --path DIR/cylinder_crossflow
+--tag crossflow --body cylinder=DIR/cylinder_crossflow/cylinder.vtp``, is:
 
-    data/cylinder_crossflow/
+    DIR/cylinder_crossflow/
         ensight/       the downloaded case, as published
         flow.pvd       one step (time 0), pointing at flow_0.vtu
         flow_0.vtu     the flow, extruded: U, V, W, p
@@ -377,13 +378,13 @@ def _write_notes(out: Path, ensight: Path, measured: dict, stand_in: bool):
         span=measured["span"], span_d=SPAN, facts=facts, sums=sums))
 
 
-def get(folder: str | Path = ".", *, stand_in: bool = False, opener=urllib.request.urlopen,
-        say=print) -> Path:
-    """Put the tutorial data in ``folder/data/cylinder_crossflow/`` (see the module) and
+def get(folder: str | Path = "cases", *, stand_in: bool = False,
+        opener=urllib.request.urlopen, say=print) -> Path:
+    """Put the tutorial data in ``folder/cylinder_crossflow/`` (see the module) and
     return that folder. With ``stand_in``, generate the small copy instead of
     downloading. ``opener`` opens a URL (``urllib.request.urlopen``; tests pass
     another)."""
-    out = Path(folder) / "data" / NAME
+    out = Path(folder) / NAME
     ensight = out / "ensight"
     if stand_in:
         stamp_old = _stamp(out)
@@ -411,13 +412,21 @@ def get(folder: str | Path = ".", *, stand_in: bool = False, opener=urllib.reque
     if _stamp(out) == stamp and all((out / f).is_file() for f in
                                     ("flow.pvd", "flow_0.vtu", "cylinder.vtp", "README.md")):
         say(f"{out}: converted already; nothing changed")
+        say(import_line(out))
         return out
     measured = convert(ensight / CASE, out)
     _write_notes(out, ensight, measured, stand_in)
     (out / "converted.json").write_text(json.dumps(stamp, indent=2) + "\n")
     say(f"converted to {out}/flow.pvd ({measured['points']} points, {measured['cells']} "
         f"cells, span {measured['span']}) and {out}/cylinder.vtp")
+    say(import_line(out))
     return out
+
+
+def import_line(out: Path) -> str:
+    """The command that brings the case into a project as the tag ``crossflow``."""
+    return (f"next, in the project: flowreel data import vtk --path {out} --tag crossflow "
+            f"--body cylinder={out}/cylinder.vtp")
 
 
 def _stamp(out: Path) -> dict | None:
@@ -430,8 +439,8 @@ def _stamp(out: Path) -> dict | None:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                      epilog="Reference: docs/tutorials/steady/data.md")
-    parser.add_argument("folder", nargs="?", default=".", metavar="DIR",
-                        help="the project folder (default the current one)")
+    parser.add_argument("folder", nargs="?", default="cases", metavar="DIR",
+                        help="where the case's folder goes (default ./cases)")
     parser.add_argument("--stand-in", action="store_true",
                         help="generate a small copy instead of downloading (no network)")
     args = parser.parse_args(argv)

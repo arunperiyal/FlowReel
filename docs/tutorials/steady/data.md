@@ -13,16 +13,17 @@ In the tutorial's project folder:
 ```text
 $ python examples/tutorial/get_data.py
 downloaded cylinder_Re35.case, cylinder_Re35.geo, cylinder_Re35.scl1, cylinder_Re35.scl2, cylinder_Re35.vel, LICENSE
-converted to data/cylinder_crossflow/flow.pvd (29662 points, 14594 cells, span 0.1) and data/cylinder_crossflow/cylinder.vtp
+converted to cases/cylinder_crossflow/flow.pvd (29662 points, 14594 cells, span 0.1) and cases/cylinder_crossflow/cylinder.vtp
+next, in the project: flowreel data import vtk --path cases/cylinder_crossflow --tag crossflow --body cylinder=cases/cylinder_crossflow/cylinder.vtp
 ```
 
-`get_data.py DIR` puts it under `DIR` instead of the current folder. A second run
+`get_data.py DIR` puts it under `DIR` instead of `cases/`. A second run
 downloads nothing and rewrites nothing:
 
 ```text
 $ python examples/tutorial/get_data.py
-data/cylinder_crossflow/ensight: all files there already, with the right checksums
-data/cylinder_crossflow: converted already; nothing changed
+cases/cylinder_crossflow/ensight: all files there already, with the right checksums
+cases/cylinder_crossflow: converted already; nothing changed
 ```
 
 It does not rewrite the files because FlowReel's frame keys include each data file's
@@ -33,12 +34,12 @@ has the same file names, blocks and fields, on a coarse mesh of about 500 cells,
 potential flow past the cylinder: no wake, but a velocity and pressure that vary over
 the whole domain. The tutorial's commands work on it unchanged, and FlowReel's tests use
 it. Its `README.md` says it is a stand-in. To swap it for the real data, remove
-`data/cylinder_crossflow/` and run the script again without `--stand-in`.
+`cases/cylinder_crossflow/` and run the script again without `--stand-in`.
 
 ## What you get
 
 ```text
-data/cylinder_crossflow/
+cases/cylinder_crossflow/
 ├── ensight/          the case as published: cylinder_Re35.case, .geo, .scl1, .scl2, .vel
 ├── flow.pvd          one step (time 0)
 ├── flow_0.vtu        the flow: U, V, W, p
@@ -48,16 +49,14 @@ data/cylinder_crossflow/
 └── converted.json    what the conversion was made from (used by a second run)
 ```
 
-The flow is read with the `vtk` adapter:
+The folder is outside the project; the project brings it in as the tag `crossflow`,
+read by the `vtk` reader with the wall as its body:
 
-```yaml
-source:
-  adapter: vtk
-  path: ../data/cylinder_crossflow/flow.pvd
-  body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
+```text
+flowreel data import vtk --path ../cases/cylinder_crossflow --tag crossflow --body cylinder=../cases/cylinder_crossflow/cylinder.vtp
 ```
 
-The paths in a shot are relative to the shot file, here in `shots/` ([rules](../../guide/projects/rules.md)).
+and its shots say `source: crossflow` ([data and tags](../../guide/projects/data.md)).
 
 ## What the conversion does, and why
 
@@ -124,7 +123,7 @@ damaged on the way never reaches the tutorial.
 
 | Function in `examples/tutorial/get_data.py` | Does |
 |---|---|
-| `get(folder, stand_in=False)` | the whole script; returns `folder/data/cylinder_crossflow` |
+| `get(folder='cases', stand_in=False)` | the whole script; returns `folder/cylinder_crossflow` |
 | `fetch(url, path, sha256)` | download one file unless it is there already, checking its checksum |
 | `convert(case, out)` | the EnSight case to `flow.pvd`, `flow_0.vtu` and `cylinder.vtp` |
 | `write_stand_in(folder)` | the small generated case |

@@ -1,7 +1,5 @@
 # 3. The force beside it
 
-## A panel of the force
-
 Make the folder `panels/` and write `panels/force.yml`:
 
 ```yaml
@@ -24,39 +22,24 @@ moves.
 
 - **`times: {shot: ...}`** gives the panel one frame for each of the shot's frames,
   at the time of the step that frame shows. When the shot slows down, so does the dot.
-- **`lines`** name the body and the series declared in `flowreel.yml`, and its
-  column. `scale: 2` turns the force into a coefficient: `C = F / (rho U^2 D / 2)`,
-  and the record's density, speed and diameter are all 1.
+- **`lines`** name the body and the series declared in the tag's `domain.yml`, and its
+  column. The project has one tag, so `cylinder` is enough; with two tags whose bodies
+  are both `cylinder`, the lines would say `re100.cylinder`
+  ([bodies across tags](../../guide/projects/data.md#shots-and-panels-name-a-tag)).
+- **`scale: 2`** turns the force into a coefficient, `C = F / (rho U^2 D / 2)`: the
+  record's density, speed and diameter are all 1.
+
+Draw it, to look at it:
 
 ```text
-$ flowreel compose panel panels/force.yml
+$ flowreel panel draw panels/force.yml
 ```
 
-## Side by side
-
-The panel goes beside the shot in a **layout**, which tiles folders of frames into one
-picture a frame ([layouts](../../guide/old/layouts.md)). Write `layouts/board.yml`:
-
-```yaml
-size: [1920, 1080]
-background: black
-tiles:
-  - {frames: ../frames/wake, at: [0, 180], size: [1280, 720]}
-  - {frames: ../frames/force, at: [1280, 0], size: [640, 1080]}
-```
-
-Folders in a layout are taken from the layout file's own folder, so the frames are
-`../frames/...`. The shot is rendered at its tile's size, `[1280, 720]`, so it is not
-resized. Render the shot at full size, then compose:
-
-```text
-$ flowreel shot render shots/wake.yml -j 4
-$ flowreel compose layout layouts/board.yml
-```
-
-![Frame 150 of the board](images/03-board.png)
+![Frame 150 of the panel](images/03-panel.png)
 
 The lift swings once each time a vortex leaves, and the drag twice, once for each side:
-the drag's dot runs through two crests while the lift's runs through one.
+the drag's dot runs through two crests while the lift's runs through one. In the film,
+the panel is a box of a scene, drawn by the build at the box's size; `panel draw` is for
+looking at it on its own.
 
-Next: [the film](04-film.md).
+Next: [a layout of the two](04-layout.md).

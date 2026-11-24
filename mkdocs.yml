@@ -62,21 +62,23 @@ nav:
       - A steady flow:
           - tutorials/steady/index.md
           - 1. Install: tutorials/steady/01-install.md
-          - 2. The project and the data: tutorials/steady/02-project.md
+          - 2. The project and its data: tutorials/steady/02-project.md
           - 3. A first shot: tutorials/steady/03-first-shot.md
           - 4. The camera: tutorials/steady/04-camera.md
           - 5. A second shot: tutorials/steady/05-sweep.md
           - 6. A panel: tutorials/steady/06-panel.md
-          - 7. The film file: tutorials/steady/07-film.md
-          - 8. Building the film: tutorials/steady/08-build.md
+          - 7. A scene of one box: tutorials/steady/07-scene.md
+          - 8. A layout of several boxes: tutorials/steady/08-layout.md
+          - 9. The film: tutorials/steady/09-film.md
           - The data: tutorials/steady/data.md
       - A flow that moves:
           - tutorials/unsteady/index.md
-          - 1. The data and the project: tutorials/unsteady/01-data.md
+          - 1. The data and its tag: tutorials/unsteady/01-data.md
           - 2. A shot that moves: tutorials/unsteady/02-shot.md
           - 3. The force beside it: tutorials/unsteady/03-panel.md
-          - 4. The film: tutorials/unsteady/04-film.md
-          - 5. On a cluster: tutorials/unsteady/05-cluster.md
+          - 4. A layout of the two: tutorials/unsteady/04-layout.md
+          - 5. The film: tutorials/unsteady/05-film.md
+          - 6. On a cluster: tutorials/unsteady/06-cluster.md
           - The data: tutorials/unsteady/data.md
   - User guide:
       - The project and its data:

@@ -1,0 +1,14 @@
+# One step two ways: the vorticity above, the pressure below. Paths are from this file's
+# folder. Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: main                        # sets the scene's length: 72 frames, and a 3 s hold
+    shot: {file: ../shots/sweep.yml, freezes: [{at: 3, hold: 3}]}
+    place: top
+  - panel: ../panels/pressure.yml     # drawn by the build at this box's size
+    place: bottom
+  - text: ['The same flow, its colours narrowed', 'to show the weak vorticity']
+    place: top
+    at: [0.3, 2.8]
+  - text: ['Pressure: high in front, low behind']
+    place: bottom
+    at: [3.2, 5.8]

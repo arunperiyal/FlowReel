@@ -1,8 +1,9 @@
+# The flow behind the cylinder, every frame its own step: at one speed, then half of it.
+# Reference: docs/guide/shots/shots.md#time.
 name: wake
-source: plt:../data/cylinder_re100
+source: re100                         # the tag: data/re100/
 time: {keys: [[0, 4000], [100, 4100], [220, 4160]]}   # then four frames a step: half speed
 camera: {fit: domain, direction_of: main}
-size: [1280, 720]
 layers:
   - {type: slice, normal: z, position: 0.0, field: vorticity_z, range: [-3, 3]}
   - {type: body, body: cylinder, colour: '#c8ccd0'}

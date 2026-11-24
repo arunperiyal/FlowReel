@@ -1,8 +1,3 @@
-bodies:
-  cylinder:
-    zone: cylinder
-    axis: z                           # the span: this 2D flow was given a thin one along z
-    diameter: 1.0
-    series:
-      force: {file: data/cylinder_re100/force.csv}   # time, fx, fy, mz
-reference: {rho: 1.0, u_inf: 1.0}     # the record's units: D, U and the density are 1
+# The second tutorial's project: one tag, vortex shedding at Re = 100 (data/re100/).
+# Reference: docs/guide/projects/project.md.
+tags: [re100]

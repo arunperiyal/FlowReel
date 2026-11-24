@@ -1,7 +1,6 @@
+# Made by FlowReel (docs/guide/projects/project.md): generated output and linked data
 frames/
 clips/
 .flowreel/
-data/
-*.mp4
-*.srt
-contact.png
+data/*/*
+!data/*/domain.yml

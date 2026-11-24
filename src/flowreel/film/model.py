@@ -363,7 +363,7 @@ def from_dict(data, file: str | None = None) -> Film:
     style = _style(data.get("style"), check.at("style"))
     audio = _audio(data.get("audio"), check.at("audio"), folder)
     items = check.at("scenes").sequence(data["scenes"], minimum=1)
-    scenes = [_scene(spec, check.at("scenes", i), folder, fps, size)
+    scenes = [_scene(spec, check.at("scenes", i), folder, fps, size, style.looks)
               for i, spec in enumerate(items)]
     names = [s.name for s in scenes]
     for i, s in enumerate(scenes):
@@ -435,10 +435,10 @@ def _watermark(value, check: Checker, folder: Path, names: list[str]) -> Waterma
     return w
 
 
-def _scene(spec, check: Checker, folder: Path, fps: int, size) -> Scene:
+def _scene(spec, check: Checker, folder: Path, fps: int, size, looks=None) -> Scene:
     spec = check.mapping(spec, SCENE_KEYS, required=("name", "layout"))
     name = check.at("name").string(spec["name"])
-    layout = _layout_of(spec["layout"], check.at("layout"), folder, fps, size)
+    layout = _layout_of(spec["layout"], check.at("layout"), folder, fps, size, looks)
     seconds = None if spec.get("seconds") is None else \
         _positive(spec["seconds"], check.at("seconds"), zero=False)
     return Scene(name, layout, seconds, _fade(spec.get("fade", [0, 0]), check.at("fade")),
@@ -454,29 +454,32 @@ def layout_path(name: str, folder: Path) -> Path:
     return folder / "layouts" / f"{name}.yml"
 
 
-def _layout_of(value, check: Checker, folder: Path, fps: int, size) -> Layout:
+def _layout_of(value, check: Checker, folder: Path, fps: int, size, looks=None) -> Layout:
     if isinstance(value, str):
         from flowreel.yamlfile import read_yaml
         path = layout_path(check.string(value), folder)
         if not path.is_file():
             raise check.error(f"no layout file {path}")
-        return parse_layout(read_yaml(path), Checker(path), path.parent, fps, size, path)
-    return parse_layout(value, check, folder, fps, size)
+        return parse_layout(read_yaml(path), Checker(path), path.parent, fps, size, path, looks)
+    return parse_layout(value, check, folder, fps, size, looks=looks)
 
 
-def load_layout(path: str | Path, fps: int = 24, size=DEFAULT_SIZE) -> Layout:
+def load_layout(path: str | Path, fps: int = 24, size=DEFAULT_SIZE, looks=None) -> Layout:
     """Read a layout file (``layouts/NAME.yml``) on its own: for a film of ``fps`` frames
     a second, ``size`` pixels."""
     from flowreel.yamlfile import read_yaml
     path = Path(path)
-    return parse_layout(read_yaml(path), Checker(path), path.parent, fps, tuple(size), path)
+    return parse_layout(read_yaml(path), Checker(path), path.parent, fps, tuple(size), path,
+                        looks)
 
 
-def parse_layout(value, check: Checker, folder: Path, fps: int, size, file=None) -> Layout:
-    """A layout's mapping (``background``, ``boxes``); paths from ``folder``."""
+def parse_layout(value, check: Checker, folder: Path, fps: int, size, file=None,
+                 looks=None) -> Layout:
+    """A layout's mapping (``background``, ``boxes``); paths from ``folder``. ``looks``
+    are the film's (its ``style.looks``), which a text box starts from."""
     spec = check.mapping(value, LAYOUT_KEYS, required=("boxes",))
     items = check.at("boxes").sequence(spec["boxes"], minimum=1)
-    boxes = [_box(item, check.at("boxes", i), folder, fps, size, i)
+    boxes = [_box(item, check.at("boxes", i), folder, fps, size, i, looks)
              for i, item in enumerate(items)]
     names = [b.name for b in boxes]
     for i, b in enumerate(boxes):
@@ -500,7 +503,7 @@ def _pos(value, check: Checker, what: str) -> tuple[float, float]:
     return (float(a), float(b))
 
 
-def _box(spec, check: Checker, folder: Path, fps: int, size, index: int) -> Box:
+def _box(spec, check: Checker, folder: Path, fps: int, size, index: int, looks=None) -> Box:
     spec = check.mapping(spec, BOX_KEYS)
     given = [k for k in KINDS if k in spec]
     if len(given) != 1:
@@ -509,7 +512,8 @@ def _box(spec, check: Checker, folder: Path, fps: int, size, index: int) -> Box:
     kind = given[0]
     name = check.at("name").string(spec["name"]) if spec.get("name") is not None \
         else f"{kind}{index + 1}"
-    content = CONTENT[kind](spec[kind], check.at(kind), folder, fps)
+    content = (_text(spec[kind], check.at(kind), folder, fps, looks) if kind == "text"
+               else CONTENT[kind](spec[kind], check.at(kind), folder, fps))
     pos = None if spec.get("pos") is None else _pos(spec["pos"], check.at("pos"), "pos")
     bsize = None if spec.get("size") is None else _pos(spec["size"], check.at("size"), "size")
     place = None if spec.get("place") is None else check.at("place").choice(spec["place"], PLACES)
@@ -559,7 +563,7 @@ def _options(value, check: Checker, short: str, keys) -> dict:
     return {short: value}
 
 
-def _text(value, check: Checker, folder: Path, fps: int) -> Text:
+def _text(value, check: Checker, folder: Path, fps: int, looks=None) -> Text:
     spec = _options(value, check, "lines", TEXT_KEYS)
     if spec.get("lines") is None:
         raise check.error("missing key 'lines' (a line of text, or a list of lines)")
@@ -568,7 +572,7 @@ def _text(value, check: Checker, folder: Path, fps: int) -> Text:
     lines = tuple(check.at("lines", i).string(line) if not isinstance(raw, str) else line
                   for i, line in enumerate(lines))
     look = check.at("look").choice(spec.get("look", "text"), LOOKS)
-    drawn = _look(spec, check, DEFAULT_LOOKS[look])
+    drawn = _look(spec, check, (looks or DEFAULT_LOOKS)[look])
     return Text(lines, look, drawn, _bool(spec.get("subtitle", True), check.at("subtitle")))
 
 

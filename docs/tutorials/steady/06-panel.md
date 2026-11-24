@@ -2,15 +2,16 @@
 
 A shot is drawn in 3D by VTK. A **panel** is a 2D figure drawn by matplotlib, one per
 frame: a plot of a history with a dot moving along it, or, as here, a cut through the
-flow drawn as filled contours ([panels](../../guide/shots/panels.md)). Panels go into frame folders like
-shots, so the film uses them the same way.
+flow drawn as filled contours ([panels](../../guide/shots/panels.md)). In the film a
+panel is a box of a scene, drawn by the build at the box's size; on its own, `panel draw`
+draws its frames to look at.
 
 Make the folder `panels/` and write `panels/pressure.yml`:
 
 ```yaml
 type: section
 name: pressure
-size: [1920, 1080]
+size: [1920, 540]                     # a strip: the film shows it in half the frame
 times: {shot: ../shots/sweep.yml}     # one time per frame of that shot: 72 frames
 body: cylinder
 station: 0                            # where along the axis to cut: the middle of the span
@@ -18,7 +19,7 @@ field: p
 range: [-1100, 1100]                  # the pressure here runs from about -720 to 1050
 levels: 41
 centre: [4.0, 0.0]
-half: [3.2, 1.8]
+half: [6.4, 1.8]
 streamlines: {relative: false}        # the cylinder does not move
 ```
 
@@ -27,13 +28,15 @@ streamlines: {relative: false}        # the cylinder does not move
   streamlines, and the body.
 - **`times`** gives the panel a frame for each frame of the sweep shot: 72 frames, 3 s.
   All show the one step; FlowReel draws it once and copies it.
-- **`field: p`** is the pressure as the solver wrote it. FlowReel can also draw the
-  pressure coefficient, `pressure_coefficient` with `params: {rho, u_inf}`, but this data
-  set does not say what its density is, so the plain pressure is the honest choice.
+- **`field: p`** is the pressure as the solver wrote it. With the tag's units (chapter 2)
+  FlowReel can also draw the pressure coefficient, `pressure_coefficient`, with no
+  `params`: it takes `rho` and `u_inf` from the tag.
 - **`range`** must be given for a panel: a range taken from each frame would change from
   frame to frame ([rules](../../guide/projects/rules.md)).
-- **`centre` and `half`** fix the view: centred 1.5 diameters behind the cylinder, 3.2
-  across and 1.8 up each way, so the wake is in the picture.
+- **`size` and `half`**: a strip twice as wide as a film's half-height, since the film
+  will show it in the lower half of the frame. `centre` and `half` fix the view:
+  centred 4 diameters behind the cylinder, 6.4 across and 1.8 up each way, so the wake
+  is in the picture.
 - **`streamlines: {relative: false}`**: streamlines are normally drawn as seen from a
   moving body. This one stands still, and the data has one step, so its motion cannot
   be measured anyway.
@@ -41,7 +44,7 @@ streamlines: {relative: false}        # the cylinder does not move
 Draw it:
 
 ```text
-$ flowreel compose panel panels/pressure.yml
+$ flowreel panel draw panels/pressure.yml
 ```
 
 The frames go to `frames/pressure/`.
@@ -66,4 +69,4 @@ and preview the sweep again. The lines crowd in front of the cylinder, where the
 pressure rises fastest, and open out in the wake. Keep them or take them out: the rest
 of the tutorial works either way.
 
-Next: [the film file](07-film.md).
+Next: [a scene of one box](07-scene.md).

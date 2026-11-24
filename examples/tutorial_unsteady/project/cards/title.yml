@@ -1,5 +1,0 @@
-blocks:
-  - {title: ['Vortex shedding behind a cylinder'], size: 72, y: 380}
-  - {divider: 320, gap: 40}
-  - {text: ['Reynolds number 100'], size: 34, gap: 40}
-  - {text: ['Data: M. Boudina, Polytechnique Montréal (Zenodo 5039610), CC BY 4.0'], size: 24, gap: 150}

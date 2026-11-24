@@ -1,7 +1,7 @@
 # 3. A first shot
 
-A **shot** is a YAML file that says what to draw: the data (the source), which time
-steps, the camera, the picture's size, and a list of **layers** drawn one over another.
+A **shot** is a YAML file that says what to draw: the data (a tag), which time steps,
+the camera, and a list of **layers** drawn one over another.
 FlowReel renders it to a folder of frames, `frame_00000.png`, `frame_00001.png` and so
 on.
 
@@ -17,13 +17,9 @@ down to this:
 
 ```yaml
 name: wake
-source:
-  adapter: vtk
-  path: ../data/cylinder_crossflow/flow.pvd
-  body: {cylinder: ../data/cylinder_crossflow/cylinder.vtp}
+source: crossflow                     # the tag: data/crossflow/
 time: {frozen: 0, frames: 120}        # one saved step, shown for 120 frames (5 s at 24)
 camera: {view: main}                  # the view project init wrote in cameras.yml
-size: [1920, 1080]
 layers:
   - type: slice                       # the plane z = 0, through the middle of the span
     normal: z
@@ -37,9 +33,10 @@ layers:
 
 What each part means:
 
-- **`source`** is the data, as in `project init`, written out in full so it can name the
-  body. Paths in a file are relative to that file, here `shots/` ([rules](../../guide/projects/rules.md)),
-  so the data is `../data/...`.
+- **`source`** is the tag: the shot reads the case as its `domain.yml` says, with its
+  body and its units. No path: the shot does not change when the data moves.
+- **No `size`.** A shot is drawn at the size of the box that shows it in the film
+  (chapter 7); until then, 1920 by 1080.
 - **`time: {frozen: 0, frames: 120}`** shows step 0 for 120 frames. This data set has
   one step: the flow is steady. A frozen shot is cheap, because the flow is read and cut
   once and reused for every frame. The camera can still move, as it will in the next
@@ -50,7 +47,7 @@ What each part means:
   `range` is the value at each end of the colour map. With the default map, `fire_ice`,
   zero is black, negative values are blue and positive ones orange. Positive is
   anticlockwise.
-- **The `body` layer** draws the cylinder, by the name `flowreel.yml` gave it.
+- **The `body` layer** draws the cylinder, by the name the tag's `domain.yml` gives it.
 
 ## Preview it
 

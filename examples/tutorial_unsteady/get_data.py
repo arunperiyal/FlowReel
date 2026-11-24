@@ -1,15 +1,18 @@
 """Get the data of the second tutorial: vortex shedding behind a fixed cylinder.
 
-    python get_data.py [PROJECT] [--every N] [--box X0 X1 Y0 Y1] [--stand-in]
+    python get_data.py [DIR] [--every N] [--box X0 X1 Y0 Y1] [--stand-in]
 
 Downloads Mouad Boudina's "Numerical simulation data of a two-dimensional flow around a
 fixed circular cylinder" (Zenodo record 5039610, CC BY 4.0: it may be shown, with
 credit), checks each file's checksum, and converts it into what the tutorial reads:
 
-- ``data/cylinder_re100/binary/cylinder.<step>.plt``: one Tecplot binary PLT file a
-  saved step, read with ``plt:data/cylinder_re100``;
-- ``data/cylinder_re100/force.csv``: the force on the cylinder, ``time, fx, fy, mz``,
-  the body's series in ``flowreel.yml``.
+- ``DIR/cylinder_re100/binary/cylinder.<step>.plt``: one Tecplot binary PLT file a
+  saved step, brought into a project as a tag with ``flowreel data import plt --path
+  DIR/cylinder_re100/binary --tag re100`` (which the script prints);
+- ``DIR/cylinder_re100/force.csv``: the force on the cylinder, ``time, fx, fy, mz``,
+  copied into the tag's ``series/`` and declared under its body.
+
+``DIR`` defaults to ``cases``: the data stays outside the film's project.
 
 The record's flow file (1.17 GB) is text: ``Re Ur``, then ``Nt N``, then for each of
 its 201 steps (t = 400 to 420) the time and N lines ``x y U V p``. It holds nodes
@@ -282,12 +285,12 @@ STAND_IN = ("**A generated stand-in, not the real data**: the record's formats, 
             "flow. Run get_data.py without --stand-in for the real one.")
 
 
-def get(folder: str | Path = ".", *, every: int = EVERY, box=BOX, stand_in: bool = False,
+def get(folder: str | Path = "cases", *, every: int = EVERY, box=BOX, stand_in: bool = False,
         opener=urllib.request.urlopen, say=print) -> Path:
-    """Download (or generate) and convert the data into ``folder/data/cylinder_re100``;
+    """Download (or generate) and convert the data into ``folder/cylinder_re100``;
     returns that folder. A conversion already there with the same files and options is
     kept."""
-    out = Path(folder) / "data" / NAME
+    out = Path(folder) / NAME
     record = out / "record"
     if stand_in:
         flow, reactions = write_stand_in(record)
@@ -301,6 +304,7 @@ def get(folder: str | Path = ".", *, every: int = EVERY, box=BOX, stand_in: bool
     try:
         if json.loads(done.read_text()) == stamp and (out / "force.csv").is_file():
             say(f"{out}: converted already; nothing changed")
+            say(import_line(out))
             return out
     except (OSError, ValueError):
         pass
@@ -309,14 +313,20 @@ def get(folder: str | Path = ".", *, every: int = EVERY, box=BOX, stand_in: bool
         name=NAME, what=STAND_IN if stand_in else REAL, every=every, x0=box[0], x1=box[1],
         y0=box[2], y1=box[3], span=SPAN, **measured))
     done.write_text(json.dumps(stamp, indent=2) + "\n")
+    say(import_line(out))
     return out
+
+
+def import_line(out: Path) -> str:
+    """The command that brings the case into a project as the tag ``re100``."""
+    return f"next, in the project: flowreel data import plt --path {out}/binary --tag re100"
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                      epilog="Reference: docs/tutorials/unsteady/data.md")
-    parser.add_argument("folder", nargs="?", default=".", metavar="PROJECT",
-                        help="the project folder (default the current one)")
+    parser.add_argument("folder", nargs="?", default="cases", metavar="DIR",
+                        help="where the case's folder goes (default ./cases)")
     parser.add_argument("--every", type=int, default=EVERY, metavar="N",
                         help=f"keep every Nth step (default {EVERY})")
     parser.add_argument("--box", type=float, nargs=4, default=BOX,

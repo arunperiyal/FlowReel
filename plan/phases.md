@@ -1118,7 +1118,7 @@ The decisions, for every branch:
 
 **Branch 7: `phase10/tutorials`** (branch 7 split in three, 2026-11-24, so each PR stays
 reviewable: the tutorials, then the examples, then the removal)
-- [ ] Both tutorials rewritten from scratch around the levels (a project and its data, a
+- [x] Both tutorials rewritten from scratch around the levels (a project and its data, a
   shot, a scene of one box, a layout of several, the film), on data tags; their data
   scripts write tags; their pictures made again; their follow-along tests
 

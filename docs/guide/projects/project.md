@@ -49,7 +49,7 @@ afms/
 | `film.yml` | you (`film template --scenes` starts one) | yes | [the film](../film/film.md) |
 | `cameras.yml` | you and the camera commands | yes | one for the whole project; [cameras](../shots/cameras.md) |
 | `shots/`, `panels/`, `layouts/`, `assets/` | you | yes | the names are a convention; files anywhere in the project work |
-| `data/` | `data import`, `project init --import` | no | the [tags](data.md): links to the data, `domain.yml`, series |
+| `data/` | `data import`, `project init --import` | each tag's `domain.yml` only | the [tags](data.md): links to the data, `domain.yml`, series |
 | `frames/`, `clips/` | `shot render`, `panel draw`, `film build` | no | removed by `project clean --frames`, `--clips` |
 | `.flowreel/` | every command | no | `cache/` removed by `project clean`; see below |
 
@@ -63,7 +63,10 @@ its machinery. Nothing in `.flowreel/` needs editing, and deleting it costs only
 
 **Why the data is linked.** A case is often hundreds of gigabytes on scratch storage,
 and belongs to the simulation rather than the film. The link records where it is
-without copying it, and `data/` is left out of git so the repository never holds it.
+without copying it, and the `.gitignore` leaves each tag's link and series out of git, so
+the repository never holds the data; the `domain.yml` you edit is kept. (A project made
+before tags has `data/` in its `.gitignore`; change it to `data/*/*` and
+`!data/*/domain.yml` to keep its tags' files.)
 
 ## Defaults and tags
 

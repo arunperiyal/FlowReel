@@ -51,7 +51,7 @@ a GPU, OSMesa on the CPU, or X. `flowreel shot render --backend osmesa` forces o
 $ flowreel --help
 ```
 
-lists the command groups: `shot`, `camera`, `compose`, `film`, `project` and `jobs`,
+lists the command groups: `project`, `data`, `shot`, `camera`, `panel`, `scene`, `film` and `jobs`,
 and `doctor`. Every command has `--help` with examples, for instance
 `flowreel project init --help`.
 

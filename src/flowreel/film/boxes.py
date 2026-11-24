@@ -304,11 +304,18 @@ def scene_length(scene: Scene, length: float | None) -> float:
     return length
 
 
+def still(box: Box) -> bool:
+    """Whether ``box`` looks the same on every frame but for its opacity: text, an image
+    or a shape that follows no point (its picture can be drawn once a scene)."""
+    return box.kind in ("text", "image", "shape") and box.follow is None
+
+
 def draw_frame(film: Film, scene: Scene, t: float, contents: Contents | None = None,
-               length: float | None = None):
+               length: float | None = None, cache: dict | None = None):
     """The frame ``t`` seconds into ``scene``: a Pillow RGB image of the film's size.
     ``length`` is the scene's length when it has no ``seconds`` (its main box's frames,
-    freezes included)."""
+    freezes included). ``cache`` (a dict kept across the frames of one scene) keeps the
+    pictures of :func:`still` boxes, drawn once instead of on every frame."""
     from PIL import Image
     from matplotlib.colors import to_rgb
     contents = contents or Contents()
@@ -320,7 +327,13 @@ def draw_frame(film: Film, scene: Scene, t: float, contents: Contents | None = N
         a = opacity(box, t, total)
         if a <= 0:
             continue
-        image = box_image(box, film, layout, contents)
+        if cache is not None and still(box):
+            if box.name not in cache:
+                cache[box.name] = box_image(box, film, layout, contents)
+            image = cache[box.name]
+            image = None if image is None else image.copy()
+        else:
+            image = box_image(box, film, layout, contents)
         if image is None:
             continue
         if a < 1:

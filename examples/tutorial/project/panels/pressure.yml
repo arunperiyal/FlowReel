@@ -2,7 +2,7 @@
 # across its axis (z). Reference: docs/guide/shots/panels.md.
 type: section
 name: pressure
-size: [1920, 1080]
+size: [1920, 540]
 times: {shot: ../shots/sweep.yml}     # one time per frame of that shot: 72 frames
 body: cylinder
 station: 0
@@ -10,5 +10,5 @@ field: p
 range: [-1100, 1100]                  # the pressure here runs from about -720 to 1050
 levels: 41
 centre: [4.0, 0.0]
-half: [3.2, 1.8]
+half: [6.4, 1.8]
 streamlines: {relative: false}        # the cylinder does not move

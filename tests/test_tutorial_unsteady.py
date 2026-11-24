@@ -14,8 +14,8 @@ ROOT = Path(__file__).parent.parent
 PAGES = ROOT / "docs" / "tutorials" / "unsteady"
 REFERENCE = ROOT / "examples" / "tutorial_unsteady" / "project"
 GET_DATA = ROOT / "examples" / "tutorial_unsteady" / "get_data.py"
-#: Small sizes for the test: the shot and the panel (the layout and film keep theirs,
-#: since the captions are placed by pixels).
+#: Small sizes for the test: the shot and the panel drawn alone (the film keeps its size,
+#: since its boxes are placed by pixels; the shot is fitted to its box).
 SHOT_SIZE, PANEL_SIZE = [320, 180], [160, 270]
 
 
@@ -26,18 +26,26 @@ def yaml_blocks(page: str) -> list:
 
 
 @pytest.mark.parametrize("page, name", [
-    ("01-data.md", "flowreel.yml"),
     ("02-shot.md", "shots/wake.yml"),
     ("03-panel.md", "panels/force.yml"),
-    ("03-panel.md", "layouts/board.yml"),
-    ("04-film.md", "cards/title.yml"),
-    ("04-film.md", "text/board.yml"),
-    ("04-film.md", "text/freeze.yml"),
-    ("04-film.md", "film.yml"),
+    ("04-layout.md", "layouts/board.yml"),
+    ("05-film.md", "layouts/title.yml"),
+    ("05-film.md", "film.yml"),
 ])
 def test_the_pages_show_the_reference_files(page, name):
     assert yaml.safe_load((REFERENCE / name).read_text()) in yaml_blocks(page), \
         f"{page} does not show {name} as it is"
+
+
+def test_the_tags_edits_are_the_reference_domain():
+    domain = yaml.safe_load((REFERENCE / "data/re100/domain.yml").read_text())
+    assert {"units": domain["units"], "bodies": domain["bodies"]} in yaml_blocks("01-data.md")
+
+
+def test_the_film_grows_from_its_board():
+    film = yaml.safe_load((REFERENCE / "film.yml").read_text())
+    board = [s for s in film["scenes"] if s["name"] == "board"]
+    assert {**film, "scenes": board} in yaml_blocks("04-layout.md")
 
 
 def test_every_page_is_in_the_site_and_every_picture_exists():
@@ -60,7 +68,7 @@ def test_following_the_tutorial_makes_a_17_second_film(tmp_path):
         ffmpeg.find()
     except Exception as exc:                                     # noqa: BLE001
         pytest.skip(f"no usable ffmpeg: {exc}")
-    root = tmp_path / "shedding"
+    root = tmp_path / "films"                                   # where the reader starts
     root.mkdir()
     env = {**os.environ, "NO_COLOR": "1"}
 
@@ -82,25 +90,39 @@ def test_following_the_tutorial_makes_a_17_second_film(tmp_path):
             small(target, size)
 
     # 1. the data and the project: plt:, and the force as a CSV series
+    # 1. the data outside the project; the project made with the case as a tag
     assert "converted" in run("--stand-in", script=GET_DATA)
-    assert "1 body (cylinder)" in run("project", "init", "plt:data/cylinder_re100")
-    take("flowreel.yml")
-    assert "bodies:  cylinder" in run("project", "info")
-    # 2. a shot that moves
+    out = run("project", "init", "-o", "shedding", "--import", "plt:cases/cylinder_re100/binary",
+              "--tag", "re100")
+    assert "data/re100/domain.yml" in out
+    root = root / "shedding"
+    (root / "data" / "re100" / "series").mkdir()
+    shutil.copy(root.parent / "cases" / "cylinder_re100" / "force.csv",
+                root / "data" / "re100" / "series" / "force.csv")
+    domain = root / "data" / "re100" / "domain.yml"
+    text, edits = domain.read_text(), (REFERENCE / "data/re100/domain.yml").read_text()
+    domain.write_text(text[:text.index("units:")] + edits[edits.index("units:"):]
+                      + text[text.index("measured:"):])           # as the page says
+    assert "re100: ok" in run("data", "check")
+    # 2. the shot (small here: a shot that gives its size keeps it, fitted to its box)
     take("shots/wake.yml", SHOT_SIZE)
-    assert "plt:../data/cylinder_re100" in run("project", "info")
+    assert "source:  re100" in run("project", "info")
     run("shot", "preview", "shots/wake.yml", "--every", "50")
-    # 3. the force beside it
+    # 3. the panel, drawn on its own
     take("panels/force.yml", PANEL_SIZE)
-    run("compose", "panel", "panels/force.yml")
+    run("panel", "draw", "panels/force.yml")
     assert len(list((root / "frames" / "force").glob("frame_*.png"))) == 221
-    run("shot", "render", "shots/wake.yml", "-j", "4")
+    # 4. the board: a layout of the shot and the panel, in a film of that scene alone
     take("layouts/board.yml")
-    run("compose", "layout", "layouts/board.yml")
-    assert len(list((root / "frames" / "board").glob("frame_*.png"))) == 221
-    # 4. the film
-    for name in ("cards/title.yml", "text/board.yml", "text/freeze.yml", "film.yml"):
-        take(name)
+    film = yaml.safe_load((REFERENCE / "film.yml").read_text())
+    film["scenes"] = [s for s in film["scenes"] if s["name"] == "board"]
+    (root / "film.yml").write_text(yaml.safe_dump(film, sort_keys=False))
+    run("shot", "render", "shots/wake.yml", "-j", "2")
+    run("scene", "preview", "board", "--at", "1.5", "4")
+    assert (root / "frames" / "scenes" / "board" / "at_4.00.png").is_file()
+    # 5. the film
+    take("layouts/title.yml")
+    take("film.yml")
     run("film", "check")
     assert (root / "contact.png").is_file()
     out = run("film", "build", "--preview", "180")

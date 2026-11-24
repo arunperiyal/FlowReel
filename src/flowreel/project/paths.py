@@ -27,8 +27,9 @@ FOLDERS = ("shots", "text", "cards", "assets", "data")
 OUTPUTS = ("frames", "clips")
 #: Machine state: caches, measured timings, job records.
 STATE = ".flowreel"
-#: What the ``.gitignore`` of a project leaves out: everything generated, and the data.
-IGNORED = ("frames/", "clips/", ".flowreel/", "data/")
+#: What a project's .gitignore leaves out: the generated folders, and each tag's data
+#: (its links and series) but not the domain.yml written by hand.
+IGNORED = ("frames/", "clips/", ".flowreel/", "data/*/*", "!data/*/domain.yml")
 
 
 class NotInProject(ConfigError):

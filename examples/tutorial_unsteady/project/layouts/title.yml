@@ -1,0 +1,11 @@
+# The title, crediting the data as its licence asks. Reference: docs/guide/film/layouts.md.
+boxes:
+  - text: {lines: ['Vortex shedding behind a cylinder'], look: title, size: 72, valign: bottom}
+    place: top
+  - shape: {kind: line, width: 2, colour: '#96a5b2'}
+    pos: [810, 538]
+    size: [300, 3]
+  - text: {lines: ['Reynolds number 100'], look: small, size: 34, valign: top}
+    place: bottom
+  - text: {lines: ['Data: M. Boudina, Polytechnique Montréal (Zenodo 5039610), CC BY 4.0'], look: small, valign: bottom}
+    place: bottom

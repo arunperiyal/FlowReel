@@ -4,10 +4,9 @@ Write `shots/wake.yml`:
 
 ```yaml
 name: wake
-source: plt:../data/cylinder_re100
+source: re100                         # the tag: data/re100/
 time: {keys: [[0, 4000], [100, 4100], [220, 4160]]}   # then four frames a step: half speed
 camera: {fit: domain, direction_of: main}
-size: [1280, 720]
 layers:
   - {type: slice, normal: z, position: 0.0, field: vorticity_z, range: [-3, 3]}
   - {type: body, body: cylinder, colour: '#c8ccd0'}
@@ -22,6 +21,8 @@ layers:
 - **`camera: {fit: domain, direction_of: main}`** frames the whole near wake to the
   shot's own shape, looking the way `main` looks, down z
   ([cameras](../../guide/shots/cameras.md)).
+- **No `size`**: the shot is drawn at the size of the box that shows it, 1280 by 720
+  in chapter 4. A preview before then is drawn at 1920 by 1080, smaller.
 - **The slice** is the spanwise vorticity, computed from the velocity.
 
 ```text
@@ -33,6 +34,6 @@ $ flowreel shot preview shots/wake.yml --every 50
 Behind the cylinder the shear layers roll up and leave as vortices, orange (turning
 anticlockwise) and blue (clockwise) in turn: a Kármán vortex street. Unlike a frozen
 shot, every frame reads its own step, so a moving shot takes longer to render; chapter
-5 hands that to a cluster.
+6 hands that to a cluster.
 
 Next: [the force beside it](03-panel.md).

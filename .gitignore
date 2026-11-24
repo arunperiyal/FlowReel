@@ -33,6 +33,9 @@ data/
 local/
 !tests/data/
 !tests/data/**
+# the tutorials' reference projects keep each tag's domain.yml (their own .gitignore
+# leaves the rest of data/ out)
+!examples/tutorial*/project/data/
 
 # Agent worktrees
 .claude/worktrees/

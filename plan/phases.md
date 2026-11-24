@@ -1114,7 +1114,7 @@ The decisions, for every branch:
 **Branch 6: `phase10/docs`**
 - [x] The guide restructured by the levels (Section 19.11's list), each page one level;
   every page rewritten for tags and scenes; the rules page; the site's first page
-- [ ] The reference generator and its tests follow
+- [x] The reference generator and its tests follow
 
 **Branch 7: `phase10/tutorials`** (branch 7 split in three, 2026-11-24, so each PR stays
 reviewable: the tutorials, then the examples, then the removal)

@@ -334,7 +334,7 @@ options:
   -o DIR, --out DIR     folder of the frame folders (default frames/ at the project
                         root)
 
-Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE          write a Slurm job script to FILE instead of running here
   --submit              submit the job with sbatch (the script goes to jobs/NAME.sh
                         unless --slurm FILE)
@@ -354,7 +354,7 @@ examples:
   flowreel shot render carve.yml --scale 0.5      a half-size draft, in frames/carve@960x540/
   flowreel shot render carve.yml --force          draw again even if nothing changed
   flowreel shot render carve.yml --submit         as a Slurm job array, sized from a
-                                                  measured frame (docs/guide/rendering/slurm.md)
+                                                  measured frame (docs/guide/making/slurm.md)
   flowreel shot render carve.yml --slurm carve.sh --max-running 2   write the script only
   flowreel shot render carve.yml --submit --missing                 only frames not drawn
 ```
@@ -479,7 +479,7 @@ options:
 
 examples:
   flowreel camera edit wake.yml --track approach     a window on the shot's first step
-  flowreel camera edit wake.yml --track approach --film film.yml   with the captions' points
+  flowreel camera edit wake.yml --track approach --film film.yml   with the points boxes follow
   flowreel camera edit --vtp wake_vtp --track approach --frames 240 -c cameras.yml
                                                      away from the data (shot render --save-vtp)
 
@@ -684,7 +684,7 @@ options:
   -j N, --jobs N     processes drawing at once (default 1)
   -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
 
-Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE       write a Slurm job script to FILE instead of running here
   --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
                      unless --slurm FILE)
@@ -831,7 +831,7 @@ options:
   -j N, --jobs N     processes drawing at once (default 1)
   -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
 
-Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE       write a Slurm job script to FILE instead of running here
   --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
                      unless --slurm FILE)
@@ -874,7 +874,7 @@ options:
   -j N, --jobs N     processes drawing at once (default 1)
   -o DIR, --out DIR  folder of the frame folders (default frames/ at the project root)
 
-Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE       write a Slurm job script to FILE instead of running here
   --submit           submit the job with sbatch (the script goes to jobs/NAME.sh
                      unless --slurm FILE)
@@ -925,7 +925,7 @@ options:
   --clips DIR       folder of the clips (default clips/ at the project root)
   -j N, --jobs N    processes drawing a layout's live panels (default 1)
 
-Slurm (run as a job on a cluster; docs/guide/rendering/slurm.md):
+Slurm (run as a job on a cluster; docs/guide/making/slurm.md):
   --slurm FILE      write a Slurm job script to FILE instead of running here
   --submit          submit the job with sbatch (the script goes to jobs/NAME.sh unless
                     --slurm FILE)

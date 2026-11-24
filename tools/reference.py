@@ -205,18 +205,18 @@ def file_types():
     import flowreel.compose.span_panels  # noqa: F401
     import flowreel.compose.flow_panels  # noqa: F401
     shot_watermark = tuple(k for k in schema.WATERMARK_KEYS if k not in schema.WHEN_KEYS)
-    panel_parts = [("", panel_file.KEYS, "guide/composing/panels.md"), ("style", STYLE_KEYS, "guide/composing/panels.md")]
+    panel_parts = [("", panel_file.KEYS, "guide/shots/panels.md"), ("style", STYLE_KEYS, "guide/shots/panels.md")]
     for name, cls in sorted(panels.REGISTRY.items()):
         if not cls.__module__.startswith("flowreel."):
             continue                            # registered by a test, say
         own = tuple(k for k in cls.KEYS if k not in panel_file.KEYS)
-        panel_parts.append((f"<{name}>", own, "guide/composing/panels.md"))
-    panel_parts += [("<series>.lines[]", LINE_KEYS, "guide/composing/panels.md"),
-                    ("<series>.x", AXIS_KEYS, "guide/composing/panels.md"),
-                    ("<series>.margins", MARGIN_KEYS, "guide/composing/panels.md"),
-                    ("<section>.streamlines", SectionPanel.STREAM_KEYS, "guide/composing/panels.md"),
-                    ("<section>.inset", SectionPanel.INSET_KEYS, "guide/composing/panels.md"),
-                    ("<strip>.zero", StripPanel.ZERO_KEYS, "guide/composing/panels.md")]
+        panel_parts.append((f"<{name}>", own, "guide/shots/panels.md"))
+    panel_parts += [("<series>.lines[]", LINE_KEYS, "guide/shots/panels.md"),
+                    ("<series>.x", AXIS_KEYS, "guide/shots/panels.md"),
+                    ("<series>.margins", MARGIN_KEYS, "guide/shots/panels.md"),
+                    ("<section>.streamlines", SectionPanel.STREAM_KEYS, "guide/shots/panels.md"),
+                    ("<section>.inset", SectionPanel.INSET_KEYS, "guide/shots/panels.md"),
+                    ("<strip>.zero", StripPanel.ZERO_KEYS, "guide/shots/panels.md")]
     supports = tuple(dict.fromkeys(k for ks in bodies.SUPPORTS.values() for k in ks))
     return [
         ("Shot file", "shots/NAME.yml", "guide/shots/shots.md", [
@@ -224,7 +224,7 @@ def file_types():
             ("source", ("tag", "kind"), "guide/projects/data.md#shots-and-panels-name-a-tag"),
             ("time", shot._TIME_KEYS, "guide/shots/shots.md"),
             ("camera", shot._CAMERA_KEYS, "guide/shots/cameras.md#a-shots-camera"),
-            ("watermark", shot_watermark, "guide/film/captions.md#the-watermark"),
+            ("watermark", shot_watermark, "guide/film/film.md#the-watermark"),
         ]),
         ("Cameras", "cameras.yml", "guide/shots/cameras.md", [
             ("views[]", views.VIEW_KEYS, "guide/shots/cameras.md#views-camerasyml"),
@@ -247,55 +247,55 @@ def file_types():
             ("source", tuple(dict.fromkeys(k for kind in domain.KINDS for k in domain._source_keys(kind))),
              "guide/projects/data.md#source"),
         ]),
-        ("Layout", "NAME.yml (compose layout)", "guide/composing/layouts.md", [
-            ("", layout_file.KEYS, "guide/composing/layouts.md"),
-            ("tiles[]", layout_file.TILE_KEYS, "guide/composing/layouts.md"),
-            ("tiles[].stations", layout_file.STATIONS_KEYS, "guide/composing/layouts.md"),
-            ("tiles[].label", layout_file.LABEL_KEYS, "guide/composing/layouts.md"),
+        ("Tiled layout (going)", "NAME.yml (compose layout)", "guide/old/layouts.md", [
+            ("", layout_file.KEYS, "guide/old/layouts.md"),
+            ("tiles[]", layout_file.TILE_KEYS, "guide/old/layouts.md"),
+            ("tiles[].stations", layout_file.STATIONS_KEYS, "guide/old/layouts.md"),
+            ("tiles[].label", layout_file.LABEL_KEYS, "guide/old/layouts.md"),
         ]),
-        ("Panel", "NAME.yml (compose panel)", "guide/composing/panels.md", panel_parts),
+        ("Panel", "panels/NAME.yml", "guide/shots/panels.md", panel_parts),
+        ("Film of shots (going)", "film.yml with shots:", "guide/old/film.md", [
+            ("", schema.KEYS, "guide/old/film.md"),
+            ("style", schema.STYLE_KEYS, "guide/old/film.md"),
+            ("style.colours", schema.COLOUR_KEYS, "guide/old/film.md"),
+            ("style.caption", schema.CAPTION_KEYS, "guide/old/film.md"),
+            ("audio[]", schema.AUDIO_KEYS, "guide/old/film.md"),
+            ("watermark", schema.WATERMARK_KEYS, "guide/film/film.md#the-watermark"),
+            ("shots[]", schema.SHOT_KEYS, "guide/old/film.md"),
+            ("shots[].rate", schema.RATE_KEYS, "guide/old/film.md"),
+            ("shots[].freezes[]", schema.FREEZE_KEYS, "guide/old/film.md"),
+            ("shots[].chapter", schema.CHAPTER_KEYS, "guide/old/build.md"),
+        ]),
         ("Film", "film.yml", "guide/film/film.md", [
-            ("", schema.KEYS, "guide/film/film.md"),
-            ("style", schema.STYLE_KEYS, "guide/film/film.md"),
-            ("style.colours", schema.COLOUR_KEYS, "guide/film/film.md"),
-            ("style.caption", schema.CAPTION_KEYS, "guide/film/film.md"),
-            ("audio[]", schema.AUDIO_KEYS, "guide/film/film.md"),
-            ("watermark", schema.WATERMARK_KEYS, "guide/film/captions.md#the-watermark"),
-            ("shots[]", schema.SHOT_KEYS, "guide/film/film.md"),
-            ("shots[].rate", schema.RATE_KEYS, "guide/film/film.md"),
-            ("shots[].freezes[]", schema.FREEZE_KEYS, "guide/film/film.md"),
-            ("shots[].chapter", schema.CHAPTER_KEYS, "guide/film/build.md"),
+            ("", model.KEYS, "guide/film/film.md#the-films-keys"),
+            ("style", model.STYLE_KEYS, "guide/film/film.md#style"),
+            ("style.colours", model.COLOUR_KEYS, "guide/film/film.md#style"),
+            ("style.looks.NAME", model.LOOK_KEYS, "guide/film/film.md#style"),
+            ("watermark", ("scenes",), "guide/film/film.md#the-watermark"),
+            ("scenes[]", model.SCENE_KEYS, "guide/film/film.md#scenes"),
+            ("scenes[].layout", model.LAYOUT_KEYS, "guide/film/layouts.md#layouts"),
         ]),
-        ("Film of scenes", "film.yml with scenes:", "guide/film/scenes.md", [
-            ("", model.KEYS, "guide/film/scenes.md#the-film"),
-            ("style", model.STYLE_KEYS, "guide/film/scenes.md#style"),
-            ("style.colours", model.COLOUR_KEYS, "guide/film/scenes.md#style"),
-            ("style.looks.NAME", model.LOOK_KEYS, "guide/film/scenes.md#style"),
-            ("watermark", ("scenes",), "guide/film/scenes.md#the-film"),
-            ("scenes[]", model.SCENE_KEYS, "guide/film/scenes.md#scenes"),
-            ("scenes[].layout", model.LAYOUT_KEYS, "guide/film/scenes.md#layouts"),
+        ("Layout", "layouts/NAME.yml, or a scene's layout", "guide/film/layouts.md", [
+            ("", model.LAYOUT_KEYS, "guide/film/layouts.md#layouts"),
+            ("boxes[]", model.BOX_KEYS, "guide/film/layouts.md#boxes"),
+            ("boxes[].follow", model.FOLLOW_KEYS, "guide/film/layouts.md#follow-a-box-on-a-point-of-the-flow"),
+            ("boxes[].text", model.TEXT_KEYS, "guide/film/boxes.md#text"),
+            ("boxes[].image", model.IMAGE_KEYS, "guide/film/boxes.md#image"),
+            ("boxes[].shape", model.SHAPE_KEYS, "guide/film/boxes.md#shape"),
+            ("boxes[].shot", model.SHOT_KEYS, "guide/film/boxes.md#shot"),
+            ("boxes[].shot.freezes[]", model.FREEZE_KEYS, "guide/film/boxes.md#shot"),
+            ("boxes[].panel", model.PANEL_KEYS, "guide/film/boxes.md#panel-and-last_frame"),
+            ("boxes[].panel.freezes[]", model.FREEZE_KEYS, "guide/film/boxes.md#shot"),
         ]),
-        ("Layout", "layouts/NAME.yml, or a scene's layout", "guide/film/scenes.md", [
-            ("", model.LAYOUT_KEYS, "guide/film/scenes.md#layouts"),
-            ("boxes[]", model.BOX_KEYS, "guide/film/scenes.md#boxes"),
-            ("boxes[].follow", model.FOLLOW_KEYS, "guide/film/scenes.md#follow-a-box-on-a-point-of-the-flow"),
-            ("boxes[].text", model.TEXT_KEYS, "guide/film/scenes.md#text"),
-            ("boxes[].image", model.IMAGE_KEYS, "guide/film/scenes.md#image"),
-            ("boxes[].shape", model.SHAPE_KEYS, "guide/film/scenes.md#shape"),
-            ("boxes[].shot", model.SHOT_KEYS, "guide/film/scenes.md#shot"),
-            ("boxes[].shot.freezes[]", model.FREEZE_KEYS, "guide/film/scenes.md#shot"),
-            ("boxes[].panel", model.PANEL_KEYS, "guide/film/scenes.md#panel-and-last_frame"),
-            ("boxes[].panel.freezes[]", model.FREEZE_KEYS, "guide/film/scenes.md#shot"),
-        ]),
-        ("Captions", "text/NAME.yml, or a shot's text", "guide/film/film.md", [
-            ("[]", text.KEYS, "guide/film/film.md"),
-            ("[].place, a point in the model", anchors.ANCHOR_KEYS, "guide/film/captions.md"),
-        ] + [(f"[].shapes[].{kind}", keys, "guide/film/captions.md#shapes")
+        ("Captions", "text/NAME.yml, or a shot's text", "guide/old/film.md", [
+            ("[]", text.KEYS, "guide/old/film.md"),
+            ("[].place, a point in the model", anchors.ANCHOR_KEYS, "guide/old/captions.md"),
+        ] + [(f"[].shapes[].{kind}", keys, "guide/old/captions.md#shapes")
              for kind, keys in shapes.KEYS.items()]),
-        ("Card", "cards/NAME.yml", "guide/film/cards.md", [
-            ("", cards.KEYS, "guide/film/cards.md"),
-            ("blocks[]", cards.PLACE_KEYS, "guide/film/cards.md"),
-        ] + [(f"blocks[] ({kind})", keys, "guide/film/cards.md#blocks")
+        ("Card", "cards/NAME.yml", "guide/old/cards.md", [
+            ("", cards.KEYS, "guide/old/cards.md"),
+            ("blocks[]", cards.PLACE_KEYS, "guide/old/cards.md"),
+        ] + [(f"blocks[] ({kind})", keys, "guide/old/cards.md#blocks")
              for kind, keys in cards.BLOCK_KEYS.items()]),
     ]
 

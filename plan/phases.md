@@ -1096,7 +1096,7 @@ The decisions, for every branch:
   fades and cross-fades; a clip per scene, cached by its key
 - [x] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
   chapters from scenes; the contact sheet
-- [ ] Tests: lengths planned and measured, one changed caption rebuilding one scene
+- [x] Tests: lengths planned and measured, one changed caption rebuilding one scene
 
 **Branch 4: `phase10/commands`**
 - [ ] `panel draw|template`, `scene preview|list`; `compose` removed; `shot render`

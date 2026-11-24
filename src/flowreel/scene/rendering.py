@@ -20,6 +20,7 @@ from typing import Callable, Iterable
 import numpy as np
 
 from flowreel.jobs.resources import resources
+from flowreel.project.domain import TAG_SOURCE
 from flowreel.scene import backend as backend_mod
 from flowreel.scene.cache import SurfaceCache
 from flowreel.scene.camera import shot_camera
@@ -53,12 +54,33 @@ def open_source(shot: Shot):
     adapter but ``geometry``, is taken from the shot file's folder.
     """
     from flowreel import sources
+    if shot.source[0] == TAG_SOURCE:
+        from flowreel.project.domain import open_tag
+        domain = _tag(shot)
+        return open_tag(domain, **source_options(shot))
     return sources.create(shot.source[0], **source_options(shot))
 
 
+def _tag(shot):
+    """The :class:`~flowreel.project.domain.Domain` of a shot whose source is a tag, found
+    from the shot file's project (``ConfigError`` at ``source`` when it is not there)."""
+    from flowreel.project.domain import find_tag
+    try:
+        return find_tag(shot.file, shot.source[1])
+    except LookupError as exc:
+        raise Checker(shot.file, ("source",)).error(str(exc.args[0])) from None
+
+
 def source_options(shot: Shot) -> dict:
-    """The options :func:`open_source` gives the adapter, with paths resolved."""
+    """The options :func:`open_source` gives the adapter, with paths resolved; for a tag,
+    the shot's reading options (checked against the tag's kind)."""
     adapter, location = shot.source
+    if adapter == TAG_SOURCE:
+        from flowreel.project.domain import tag_options
+        try:
+            return tag_options(_tag(shot), shot.source_options)
+        except ValueError as exc:
+            raise Checker(shot.file, ("source",)).error(str(exc)) from None
     if not shot.source_options:
         options = {"body": location} if adapter == "geometry" else {"path": location}
     else:
@@ -84,6 +106,11 @@ def source_id(shot: Shot) -> list:
     """The shot's source as it goes into keys: the adapter and its options with paths
     resolved, so two shot files that write the same relative path for different data
     (``flow_*.vti`` in two folders) never share a cached surface or a frame key."""
+    if shot.source[0] == TAG_SOURCE:
+        domain = _tag(shot)
+        return [TAG_SOURCE, {"tag": domain.tag, "kind": domain.kind,
+                             "source": {**domain.source, **source_options(shot)},
+                             "units": domain.units}]
     return [shot.source[0], source_options(shot)]
 
 

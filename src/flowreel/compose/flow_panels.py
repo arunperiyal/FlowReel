@@ -75,10 +75,10 @@ def open_panel_source(panel, value, check: Checker):
     shot's ``source``, paths from the panel file's folder), else the source of the shot
     whose times the panel takes. Returns ``(source, id, project)``: ``id`` is the source
     as keys take it (paths resolved), ``project`` the panel's project or ``None``."""
-    from flowreel import sources
     from flowreel.project import project_for
     from flowreel.project.names import declare
-    from flowreel.scene.rendering import source_id, source_options
+    from flowreel.scene.errors import ConfigError
+    from flowreel.scene.rendering import open_source, source_id
     from flowreel.scene.shot import _source
     if value is not None:
         (adapter, location), options = _source(value, check.at("source"))
@@ -92,11 +92,14 @@ def open_panel_source(panel, value, check: Checker):
                           "the source of a shot with 'times: {shot: FILE}'")
     where = check.at("source") if value is not None else check.at("times", "shot")
     try:
-        source = sources.create(holder.source[0], **source_options(holder))
+        source = open_source(holder)
+        key = source_id(holder)
+    except ConfigError:
+        raise
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise where.error(f"cannot open the source: {exc}") from None
     project = project_for(panel.file) if panel.file else None
-    return declare(source, project), source_id(holder), project
+    return declare(source, project), key, project
 
 
 def available_fields() -> set[str]:
@@ -134,7 +137,9 @@ class FlowPanel(PanelType):
         given = {k: check.at("params", k).number(v) for k, v in params.items()}
         # the project's reference values the field takes; the panel's own win
         from flowreel.fields.registry import accepted
-        reference = self.project.reference if self.project is not None else {}
+        units = getattr(self.source, "units", None)       # a tag's
+        reference = dict(units) if units is not None else (
+            self.project.reference if self.project is not None else {})
         wanted = accepted([self.field]) if self.field in available_fields() else set()
         self.params = {**{k: v for k, v in reference.items() if k in wanted}, **given}
         if options.get("range") is None:

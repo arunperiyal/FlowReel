@@ -981,7 +981,7 @@ The decisions, for every branch:
 - [x] Tests (the analytic pressure force of PR #84's tests), docs, an example
 
 **Branch 5: `phase9/source-tags`**
-- [ ] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
+- [x] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
   too; bodies as `tag.body` where tags meet; `source: adapter:path` still read until
   Phase 10's last branch removes it
 - [ ] Frame keys, `project info`, the doctor and the camera editor follow

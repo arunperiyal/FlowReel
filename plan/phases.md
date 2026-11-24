@@ -978,7 +978,7 @@ The decisions, for every branch:
   axis, step by step from the flow (the code of PR #84), with `mu`, `rho` and `u_inf` from
   the tag's units; into `series/`, declared under the body; `--sections`, `--steps`,
   `--every`, `-j`, `--force`; steps already in the file kept
-- [ ] Tests (the analytic pressure force of PR #84's tests), docs, an example
+- [x] Tests (the analytic pressure force of PR #84's tests), docs, an example
 
 **Branch 5: `phase9/source-tags`**
 - [ ] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts

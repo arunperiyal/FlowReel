@@ -11,7 +11,9 @@ DIR/cases/. Then, from the shell commands:
 3. ``data import history``: generated OTHD and OISD files of the smooth case (two runs,
    the second a restart), a CSV a group, declared as the body's displacement and force.
 4. The units filled in (as you would by hand), ``data check``, ``data list``, ``data info``.
-5. ``data rename grooved helical``, then ``data remove helical`` (the case stays).
+5. ``data extract sections smooth``: the force on 4 sections along the body at every
+   step, from the flow, declared as the body's ``sections``.
+6. ``data rename grooved helical``, then ``data remove helical`` (the case stays).
 """
 import shlex
 import subprocess
@@ -68,6 +70,7 @@ def main(folder: Path) -> None:
     flowreel("data check", film)
     flowreel("data list", film)
     flowreel("data info grooved", film)
+    flowreel("data extract sections smooth --sections 4", film)
     flowreel("data rename grooved helical", film)
     flowreel("data remove helical", film)
     flowreel("data list", film)

@@ -216,6 +216,12 @@ number and `station`, then the value columns. Where a restart repeats a time, th
 later row wins. A missing file or column is reported with the file's name and the
 columns it has.
 
+### Computed from the flow
+
+A body's sectional force along its axis can be computed by FlowReel itself, from the flow
+next to the wall: `flowreel data extract sections TAG` writes it into the tag and
+declares it under the body ([series from the flow](data.md#series-from-the-flow-data-extract)).
+
 ### From a FlexFlow case's OTHD and OISD files
 
 In a project with tags, `flowreel data import history --path CASE --tag TAG` reads the

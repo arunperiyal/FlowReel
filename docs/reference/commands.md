@@ -159,6 +159,27 @@ examples:
   flowreel data import history --path /scratch/run --tag two --group 0=riser --group 1=ball
 ```
 
+### `flowreel data extract`
+
+```text
+usage: flowreel data extract [-h] <kind> ...
+
+Compute a series from a tag's flow and write it under data/TAG/series/,
+declared under its body in domain.yml, with the constants taken from the tag's
+units.
+
+positional arguments:
+  <kind>
+    sections  a body's sectional force along its axis, step by step
+
+options:
+  -h, --help  show this help message and exit
+
+examples:
+  flowreel data extract sections bare       the one body, 48 sections, every step
+  flowreel data extract sections bare --body cyl --sections 96 --steps 5000 5600 -j 8
+```
+
 ### `flowreel data list`
 
 ```text

@@ -88,6 +88,43 @@ or one of the two folders.
 What was found is kept under `measured.history`: the files read, and each group's rows,
 nodes and variables.
 
+## Series from the flow: `data extract`
+
+Some series are not written by the solver but computed by FlowReel from the tag's flow.
+`data extract KIND TAG` writes them under the tag's `series/` and declares them under the
+body in `domain.yml`. The constants come from the tag's [units](#units), so nothing is
+typed twice.
+
+### `sections`
+
+```text
+$ flowreel data extract sections smooth -j 8
+cyl: 121 of 121 steps to compute (0 in cyl_sections.csv already), 48 sections over x = 0 to 12
+wrote data/smooth/series/cyl_sections.csv (121 new steps) and cyl_sections_stations.csv
+declared as cyl's sections in data/smooth/domain.yml
+```
+
+The force on a body's sections along its axis, step by step. The wall is cut into equal
+sections along the body's axis, fixed at the first step's extent. The traction on each
+section (pressure, and wall shear from the flow next to the wall) is summed and divided
+by the section's length. The result is `fx, fy, fz`, a force per unit length on the body.
+
+- **Units.** The shear needs `units.mu`. `p_inf` is taken from the units too (default 0).
+  With `rho` and `u_inf`, and the body's `diameter`, the coefficients `cx, cy, cz` are
+  written as well, divided by `q D` with `q = rho u_inf^2 / 2`.
+- **Files.** `series/<body>_sections.csv` holds `time, section, fx, fy, fz[, cx, cy,
+  cz]`, and `series/<body>_sections_stations.csv` holds `section, station`. They are
+  declared as the body's `sections`, with `by: section` and the stations file.
+- **Going on.** A step whose time is in the file already is kept. A run cut short goes
+  on where it stopped, and a longer `--steps` window adds only its new steps. `--force`
+  starts the file again (another `--sections` count needs it) and replaces a
+  declaration of `sections` you wrote yourself.
+- **Options.** `--body` (default the tag's one body), `--axis` (default the body's),
+  `--sections N` (48), `--steps FIRST LAST`, `--every N`, `--margin L` (flow read round
+  the wall, 0.5), `-j N` (steps at once, one process each).
+
+A [`map`](../composing/panels.md#map) panel draws it against the span and time.
+
 ## Looking after the tags
 
 | Command | What it does |

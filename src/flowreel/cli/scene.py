@@ -2,7 +2,9 @@
 
 ``scene list`` prints each scene's place in the film, length and boxes; ``scene
 preview`` draws stills of one scene (the frames as the build draws them, without the
-scene's fades) to look at its layout and text without encoding anything.
+scene's fades) to look at its layout and text without encoding anything; ``scene
+design`` opens a window to draw, move, resize, name and fill its boxes
+(:mod:`flowreel.editor.design_window`).
 """
 from __future__ import annotations
 
@@ -19,11 +21,15 @@ EXAMPLES = {
     "scene": """examples:
   flowreel scene list
   flowreel scene preview opening --at 2.5
+  flowreel scene design compare
 
 Reference: docs/guide/film/scenes.md and docs/guide/commands.md.""",
     "list": """examples:
   flowreel scene list                        the project's film.yml
   flowreel scene list films/short.yml""",
+    "design": """examples:
+  flowreel scene design opening              a window on the scene's layout
+  flowreel scene design compare --grid 10    snap to a 10-pixel grid (0: none)""",
     "preview": """examples:
   flowreel scene preview opening             stills at the start, middle and end
   flowreel scene preview compare --at 1 4.5 9 -o previews/
@@ -75,6 +81,19 @@ class SceneCommand(BaseCommand):
         pre.add_argument("-o", "--out", metavar="DIR",
                          help="folder of the stills (default frames/scenes/NAME)")
         _film_arg(pre)
+        des = _parser(actions, "design", help="a window to draw and fill a scene's boxes",
+                      description="Open a window on one scene's layout, drawn as the build "
+                                  "draws it at the Time slider's moment. Drag on empty space "
+                                  "to draw a box, drag a box to move it, a corner to resize "
+                                  "it; edges snap to other boxes, the frame and the grid. The "
+                                  "panel names and fills the selected box. Every change is "
+                                  "checked and written at once: to layouts/NAME.yml, or to the "
+                                  "scene's layout block in film.yml. Keys: u undo, delete "
+                                  "remove, g grid, t the next second.")
+        des.add_argument("scene", metavar="NAME", help="the scene")
+        des.add_argument("--grid", type=float, default=20.0, metavar="PX",
+                         help="snap to a grid of PX pixels (default 20; 0 for none)")
+        _film_arg(des)
         return p
 
     def execute(self, args, ctx):
@@ -135,6 +154,19 @@ class SceneCommand(BaseCommand):
                 start += length - (scene.cross if k < len(film.scenes) - 1 else 0)
         if known:
             ctx.out(f"{'film':{width}s}  {start + EPS:6.2f} s")
+        return 0
+
+    def do_design(self, args, ctx):
+        from flowreel.editor.design_window import DesignWindow
+        from flowreel.editor.layout_state import DesignState
+        film = self._film(ctx, args.film)
+        if args.grid < 0:
+            raise CommandError("--grid is 0 (none) or more")
+        state = DesignState.open(film.file, args.scene, grid=args.grid)
+        where = state.layout_file or f"{film.file} (scene {args.scene}'s layout)"
+        ctx.out(f"designing scene {args.scene}: changes are written to {where} at once")
+        DesignWindow(state).show()
+        ctx.out(f"closed: {len(state.boxes)} boxes")
         return 0
 
     def do_preview(self, args, ctx):

@@ -183,3 +183,94 @@ def template(kind: str = "plt") -> str:
         "# measured: {}                    # what data import found; not read",
     ]
     return "\n".join(head + source + rest) + "\n"
+
+
+def _indent(line: str) -> int:
+    return len(line) - len(line.lstrip(" "))
+
+
+def declare_series(folder: str | Path, body: str, name: str, spec: dict,
+                   force: bool = False) -> None:
+    """Declare ``spec`` as the series ``name`` of ``body`` in ``folder/domain.yml``,
+    changing only the lines of that series, so the file's comments and edits stay.
+    A series of that name already there is replaced only with ``force``. Raises
+    ``ValueError`` (no such body, the name taken) or the loader's error, leaving the
+    file as it was."""
+    import yaml
+    path = Path(folder) / DOMAIN_FILE
+    old = path.read_text()
+    lines = old.splitlines()
+    start = next((i for i, l in enumerate(lines) if re.match(r"^bodies\s*:", l)), None)
+    if start is None:
+        raise ValueError(f"{path}: no bodies: to declare {name} under")
+    end = next((i for i in range(start + 1, len(lines))
+                if lines[i].strip() and _indent(lines[i]) == 0), len(lines))
+    flow = re.compile(rf"^  {re.escape(body)}\s*:\s*(\{{.*\}})\s*(#.*)?$")
+    for i in range(start + 1, end):
+        m = flow.match(lines[i])
+        if m:                                   # a body in flow style: write it as a block
+            items = yaml.safe_load(m.group(1)) or {}
+            lines[i:i + 1] = [f"  {body}:" + (f"  {m.group(2)}" if m.group(2) else "")] + [
+                f"    {k}: " + yaml.safe_dump(v, default_flow_style=True, width=10000).strip()
+                .removesuffix("...").strip() for k, v in items.items()]
+            end += len(items)
+            break
+    key = re.compile(rf"^  {re.escape(body)}\s*:\s*(#.*)?$")
+    at = next((i for i in range(start + 1, end) if key.match(lines[i])), None)
+    if at is None:
+        names = [l.split(":")[0].strip() for l in lines[start + 1:end]
+                 if _indent(l) == 2 and not l.lstrip().startswith("#") and ":" in l]
+        raise ValueError(f"{path}: no body {body!r} to declare {name} under "
+                         f"(bodies: {', '.join(names) or 'none'})")
+    stop = next((i for i in range(at + 1, end) if lines[i].strip() and _indent(lines[i]) <= 2),
+                end)
+    entry = f"      {name}: " + yaml.safe_dump(spec, default_flow_style=True, width=10000,
+                                                sort_keys=False).strip()
+    series = next((i for i in range(at + 1, stop)
+                   if re.match(r"^    series\s*:", lines[i])), None)
+    if series is None:
+        lines[stop:stop] = ["    series:", entry]
+    else:
+        if re.match(r"^    series\s*:\s*\{\s*\}", lines[series]):
+            lines[series] = "    series:"
+        rows_end = next((i for i in range(series + 1, stop)
+                         if lines[i].strip() and _indent(lines[i]) <= 4
+                         and not lines[i].lstrip().startswith("#")), stop)
+        mine = re.compile(rf"^      {re.escape(name)}\s*:")
+        there = next((i for i in range(series + 1, rows_end) if mine.match(lines[i])), None)
+        if there is not None:
+            if not force:
+                raise ValueError(f"{path}: {body} has a series {name!r} already "
+                                 f"(--force replaces it)")
+            after = next((i for i in range(there + 1, rows_end)
+                          if lines[i].strip() and _indent(lines[i]) <= 6), rows_end)
+            lines[there:after] = [entry]
+        else:
+            last = max((i for i in range(series + 1, rows_end)
+                        if lines[i].strip() and not lines[i].lstrip().startswith("#")),
+                       default=series)
+            lines.insert(last + 1, entry)
+    path.write_text("\n".join(lines) + "\n")
+    try:
+        load_domain(folder)
+    except Exception:
+        path.write_text(old)
+        raise
+
+
+def note_lines(folder: str | Path, title: str, notes: list[str]) -> None:
+    """Put ``notes`` as comments under a ``# title`` line in ``folder/domain.yml``, before
+    ``measured:``, replacing an earlier note of the same title."""
+    path = Path(folder) / DOMAIN_FILE
+    lines = path.read_text().splitlines()
+    head = f"# {title}"
+    if head in lines:
+        i = lines.index(head)
+        j = i + 1
+        while j < len(lines) and lines[j].startswith("#   "):
+            j += 1
+        del lines[i:j]
+    if notes:
+        at = next((i for i, l in enumerate(lines) if l.startswith("measured:")), len(lines))
+        lines[at:at] = [head, *("#   " + n for n in notes)]
+    path.write_text("\n".join(lines) + "\n")

@@ -189,6 +189,8 @@ def import_data(root, kind: str, path: str | Path | None, tag: str, *,
     measured, body_text = _measure(folder, kind, source)
     if checksums:
         measured["checksums"] = checksums
+    if old is not None and old.measured.get("history"):
+        measured["history"] = old.measured["history"]       # data import history's
     if old is None:
         domain_file.write_text(_domain_text(tag, kind, source, body_text, measured))
     else:
@@ -290,6 +292,93 @@ def _replace_measured(path: Path, measured: dict, kind: str, source: dict) -> No
             lines[start:end] = new
             head = "\n".join(lines)
     path.write_text(head.rstrip() + "\n" + _measured_text(measured) + "\n")
+
+
+# ---- histories ------------------------------------------------------------------------
+
+HISTORY_NOTE = "history groups not given to a body: move each under its body's series"
+
+
+def import_history(root, path, tag: str, *, groups: dict | None = None, copy: bool = False,
+                   yes: bool = False, force: bool = False, say=print) -> list:
+    """Bring a FlexFlow case's OTHD and OISD files into the existing ``tag``: link
+    ``othd_files/`` as ``data/TAG/othd`` (and ``oisd``), convert each group once to CSV
+    under ``series/`` (:mod:`flowreel.project.history`) and declare it under its body:
+    the one body, when the tag has one body and the file one group, else as ``groups``
+    names (group id to body; the same id in either kind). Groups left over are listed in
+    ``domain.yml`` as comments, to move by hand. Returns the
+    :class:`~flowreel.project.history.Converted` groups."""
+    from flowreel.project.domain import declare_series, note_lines
+    from flowreel.project.history import convert, history_folders, run_files
+    folder = tag_folder(root, tag)
+    if not (folder / DOMAIN_FILE).is_file():
+        raise DataError(f"no tag {tag!r}: import its flow first (data import plt|vtk ... "
+                        f"--tag {tag}), then its history")
+    domain = load_domain(folder)
+    if path is None:
+        raise DataError("give --path: the case folder (holding othd_files/ and oisd_files/), "
+                        "or one of those folders")
+    found = history_folders(path)
+    if not found:
+        raise DataError(f"no .othd or .oisd files in {Path(path).expanduser()} (nor in its "
+                        f"othd_files/ or oisd_files/)")
+    taken = [k for k in found if (folder / k).is_symlink() or (folder / k).exists()]
+    if taken and not force:
+        raise DataError(f"tag {tag!r} has its {' and '.join(taken)} history already (use "
+                        f"--force to replace it and its series)")
+    groups = dict(groups or {})
+    for g, body in groups.items():
+        if body not in domain.bodies:
+            raise DataError(f"--group {g}={body}: tag {tag!r} has no body {body!r} "
+                            f"(bodies: {', '.join(domain.bodies) or 'none'})")
+    converted, measured = [], {}
+    for kind, source in found.items():
+        files = run_files(source, kind)
+        target = folder / kind
+        if target.is_symlink() or target.exists():
+            _remove(target)
+        if copy:
+            nbytes = _size(files)
+            say(f"{len(files)} {kind} files, {human(nbytes)} to copy into {target}")
+            if nbytes > COPY_LIMIT and not yes:
+                raise DataError(f"{human(nbytes)} is more than {human(COPY_LIMIT)}: add --yes "
+                                f"to copy it, or import it as a link")
+            _copy(files, target)
+            files = [target / f.name for f in files]
+        else:
+            target.symlink_to(source, target_is_directory=True)
+        done = convert(folder, kind, files)
+        only = len(done) == 1 and len(domain.bodies) == 1
+        for c in done:
+            c.body = groups.get(c.group, next(iter(domain.bodies)) if only else None)
+        converted += done
+        measured[kind] = {"files": [f.name for f in files],
+                          "groups": {c.group: {"rows": c.rows, "nodes": c.nodes,
+                                               "variables": c.variables} for c in done}}
+    seen = {}
+    for c in converted:
+        if c.body is None:
+            continue
+        if (c.body, c.name) in seen:
+            raise DataError(f"{c.body} would get two {c.name} series ({seen[c.body, c.name]} "
+                            f"and {c.kind} {c.group}): give each group its body with --group")
+        seen[c.body, c.name] = f"{c.kind} {c.group}"
+    for c in converted:
+        if c.body is not None:
+            try:
+                declare_series(folder, c.body, c.name, c.spec, force=force)
+            except ValueError as exc:
+                raise DataError(str(exc)) from None
+    import yaml
+    left = [f"{c.kind} {c.group} ({c.name}): " + yaml.safe_dump(
+        c.spec, default_flow_style=True, width=10000, sort_keys=False).strip()
+        for c in converted if c.body is None]
+    note_lines(folder, HISTORY_NOTE, left)
+    raw = yaml.safe_load((folder / DOMAIN_FILE).read_text()) or {}
+    old = dict(raw.get("measured") or {})
+    old["history"] = {**(old.get("history") or {}), **measured}
+    _replace_measured(folder / DOMAIN_FILE, old, domain.kind, raw.get("source") or {})
+    return converted
 
 
 # ---- the other actions ----------------------------------------------------------------

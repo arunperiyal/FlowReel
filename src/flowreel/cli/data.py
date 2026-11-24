@@ -1,9 +1,10 @@
 """``flowreel data``: a project's data by tag (plan Section 19.10, Phase 9).
 
 ``data import`` brings a case in as a tag (:mod:`flowreel.project.imports`); ``list``,
-``info``, ``remove``, ``rename`` and ``check`` look after the tags; ``template`` prints a
-``domain.yml`` with every key. ``import history`` and ``extract`` come with Phase 9's next
-branches.
+``info``, ``remove``, ``rename`` and ``check`` look after the tags; ``import history``
+converts a FlexFlow case's OTHD and OISD files to CSV in a tag
+(:mod:`flowreel.project.history`); ``template`` prints a ``domain.yml`` with every key.
+``extract`` comes with Phase 9's next branch.
 """
 from __future__ import annotations
 
@@ -29,7 +30,10 @@ Reference: docs/guide/projects/data.md and docs/guide/commands.md.""",
                                             copy instead of link (asks --yes above 5 GB)
   flowreel data import geometry --name grooved_cylinder --tag carve --param grooves=4
   flowreel data import plt --path /scratch/run2/binary --tag bare --force
-                                            point bare at another folder; edits kept""",
+                                            point bare at another folder; edits kept
+  flowreel data import history --path /scratch/run --tag bare
+                                            othd_files/ and oisd_files/, a CSV per group
+  flowreel data import history --path /scratch/run --tag two --group 0=riser --group 1=ball""",
     "list": """examples:
   flowreel data list""",
     "info": """examples:
@@ -68,7 +72,11 @@ class DataCommand(BaseCommand):
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
         actions = p.add_subparsers(dest="data_cmd", metavar="<action>")
         i = _parser(actions, "import", help="bring a case in as a tag (a link; --copy copies)",
-                    description="Link the folder a case's files are in under data/TAG/ (plt or "
+                    description="history: link a FlexFlow case's othd_files/ and oisd_files/ "
+                                "into the tag, convert each group (othId, osgId) once to CSV "
+                                "under data/TAG/series/, restarts resolved (a later run wins), "
+                                "and declare it under its body in domain.yml. Otherwise: "
+                                "link the folder a case's files are in under data/TAG/ (plt or "
                                 "vtk; geometry links nothing) and write data/TAG/domain.yml with "
                                 "what was measured: the reader's options, each wall zone as a "
                                 "body with its axis and diameter, and the steps, zones, fields "
@@ -76,7 +84,9 @@ class DataCommand(BaseCommand):
                                 "files instead, after saying their size. A tag holding a case "
                                 "already is refused unless --force, which replaces the link and "
                                 "keeps the edits of domain.yml.")
-        i.add_argument("kind", choices=("plt", "vtk", "geometry"), help="what the case is")
+        i.add_argument("kind", choices=("plt", "vtk", "geometry", "history"),
+                       help="what the case is; history: its OTHD and OISD files, into a tag "
+                            "already imported")
         i.add_argument("--path", metavar="PATH", help="the folder the files are in")
         i.add_argument("--tag", required=True, metavar="TAG",
                        help="the tag: letters, digits, - and _")
@@ -87,6 +97,9 @@ class DataCommand(BaseCommand):
         i.add_argument("--name", metavar="FUNCTION", help="geometry: the body made in code")
         i.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
                        help="geometry: a parameter of the body (repeat)")
+        i.add_argument("--group", action="append", metavar="N=BODY",
+                       help="history: the body group N is declared under (repeat; default "
+                            "the one body, when the files hold one group)")
         i.add_argument("--copy", action="store_true", help="copy the files instead of linking")
         i.add_argument("--yes", action="store_true", help="copy even above 5 GB")
         i.add_argument("--force", action="store_true",
@@ -145,6 +158,10 @@ class DataCommand(BaseCommand):
 
     def do_import(self, args, ctx):
         from flowreel.project.imports import human, import_data
+        if args.kind == "history":
+            return self._history(args, ctx)
+        if args.group:
+            raise CommandError("--group is for data import history")
         bodies = _pairs(args.body, "--body", number=False) if args.body else None
         params = _pairs(args.param, "--param", number=True)
         if args.kind != "geometry" and (args.name or params):
@@ -160,6 +177,24 @@ class DataCommand(BaseCommand):
             ctx.out(f"copied {human(done.nbytes)} into {target}")
         verb = "updated" if done.updated else "wrote"
         ctx.out(f"{verb} {done.domain}: fill in the units (docs/guide/projects/data.md#units)")
+        return 0
+
+    def _history(self, args, ctx):
+        from flowreel.project.imports import import_history
+        if args.body or args.flow or args.name or args.param:
+            raise CommandError("--body, --flow, --name and --param are not for a history")
+        groups = {}
+        for g, body in _pairs(args.group or [], "--group", number=False).items():
+            if not g.isdigit():
+                raise CommandError(f"--group expects N=BODY with N a group number, got {g!r}")
+            groups[int(g)] = body
+        done = import_history(self._root(ctx), args.path, args.tag, groups=groups,
+                              copy=args.copy, yes=args.yes, force=args.force, say=ctx.out)
+        for c in done:
+            where = (f"declared as {c.body}'s {c.name}" if c.body else
+                     "not given to a body (listed in domain.yml; or --group)")
+            nodes = f", {c.nodes} nodes" if c.nodes > 1 else ""
+            ctx.out(f"{c.kind} group {c.group}: {c.file}, {c.rows} rows{nodes}; {where}")
         return 0
 
     def do_list(self, args, ctx):

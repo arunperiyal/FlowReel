@@ -1080,7 +1080,8 @@ The decisions, for every branch:
   box's content is under its kind, short or as a mapping (`text: {lines, look, size}`),
   so the text's `size` and the box's `size: [w, h]` do not meet
 - [x] `film template` and a layout template, every key commented; the YAML reference
-  (`film template --scenes` and `--layout` until branch 3 makes scenes the default)
+  (`film template --scenes` and `--layout`; scenes become the default in branch 7, when
+  `project init` and the tutorials move to them)
 - [x] Tests on generated films
 
 **Branch 2: `phase10/boxes`** (drawing a frame of a scene)
@@ -1091,11 +1092,11 @@ The decisions, for every branch:
 - [x] Tests against pictures drawn by hand and the old captions' golden pictures
 
 **Branch 3: `phase10/scene-build`**
-- [ ] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;
+- [x] A scene's length from its main box or `seconds`; `rate` and `freezes` on boxes;
   fades and cross-fades; a clip per scene, cached by its key
-- [ ] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
+- [x] `film build|check|lengths|srt|chapters` on scenes: subtitles from timed text boxes,
   chapters from scenes; the contact sheet
-- [ ] Tests: lengths planned and measured, one changed caption rebuilding one scene
+- [x] Tests: lengths planned and measured, one changed caption rebuilding one scene
 
 **Branch 4: `phase10/commands`**
 - [ ] `panel draw|template`, `scene preview|list`; `compose` removed; `shot render`

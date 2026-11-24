@@ -101,7 +101,7 @@ SHAPE_KEYS = ("kind", "colour", "width", "fill", "head", "direction", "radius", 
 DIRECTIONS = ("right", "left", "up", "down", "up_right", "up_left", "down_right", "down_left")
 SHOT_KEYS = ("file", "frames", "rate", "freezes")
 FREEZE_KEYS = ("at", "hold")
-PANEL_KEYS = ("file",)
+PANEL_KEYS = ("file", "rate", "freezes")
 SCENE_WATERMARK_KEYS = tuple(k for k in WATERMARK_KEYS if k not in ("shots", "cards")) + ("scenes",)
 
 
@@ -207,9 +207,13 @@ class ShotBox:
 @dataclass(frozen=True)
 class PanelBox:
     """A panel box's content: the panel ``file``, drawn by the build at the box's size
-    and the film's rate."""
+    on every output frame, at the time between its frames there; its ``rate`` (its
+    frames a second: ``to_output`` does not apply, a panel is never interpolated) and
+    ``freezes``."""
 
     file: Path
+    rate: Rate
+    freezes: tuple[Freeze, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -614,18 +618,23 @@ def _shot(value, check: Checker, folder: Path, fps: int) -> ShotBox:
     where = check.at(given[0]) if isinstance(value, dict) else check
     if given[0] == "file" and not path.is_file():
         raise where.error(f"no shot file {path}")
-    rate = _rate(spec.get("rate"), check.at("rate"), fps)
-    items = check.at("freezes").sequence(spec.get("freezes") or [])
+    return ShotBox(path if given[0] == "file" else None,
+                   path if given[0] == "frames" else None,
+                   _rate(spec.get("rate"), check.at("rate"), fps),
+                   _freezes(spec.get("freezes"), check.at("freezes")))
+
+
+def _freezes(value, check: Checker) -> tuple[Freeze, ...]:
+    items = check.sequence(value or [])
     freezes = []
     for i, f in enumerate(items):
-        at = check.at("freezes", i)
+        at = check.at(i)
         f = at.mapping(f, FREEZE_KEYS, required=("at", "hold"))
         freezes.append(Freeze(_positive(f["at"], at.at("at")),
                               _positive(f["hold"], at.at("hold"), zero=False)))
     if [f.at for f in freezes] != sorted(f.at for f in freezes):
-        raise check.at("freezes").error("freezes must be in order of 'at'")
-    return ShotBox(path if given[0] == "file" else None,
-                   path if given[0] == "frames" else None, rate, tuple(freezes))
+        raise check.error("freezes must be in order of 'at'")
+    return tuple(freezes)
 
 
 def _panel(value, check: Checker, folder: Path, fps: int) -> PanelBox:
@@ -636,7 +645,8 @@ def _panel(value, check: Checker, folder: Path, fps: int) -> PanelBox:
     if not path.is_file():
         raise (check.at("file") if isinstance(value, dict) else check).error(
             f"no panel file {path}")
-    return PanelBox(path)
+    return PanelBox(path, _rate(spec.get("rate"), check.at("rate"), fps),
+                    _freezes(spec.get("freezes"), check.at("freezes")))
 
 
 def _last_frame(value, check: Checker, folder: Path, fps: int) -> LastFrame:

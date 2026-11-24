@@ -338,6 +338,10 @@ did not change, joined into the film's `output` with its sound and chapters; the
 `film.srt` and `chapters.txt` beside it ([building the film](film/build.md)). Prints each
 shot's planned and measured length and whether its clip was built or kept.
 
+A film of scenes (`scenes:`, [a film of scenes](film/scenes.md)) is built a clip per
+scene instead, and `--only` names a scene; `film check`, `lengths`, `srt` and `chapters`
+read it too. `-j` is for a film of shots' panels.
+
 | Option | Default | Meaning |
 |---|---|---|
 | `FILM` | the project's `film.yml`, else `./film.yml` | the film file |

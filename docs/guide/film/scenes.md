@@ -20,10 +20,9 @@ caption files. Each had its own keys, and a caption over a layout needed three o
 The levels need three nested ones. A title card is a scene of text and image boxes, a
 plain shot is a scene of one box, and a caption is a text box timed in its scene.
 
-This page describes the files. `flowreel film template --scenes` writes a film of scenes
-with every key, and `--layout` a layout file. Building a film of scenes comes with the
-next branches of Phase 10. Until then `film build` and `film check` read films of shots
-([the film file](film.md)), and say so when given a film of scenes.
+`flowreel film template --scenes` writes a film of scenes with every key, and `--layout`
+a layout file. `film build`, `check`, `lengths`, `srt` and `chapters` read a film of
+scenes as they read a film of shots ([building it](#building-it)).
 
 ```yaml
 output: film.mp4
@@ -211,6 +210,8 @@ rendered beforehand (`shot render`, or on Slurm).
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `panel.file` | path | required | a panel file; the build draws it at the box's size, at the film's rate |
+| `panel.rate` | `{fps}` | the film's rate | its frames a second (its `times` in order); the build draws every output frame at the time between two frames, so a panel is never interpolated |
+| `panel.freezes` | list of `{at, hold}` | none | as a shot's |
 | `last_frame` | a scene's name | required | that scene's last frame, held (give the scene `seconds`) |
 
 ## How a frame is drawn
@@ -227,6 +228,36 @@ pixels as a caption placed there, so captions move to text boxes unchanged. A sh
 panel's or held frame is fitted to its box, its aspect kept, and centred. A box that
 follows a point is left out of a frame where the point is behind the camera or off the
 picture.
+
+## Building it
+
+`flowreel film build` makes a clip per scene, then the film.
+
+- **Length.** A scene of `seconds` lasts that long; otherwise its main box's frames at
+  its `rate`, each shown for a whole step, plus its freezes. A shot box's frames are
+  rendered beforehand. A missing one stops the build, naming the shot and the command
+  that renders it. Every shot or panel box plays from the scene's start and holds its
+  last frame once it ends.
+- **Rates.** A shot at the film's rate, or under `to_output: repeat`, shows each frame
+  as it is; `blend` cross-fades the two frames around a moment; `interpolate` makes the
+  frames between with ffmpeg's motion interpolation, once, kept under `clips/`. A panel is
+  drawn at the box's size on every output frame, at the time between two of its frames,
+  so its dot moves smoothly and is never smeared.
+- **A clip per scene,** each frame drawn as [above](#how-a-frame-is-drawn), faded from
+  and to black by the scene's `fade`, with the watermark where it shows. The clip's name
+  holds a key of everything in it, so a changed caption rebuilds one scene and keeps the
+  others. A scene that holds another's last frame is rebuilt only when that frame's
+  pixels change.
+- **The film.** A scene's `cross` dissolves its last seconds into the next scene's
+  first, so the film is the scenes' lengths less the crosses. Without a cross the clips
+  are joined without encoding again. Audio, the preview copy (`--preview`) and
+  `--only SCENE` work as for a [film of shots](build.md).
+- **Subtitles and chapters.** Every text box with `at` (and `subtitle` left true) is a
+  subtitle in `film.srt`, from the scene's start. A scene's `chapter` starts a chapter
+  at the scene's start plus its `at`. `film lengths` prints each scene's planned length
+  and, when its clip is built and current, its measured one; `film check` makes the
+  contact sheet, with stills at the middle of each timed text box (`--at caption`), of
+  each freeze (`--at freeze`) or every few seconds (`--at every:S`).
 
 ## Errors
 

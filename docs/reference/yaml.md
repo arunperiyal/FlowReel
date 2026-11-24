@@ -421,6 +421,10 @@ Guide: [guide/film/scenes](../guide/film/scenes.md).
 | `boxes[].shot.freezes[].at` | seconds | required | when, in seconds of the shot's own frames | [guide/film/scenes](../guide/film/scenes.md#shot) |
 | `boxes[].shot.freezes[].hold` | seconds > 0 | required | how long the frame is held | [guide/film/scenes](../guide/film/scenes.md#shot) |
 | `boxes[].panel.file` | path | required | a panel file; the build draws it at the box's size, at the film's rate | [guide/film/scenes](../guide/film/scenes.md#panel-and-last_frame) |
+| `boxes[].panel.rate` | `{fps}` | the film's rate | its frames a second (its `times` in order); the build draws every output frame at the time between two frames, so a panel is never interpolated | [guide/film/scenes](../guide/film/scenes.md#panel-and-last_frame) |
+| `boxes[].panel.freezes` | list of `{at, hold}` | none | as a shot's | [guide/film/scenes](../guide/film/scenes.md#panel-and-last_frame) |
+| `boxes[].panel.freezes[].at` | seconds | required | when, in seconds of the shot's own frames | [guide/film/scenes](../guide/film/scenes.md#shot) |
+| `boxes[].panel.freezes[].hold` | seconds > 0 | required | how long the frame is held | [guide/film/scenes](../guide/film/scenes.md#shot) |
 
 ## Captions: `text/NAME.yml, or a shot's text`
 

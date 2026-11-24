@@ -283,6 +283,7 @@ def file_types():
             ("boxes[].shot", model.SHOT_KEYS, "guide/film/scenes.md#shot"),
             ("boxes[].shot.freezes[]", model.FREEZE_KEYS, "guide/film/scenes.md#shot"),
             ("boxes[].panel", model.PANEL_KEYS, "guide/film/scenes.md#panel-and-last_frame"),
+            ("boxes[].panel.freezes[]", model.FREEZE_KEYS, "guide/film/scenes.md#shot"),
         ]),
         ("Captions", "text/NAME.yml, or a shot's text", "guide/film/film.md", [
             ("[]", text.KEYS, "guide/film/film.md"),

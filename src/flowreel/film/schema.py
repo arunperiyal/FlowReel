@@ -212,8 +212,8 @@ def from_dict(data, file: str | None = None) -> Film:
     check = Checker(file)
     if isinstance(data, dict) and "scenes" in data:
         raise check.at("scenes").error(
-            "this is a film of scenes (flowreel.film.model); this command reads a film of "
-            "shots, and builds films of scenes from Phase 10's scene build on")
+            "this is a film of scenes: read it with flowreel.film.model, and build it with "
+            "flowreel.film.scene_build (film build does so itself)")
     data = check.mapping(data, KEYS, required=("shots",))
     folder = Path(file).parent if file else Path(".")
     output = folder / check.at("output").string(data.get("output", "film.mp4"))

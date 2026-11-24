@@ -19,12 +19,11 @@ The flow is made so that every panel's numbers are known exactly:
   it and the spanwise vorticity is ``2 OMEGA`` everywhere;
 - ``p = SLOPE z``.
 
-``flowreel.yml`` and the panel files are beside this module; ``write_case`` copies
-``flowreel.yml`` into ``folder`` unless ``project=False``.
+``make_project`` builds a project on tags from it; ``write_case`` alone writes only the
+PLT files, and with ``project=True`` also a ``flowreel.yml`` of the layout before tags.
 """
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import numpy as np
@@ -73,6 +72,15 @@ def _mesh():
     return (xx, rr, tt), bricks, wall
 
 
+# The project file of a case before tags (bodies and reference in flowreel.yml), which the
+# unit tests of the panels still read; phase 10's last branch removes it with that layout.
+BEFORE_TAGS = """bodies:
+  cylinder: {zone: cyl, axis: x, diameter: 1.0,
+             ends: [{at: 0.0, support: clamped}, {at: 4.0, support: clamped}]}
+reference: {rho: 1.0, u_inf: 1.0}
+"""
+
+
 def write_case(folder, steps: int = STEPS, project: bool = True) -> Path:
     """Write the case into ``folder`` (see the module); returns ``folder``."""
     folder = Path(folder)
@@ -90,5 +98,47 @@ def write_case(folder, steps: int = STEPS, project: bool = True) -> Path:
         write_plt(case / f"cyl.{10 * k}.plt", VARS, [x, y, z, u, v, w, p],
                   [("fluid", 5, bricks), ("cyl", 3, wall)], time=t)
     if project:
-        shutil.copy(HERE / "flowreel.yml", folder / "flowreel.yml")
+        (folder / "flowreel.yml").write_text(BEFORE_TAGS)
     return folder
+
+
+UNITS_AND_BODY = """units:                           # the generated flow is in units of its own: q = 1/2
+  rho: 1.0
+  mu: 1.0
+  u_inf: 1.0
+bodies:
+  cylinder:
+    zone: cyl
+    axis: x
+    diameter: 1.0
+    ends:
+      - {at: 0.0, support: clamped}
+      - {at: 4.0, support: clamped}
+"""
+
+
+def flowreel(folder: Path, *args: str) -> str:
+    """Run ``flowreel ARGS`` in ``folder``; stop with its message if it fails."""
+    import subprocess
+    import sys
+    done = subprocess.run([sys.executable, "-m", "flowreel", *args], cwd=folder,
+                          capture_output=True, text=True)
+    if done.returncode:
+        raise SystemExit(done.stderr or done.stdout)
+    return done.stdout
+
+
+def make_project(folder, tag: str = "cylinder", steps: int = STEPS) -> Path:
+    """A project in ``folder`` with the generated case as the tag ``tag``: the case written
+    to ``folder/case``, linked by ``data import plt``, its units and its body (the wall
+    zone ``cyl`` as ``cylinder``, held at both ends) filled in as a person would. Returns
+    the tag's ``domain.yml``."""
+    folder = Path(folder)
+    write_case(folder, steps=steps, project=False)
+    flowreel(folder, "project", "init", "--force")
+    flowreel(folder, "data", "import", "plt", "--path", "case", "--tag", tag)
+    path = folder / "data" / tag / "domain.yml"
+    text = path.read_text()
+    start, end = text.index("units:"), text.index("measured:")
+    path.write_text(text[:start] + UNITS_AND_BODY + text[end:])
+    return path

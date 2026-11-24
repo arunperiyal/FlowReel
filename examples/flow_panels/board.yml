@@ -1,7 +1,0 @@
-# The section beside nothing else would waste the frame: the section on top, the cuts
-# and the strip below it.
-size: [960, 1080]
-tiles:
-  - {frames: frames/section, at: [0, 0], size: [960, 540]}
-  - {frames: frames/cuts, at: [0, 540], size: [960, 270]}
-  - {frames: frames/strip, at: [0, 810], size: [960, 270]}

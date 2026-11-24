@@ -3,7 +3,7 @@
 Needs no data and no solver: everything is made from formulas, at test time or when
 ``run.py`` asks, and never checked in. Times are in ``tU/D``.
 
-``write_data(folder)`` writes:
+``write_data(folder)`` writes (the CSV files into ``data=`` instead, when given):
 
 - ``data/<case>_series.csv``: mid-span displacement, lift and drag every ``DT``, from 0
   to ``T_END``, in the prototype's own format (``t, y_over_D, CL, CD``), so the
@@ -78,11 +78,12 @@ def wake(case: str, k: int) -> np.ndarray:
     return np.rint(rgb * 255).astype(np.uint8)
 
 
-def write_data(folder, wakes: bool = True) -> Path:
-    """Write the data into ``folder`` (see the module); returns ``folder``."""
+def write_data(folder, wakes: bool = True, data=None) -> Path:
+    """Write the data into ``folder`` (see the module); returns ``folder``. The CSV files
+    go to ``data`` (default ``folder/data``), the wake frames to ``folder/frames``."""
     from PIL import Image
     folder = Path(folder)
-    data = folder / "data"
+    data = Path(data) if data is not None else folder / "data"
     data.mkdir(parents=True, exist_ok=True)
     t = times()
     (data / "strips.csv").write_text("strip,station\n" + "".join(

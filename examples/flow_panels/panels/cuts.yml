@@ -1,10 +1,10 @@
 # The same cut at a quarter, half and three quarters of the span, side by side: the
 # pressure coefficient, which grows with z, the same at every station of this generated
-# flow. Its rho and u_inf come from flowreel.yml's reference values.
+# flow. Its rho and u_inf come from the tag's units.
 type: cuts
 size: [960, 270]
 times: [0, 0.5, 1.0, 1.5]
-source: {adapter: plt, path: case}
+source: cylinder                  # the tag: data/cylinder/
 body: cylinder
 stations: [1, 2, 3]
 field: pressure_coefficient

@@ -1,0 +1,16 @@
+# The comparison: the two wakes stacked on the left, the live plots on the right. The wakes
+# are stand-in frames (run.py writes them) at 4 a second; the plots are drawn by the build
+# at the film's rate, up to the time of the wake frame shown, and never interpolated. Both
+# stop for a second at 3.75 s, wake frame 15. Paths are from this file's folder.
+# Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: bare
+    shot: {frames: ../frames/bare_wake, rate: {fps: 4, to_output: interpolate}, freezes: [{at: 3.75, hold: 1}]}
+    pos: [0, 0]
+    size: [1280, 540]
+  - shot: {frames: ../frames/helical_wake, rate: {fps: 4, to_output: interpolate}, freezes: [{at: 3.75, hold: 1}]}
+    pos: [0, 540]
+    size: [1280, 540]
+  - panel: {file: ../panels/plots.yml, rate: {fps: 4}, freezes: [{at: 3.75, hold: 1}]}
+    pos: [1280, 0]
+    size: [640, 1080]

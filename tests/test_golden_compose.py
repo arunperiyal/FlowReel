@@ -20,7 +20,8 @@ from cli_harness import Shell
 from test_reveal_golden import CLEAR_LIMIT, MEAN_LIMIT, difference
 
 HERE = Path(__file__).parent
-EXAMPLE = HERE.parent / "examples" / "compare"
+EXAMPLE = HERE.parent / "examples" / "compare"             # its data generator
+FILES_FROM = HERE / "data" / "compare_files"                # the files before tags and scenes
 sys.path.insert(0, str(EXAMPLE))
 import case_data  # noqa: E402
 
@@ -34,7 +35,7 @@ def drawn(tmp_path_factory):
     folder = tmp_path_factory.mktemp("compare")
     case_data.write_data(folder)
     for name in FILES:
-        shutil.copy(EXAMPLE / name, folder / name)
+        shutil.copy(FILES_FROM / name, folder / name)
     sh = Shell(folder / "store")
     status, out, err = sh.run(f"compose layout {folder / 'compare.yml'} --frames 13,15 "
                               f"-o {folder / 'frames'}")

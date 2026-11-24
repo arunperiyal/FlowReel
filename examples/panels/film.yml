@@ -1,0 +1,8 @@
+# The film of this example: one scene, the two panels (layouts/board.yml). Six frames a
+# second, so each of the panels' times is held for three; the freeze adds a second.
+output: film.mp4
+fps: 6
+size: [960, 720]
+scenes:
+  - name: board
+    layout: board

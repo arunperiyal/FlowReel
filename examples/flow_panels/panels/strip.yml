@@ -3,10 +3,9 @@
 type: strip
 size: [960, 270]
 times: [0, 0.5, 1.0, 1.5]
-source: {adapter: plt, path: case}
+source: cylinder                  # the tag: data/cylinder/
 body: cylinder
 side: y
 field: wall_shear
 component: x
-params: {mu: 1.0}
 range: [-0.6, 0.6]

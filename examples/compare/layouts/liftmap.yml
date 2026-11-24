@@ -1,0 +1,6 @@
+# The sectional lift of both cases against span and time, filling in from the left. The
+# panel is drawn by the build at the frame's size, 4 times a second. Reference:
+# docs/guide/film/layouts.md.
+boxes:
+  - name: map
+    panel: {file: ../panels/liftmap.yml, rate: {fps: 4}}

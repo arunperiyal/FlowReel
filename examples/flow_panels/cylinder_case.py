@@ -139,6 +139,6 @@ def make_project(folder, tag: str = "cylinder", steps: int = STEPS) -> Path:
     flowreel(folder, "data", "import", "plt", "--path", "case", "--tag", tag)
     path = folder / "data" / tag / "domain.yml"
     text = path.read_text()
-    start, end = text.index("units:"), text.index("measured:")
+    start, end = text.index("units:"), text.index("\nmeasured:") + 1
     path.write_text(text[:start] + UNITS_AND_BODY + text[end:])
     return path

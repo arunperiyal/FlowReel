@@ -10,7 +10,7 @@ compared, a wake beside its plots, or one shot seen at several stations of a lon
 together. `compose.layout` writes the composed frames into a frame folder of their
 own, so a layout's output can be a tile of another layout, or a shot of the film.
 
-A runnable example on generated frames is `examples/compose_layout/run.py`.
+The layout that replaces this is a [scene layout](../film/layouts.md); `examples/scene_layouts/run.py` shows frame folders in boxes.
 
 ## A layout file
 

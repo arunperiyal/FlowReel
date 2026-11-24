@@ -1,30 +1,28 @@
-"""Layouts: frame folders tiled into one picture, and one shot at several stations.
+"""Layouts of boxes: frame folders side by side and on a grid, as scenes of a film.
 
-Usage: python run.py [DIR]   (default ./compose_layout_example)
+Usage: python run.py [DIR]   (default ./scene_layouts_example)
 
 Needs no data. It draws three small frame folders with PIL (DIR/frames/bare and
-DIR/frames/helical, eight frames of a moving dot; DIR/frames/title, one frame), then:
+DIR/frames/helical, eight frames of a moving dot; DIR/frames/title, one frame), makes DIR
+a project, and copies film.yml and layouts/ into it. Then:
 
-1. compare.yml: bare and helical side by side, labelled (DIR/frames/compare/).
-2. grid.yml: four tiles on a 2 x 2 grid; the one-frame title is held (DIR/frames/grid/).
-3. Both again: nothing changed, so every frame is skipped.
-4. stations.yml: window.yml, a window round the floor of a generated channel 200 long,
-   rendered at stations 40, 100 and 160 and tiled in a row (DIR/frames/stations/).
-   This step draws with VTK off screen.
+1. layouts/compare.yml, the scene ``compare``: bare and helical side by side, labelled
+   by text boxes.
+2. layouts/grid.yml, the scene ``grid``: four boxes on a 2 x 2 grid, one an image.
+3. ``film lengths`` plans the two scenes; ``scene preview`` draws a still of each
+   (DIR/frames/scenes/compare/, DIR/frames/scenes/grid/).
 """
 import math
+import re
 import shutil
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageDraw
 
-from flowreel import compose
-from flowreel.sources.plt.writer import write_plt
-
 HERE = Path(__file__).parent
-FILES = ("compare.yml", "grid.yml", "window.yml", "stations.yml", "cameras.yml", "flowreel.yml")
+sys.path.insert(0, str(HERE.parent))
+from tag_project import flowreel  # noqa: E402
 
 
 def draw_frames(folder: Path, colour: str, wobble: float, n: int = 8) -> None:
@@ -39,51 +37,20 @@ def draw_frames(folder: Path, colour: str, wobble: float, n: int = 8) -> None:
         im.save(folder / f"frame_{i:05d}.png")
 
 
-def write_case(folder: Path, nx: int = 400, length: float = 200.0) -> None:
-    """A channel ``length`` long, 3 x 3 across, of bricks, its floor a wall zone; four
-    steps in which the flow's waves travel along x."""
-    x = np.linspace(0, length, nx + 1)
-    y = np.linspace(-1.5, 1.5, 4)
-    z = np.linspace(-1.5, 1.5, 4)
-    zz, yy, xx = (a.ravel() for a in np.meshgrid(z, y, x, indexing="ij"))
-
-    def node(i, j, k):
-        return (k * 4 + j) * (nx + 1) + i
-
-    bricks = np.array([[node(i, j, k), node(i + 1, j, k), node(i + 1, j + 1, k), node(i, j + 1, k),
-                        node(i, j, k + 1), node(i + 1, j, k + 1), node(i + 1, j + 1, k + 1),
-                        node(i, j + 1, k + 1)]
-                       for k in range(3) for j in range(3) for i in range(nx)])
-    floor = np.array([[node(i, 0, k), node(i + 1, 0, k), node(i + 1, 0, k + 1), node(i, 0, k + 1)]
-                      for k in range(3) for i in range(nx)])
-    folder.mkdir(parents=True, exist_ok=True)
-    for step in range(4):
-        u = 1 + np.sin(2 * np.pi * xx / 45 - step) * (1 - (yy / 1.5) ** 2)
-        write_plt(folder / f"channel.{step}.plt", ["X", "Y", "Z", "U", "V", "W", "Pressure"],
-                  [xx, yy, zz, u, 0 * xx, 0 * xx, 0 * xx],
-                  [("fluid", 5, bricks), ("floor", 3, floor)], time=0.1 * step)
-
-
-def say(report) -> None:
-    print(f"{report.folder.name}: {report.count('composed')} composed, "
-          f"{report.count('skipped')} skipped, {report.size[0]} x {report.size[1]}")
-
-
 def main(folder: Path) -> None:
     folder.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
-        shutil.copy(HERE / name, folder / name)
+    flowreel(folder, "project", "init", "--force")
+    shutil.copytree(HERE / "layouts", folder / "layouts", dirs_exist_ok=True)
+    shutil.copy(HERE / "film.yml", folder / "film.yml")
     frames = folder / "frames"
     draw_frames(frames / "bare", "#e8b04a", 80)
     draw_frames(frames / "helical", "#6ac1c8", 10)
     draw_frames(frames / "title", "#ffffff", 0, n=1)
-    for name in ("compare.yml", "grid.yml"):
-        say(compose.layout(folder / name, frames))
-    for name in ("compare.yml", "grid.yml"):
-        say(compose.layout(folder / name, frames))
-    write_case(folder / "case")
-    say(compose.layout(folder / "stations.yml", frames, render={"jobs": 2}))
+    print(flowreel(folder, "film", "lengths").strip())
+    for scene in ("compare", "grid"):
+        out = flowreel(folder, "scene", "preview", scene, "--at", "0.5").strip().splitlines()[-1]
+        print(re.sub(r" in [\d.]+ s", "", out).replace(f"{folder}/", ""))
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("compose_layout_example"))
+    main(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("scene_layouts_example"))

@@ -1,23 +1,21 @@
-"""examples/compose_layout/run.py: frame folders tiled, then a shot at three stations."""
+"""examples/scene_layouts/run.py: frame folders in boxes, side by side and on a grid."""
 import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-RUN = Path(__file__).parent.parent / "examples" / "compose_layout" / "run.py"
+RUN = Path(__file__).parent.parent / "examples" / "scene_layouts" / "run.py"
 
 
-def test_example_composes_layouts(tmp_path):
+def test_example_plans_and_previews_the_layouts(tmp_path):
     done = subprocess.run([sys.executable, str(RUN), str(tmp_path / "ex")], capture_output=True,
                           text=True, timeout=600)
-    if done.returncode and ("OpenGL" in done.stderr or "display" in done.stderr.lower()):
-        pytest.skip("off-screen rendering is not available")
     assert done.returncode == 0, done.stderr[-2000:]
     lines = done.stdout.splitlines()
-    assert lines[:4] == ["compare: 8 composed, 0 skipped, 960 x 270",
-                         "grid: 8 composed, 0 skipped, 960 x 540",
-                         "compare: 0 composed, 8 skipped, 960 x 270",
-                         "grid: 0 composed, 8 skipped, 960 x 540"]
-    assert lines[4] == "stations: 4 composed, 0 skipped, 960 x 180"
-    assert (tmp_path / "ex" / "frames" / "window_station100@320x180" / "frame_00003.png").exists()
+    rows = {line.split()[0]: line.split()[1] for line in lines if line.split()[:1] in
+            (["compare"], ["grid"], ["film"])}
+    assert rows == {"compare": "1.00", "grid": "1.00", "film": "2.00"}   # 8 frames at 8 a second
+    assert lines[-2:] == ["1 stills of compare -> frames/scenes/compare",
+                          "1 stills of grid -> frames/scenes/grid"]
+    still = tmp_path / "ex" / "frames" / "scenes" / "grid" / "at_0.50.png"
+    from PIL import Image
+    assert Image.open(still).size == (960, 540)

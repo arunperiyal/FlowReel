@@ -51,6 +51,43 @@ it is yours.
 - **With a new project.** `project init --import plt:PATH --tag TAG` makes the folders
   and imports the case, and fits `cameras.yml`'s first view to it.
 
+## Histories from FlexFlow
+
+```text
+$ flowreel data import history --path /scratch/run --tag smooth
+othd group 0: series/othd_0.csv, 98000 rows, 49 nodes; declared as cyl's displacement
+oisd group 0: series/oisd_0.csv, 2000 rows; declared as cyl's force
+```
+
+A FlexFlow case writes its time histories as text: probe data in `othd_files/*.othd`,
+surface data in `oisd_files/*.oisd`. `data import history` links those folders into the
+tag as `othd/` and `oisd/` and converts each **group** once to CSV under `series/`. The
+tag must hold its flow already (`data import plt` first). `--path` is the case folder,
+or one of the two folders.
+
+- **Groups.** A file may hold several groups, one per probe set (`othId`) or surface
+  (`osgId`). Each becomes its own CSV, `othd_N.csv` or `oisd_N.csv`, so two bodies' rows
+  are never mixed. When the tag has one body and a file has one group, the group is
+  declared under that body. Otherwise name each with `--group N=BODY` (the same `N` in
+  both kinds). Groups left over are listed as comments in `domain.yml`, to move under
+  their body by hand.
+- **What is declared.** An OTHD group with `aleDisp` becomes the body's `displacement`,
+  with `by: node` and its columns named `dx`, `dy`, `dz`. An OISD group with `totTrac`
+  becomes its `force`, with `fx`, `fy`, `fz`. Any other group is declared as `othd_N` or
+  `oisd_N`. Every variable the files hold is kept in the CSV (`avePres`, `totArea`,
+  the pendulum's lines), in columns named after it (`aleDisp_y`).
+- **Restarts and runs.** The files are read as FlexFlow Analyzer reads them. The runs
+  `<problem>N.othd` are taken in the order of `N`, from `archive/` and `cleaned/`
+  (following `cleaned/.runs.json`), then any in the older flat layout. Without numbered
+  runs, the compiled file is read. A run that resumed earlier than the last one reached
+  writes some times again, and at such a time the later run's values win.
+- **Again.** A second `data import history` into the tag needs `--force`, which writes
+  the CSVs and their declarations again. Re-importing the flow (`data import plt
+  --force`) keeps the history and its series.
+
+What was found is kept under `measured.history`: the files read, and each group's rows,
+nodes and variables.
+
 ## Looking after the tags
 
 | Command | What it does |

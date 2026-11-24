@@ -13,6 +13,8 @@ def test_example_imports_checks_renames_and_removes(tmp_path):
     out = done.stdout
     assert "grooved: ok, 2 steps" in out and "smooth: ok, 4 steps" in out
     assert "body cyl: zone cyl" in out
+    assert "othd group 0: series/othd_0.csv, 12 rows, 3 nodes; declared as cyl's displacement" in out
+    assert "oisd group 0: series/oisd_0.csv, 4 rows; declared as cyl's force" in out
     assert "renamed data/grooved/ to data/helical/" in out
     assert "the case itself is untouched" in out
     assert list((tmp_path / "ex" / "cases" / "grooved" / "case").glob("*.plt"))

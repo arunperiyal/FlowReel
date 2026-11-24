@@ -509,11 +509,14 @@ a comment ([data and tags](projects/data.md)); `-o` writes it.
 flowreel data import plt|vtk|geometry --tag TAG [--path PATH] [--copy [--yes]] [--force]
                      [--body NAME=FILE ...] [--flow FILE]        (vtk)
                      [--name FUNCTION] [--param KEY=VALUE ...]   (geometry)
+flowreel data import history --path CASE --tag TAG [--group N=BODY ...] [--copy] [--force]
 ```
 
 Links the case under `data/TAG/` (or copies it with `--copy`) and writes its measured
 `domain.yml`; `--force` re-imports into a tag, keeping the file's edits
-([bringing a case in](projects/data.md#bringing-a-case-in)).
+([bringing a case in](projects/data.md#bringing-a-case-in)). `history` converts a FlexFlow case's
+OTHD and OISD groups to CSV in a tag that holds its flow, and declares them under its
+bodies ([histories from FlexFlow](projects/data.md#histories-from-flexflow)).
 
 ## `data list`, `info`, `check`, `rename`, `remove`
 

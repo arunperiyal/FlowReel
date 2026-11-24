@@ -968,10 +968,10 @@ The decisions, for every branch:
 - [x] Tests on generated cases (a link, a copy, a re-import, a rename), help, docs
 
 **Branch 3: `phase9/data-history`**
-- [ ] `data import history --path PATH --tag TAG`: OTHD and OISD with FlexFlow Analyzer's
+- [x] `data import history --path PATH --tag TAG`: OTHD and OISD with FlexFlow Analyzer's
   handling of restarts and groups borrowed in; a CSV a group under `series/`; one group to
   the one body, several listed or named with `--group N=BODY`
-- [ ] Tests on generated files with several groups and a restart; docs
+- [x] Tests on generated files with several groups and a restart; docs
 
 **Branch 4: `phase9/data-extract`**
 - [ ] `data extract sections TAG --body NAME`: the force on a body's sections along its

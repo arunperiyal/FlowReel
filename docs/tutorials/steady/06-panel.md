@@ -2,7 +2,7 @@
 
 A shot is drawn in 3D by VTK. A **panel** is a 2D figure drawn by matplotlib, one per
 frame: a plot of a history with a dot moving along it, or, as here, a cut through the
-flow drawn as filled contours ([panels](../../guide/composing/panels.md)). Panels go into frame folders like
+flow drawn as filled contours ([panels](../../guide/shots/panels.md)). Panels go into frame folders like
 shots, so the film uses them the same way.
 
 Make the folder `panels/` and write `panels/pressure.yml`:

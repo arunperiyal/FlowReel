@@ -17,7 +17,7 @@ The film has five shots:
 4. **The pressure** (3 s): a panel of the pressure round the cylinder, with streamlines.
 5. **The end** (4 s): the last picture held, fading out.
 
-It is silent; [the film file](../../guide/film/film.md#audio) says how to add sound.
+It is silent; [the film file](../../guide/old/film.md#audio) says how to add sound.
 
 ## Chapters
 

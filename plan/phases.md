@@ -952,7 +952,7 @@ The decisions, for every branch:
 - [x] Sources opened from a tag (`plt`, `vtk`, `geometry`) with the tag's bodies and units
   declared on them; the fields' parameters (`rho`, `mu`, `u_inf`) taken from the units
 - [x] `data template`: every key of `domain.yml`, commented; the YAML reference covers it
-- [ ] Tests on generated tags; docs (projects, bodies, sources, rules: a new rule, data by
+- [x] Tests on generated tags; docs (projects, bodies, sources, rules: a new rule, data by
   tag)
 
 **Branch 2: `phase9/data-import`**

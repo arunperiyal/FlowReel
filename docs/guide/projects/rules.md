@@ -56,25 +56,33 @@ or choice stops the command with the file, the key path and the nearest valid na
 *Why:* a key that was silently ignored would leave a film that looks wrong, with
 nothing saying why. [Shot errors](../shots/shots.md#errors)
 
+**9. Each case is a tag, and owns its bodies.** A case's data is under `data/<tag>/`,
+with its `domain.yml` declaring its kind, units and bodies; a tag's name is letters,
+digits, `-` and `_`, with no dots. *Why:* cases made alike name their zones alike (two
+cylinders both `cyl`), so a body and its units belong to their case, and `tag.body`
+names one across tags. *Broken:* a bad name, an unknown key or kind, or a unit that is
+not positive stops the command with the file and the key.
+[Data and tags](data.md)
+
 ## The flow
 
-**9. Derived fields come from velocity and pressure only.** A solver's stored
+**10. Derived fields come from velocity and pressure only.** A solver's stored
 vorticity, Q or wall shear is ignored even when the grid has it. *Why:* in flexflow's
 files those values are nodal sums that grow with the number of elements at a node. They
 made the wall shear 4.6 times too large on bricks and 18.5 times on tetrahedra.
 [Derived fields](fields.md)
 
-**10. The flow is never interpolated in time.** A frame shows a saved step: the nearest
+**11. The flow is never interpolated in time.** A frame shows a saved step: the nearest
 one, or the earlier at a tie. *Why:* an in-between flow would be made up, and showing
 the earlier step means a frame never shows the flow later than asked.
 [Time](../shots/shots.md#time), [panels](../composing/panels.md#where-the-flow-comes-from)
 
-**11. A panel's colour range is given, not found from the data.** A panel coloured by a
+**12. A panel's colour range is given, not found from the data.** A panel coloured by a
 field must be given its range. *Why:* a range taken from each frame would change from frame to frame,
 so a colour would not mean the same value all through the film.
 [Panels](../composing/panels.md#where-the-flow-comes-from)
 
-**12. A shot's frame rate divides the film's.** In a film at 24 frames a second, a shot
+**13. A shot's frame rate divides the film's.** In a film at 24 frames a second, a shot
 may run at 8 or 12 frames a second, but not at 7. *Why:* each flow frame then lasts a
 whole number of output frames, so live plots over a layout stay in step.
 [Shots of a film](../film/film.md#shots)

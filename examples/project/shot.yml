@@ -1,7 +1,7 @@
-# A shot that needs no data: the grooved cylinder of the geometry source, seen through
+# A shot that needs no data: the grooved cylinder of the tag cylinder (the geometry source), seen through
 # the view `main` that project init wrote to the project's cameras.yml.
 name: cylinder
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 12}
 camera: {view: main}
 size: [640, 360]

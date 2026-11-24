@@ -1,7 +1,7 @@
 # A shot that needs no data: the grooved cylinder of the geometry source, an outline of
 # the domain, and a marker that grows. Rendered by run.sh with the flowreel command.
 name: cylinder
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 24}
 camera: {fit: domain, direction_of: main, margin: 1.05}  # the whole domain, filling the picture
 size: [640, 360]

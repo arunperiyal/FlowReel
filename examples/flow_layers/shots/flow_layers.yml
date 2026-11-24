@@ -2,7 +2,7 @@
 # (see run.py).
 # The vortex tube grows along z while the section sweeps across it.
 name: flow_layers
-source: toy:generated
+source: vortex                  # the tag run.py imports: a generated vortex case
 time: {frozen: 0, frames: 24}
 camera: {view: main}
 size: [640, 360]

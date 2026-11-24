@@ -1,42 +1,41 @@
-"""Draw frames 0, 12 and 23 of shot.yml from a generated solid-body vortex.
+"""Draw frames 0, 12 and 23 of shots/flow_layers.yml from a generated solid-body vortex.
 
-Needs no data: the flow is u = (-y, x, 0) on a small grid, the body a sphere. Run it
-from anywhere; pictures go to ./flow_layers_<frame>.png. The data is made up here
-(the same toy used by the tests); with real output you would give the shot a
-``vtk:`` or ``plt:`` source instead.
+Usage: python run.py [DIR]   (default ./flow_layers_example)
+
+Needs no data: vortex_case.py (examples/) writes a small VTK flow, u = (-y, x, 0) on a
+17 x 17 x 9 grid, and a sphere into DIR/vtk/, and imports them as the tag ``vortex``
+(``data import vtk``). The shot names that tag. Pictures go to DIR/flow_layers_<frame>.png.
 """
+import shutil
+import sys
 from pathlib import Path
 
-import numpy as np
-import pyvista as pv
 from PIL import Image
 
-from flowreel.scene import render_frame
-from flowreel.scene.shot import load
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import vortex_case  # noqa: E402
+
+from flowreel.scene import render_frame  # noqa: E402
+from flowreel.scene.shot import load  # noqa: E402
+
+HERE = Path(__file__).parent
 
 
-class Vortex:
-    name = "vortex"
-
-    def steps(self):
-        return [0]
-
-    def time(self, step):
-        return 0.0
-
-    def flow(self, step, fields, crop):
-        grid = pv.ImageData(dimensions=(17, 17, 9), spacing=(0.125, 0.125, 0.125),
-                            origin=(-1, -1, 0)).cast_to_unstructured_grid()
-        x, y = grid.points[:, 0], grid.points[:, 1]
-        for name, value in {"U": -y, "V": x, "W": 0 * x}.items():
-            grid.point_data[name] = value
-        return grid
-
-    def body(self, step, name=None):
-        return pv.Sphere(radius=0.2, center=(0, 0, 0.5))
+def main(folder: Path) -> list[Path]:
+    """Make the project in ``folder``, draw three frames, return their files."""
+    folder.mkdir(parents=True, exist_ok=True)
+    vortex_case.make_project(folder)
+    (folder / "shots").mkdir(exist_ok=True)
+    shutil.copy(HERE / "shots" / "flow_layers.yml", folder / "shots" / "flow_layers.yml")
+    shutil.copy(HERE / "cameras.yml", folder / "cameras.yml")
+    shot = load(folder / "shots" / "flow_layers.yml")
+    files = []
+    for frame in (0, 12, 23):
+        files.append(folder / f"flow_layers_{frame}.png")
+        Image.fromarray(render_frame(shot, frame)).save(files[-1])
+    return files
 
 
 if __name__ == "__main__":
-    shot = load(Path(__file__).with_name("shot.yml"))
-    for frame in (0, 12, 23):
-        Image.fromarray(render_frame(shot, frame, Vortex())).save(f"flow_layers_{frame}.png")
+    for file in main(Path(sys.argv[1] if len(sys.argv) > 1 else "flow_layers_example")):
+        print(file)

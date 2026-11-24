@@ -1,7 +1,7 @@
 # A frozen shot on generated data (see run.py): the camera pans round a vortex tube
 # while the flow stays at one step, so the surface is contoured once and cached.
 name: render_shot
-source: toy:generated            # run.py builds the source in code
+source: vortex                  # the tag run.py imports: a generated vortex case
 time: {frozen: 0, frames: 12}
 camera: {track: pan}
 size: [640, 360]

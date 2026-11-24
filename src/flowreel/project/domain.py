@@ -136,3 +136,50 @@ def open_tag(domain: Domain, **options):
     tagged.units = dict(domain.units)
     tagged.tag = domain.tag
     return tagged
+
+
+def template(kind: str = "plt") -> str:
+    """The text of a ``domain.yml`` of ``kind`` with every key, at its default or as an
+    example, each with a comment (``flowreel data template``)."""
+    if kind not in KINDS:
+        raise ValueError(f"unknown kind {kind!r} (one of: {', '.join(KINDS)})")
+    head = [
+        "# domain.yml: one case of the project, under data/<tag>/ (written by `flowreel data",
+        "# import`, edited by hand). Reference: docs/guide/projects/data.md.",
+        f"kind: {kind:<30}# plt, vtk or geometry: how the case is read",
+    ]
+    if kind == "plt":
+        source = ["source:",
+                  "  path: plt                       # the folder of <name>.<step>.plt files (a link)",
+                  "  # volume: fluid                 # the volume zone; default the first of tetrahedra or bricks",
+                  "  # body: cyl                     # wall zone(s); default every zone of triangles or quadrilaterals",
+                  "  # margin: 0.0                   # grow a crop's window by this much (long bodies)"]
+    elif kind == "vtk":
+        source = ["source:",
+                  "  path: vtk/flow.pvd              # the flow: a .pvd, a pattern (flow_*.vtu) or one file",
+                  "  # body: {cylinder: vtk/cylinder.vtp}   # body files, by name",
+                  "  # names: {U: velocity}          # the files' array names for the standard ones"]
+    else:
+        source = ["source:",
+                  "  body: grooved_cylinder          # a body made in code (flowreel.sources.bodies)",
+                  "  params: {}                      # its parameters",
+                  "  # frames: 1                     # steps 0 .. frames-1",
+                  "  # dt: 1.0                       # time of one step"]
+    rest = [
+        "units:                            # the case's constants, in its own units",
+        "  # rho: 1000.0                   # density",
+        "  # mu: 1.0                       # dynamic viscosity (wall shear, sectional force)",
+        "  # u_inf: 1.0                    # free-stream speed",
+        "  # p_inf: 0.0                    # free-stream pressure",
+        "  # length: 1.0                   # the length lengths are shown in (axes in diameters)",
+        "bodies:                           # by name, as shots of this tag call them",
+        "  # cyl:",
+        "  #   zone: cyl                   # the wall zone (a file, for vtk: see source.body)",
+        "  #   axis: x                     # along the body",
+        "  #   diameter: 1.0",
+        "  #   ends: [{at: 0.0, support: clamped}, {at: 12.0, support: clamped}]",
+        "  #   series:                     # time histories, CSV, paths from this folder",
+        "  #     force: {file: series/force.csv}",
+        "# measured: {}                    # what data import found; not read",
+    ]
+    return "\n".join(head + source + rest) + "\n"

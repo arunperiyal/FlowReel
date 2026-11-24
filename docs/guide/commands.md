@@ -490,6 +490,16 @@ and `.flowreel/`. A file that does not load is listed with its error. Nothing is
 changed. `DIR` is any folder in the project (default: the shell's project, else the
 current folder).
 
+## `data template`
+
+```text
+flowreel data template [--kind plt|vtk|geometry] [-o FILE] [--force]
+```
+
+Prints a tag's `domain.yml` with every key, at its default or as an example, each with
+a comment ([data and tags](projects/data.md)); `-o` writes it. The other `data` actions
+(import, list, info, remove, rename, check, extract) come with Phase 9's next branches.
+
 ## `project clean`
 
 ```text

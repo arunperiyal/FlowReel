@@ -38,14 +38,15 @@ def command_groups():
     os.environ["COLUMNS"] = str(COLUMNS)          # argparse wraps to this width
     from flowreel.cli.camera import CameraCommand
     from flowreel.cli.compose import ComposeCommand
+    from flowreel.cli.data import DataCommand
     from flowreel.cli.doctor import DoctorCommand
     from flowreel.cli.film import FilmCommand
     from flowreel.cli.jobs import JobsCommand
     from flowreel.cli.project import ProjectCommand
     from flowreel.cli.shot import ShotCommand
     groups = []
-    for cls in (ProjectCommand, ShotCommand, CameraCommand, ComposeCommand, FilmCommand,
-                JobsCommand, DoctorCommand):
+    for cls in (ProjectCommand, DataCommand, ShotCommand, CameraCommand, ComposeCommand,
+                FilmCommand, JobsCommand, DoctorCommand):
         parser = argparse.ArgumentParser(prog="flowreel")
         group = cls().setup_parser(parser.add_subparsers())
         actions = [a for a in group._actions if isinstance(a, argparse._SubParsersAction)]
@@ -194,6 +195,7 @@ def file_types():
     from flowreel.compose.style import KEYS as STYLE_KEYS
     from flowreel.film import anchors, cards, schema, shapes, text
     from flowreel import project
+    from flowreel.project import domain
     from flowreel.project import bodies
     from flowreel.scene import camera_path, shot, views
     import flowreel.compose.phase_panel  # noqa: F401  (registers panel types)
@@ -232,6 +234,14 @@ def file_types():
             ("bodies.NAME.ends[]", bodies.END_KEYS + supports, "guide/projects/bodies.md"),
             ("bodies.NAME.series.NAME", bodies.SERIES_KEYS, "guide/projects/bodies.md"),
             ("reference", project.REFERENCE_KEYS, "guide/projects/project.md#reference-values"),
+            ("", ("defaults", "tags"), "guide/projects/project.md#defaults-and-tags"),
+            ("defaults", project.DEFAULT_KEYS, "guide/projects/project.md#defaults-and-tags"),
+        ]),
+        ("Tag", "data/TAG/domain.yml", "guide/projects/data.md", [
+            ("", domain.KEYS, "guide/projects/data.md#domainyml"),
+            ("units", domain.UNIT_KEYS, "guide/projects/data.md#units"),
+            ("source", tuple(dict.fromkeys(k for kind in domain.KINDS for k in domain._source_keys(kind))),
+             "guide/projects/data.md#source"),
         ]),
         ("Layout", "NAME.yml (compose layout)", "guide/composing/layouts.md", [
             ("", layout_file.KEYS, "guide/composing/layouts.md"),

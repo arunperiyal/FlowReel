@@ -86,6 +86,26 @@ when its `params` do not give them (the panel's own win). Without them, drawing 
 coefficient is an error naming the missing values. The values are part of each frame's
 key, so changing them draws the frames that use them again.
 
+## Defaults and tags
+
+```yaml
+defaults:
+  backend: auto
+  style: {font: Times New Roman, maths: stix}
+tags: [bare, helical]
+```
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `defaults` | mapping | `{}` | what the project's commands start from |
+| `defaults.backend` | `auto`, `osmesa`, `egl`, `x` | `auto` | the off-screen back end |
+| `defaults.style` | mapping | the film's own | the film's style (used by Phase 10's films) |
+| `tags` | list of tag names | the folders of `data/` | the project's [tags](data.md), listed for checks |
+
+Each case's bodies, units and series are in its tag's `domain.yml`
+([data and tags](data.md)). `bodies:` and `reference:` above are the layout before tags;
+they are read until the tutorials and examples move to tags, then removed.
+
 ## Finding the project
 
 A command finds its project by walking up from the file it was given (a shot, layout,

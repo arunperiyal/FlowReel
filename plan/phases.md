@@ -1086,7 +1086,7 @@ The decisions, for every branch:
 **Branch 2: `phase10/boxes`** (drawing a frame of a scene)
 - [x] Text boxes (lines, looks, shadow and box, maths), image boxes (fit, opacity), shape
   boxes; each box's `at` and fade
-- [ ] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
+- [x] Shot and panel boxes (frames fitted to the box; panels drawn at the box's size);
   `follow` placing text and shapes on a point of a shot box; `last_frame`
 - [ ] Tests against pictures drawn by hand and the old captions' golden pictures
 

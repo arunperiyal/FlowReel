@@ -226,6 +226,35 @@ def _fill(value: str) -> tuple[int, int, int, int]:
     return _rgba(value)
 
 
+# ---- following a point --------------------------------------------------------------
+
+def follow_point(box: Box, layout, contents: Contents, film_size) -> tuple[float, float] | None:
+    """Where ``box``'s point is in the film this frame (offset added), or ``None`` when
+    it is hidden or the shot box shows nothing."""
+    from flowreel.film.anchors import fitting
+    f = box.follow
+    view = contents.views.get(f.box)
+    if view is None:
+        return None
+    x, y, depth = view.pixels(f.model)[0]
+    w, h = view.size
+    if not (np.isfinite(x) and np.isfinite(y)) or depth <= 0 or not (0 <= x <= w and 0 <= y <= h):
+        return None
+    rx, ry, rw, rh = layout.box(f.box).rect(film_size)
+    sx, sy, ox, oy = fitting(view.size, (round(rw), round(rh)))
+    return (rx + x * sx + ox + f.offset[0], ry + y * sy + oy + f.offset[1])
+
+
+def anchored_rect(box: Box, point) -> tuple[float, float, float, float]:
+    """The rectangle of a shape box that follows ``point``: an arrow's or line's end on
+    it, a rectangle's or circle's centre."""
+    w, h = box.size
+    if box.content.kind in ("line", "arrow"):
+        fx, fy = ENDS[box.content.direction][1]
+        return (point[0] - fx * (w - 1), point[1] - fy * (h - 1), w, h)
+    return (point[0] - w / 2, point[1] - h / 2, w, h)
+
+
 # ---- one frame ----------------------------------------------------------------------
 
 def box_image(box: Box, film: Film, layout, contents: Contents):
@@ -234,12 +263,20 @@ def box_image(box: Box, film: Film, layout, contents: Contents):
     from PIL import Image
     size = film.size
     kind = box.kind
+    point = None
+    if box.follow is not None:
+        point = follow_point(box, layout, contents, size)
+        if point is None:
+            return None
     if kind == "text":
+        rect = box.rect(size)
+        corner = point if point is not None else box.pos
         image, _ = text_image(box.content.lines, box.content.drawn, film.style, size,
-                              rect=box.rect(size), corner=box.pos)
+                              rect=rect if point is None else None, corner=corner)
         return image
     if kind == "shape":
-        return shape_image(box.content, box.rect(size), film.style, size)
+        rect = anchored_rect(box, point) if point is not None else box.rect(size)
+        return shape_image(box.content, rect, film.style, size)
     rect = box.rect(size)
     if kind == "image":
         im, at = fitted(box.content.file, rect, box.content.fit)
@@ -249,7 +286,13 @@ def box_image(box: Box, film: Film, layout, contents: Contents):
             a = np.asarray(out.getchannel("A"), float) * box.content.opacity
             out.putalpha(Image.fromarray(a.round().astype(np.uint8)))
         return out
-    return None
+    picture = contents.pictures.get(box.name)
+    if picture is None:
+        return None
+    im, at = fitted(picture, rect, "contain")
+    out = Image.new("RGBA", size, (0, 0, 0, 0))
+    out.paste(im, at, im)
+    return out
 
 
 def scene_length(scene: Scene, length: float | None) -> float:
@@ -285,3 +328,49 @@ def draw_frame(film: Film, scene: Scene, t: float, contents: Contents | None = N
             image.putalpha(Image.fromarray(alpha.round().astype(np.uint8)))
         frame = Image.alpha_composite(frame, image)
     return frame.convert("RGB")
+
+
+# ---- shots and panels ---------------------------------------------------------------
+
+def shot_frames(box: Box) -> Path:
+    """The folder of a shot box's frames: its ``frames``, or its shot's
+    ``frames/<name>`` under the project (:func:`flowreel.project.paths.output`)."""
+    content = box.content
+    if content.frames is not None:
+        return content.frames
+    from flowreel.project.paths import output
+    from flowreel.scene.shot import load
+    shot = load(content.file)
+    return output(content.file, "frames") / shot.name
+
+
+class PanelDrawer:
+    """A panel box's pictures: its panel file drawn at ``size`` (the box's), the figure
+    built once, a picture at any time (:meth:`at`)."""
+
+    def __init__(self, file: str | Path, size: tuple[int, int]):
+        from flowreel.compose.panel_file import load
+        from flowreel.compose.panels import make
+        pf = load(file)
+        self.panel = dataclasses.replace(pf, size=(int(size[0]), int(size[1])))
+        self.kind = make(self.panel)
+        self._canvas = None
+
+    def at(self, time: float):
+        """The panel at ``time`` (in its source's time unit): a Pillow RGB image."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+        from matplotlib.figure import Figure
+        from PIL import Image
+
+        from flowreel.compose.panels import DPI
+        pf = self.panel
+        with pf.style.applied():
+            if self._canvas is None:
+                figure = Figure(figsize=(pf.size[0] / DPI, pf.size[1] / DPI), dpi=DPI)
+                self._canvas = FigureCanvasAgg(figure)
+                figure.patch.set_facecolor(pf.style.background)
+                self.kind.build(figure)
+            self.kind.update(time)
+            self._canvas.draw()
+            return Image.frombuffer("RGBA", self._canvas.get_width_height(),
+                                    self._canvas.buffer_rgba(), "raw", "RGBA", 0, 1).convert("RGB")

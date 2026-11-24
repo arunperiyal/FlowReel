@@ -1,0 +1,15 @@
+# The tag 'cases' of this example: two generated cases, a bare cylinder and a helically
+# grooved one, 12 diameters long. They have histories and no flow here, so the tag is a
+# body made in code (kind geometry) that carries them; run.py writes the CSV files into
+# series/. Reference: docs/guide/projects/data.md and docs/guide/projects/bodies.md.
+kind: geometry
+source: {body: grooved_cylinder}
+bodies:
+  bare:
+    series:
+      motion: {file: series/bare_series.csv, time: t, columns: {y: y_over_D, cl: CL, cd: CD}}
+      lift: {file: series/bare_lift.csv, by: strip, stations: series/strips.csv}
+  helical:
+    series:
+      motion: {file: series/helical_series.csv, time: t, columns: {y: y_over_D, cl: CL, cd: CD}}
+      lift: {file: series/helical_lift.csv, by: strip, stations: series/strips.csv}

@@ -1,0 +1,12 @@
+# The pendulum hung from the riser at mid-span: a virtual body, drawn as a ghost (see-
+# through, outlined) because it is modelled by equations and not meshed. Its angle
+# follows series/pendulum.csv, its pivot the riser's centre at station 20.
+name: pendulum
+source: bent                     # the tag: data/bent/
+time: {steps: [0, 9]}
+camera: {view: close, follow: riser, station: 20}
+size: [640, 360]
+lights: raking
+layers:
+  - {type: body, body: riser, colour: "#c8ccd0"}
+  - {type: body, body: pendulum, colour: "#e0a030"}

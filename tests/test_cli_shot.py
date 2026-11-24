@@ -134,6 +134,8 @@ def test_the_commands_example_renders(sh, tmp_path):
     here = Path(__file__).parent.parent / "examples" / "shot_commands"
     shutil.copy(here / "shot.yml", tmp_path / "example.yml")
     shutil.copy(here / "cameras.yml", tmp_path / "cameras.yml")
+    status, _, err = sh.run("data import geometry --name grooved_cylinder --tag cylinder")
+    assert status == 0, err
     status, out, err = run(sh, "shot render example.yml --frames 23 --scale 0.25 -o out")
     assert status == 0, err
     assert (tmp_path / "out" / "cylinder@160x90" / "frame_00023.png").exists()

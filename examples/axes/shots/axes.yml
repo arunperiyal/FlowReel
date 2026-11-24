@@ -1,0 +1,34 @@
+# The three styles of the axes layer on generated geometry (no data): a ruled box round
+# the grooved cylinder, arrows beyond its high end, and a triad in the corner, while the
+# camera goes half way round. Try:
+#   flowreel shot preview examples/axes/shots/axes.yml
+#   python examples/axes/run.py axes.png
+name: axes
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
+time: {frozen: 0, frames: 96}
+camera: {track: orbit}
+size: [1920, 1080]
+background: "#101418"
+antialias: ssaa
+layers:
+  - type: geometry
+    body: grooved_cylinder
+    colour: "#d4d9db"
+    blend: [{array: groove, colour: "#f5a142", weight: 0.45}]
+    sharp_edges: false
+  - type: axes
+    style: ruled
+    bounds: {x: [0, 12], y: [-1.5, 1.5], z: [-1.5, 1.5]}
+    ticks: auto                    # round steps: 2 along x, 0.5 across
+    colour: "#9aa3ab"
+    font_size: 22
+  - type: axes
+    style: arrows
+    origin: [13.4, 0, 0]           # beyond the high end
+    length: 1.2
+    labels: [x, y, z]
+    font_size: 24
+  - type: axes                     # style: triad, the default
+    corner: lower_left
+    size: 150
+    font_size: 22

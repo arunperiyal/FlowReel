@@ -1,6 +1,0 @@
-- lines: ['rms $C_L$: 0.55 → 0.06']
-  at: [6, 9]
-  place: [1300, 120]
-  size: 40
-  shapes:
-    - {arrow: {from: [1450, 190], to: [1500, 300], width: 4}}

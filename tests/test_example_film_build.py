@@ -1,4 +1,4 @@
-"""examples/film_build/run.py: a small film built from generated frames and a tone."""
+"""examples/film_build/run.py: a small film of scenes built from generated frames and a tone."""
 import subprocess
 import sys
 from pathlib import Path
@@ -7,7 +7,7 @@ from film_project import need_ffmpeg
 
 RUN = Path(__file__).parent.parent / "examples" / "film_build" / "run.py"
 REPORT = [
-    "shot     planned  measured",
+    "scene    planned  measured",
     "opening    2.00 s    2.00 s  {}",
     "wake       4.50 s    4.50 s  {}",
     "end        2.00 s    2.00 s  {}",
@@ -17,7 +17,7 @@ REPORT = [
     "chapters chapters.txt",
     "chapters shorter than YouTube's 10 s: Opening, The wake, Thanks",
     "audio tone.wav: 0.00 to 8.50 s of the film (file 20.00 s)",
-    "contact contact.png"]
+    "wrote contact.png"]
 
 
 def run(out):

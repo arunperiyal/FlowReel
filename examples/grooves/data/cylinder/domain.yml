@@ -1,0 +1,31 @@
+# domain.yml of the tag 'cylinder', written by `flowreel data import` and edited by hand
+# (a second import with --force keeps your edits). Reference:
+# docs/guide/projects/data.md.
+kind: geometry
+source:
+  body: grooved_cylinder
+  params: {}
+units:                           # the case's constants: fill in what you know
+  # rho: 1.0                     # density
+  # mu: 1.0                      # dynamic viscosity (wall shear, sectional force)
+  # u_inf: 1.0                   # free-stream speed
+  # length: 1.0                  # the length lengths are shown in
+bodies:
+  grooved_cylinder:
+    zone: grooved_cylinder
+    axis: x                           # measured: 12 long, 1 across
+    diameter: 0.9997                  # measured from the surface; check it
+    # ends:                           # how it is held: clamped, pinned, roller, spring, free, prescribed
+    #   - {at: 0, support: clamped}
+    #   - {at: 12, support: clamped}
+    # series:                         # time histories as CSV (docs/guide/projects/bodies.md)
+    #   displacement: {file: series/grooved_cylinder_displacement.csv}
+measured:                         # what data import found; not read back
+  steps: {first: 0, last: 0, count: 1}
+  times: [0.0, 0.0]
+  zones: [grooved_cylinder]
+  fields: []
+  bounds:
+  - [0.0, 12.0]
+  - [-0.5, 0.5]
+  - [-0.5, 0.5]

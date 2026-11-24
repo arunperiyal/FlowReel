@@ -18,7 +18,8 @@ The film's comparison put two wakes on the left and live plots of displacement, 
 and drag on the right; its lift map showed sectional lift of both cases against span
 and time, filling in. The prototype drew them with two scripts and settings in their
 code (`compose_compare.py`, `render_extras.py liftmap`). With FlowReel they are four
-files, in `examples/compare/` on generated data:
+files, as they were written for the film of shots (`examples/compare/` is now on a tag
+and scenes: `data/cases/domain.yml`, `panels/`, `layouts/compare.yml`, `film.yml`):
 
 ```text
 flowreel.yml   the two bodies and their series (CSV)
@@ -32,9 +33,8 @@ flowreel compose layout compare.yml     # frames/compare/
 flowreel compose panel liftmap.yml -j 4 # frames/liftmap/
 ```
 
-`python examples/compare/run.py DIR` writes the generated cases and composes both, then
-composes the comparison again with a film's output frames (three per wake frame, with
-a freeze), as the film build does.
+`python examples/compare/run.py DIR` writes the generated cases and plans and previews
+both as scenes of a film.
 
 ## The check
 

@@ -1,15 +1,16 @@
-"""Build a small film from generated frames and a generated tone.
+"""Build a small film of scenes from generated frames and a generated tone.
 
 Usage: python run.py [DIR]   (default ./film_build_example)
 
 Needs no data, only ffmpeg (conda install -n flexflow_env -c conda-forge ffmpeg). It
-writes 24 frames of a generated wake and a 440 Hz tone into DIR, copies film.yml and
-card.yml, and builds DIR/film.mp4: an opening card, the wake with a freeze and
-captions, its last frame held under a closing line, the tone underneath, three
-chapters. It also writes film_180p.mp4 (a preview copy), film.srt, chapters.txt and
-contact.png (a still at each caption). Prints the build's report, paths relative to
-DIR. Run it twice: the second run keeps every clip and only joins again.
+makes DIR a project, writes 24 frames of a generated wake and a 440 Hz tone into it,
+copies film.yml, and builds DIR/film.mp4: an opening scene of text and a line, the wake
+with a freeze and captions, its last frame held under a closing line, the tone
+underneath, three chapters. It also writes film_180p.mp4 (a preview copy), film.srt,
+chapters.txt and contact.png (a still at each caption). Prints the build's report,
+paths relative to DIR. Run it twice: the second run keeps every clip and only joins again.
 """
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -18,10 +19,10 @@ import numpy as np
 from PIL import Image
 
 from flowreel.film import ffmpeg as ff
-from flowreel.film.build import build
-from flowreel.film.check import contact
 
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from tag_project import flowreel  # noqa: E402
 N = 24
 
 
@@ -48,14 +49,17 @@ def tone(path: Path) -> None:
 
 def main(folder: Path) -> None:
     folder.mkdir(parents=True, exist_ok=True)
-    for name in ("film.yml", "card.yml"):
-        shutil.copy(HERE / name, folder / name)
+    if not (folder / "flowreel.yml").is_file():
+        flowreel(folder, "project", "init", "--force")
+    shutil.copy(HERE / "film.yml", folder / "film.yml")
     wake(folder / "frames" / "wake")
     tone(folder / "tone.wav")
-    built = build(folder / "film.yml", preview=180)
-    sheet = contact(folder / "film.yml", at="caption", width=320)
-    for line in built.table() + [f"contact {sheet}"]:
-        print(line.replace(f"{folder}/", ""))
+    built = flowreel(folder, "film", "build", "--preview", "180")
+    sheet = flowreel(folder, "film", "check", "--at", "caption", "--width", "320")
+    for line in (built + sheet).splitlines():
+        line = re.sub(r" in [\d.]+ s", "", line)         # no timings: the output is the same every run
+        if not line.startswith("built"):
+            print(line.replace(f"{folder}/", ""))
 
 
 if __name__ == "__main__":

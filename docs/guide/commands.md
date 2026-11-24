@@ -17,8 +17,8 @@ The commands are a thin layer over library functions (`flowreel.scene.render`,
 [building the film](making/build.md) and [checking it](making/check.md) explain what
 those do. Runnable examples that need no
 data are `examples/project/run.sh` (a [project](projects/project.md) made, used, looked at and
-cleaned), `examples/shot_commands/run.sh`, `examples/compose_commands/run.sh` and
-`examples/film_commands/run.sh` (that one needs ffmpeg). The
+cleaned), `examples/shot_commands/run.sh` and `examples/film_commands/run.sh` (that one needs
+ffmpeg). The
 command layer is [shellkit](https://github.com/arunperiyal/shellkit).
 
 ## The shell

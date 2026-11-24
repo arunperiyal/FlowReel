@@ -1,56 +1,41 @@
-"""Render shot.yml to ./frames, then a half-size draft, then measure one frame.
+"""Render shots/render_shot.yml to DIR/frames, then a half-size draft, then measure one frame.
 
-Needs no data: the flow is a solid-body vortex u = (-y, x, 0) made here, the body a
-sphere. Frames go to ./frames/render_shot/ and ./frames/render_shot@320x180/. Run it
-twice: the second run skips every frame, because no frame's key changed.
+Usage: python run.py [DIR]   (default ./render_shot_example)
+
+Needs no data: vortex_case.py (examples/) writes a flow, the solid-body vortex
+u = (-y, x, 0), and a sphere as VTK files and imports them as the tag ``vortex``. Frames go
+to DIR/frames/render_shot/ and DIR/frames/render_shot@320x180/. Run it twice: the second
+run skips every frame, because no frame's key changed.
 """
+import shutil
+import sys
 from pathlib import Path
 
-import pyvista as pv
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import vortex_case  # noqa: E402
 
-from flowreel.box import Box
-from flowreel.scene import render
-from flowreel.scene.memory import measure
+from flowreel.scene import render  # noqa: E402
+from flowreel.scene.memory import measure  # noqa: E402
 
 HERE = Path(__file__).parent
 
 
-class Vortex:
-    """A source with one step. Defined at module level so worker processes can load it."""
-
-    name = "vortex"
-
-    def steps(self):
-        return [0]
-
-    def time(self, step):
-        return 0.0
-
-    def flow(self, step, fields, crop):
-        grid = pv.ImageData(dimensions=(17, 17, 9), spacing=(0.125, 0.125, 0.125),
-                            origin=(-1, -1, 0)).cast_to_unstructured_grid()
-        x, y = grid.points[:, 0], grid.points[:, 1]
-        for name, value in {"U": -y, "V": x, "W": 0 * x}.items():
-            grid.point_data[name] = value
-        return grid
-
-    def body(self, step, name=None):
-        return pv.Sphere(radius=0.2, center=(0, 0, 0.5))
-
-    def bounds(self):
-        return Box((-1, -1, 0), (1, 1, 1))
-
-    def memory_per_step(self, crop):
-        return 17 * 17 * 9 * 8 * 8 / 1024 ** 3
+def report(r, folder):
+    print(f"{r.folder.relative_to(folder)}: {r.count('rendered')} drawn, "
+          f"{r.count('skipped')} skipped (backend {r.backend})")
 
 
-def report(r):
-    print(f"{r.folder}: {r.count('rendered')} drawn, {r.count('skipped')} skipped "
-          f"(backend {r.backend})")
+def main(folder: Path) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    vortex_case.make_project(folder)
+    (folder / "shots").mkdir(exist_ok=True)
+    shot = folder / "shots" / "render_shot.yml"
+    shutil.copy(HERE / "shots" / "render_shot.yml", shot)
+    shutil.copy(HERE / "cameras.yml", folder / "cameras.yml")
+    report(render(shot, out=folder / "frames", jobs=2), folder)
+    report(render(shot, out=folder / "frames", jobs=2, scale=0.5), folder)
+    print(measure(shot).text())
 
 
 if __name__ == "__main__":
-    shot = HERE / "shot.yml"
-    report(render(shot, source=Vortex(), out="frames", jobs=2))
-    report(render(shot, source=Vortex(), out="frames", jobs=2, scale=0.5))
-    print(measure(shot, source=Vortex()).text())
+    main(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("render_shot_example"))

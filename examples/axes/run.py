@@ -14,7 +14,7 @@ from PIL import Image
 
 from flowreel.scene import render_frame
 
-SHOT = Path(__file__).with_name("shot.yml")
+SHOT = Path(__file__).parent / "shots" / "axes.yml"
 FRAMES = (0, 48)                  # from above, y points at the camera: not ruled
 SIZE = (960, 540)
 

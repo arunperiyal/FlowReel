@@ -173,3 +173,16 @@ merged in order beneath the mapping's own keys, nested mappings key by key. In a
 an entry that is only `{include: FILE}` is replaced by that file's entries:
 
 ```yaml
+
+## Examples
+
+Each needs no data and writes into a folder you give it.
+
+- `examples/film_timeline/run.py DIR`: a short film's plan (`film lengths`) and its
+  captions' times (`film srt`), nothing drawn.
+- `examples/film_build/run.py DIR` (needs ffmpeg): a title scene, a wake with a freeze and
+  captions, its last frame held, a tone, chapters; `film.mp4`, a preview copy, `film.srt`,
+  `chapters.txt` and `contact.png`. Run it twice: the second run keeps every clip.
+- `examples/film_commands/run.sh DIR`: the same film through the `film` commands.
+- `examples/film_project/run.py DIR` (needs ffmpeg): a film of the comparison example's two
+  cases, wakes and live plots with a freeze, and a watermark.

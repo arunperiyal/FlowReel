@@ -1,0 +1,9 @@
+# The film of this example: one scene, the three panels tiled (layouts/board.yml). The
+# scene lasts as long as its main box, the section: four times at 2 a second.
+# Reference: docs/guide/film/film.md.
+output: film.mp4
+fps: 24
+size: [960, 1080]
+scenes:
+  - name: board
+    layout: board

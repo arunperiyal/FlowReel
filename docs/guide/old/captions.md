@@ -153,8 +153,8 @@ arrow follows its target while the camera moves. Code: `flowreel.film.anchors`.
   no record and no `view` or `track`, and a `view` or `track` not in `cameras.yml` are
   errors naming the shot.
 
-See `examples/anchored_caption/`: a panning shot rendered, then a film whose caption,
-arrow, label and dimension follow the sphere.
+See `examples/anchored_caption/`: a panning shot rendered, then a film whose text and
+arrow follow the sphere (now a text box and a shape box with `follow`).
 
 ## The watermark
 
@@ -194,6 +194,6 @@ frame.
 
 ## Example
 
-`examples/film_captions/run.py` draws the captions of `text/captions.yml` (every place,
-a box and a shadow, every shape, maths) and a text watermark over a generated picture,
-and writes one PNG per caption and a still with all of them on it. It needs no data.
+The example of this page, `examples/film_captions/`, moved to text boxes with the film
+of scenes: `examples/text_boxes/run.py` draws a title, text with maths and in a box, and
+the shapes over a generated picture. It needs no data.

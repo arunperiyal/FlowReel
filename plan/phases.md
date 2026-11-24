@@ -1123,7 +1123,24 @@ reviewable: the tutorials, then the examples, then the removal)
   scripts write tags; their pictures made again; their follow-along tests
 
 **Branch 8: `phase10/examples`**
-- [ ] Every example and its test on tags and scenes
+- [x] Shots on generated geometry (`axes`, `camera_commands`, `carve`, `grooves`,
+  `marker_layers`, `shot_commands`, `project`, `slurm_project`) as projects with a
+  `geometry` tag; shots fed in code (`render_shot`, `flow_layers`, `camera_editor`,
+  `anchored_caption`) read a generated vortex written as VTK files and imported as the tag
+  `vortex` (`examples/vortex_case.py`)
+- [x] Shots and panels on data (`bodies`, `long_span`, `riser500`, `compare`, `panels`,
+  `flow_panels`) as tags: bodies in `domain.yml`, `reference:` as `units:`; histories
+  without a flow ride on a geometry tag
+- [x] The films as scenes and layouts: `film_build` (with `film_clips` folded in),
+  `film_commands`, `film_project`, `film_timeline`, `anchored_caption`; `film_cards` and
+  `film_captions` become `text_boxes`; `compose_layout` becomes `scene_layouts` (frame
+  folders in boxes; the old `stations` tile has no scene form) and `compose_commands` goes
+  with the commands it shows
+- [x] Each example's test follows; nothing in `examples/` or `tests/test_example_*` uses
+  the film of shots or the layout before tags. Left for branch 9, because unit tests still
+  read them: `write_case(project=True)` of `flow_panels` (a `flowreel.yml` of bodies and
+  `reference:`) and `tests/data/compare_files/` (the comparison before tags, for the golden
+  test)
 
 **Branch 9: `phase10/remove-old`**
 - [ ] The film of shots removed once nothing uses it: the kinds `frames`, `layout`, `card`

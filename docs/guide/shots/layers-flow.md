@@ -166,6 +166,6 @@ the [`centreline`](layers-markers.md#centreline) may amplify in any shot.
 
 ## Example
 
-`examples/flow_layers/` writes a small generated vortex case and draws a shot with the
-three layers: `python examples/flow_layers/run.py`. The full reveal shot is
+`examples/flow_layers/` writes a small generated vortex case as VTK files, imports it as a
+tag and draws a shot of that tag with the three layers: `python examples/flow_layers/run.py DIR`. The full reveal shot is
 `tests/data/reveal/reveal.yml` (`docs/guide/reveal.md`).

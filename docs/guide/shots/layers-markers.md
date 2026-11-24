@@ -209,7 +209,7 @@ layer).
   envelope: [5000, 9000]
 ```
 
-`examples/bodies/span.yml` draws a riser this way, with its supports and an arrow whose
+`examples/bodies/shots/span.yml` draws a riser this way, with its supports and an arrow whose
 length follows the mid-span displacement (a series track).
 
 ## `axes`

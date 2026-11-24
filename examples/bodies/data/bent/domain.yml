@@ -1,0 +1,34 @@
+# The tag 'bent' of examples/bodies, as a person writes it after `data import vtk`: the
+# surface files get the names a shot can use, the measured axis and diameter are checked,
+# and the supports are filled in. run.py writes the files this refers to into case/ and
+# series/. Reference: docs/guide/projects/data.md and docs/guide/projects/bodies.md.
+kind: vtk
+source:
+  path: vtk/flow_*.vti
+  dt: 0.1
+  body: {cyl: vtk/cyl.vtp, ball: vtk/ball.vtp}
+bodies:
+  riser:
+    zone: cyl                    # the surface file cyl; shots say riser
+    axis: x
+    diameter: 1.0
+    ends:
+      - {at: 0.0, support: pinned}
+      - {at: 40.0, support: roller, free_along: x, tension: true}
+    series:
+      displacement:              # one CSV per probe node, as FlexFlow Analyzer writes them
+        file: series/riser_disp_{node}.csv
+        by: node
+        stations: [0.0, 10.0, 20.0, 30.0, 40.0]
+        columns: {dy: aleDisp_y}
+  ball:
+    zone: ball                   # not slender: no axis, no ends
+  pendulum:                      # modelled by the solver, not meshed: a virtual body
+    virtual: true
+    shape: pendulum
+    params: {length: 4.0, bob: 0.6, rod: 0.08, swing: [1, 0, 0]}   # swings across the span
+    attach: {body: riser, station: 20}
+    drive:
+      angle: {series: swing, column: pendDisp}                     # radians
+    series:
+      swing: series/pendulum.csv

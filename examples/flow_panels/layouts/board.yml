@@ -1,0 +1,15 @@
+# The three panels tiled into one picture: the section on top, the cuts and the strip
+# below it. Each panel box is drawn at its own size by the build, at 2 frames a second:
+# its four times in order, 2 seconds. Paths are from this file's folder.
+# Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: section
+    panel: {file: ../panels/section.yml, rate: {fps: 2}}
+    pos: [0, 0]
+    size: [960, 540]
+  - panel: {file: ../panels/cuts.yml, rate: {fps: 2}}
+    pos: [0, 540]
+    size: [960, 270]
+  - panel: {file: ../panels/strip.yml, rate: {fps: 2}}
+    pos: [0, 810]
+    size: [960, 270]

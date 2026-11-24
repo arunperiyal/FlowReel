@@ -12,7 +12,7 @@ HERE = Path(__file__).parent.parent / "examples" / "axes"
 
 
 def test_shot_has_the_three_styles():
-    shot = load(HERE / "shot.yml")
+    shot = load(HERE / "shots" / "axes.yml")
     assert [layer.raw["style"] for layer in shot.layers[1:]] == ["ruled", "arrows", "triad"]
 
 

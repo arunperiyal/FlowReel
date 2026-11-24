@@ -1,0 +1,15 @@
+# Two frame folders side by side, each labelled. The first box sets the scene's length:
+# its eight frames at the film's rate. Paths are from this file's folder.
+# Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: main
+    shot: {frames: ../frames/bare}
+    pos: [0, 0]
+    size: [480, 270]
+  - shot: {frames: ../frames/helical}
+    pos: [480, 0]
+    size: [480, 270]
+  - text: {lines: [bare], size: 24, align: left}
+    pos: [14, 8]
+  - text: {lines: [helical], size: 24, colour: '#ffcc66', align: right}
+    pos: [466, 8]

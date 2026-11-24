@@ -1,0 +1,6 @@
+# The tag 'channel': the generated long case, a channel 200 long whose floor is the body
+# (a beam along x). Reference: docs/guide/projects/data.md.
+kind: plt
+source: {path: plt}
+bodies:
+  floor: {zone: floor, axis: x}

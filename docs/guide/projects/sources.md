@@ -262,7 +262,7 @@ frames above:
 
 ```bash
 python examples/grooves/run.py grooves.png
-flowreel shot preview examples/grooves/shot.yml
+flowreel shot preview examples/grooves/shots/grooves.yml
 ```
 
 ## Example

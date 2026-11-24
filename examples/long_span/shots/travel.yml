@@ -1,0 +1,14 @@
+# A window 20 long travels along the 200-long channel with its floor; the camera follows
+# the same station. Each frame reads only the window's part of the PLT file.
+name: travel
+source: {tag: channel, margin: 0.5}   # the tag, read with a margin round the window
+time: {steps: [0, 9]}
+crop:
+  around: {body: floor, station: {from: 20, to: 180, frames: [0, 9], ease: linear}}
+  half: [10, 3, 3]
+camera: {view: close, follow: true}
+size: [480, 270]
+layers:
+  - {type: outline, bounds: crop, colour: "#8fa3b3", width: 2}
+  - {type: slice, normal: z, position: 0, field: U, range: [0, 2], colormap: viridis}
+  - {type: body, body: floor, colour: "#c8ccd0"}

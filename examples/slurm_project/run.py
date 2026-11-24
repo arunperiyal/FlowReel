@@ -21,7 +21,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SHOT = """name: wake
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/
 time: {frozen: 0, frames: 24}
 camera: {view: main}
 size: [160, 90]
@@ -47,7 +47,9 @@ def main(folder: Path) -> None:
     folder.mkdir(parents=True)
     (folder / "wake.yml").write_text(SHOT)
     (folder / "cameras.yml").write_text(CAMERAS)
-    (folder / "flowreel.yml").write_text("")             # a project (docs/guide/projects/project.md)
+    (folder / "flowreel.yml").write_text("tags: [cylinder]\n")   # a project (docs/guide/projects/project.md)
+    flowreel(folder, "data", "import", "geometry", "--name", "grooved_cylinder", "--tag",
+             "cylinder", env=os.environ)               # a body made in code, no files
     sbatch = folder / "bin" / "sbatch"
     sbatch.parent.mkdir()
     sbatch.write_text(f"#!/bin/bash\nexec {sys.executable} {HERE / 'fake_sbatch.py'} \"$@\"\n")

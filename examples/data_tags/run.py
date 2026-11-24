@@ -13,7 +13,7 @@ DIR/cases/. Then, from the shell commands:
 4. The units filled in (as you would by hand), ``data check``, ``data list``, ``data info``.
 5. ``data extract sections smooth``: the force on 4 sections along the body at every
    step, from the flow, declared as the body's ``sections``; panels/liftmap.yml draws it
-   against the span and time (``compose panel``, body ``smooth.cyl``).
+   against the span and time (``panel draw``, body ``smooth.cyl``).
 6. shots/wake.yml names its tag (``source: smooth``); ``project info`` lists both.
 7. ``data rename grooved helical``, then ``data remove helical`` (the case stays).
 """
@@ -77,7 +77,7 @@ def main(folder: Path) -> None:
     for name in ("panels/liftmap.yml", "shots/wake.yml"):
         (film / name).parent.mkdir(exist_ok=True)
         shutil.copy(HERE / name, film / name)
-    flowreel("compose panel panels/liftmap.yml", film)
+    flowreel("panel draw panels/liftmap.yml", film)
     flowreel("project info", film)
     flowreel("data rename grooved helical", film)
     flowreel("data remove helical", film)

@@ -105,6 +105,20 @@ def test_a_vtk_case_with_its_body_file(project, tmp_path):
     assert "ball" in domain.bodies and domain.measured["steps"]["count"] == 2
 
 
+def test_a_vtk_flow_may_be_a_pattern(project, tmp_path):
+    run_dir = tmp_path / "vtkrun"
+    run_dir.mkdir()
+    for k in range(2):
+        g = pv.ImageData(dimensions=(4, 4, 4)).cast_to_unstructured_grid()
+        g.point_data["U"] = g.point_data["V"] = g.point_data["W"] = np.zeros(g.n_points)
+        g.save(run_dir / f"flow_{k}.vtu")
+    status, _, err = run(f"data import vtk --path {run_dir} --flow 'flow_*.vtu' --tag run")
+    assert status == 0, err
+    assert load_domain(project / "data" / "run").measured["steps"]["count"] == 2
+    status, _, err = run(f"data import vtk --path {run_dir} --flow 'wake_*.vtu' --tag again")
+    assert status != 0 and "no wake_*.vtu in" in err
+
+
 def test_a_geometry_tag(project):
     status, _, err = run("data import geometry --name mass --tag ball --param size=0.5")
     assert status == 0, err

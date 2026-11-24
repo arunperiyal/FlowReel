@@ -1,32 +1,33 @@
-"""Panels: time histories drawn to each frame's time, then tiled by a layout.
+"""Panels: time histories drawn to each frame's time, tiled in a scene.
 
 Usage: python run.py [DIR]   (default ./panels_example)
 
-Needs no data. It writes generated histories into DIR/data (two cylinders' lift, drag
-and motion, and a pendulum's swing, sampled every 0.2), then:
+Needs no data. It makes DIR a project, and writes generated histories into
+DIR/data/cases/series (two cylinders' lift, drag and motion, and a pendulum's swing,
+sampled every 0.2); data/cases/domain.yml declares them as the bodies ``bare``,
+``helical`` and ``pendulum`` of the tag ``cases``. Then:
 
-1. compare.yml: a series panel, three rows on one time axis (DIR/frames/compare/).
-2. phase.yml: a phase panel, the pendulum's angle against the motion (DIR/frames/phase/).
-3. board.yml: both tiled into one picture (DIR/frames/board/).
-4. The panels again: nothing changed, so every frame is skipped.
-5. rate_board.yml: the layout draws the panels itself, as the film will, at three
-   output frames per flow frame with a freeze of six frames at flow frame 5. The
-   compare panel is composed at the flow's rate (DIR/frames/rate_board_flow/); the phase
-   panel, marked rate: output, is drawn once per output frame (DIR/frames/phase_output/).
+1. panels/compare.yml: a series panel, three rows on one time axis (DIR/frames/compare/).
+2. panels/phase.yml: a phase panel, the pendulum's angle against the motion
+   (DIR/frames/phase/).
+3. The panels again: nothing changed, so every frame is skipped.
+4. layouts/board.yml, the scene ``board`` of film.yml: both panels in one picture. The
+   build draws the panels itself, at their boxes' size and at the film's rate (6 frames
+   a second: each time of a panel held for three frames), with a freeze of a second at
+   2.5 s. ``film lengths`` plans it; ``scene preview`` draws stills (DIR/frames/scenes/board/).
 
 The panels' times fall between the samples (every 0.5 against 0.2), so the dots sit on
 values interpolated between saved samples.
 """
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
 
-from flowreel import compose
-
 HERE = Path(__file__).parent
-FILES = ("flowreel.yml", "style.yml", "compare.yml", "phase.yml", "board.yml", "rate_board.yml")
 
 
 def write_data(folder: Path) -> None:
@@ -48,24 +49,25 @@ def write_data(folder: Path) -> None:
 
 
 def main(folder: Path) -> None:
+    def flowreel(*args: str) -> str:
+        """The command's output, paths from DIR and without its timings."""
+        done = subprocess.run([sys.executable, "-m", "flowreel", *args], cwd=folder,
+                              capture_output=True, text=True)
+        if done.returncode:
+            raise SystemExit(done.stderr or done.stdout)
+        return re.sub(r" in [\d.]+ s", "", done.stdout.strip().replace(f"{folder}/", ""))
+
     folder.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
-        shutil.copy(HERE / name, folder / name)
-    write_data(folder / "data")
-    frames = folder / "frames"
-    for name in ("compare.yml", "phase.yml"):
-        report = compose.panel(folder / name, frames, jobs=2)
-        print(f"{report.folder.name}: {report.count('drawn')} drawn")
-    report = compose.layout(folder / "board.yml", frames)
-    print(f"{report.folder.name}: {report.count('composed')} composed")
-    for name in ("compare.yml", "phase.yml"):
-        report = compose.panel(folder / name, frames, jobs=2)
-        print(f"{report.folder.name}: {report.count('skipped')} skipped")
-    output = compose.output_positions(16, per_frame=3, holds=[(5, 6)])
-    report = compose.layout(folder / "rate_board.yml", frames, output=output)
-    print(f"{report.folder.name}: {report.count('composed')} composed")
-    for tile, panel in report.overlays:
-        print(f"{panel.folder.name}: {panel.count('drawn')} drawn at {tile.at}")
+    flowreel("project", "init", "--force")
+    for sub in ("panels", "layouts", "data"):
+        shutil.copytree(HERE / sub, folder / sub, dirs_exist_ok=True)
+    shutil.copy(HERE / "film.yml", folder / "film.yml")
+    write_data(folder / "data" / "cases" / "series")
+    for jobs in ("2", "1"):                      # the second pass skips every frame
+        for name in ("compare", "phase"):
+            print(flowreel("panel", "draw", f"panels/{name}.yml", "-j", jobs).splitlines()[-1])
+    print(flowreel("film", "lengths"))
+    print(flowreel("scene", "preview", "board", "--at", "1", "3", "6").splitlines()[-1])
 
 
 if __name__ == "__main__":

@@ -116,5 +116,6 @@ holds it for the shot's `seconds`.
 
 ## Example
 
-`examples/film_cards/run.py` draws a card file with a generated logo, every kind of
-block, and prints where each block falls. It needs no data.
+The example of this page, `examples/film_cards/`, moved to text boxes with the film of
+scenes: `examples/text_boxes/run.py` draws a logo, a title, a divider and text as boxes of
+a scene. It needs no data.

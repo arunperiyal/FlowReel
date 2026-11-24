@@ -1,0 +1,9 @@
+# The film of this example: one scene, a second long, of the boxes in layouts/text_boxes.yml.
+# Reference: docs/guide/film/film.md.
+output: film.mp4
+fps: 24
+size: [1920, 1080]
+scenes:
+  - name: text_boxes
+    seconds: 1
+    layout: text_boxes

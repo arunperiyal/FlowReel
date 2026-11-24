@@ -1,4 +1,5 @@
 # Shared by every film of the project (included by film.yml).
 style:
   colours: {text: '#f2f2f2', muted: '#96a5b2'}
-  caption: {size: 50, shadow: true, fade: 0.8}
+  looks:
+    text: {size: 50, shadow: true, fade: 0.8, valign: bottom}

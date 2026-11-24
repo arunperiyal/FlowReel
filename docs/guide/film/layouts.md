@@ -96,3 +96,11 @@ layout file's own name for a box written there (`layouts/compare.yml: boxes[2].t
 missing key 'lines'`). Among the checks: a box shows one kind; a name is not used twice;
 `follow` names a shot box; `at` lies inside a scene of known `seconds`; a scene has
 `seconds` exactly when it has no main box; `last_frame` names another scene.
+
+## Examples
+
+- `examples/scene_layouts/run.py DIR`: frame folders in boxes, side by side and on a grid,
+  with text labels; `film lengths` and `scene preview`.
+- `examples/compare/run.py DIR`: the comparison of two generated cases (wakes and live
+  plots, a freeze) and a lift map, as two scenes.
+- `examples/flow_panels/run.py` and `examples/panels/run.py`: panels tiled in a scene.

@@ -1,0 +1,11 @@
+# The cylinder seen from +y, coloured by the wall shear along the span: positive on
+# one half, negative on the other, and the white line between them where it is zero.
+type: strip
+size: [960, 270]
+times: [0, 0.5, 1.0, 1.5]
+source: cylinder                  # the tag: data/cylinder/
+body: cylinder
+side: y
+field: wall_shear
+component: x
+range: [-0.6, 0.6]

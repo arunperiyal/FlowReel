@@ -1,0 +1,12 @@
+# Both panels tiled, each drawn by the build at its box's size. The panels' times fall
+# 0.5 apart: at 2 frames a second they are 8 seconds long, and the phase panel's dot
+# moves between them, a frame at a time at the film's own rate, and stops through the
+# freeze. Paths are from this file's folder. Reference: docs/guide/film/layouts.md.
+boxes:
+  - name: compare
+    panel: {file: ../panels/compare.yml, rate: {fps: 2}, freezes: [{at: 2.5, hold: 1}]}
+    pos: [0, 0]
+    size: [480, 720]
+  - panel: {file: ../panels/phase.yml, rate: {fps: 2}, freezes: [{at: 2.5, hold: 1}]}
+    pos: [480, 180]
+    size: [480, 360]

@@ -1,0 +1,20 @@
+# The tag 'cases' of this example. It has histories and no flow, so it is a body made in
+# code (kind geometry) that carries them: run.py writes the CSV files into series/.
+# The pendulum is a virtual body, drawn from its swing. Reference:
+# docs/guide/projects/data.md and docs/guide/projects/bodies.md.
+kind: geometry
+source: {body: grooved_cylinder}
+bodies:
+  bare:
+    series:
+      force: {file: series/bare_force.csv, columns: {cl: CL, cd: CD}}
+      motion: series/bare_motion.csv
+  helical:
+    series:
+      force: {file: series/helical_force.csv, columns: {cl: CL, cd: CD}}
+      motion: series/helical_motion.csv
+  pendulum:
+    virtual: true
+    shape: pendulum
+    series:
+      swing: series/pendulum.csv

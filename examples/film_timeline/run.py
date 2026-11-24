@@ -1,11 +1,11 @@
-"""Lay out a short film from its files and print its timeline.
+"""Lay out a short film from its files and print its plan and captions.
 
 Usage: python run.py [DIR]   (default ./film_timeline_example)
 
-Needs no data: it writes generated frames into DIR (a wake of 120 frames at 24 frames
-a second, a comparison of 48 frames at 8), copies film.yml, style.yml and text/, and
-prints when each shot starts, how long it lasts, its freezes and its captions' times.
-Nothing is drawn: the film build comes in later branches.
+Needs no data: it makes DIR a project, writes generated frames into it (a wake of 120
+frames at 24 frames a second, a comparison of 48 frames at 8), copies film.yml and
+style.yml, and prints each scene's planned length (``film lengths``) and the captions
+with their times (``film srt``). Nothing is drawn or built.
 """
 import shutil
 import sys
@@ -13,30 +13,25 @@ from pathlib import Path
 
 from PIL import Image
 
-from flowreel import film
-
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from tag_project import flowreel  # noqa: E402
 FRAMES = {"wake": 120, "compare": 48}
 
 
 def main(folder: Path) -> None:
     folder.mkdir(parents=True, exist_ok=True)
+    flowreel(folder, "project", "init", "--force")
     for name in ("film.yml", "style.yml"):
         shutil.copy(HERE / name, folder / name)
-    shutil.copytree(HERE / "text", folder / "text", dirs_exist_ok=True)
     for name, n in FRAMES.items():
         out = folder / "frames" / name
         out.mkdir(parents=True, exist_ok=True)
         for i in range(n):
             Image.new("RGB", (64, 36), (i * 2 % 256, 40, 80)).save(out / f"frame_{i:05d}.png")
-    t = film.timeline(film.load(folder / "film.yml"))
-    for s in t.shots:
-        print(f"{s.shot.name:8s} {s.start:5.2f} s + {s.length:5.2f} s")
-        for f in s.freezes:
-            print(f"  freeze on frame {f.frame} at {f.start:g} s for {f.hold:g} s")
-    for c in t.captions:
-        print(f"  {c.start:5.2f} to {c.end:5.2f} s  {c.caption.lines[0]}")
-    print(f"film {t.length:.2f} s")
+    print(flowreel(folder, "film", "lengths").strip())
+    flowreel(folder, "film", "srt")
+    print((folder / "film.srt").read_text().strip())
 
 
 if __name__ == "__main__":

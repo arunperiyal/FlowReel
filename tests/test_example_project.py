@@ -1,4 +1,4 @@
-"""examples/project/run.sh: project init with a data link, a render from shots/, info, clean."""
+"""examples/project/run.sh: project init, a geometry tag, a render from shots/, info, clean."""
 import os
 import shutil
 import subprocess
@@ -20,7 +20,8 @@ def test_example_makes_uses_and_cleans_a_project(tmp_path):
     assert done.returncode == 0, done.stderr[-2000:]
     root = tmp_path / "ex" / "film"
     out = done.stdout
-    assert "linked" in out and (root / "data" / "case").is_symlink()
+    assert (root / "data" / "cylinder" / "domain.yml").is_file()
+    assert "tags:    cylinder (geometry" in out
     assert "2 rendered" in out and f"-> {root / 'frames' / 'cylinder@160x90'}" in out
     assert "shots/cylinder.yml: cylinder, 0 frames drawn (2 in drafts)" in out
     assert "would remove frames/" in out

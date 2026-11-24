@@ -1,0 +1,15 @@
+# A close camera travels along a bent riser 40 diameters long, its focal point on the
+# riser's centre at each station. The shot names the body `riser`, as declared in
+# the tag's domain.yml; the axis (x) and the section's width come from that declaration too.
+name: riser_travel
+source: bent                     # the tag: data/bent/
+time: {frozen: 0, frames: 12}
+camera:
+  view: close
+  follow: riser
+  station: {from: 4, to: 36, frames: [0, 11], ease: linear}
+size: [640, 360]
+lights: raking
+layers:
+  - {type: body, body: riser, colour: "#c8ccd0"}
+  - {type: body, body: ball, colour: "#e0a030"}

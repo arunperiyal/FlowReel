@@ -21,14 +21,14 @@ def test_example_runs_the_film_commands(tmp_path):
     assert done.returncode == 0, done.stderr[-2000:]
     out = done.stdout.splitlines()
     assert out[0] == "wrote template.yml"
-    first, second = [k for k, l in enumerate(out) if l.startswith("shot ")][::2]
+    first, second = [k for k, l in enumerate(out) if l.startswith("scene ")][::2]
     assert out[first + 2] == "wake       4.50 s       -  "         # lengths, before the build
     assert "-: no finished clip yet (film build)" in out
     assert "wake       4.50 s    4.50 s  built" in out
     assert out[second + 2] == "wake       4.50 s    4.50 s"           # lengths, after it
     assert "Thanks       0:07     7.00 s    1.50 s" in out
     assert any(l.startswith("wrote contact.png") for l in out)
-    assert "wrote film.srt: 4 captions" in out
+    assert "wrote film.srt: 4 subtitles" in out
     assert out[-3:] == ["0:00 Opening", "0:02 The wake", "0:07 Thanks"]
     assert "YouTube's 10 s" in done.stderr
     ex = tmp_path / "ex"

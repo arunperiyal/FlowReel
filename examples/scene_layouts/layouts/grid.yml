@@ -1,0 +1,17 @@
+# Four boxes on a 2 x 2 grid, 6 pixels apart. The title is one picture, an image box,
+# shown through the others. The first shot box sets the scene's length.
+# Reference: docs/guide/film/boxes.md.
+boxes:
+  - image: {file: ../frames/title/frame_00000.png, fit: contain}
+    pos: [0, 0]
+    size: [477, 267]
+  - name: main
+    shot: {frames: ../frames/bare}
+    pos: [483, 0]
+    size: [477, 267]
+  - shot: {frames: ../frames/helical}
+    pos: [0, 273]
+    size: [477, 267]
+  - shot: {frames: ../frames/bare}
+    pos: [483, 273]
+    size: [477, 267]

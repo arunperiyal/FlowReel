@@ -14,14 +14,13 @@ sys.path.insert(0, sys.argv[1])
 import run                                   # examples/film_build/run.py
 folder = Path(sys.argv[2])
 folder.mkdir(parents=True, exist_ok=True)
-for name in ("film.yml", "card.yml"):
-    shutil.copy(run.HERE / name, folder / name)
+shutil.copy(run.HERE / "film.yml", folder / "film.yml")
 run.wake(folder / "frames" / "wake")
 run.tone(folder / "tone.wav")
 PY
 cd "$DIR"
-$FLOWREEL project init --force >/dev/null              # a project; film.yml is kept
-$FLOWREEL film template wake -o template.yml --force   # a film file to start from
+$FLOWREEL project init --force >/dev/null              # a project
+$FLOWREEL film template --scenes -o template.yml --force   # a film of scenes to start from
 $FLOWREEL film lengths                                 # planned; nothing built yet
 $FLOWREEL film build --preview 180
 $FLOWREEL film lengths                                 # now measured too

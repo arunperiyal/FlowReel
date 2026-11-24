@@ -1,0 +1,33 @@
+# Text, a logo, lines and shapes over a picture, all boxes of one layout. A box shows one
+# thing, under its kind: `text`, `image` or `shape`. Positions are in the film's pixels
+# (1920 x 1080); `place` takes a half or a quarter of the frame instead. A text box with
+# `at: [from, to]` is a subtitle shown for those seconds; here the boxes show all through
+# the scene. Paths are from this file's folder. Reference: docs/guide/film/boxes.md.
+boxes:
+  - image: {file: ../assets/wake.png, fit: stretch}          # a generated picture
+  - image: {file: ../assets/logo.png, fit: contain}          # a generated logo
+    pos: [830, 60]
+    size: [260, 160]
+  - text: {lines: ['Flow past a cylinder', 'with helical grooves'], look: title, size: 60, valign: top}
+    pos: [360, 250]
+    size: [1200, 200]
+  - shape: {kind: line, width: 2, colour: '#96a5b2'}         # a divider
+    pos: [780, 470]
+    size: [360, 3]
+  - text: {lines: ['The wake, coloured by $\omega_z D/U$'], colour: '#f5a142', valign: bottom}
+    place: bottom
+  - text: {lines: ['Each groove $0.08D$ deep', 'and $0.2D$ wide'], size: 40, align: left, box: true}
+    pos: [1080, 520]
+    size: [440, 110]
+  - shape: {kind: arrow, direction: up_right, width: 4, shadow: true}   # to the groove
+    pos: [1040, 650]
+    size: [100, 100]
+  - shape: {kind: circle, width: 3}                          # a circle in a square box
+    pos: [160, 560]
+    size: [200, 200]
+  - shape: {kind: circle, width: 2, colour: '#6fb6d6'}       # an ellipse: the box is not square
+    pos: [420, 600]
+    size: [320, 130]
+  - shape: {kind: rectangle, width: 3, radius: 10}
+    pos: [160, 800]
+    size: [300, 140]

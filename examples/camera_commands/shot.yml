@@ -1,7 +1,7 @@
 # A shot that needs no data: the grooved cylinder of the geometry source (12 long, along
 # x). run.sh makes its camera track 'turn' with camera orbit, round the middle groove.
 name: turn
-source: geometry:grooved_cylinder
+source: cylinder                    # the tag: data/cylinder/ (a generated body)
 time: {frozen: 0, frames: 48}
 camera: {track: turn}
 size: [640, 360]

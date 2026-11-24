@@ -460,7 +460,8 @@ class SceneBuilder:
             contents.pictures[box_name] = picture
             if view is not None:
                 contents.views[box_name] = view
-        return draw_frame(self.film, p.scene, t, contents, length=p.length)
+        stills = self.__dict__.setdefault("_stills", {}).setdefault(name, {})
+        return draw_frame(self.film, p.scene, t, contents, length=p.length, cache=stills)
 
     def _encode(self, p: Placed, held: dict, path: Path, last: Path) -> None:
         from flowreel.film.clips import encode_args

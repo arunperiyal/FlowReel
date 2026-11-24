@@ -175,7 +175,8 @@ def info(root: str | Path) -> ProjectInfo:
     root = Path(root).resolve()
     out = ProjectInfo(root)
     try:
-        out.bodies = list(load_project(root).named_bodies())
+        project = load_project(root)
+        out.bodies = [n for n in project.named_bodies() if "." in n or n in project.bodies]
     except Exception as exc:                       # reported, not raised: see the module
         out.errors.append(str(exc))
     from flowreel.project.imports import state, tags

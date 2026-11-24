@@ -984,7 +984,7 @@ The decisions, for every branch:
 - [x] Shots name a tag (`source: TAG`, `{tag, kind, ...options}`); flow panels and layouts
   too; bodies as `tag.body` where tags meet; `source: adapter:path` still read until
   Phase 10's last branch removes it
-- [ ] Frame keys, `project info`, the doctor and the camera editor follow
+- [x] Frame keys, `project info`, the doctor and the camera editor follow
 - [ ] Tests, docs, the YAML reference
 
 **Branch 6: `phase9/data-migrate`** (moved to Phase 10, 2026-11-24)

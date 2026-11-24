@@ -70,10 +70,12 @@ class ShotEntry:
 @dataclass
 class ProjectInfo:
     """What :func:`info` found. Sizes are bytes; ``errors`` are lines about files that
-    did not load."""
+    did not load. ``tags`` are ``(name, summary, ok)``: ``ok`` is false when the tag's
+    data link does not resolve or its ``domain.yml`` does not load."""
 
     root: Path
     bodies: list[str] = field(default_factory=list)
+    tags: list[tuple[str, str, bool]] = field(default_factory=list)
     shots: list[ShotEntry] = field(default_factory=list)
     views: list[str] = field(default_factory=list)
     tracks: list[str] = field(default_factory=list)
@@ -95,6 +97,8 @@ class ProjectInfo:
         if self.links:
             lines.append("data:    " + ", ".join(f"{n} -> {t}" for n, t in self.links))
         lines.append(f"source:  {names(self.sources) if self.shots else 'none (no shot yet)'}")
+        if self.tags:
+            lines.append("tags:    " + "; ".join(f"{n} ({s})" for n, s, _ in self.tags))
         lines.append(f"bodies:  {names(self.bodies)}")
         lines.append(f"shots:   {len(self.shots) or 'none'}")
         for s in self.shots:
@@ -137,6 +141,9 @@ def _source_text(value) -> str:
     (``body cylinder=wall.vtp``)."""
     if not isinstance(value, dict):
         return str(value)
+    if "tag" in value:
+        extra = ", ".join(f"{k} {v}" for k, v in value.items() if k != "tag")
+        return f"{value['tag']}" + (f" ({extra})" if extra else "")
     text = ":".join(str(value[k]) for k in ("adapter", "path") if k in value)
     body = value.get("body")
     if isinstance(body, dict):
@@ -153,9 +160,22 @@ def info(root: str | Path) -> ProjectInfo:
     root = Path(root).resolve()
     out = ProjectInfo(root)
     try:
-        out.bodies = list(load_project(root).bodies)
+        out.bodies = list(load_project(root).named_bodies())
     except Exception as exc:                       # reported, not raised: see the module
         out.errors.append(str(exc))
+    from flowreel.project.imports import state, tags
+    for name in tags(root):
+        s = state(root, name)
+        if s.kind is None:
+            out.tags.append((name, "domain.yml does not load", False))
+            out.errors += [f"data/{name}/{p}" for p in s.problems]
+            continue
+        parts = [s.kind]
+        if s.steps:
+            parts.append(f"{s.steps[2]} steps")
+        if not s.resolves:
+            parts.append("link does not resolve")
+        out.tags.append((name, ", ".join(parts), s.resolves))
     for p in shot_files(root):
         entry = ShotEntry(str(p.relative_to(root)))
         try:

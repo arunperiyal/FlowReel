@@ -187,6 +187,10 @@ def project_lines(start: str | Path | None = None) -> list[Line]:
     lines = [Line("folder", str(root)),
              Line("shots", str(len(found.shots)) if found.shots else "none yet"),
              Line("film", found.film or "none")]
+    if found.tags:
+        lines.insert(1, Line("tags", ", ".join(n for n, _, _ in found.tags)))
+        lines += [Line(f"tag {n}", f"{s} (flowreel data check {n})", "note")
+                  for n, s, ok in found.tags if not ok]
     lines += [Line("error", e, "note") for e in found.errors]
     return lines
 

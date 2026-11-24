@@ -210,6 +210,10 @@ def load(path: str | Path) -> Film:
 def from_dict(data, file: str | None = None) -> Film:
     """Check ``data`` (a parsed YAML mapping) and build the :class:`Film`."""
     check = Checker(file)
+    if isinstance(data, dict) and "scenes" in data:
+        raise check.at("scenes").error(
+            "this is a film of scenes (flowreel.film.model); this command reads a film of "
+            "shots, and builds films of scenes from Phase 10's scene build on")
     data = check.mapping(data, KEYS, required=("shots",))
     folder = Path(file).parent if file else Path(".")
     output = folder / check.at("output").string(data.get("output", "film.mp4"))

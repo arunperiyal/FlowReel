@@ -102,6 +102,7 @@ nav:
           - Layouts: guide/composing/layouts.md
           - Panels: guide/composing/panels.md
       - The film:
+          - A film of scenes: guide/film/scenes.md
           - The film file: guide/film/film.md
           - Captions and shapes: guide/film/captions.md
           - Cards: guide/film/cards.md

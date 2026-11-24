@@ -153,6 +153,15 @@ def _source_text(value) -> str:
     return text
 
 
+def _scene_film(path: Path) -> bool:
+    from flowreel.film.model import is_scene_film
+    from flowreel.yamlfile import read_yaml
+    try:
+        return is_scene_film(read_yaml(path))
+    except Exception:
+        return False
+
+
 def info(root: str | Path) -> ProjectInfo:
     """What the project at ``root`` holds (see the module)."""
     from flowreel.project import load_project
@@ -196,7 +205,16 @@ def info(root: str | Path) -> ProjectInfo:
         except Exception as exc:
             out.errors.append(str(exc))
     film = root / FILM_FILE
-    if film.exists():
+    if film.exists() and _scene_film(film):
+        from flowreel.film.model import load as load_scenes
+        try:
+            f = load_scenes(film)
+            n = len(f.scenes)
+            out.film = f"{FILM_FILE}: {n} scene{'s' * (n != 1)}"
+        except Exception as exc:
+            out.film = f"{FILM_FILE}: does not load"
+            out.errors.append(str(exc))
+    elif film.exists():
         from flowreel.film.schema import load
         from flowreel.film.timeline import timeline
         try:

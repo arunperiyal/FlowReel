@@ -190,6 +190,7 @@ def find_row(rows: list[Row], path: str) -> Row | None:
 def file_types():
     """``(title, file, guide page, [(prefix, keys, page), ...])`` for every file type."""
     from flowreel.compose import layout_file, panel_file, panels
+    from flowreel.film import model
     from flowreel.compose.flow_panels import SectionPanel, StripPanel
     from flowreel.compose.series_panel import AXIS_KEYS, LINE_KEYS, MARGIN_KEYS
     from flowreel.compose.style import KEYS as STYLE_KEYS
@@ -262,6 +263,26 @@ def file_types():
             ("shots[].rate", schema.RATE_KEYS, "guide/film/film.md"),
             ("shots[].freezes[]", schema.FREEZE_KEYS, "guide/film/film.md"),
             ("shots[].chapter", schema.CHAPTER_KEYS, "guide/film/build.md"),
+        ]),
+        ("Film of scenes", "film.yml with scenes:", "guide/film/scenes.md", [
+            ("", model.KEYS, "guide/film/scenes.md#the-film"),
+            ("style", model.STYLE_KEYS, "guide/film/scenes.md#style"),
+            ("style.colours", model.COLOUR_KEYS, "guide/film/scenes.md#style"),
+            ("style.looks.NAME", model.LOOK_KEYS, "guide/film/scenes.md#style"),
+            ("watermark", ("scenes",), "guide/film/scenes.md#the-film"),
+            ("scenes[]", model.SCENE_KEYS, "guide/film/scenes.md#scenes"),
+            ("scenes[].layout", model.LAYOUT_KEYS, "guide/film/scenes.md#layouts"),
+        ]),
+        ("Layout", "layouts/NAME.yml, or a scene's layout", "guide/film/scenes.md", [
+            ("", model.LAYOUT_KEYS, "guide/film/scenes.md#layouts"),
+            ("boxes[]", model.BOX_KEYS, "guide/film/scenes.md#boxes"),
+            ("boxes[].follow", model.FOLLOW_KEYS, "guide/film/scenes.md#follow-a-box-on-a-point-of-the-flow"),
+            ("boxes[].text", model.TEXT_KEYS, "guide/film/scenes.md#text"),
+            ("boxes[].image", model.IMAGE_KEYS, "guide/film/scenes.md#image"),
+            ("boxes[].shape", model.SHAPE_KEYS, "guide/film/scenes.md#shape"),
+            ("boxes[].shot", model.SHOT_KEYS, "guide/film/scenes.md#shot"),
+            ("boxes[].shot.freezes[]", model.FREEZE_KEYS, "guide/film/scenes.md#shot"),
+            ("boxes[].panel", model.PANEL_KEYS, "guide/film/scenes.md#panel-and-last_frame"),
         ]),
         ("Captions", "text/NAME.yml, or a shot's text", "guide/film/film.md", [
             ("[]", text.KEYS, "guide/film/film.md"),

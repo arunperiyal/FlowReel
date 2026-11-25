@@ -7,7 +7,7 @@ is one shot filling the frame; captions are text boxes laid over it
 
 ## The film file and its first scene
 
-`project init` wrote a starting `film.yml` of an older kind. Replace it with this:
+`project init` wrote a starting `film.yml`, with placeholder scenes. Replace it with this:
 
 ```yaml
 output: film.mp4

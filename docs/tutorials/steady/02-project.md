@@ -43,8 +43,8 @@ a `.gitignore`, and `flowreel.yml`, which marks the folder as a project.
 
 ```text
 $ flowreel data import vtk --path ../cases/cylinder_crossflow --tag crossflow --body cylinder=../cases/cylinder_crossflow/cylinder.vtp
-linked data/crossflow/vtk -> /home/you/films/cases/cylinder_crossflow
-wrote data/crossflow/domain.yml: fill in the units (docs/guide/projects/data.md#units)
+linked /home/you/films/cylinder/data/crossflow/vtk -> /home/you/films/cases/cylinder_crossflow
+wrote /home/you/films/cylinder/data/crossflow/domain.yml: fill in the units (docs/guide/projects/data.md#units)
 ```
 
 The case is now the tag `crossflow`. Nothing was copied: `data/crossflow/vtk` is a link
@@ -102,8 +102,8 @@ output:  frames/ 0 B, clips/ 0 B, .flowreel/ 0 B
 
 `data check` looks at every tag: its link, its source, its units, its series. `project
 info` lists what the project holds. It is nearly empty: **source** is read from the
-shots, and there are none yet; **film** is the starting `film.yml`, which chapter 7
-replaces. The folders now hold:
+shots, and there are none yet; **film** is the starting `film.yml`, which names a shot
+`shots/cylinder.yml` that does not exist, so it does not load: chapter 7 replaces it. The folders now hold:
 
 ```text
 films/

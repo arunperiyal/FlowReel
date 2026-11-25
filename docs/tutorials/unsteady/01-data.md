@@ -74,9 +74,7 @@ bodies:
   first tutorial.
 - **`series`**: `force.csv` holds `time, fx, fy, mz`, the drag, the lift and the
   moment the solver wrote. Its path is taken from the tag's folder. Any program that
-  writes CSV will do ([bodies](../../guide/projects/bodies.md#series)); for a FlexFlow
-  case, `data import history` writes the series itself
-  ([histories from FlexFlow](../../guide/projects/data.md#histories-from-flexflow)).
+  writes CSV will do ([bodies](../../guide/projects/bodies.md#series)).
 
 ```text
 $ flowreel data check

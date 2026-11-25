@@ -10,11 +10,10 @@ extension:
   ``CameraParallelProjection``, ``CameraParallelScale``.
 - ``.py``: a ParaView Python state or trace, with lines such as
   ``renderView1.CameraPosition = [-19.0, 13.0, -5.0]``.
-- ``.yml`` / ``.yaml``: a flexflow camera frame (``flexflow field render
-  --pick-camera``), or any ``cameras.yml``, whose view of that name (or only view) is
+- ``.yml`` / ``.yaml``: a camera frame (the keys of a view), or any ``cameras.yml``, whose view of that name (or only view) is
   taken.
 
-Numbers are taken as they are: ParaView and flexflow use the same camera as FlowReel
+Numbers are taken as they are: ParaView uses the same camera as FlowReel
 (VTK's), so the view looks the same. FlowReel reads these files itself (plan Section 14:
 no dependency on flexflow or ParaView).
 """

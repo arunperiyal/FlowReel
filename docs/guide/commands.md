@@ -232,7 +232,7 @@ flowreel camera import FILE [NAME] [--index I] [--view V] [--force] [-c FILE]
 ```
 
 Adds the camera of a ParaView state (`.pvsm`), a ParaView Python state or trace (`.py`),
-or a flexflow camera frame or another `cameras.yml` (`.yml`) as view `NAME` (default
+or a YAML camera frame or another `cameras.yml` (`.yml`) as view `NAME` (default
 `main`). `--index I` picks a render view of a ParaView file (from 0), `--view V` a view of
 a `cameras.yml`. A view of the same name is replaced only with `--force`
 ([importing a view](shots/cameras.md#importing-a-view)).

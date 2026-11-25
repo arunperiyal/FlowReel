@@ -51,7 +51,7 @@ keys: s save view, u undo, r replace nearest, p play, n next step""",
     "import": """examples:
   flowreel camera import state.pvsm wide              a ParaView state's camera, as 'wide'
   flowreel camera import trace.py top --index 1       the second render view of a trace
-  flowreel camera import cam.yml close                a flexflow camera frame""",
+  flowreel camera import cam.yml close                a YAML camera frame""",
     "project": """examples:
   flowreel camera project --view main --points 6,0.42,0.18 0,0,0
   flowreel camera project --track carve --points 6,0.42,0.18 --frames 0:288:24
@@ -176,9 +176,9 @@ class CameraCommand(BaseCommand):
         o.add_argument("--ease", default="smooth", metavar="E", help="over the whole turn (smooth)")
         _cameras_arg(o)
 
-        i = _parser(actions, "import", help="a view from ParaView or flexflow",
+        i = _parser(actions, "import", help="a view from ParaView or a YAML file",
                     description="Add a view to cameras.yml from a ParaView state (.pvsm), a "
-                                "ParaView Python state or trace (.py), or a flexflow camera "
+                                "ParaView Python state or trace (.py), or a YAML camera "
                                 "frame or another cameras.yml (.yml).")
         i.add_argument("file", metavar="FILE", help="the file holding the camera")
         i.add_argument("view_name", nargs="?", default="main", metavar="NAME",

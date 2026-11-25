@@ -554,8 +554,7 @@ usage: flowreel camera import [-h] [--index I] [--view V] [--force] [-c FILE]
                               FILE [NAME]
 
 Add a view to cameras.yml from a ParaView state (.pvsm), a ParaView Python
-state or trace (.py), or a flexflow camera frame or another cameras.yml
-(.yml).
+state or trace (.py), or a YAML camera frame or another cameras.yml (.yml).
 
 positional arguments:
   FILE                  the file holding the camera
@@ -573,7 +572,7 @@ options:
 examples:
   flowreel camera import state.pvsm wide              a ParaView state's camera, as 'wide'
   flowreel camera import trace.py top --index 1       the second render view of a trace
-  flowreel camera import cam.yml close                a flexflow camera frame
+  flowreel camera import cam.yml close                a YAML camera frame
 ```
 
 ### `flowreel camera project`

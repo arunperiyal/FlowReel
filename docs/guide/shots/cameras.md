@@ -6,8 +6,9 @@ Lengths are in the source's unit; angles in degrees.
 
 ## Views (`cameras.yml`)
 
-A view is a flexflow camera frame, so a file written by `flexflow field render
---pick-camera` is a valid single view (named `main`).
+A view is a VTK camera: a position, a focal point, an up direction and an angle of view.
+A YAML file holding just those keys is a valid single view (named `main`), and
+`camera import` reads views from other programs' files (below).
 
 | Key | Type | Default | Example |
 |---|---|---|---|
@@ -132,9 +133,9 @@ file; it is what `camera import` writes.
 |---|---|
 | `.pvsm` | a ParaView state (*File > Save State*): the camera of render view `index` |
 | `.py` | a ParaView Python state or trace: lines like `renderView1.CameraPosition = [...]`; the last assignment wins; render views counted in the order their camera is first set |
-| `.yml`, `.yaml` | a flexflow camera frame (`--pick-camera`), or a `cameras.yml` (its only view, or `view`) |
+| `.yml`, `.yaml` | a YAML camera frame (the keys of a view), or a `cameras.yml` (its only view, or `view`) |
 
-ParaView, flexflow and FlowReel all use VTK's camera, so the numbers are taken as they
+ParaView and FlowReel both use VTK's camera, so the numbers are taken as they
 are and the view looks the same. A perspective view's `parallel_scale` is dropped, since
 it does nothing.
 
